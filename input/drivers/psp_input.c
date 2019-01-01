@@ -29,7 +29,7 @@
 
 #include "../../gfx/drivers/psp_sdk_defines.h"
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../libretro.h"
 #include "../../general.h"
 #include "../input_common.h"
@@ -171,4 +171,5 @@ input_driver_t input_psp = {
    psp_input_get_joypad_driver,
    psp_input_keyboard_mapping_is_blocked,
    psp_input_keyboard_mapping_set_block,
+   NULL // haptic_feedback
 };

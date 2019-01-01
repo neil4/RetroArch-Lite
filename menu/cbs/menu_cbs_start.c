@@ -13,12 +13,14 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "../../libretro-common/include/file/file_path.h"
 #include "../menu.h"
 #include "../menu_cbs.h"
 #include "../menu_input.h"
 #include "../menu_setting.h"
 #include "../menu_shader.h"
 #include "../menu_hash.h"
+#include "../menu_entry.h"
 
 #include "../../general.h"
 #include "../../retroarch.h"
@@ -35,18 +37,168 @@ static int action_start_remap_file_load(unsigned type, const char *label)
 
    settings->input.remapping_path[0] = '\0';
    input_remapping_set_defaults();
+   rarch_main_msg_queue_push("Default input map applied", 1, 100, true);
    return 0;
 }
 
-static int action_start_video_filter_file_load(unsigned type, const char *label)
+static int action_start_remap_file_delete_core(unsigned type, const char *label)
+{
+   char directory[PATH_MAX_LENGTH]  = {0};
+   char buf[PATH_MAX_LENGTH]        = {0};
+   char fullpath[PATH_MAX_LENGTH]   = {0};
+   global_t *global                 = global_get_ptr();
+   settings_t *settings             = config_get_ptr();
+   const char *core_name            = global ? global->libretro_name : NULL;
+
+   fill_pathname_join(directory,settings->input_remapping_directory,core_name,PATH_MAX_LENGTH);
+   fill_pathname_join(buf,directory,core_name,PATH_MAX_LENGTH);
+   fill_pathname_noext(fullpath, buf, ".rmp", PATH_MAX_LENGTH);
+
+   if (!path_file_exists(fullpath))
+   {
+      rarch_main_msg_queue_push("Core remap file does not exist", 1, 100, true);
+      return 0;
+   }
+
+   if (remove(fullpath))
+      rarch_main_msg_queue_push("Error deleting remap file", 1, 100, true);
+   else
+   {
+      rarch_main_msg_queue_push("Deleted Core remap file", 1, 100, true);
+      if (!strcmp(fullpath, settings->input.remapping_path))
+         settings->input.remapping_path[0] = '\0';
+   }
+
+   return 0;
+}
+
+static int action_start_remap_file_delete_game(unsigned type, const char *label)
+{
+   char directory[PATH_MAX_LENGTH]  = {0};
+   char buf[PATH_MAX_LENGTH]        = {0};
+   char fullpath[PATH_MAX_LENGTH]   = {0};
+   global_t *global                 = global_get_ptr();
+   settings_t *settings             = config_get_ptr();
+   const char *core_name            = global ? global->libretro_name
+                                               : NULL;
+   const char *game_name            = global ? path_basename(global->basename)
+                                               : NULL;
+
+   fill_pathname_join(directory,settings->input_remapping_directory,core_name,PATH_MAX_LENGTH);
+   fill_pathname_join(buf,directory,game_name,PATH_MAX_LENGTH);
+   fill_pathname_noext(fullpath, buf, ".rmp", PATH_MAX_LENGTH);
+
+   if (!path_file_exists(fullpath))
+   {
+      rarch_main_msg_queue_push("ROM remap file does not exist", 1, 100, true);
+      return 0;
+   }
+
+   if (remove(fullpath))
+      rarch_main_msg_queue_push("Error deleting remap file", 1, 100, true);
+   else
+   {
+      rarch_main_msg_queue_push("Deleted ROM remap file", 1, 100, true);
+      if (!strcmp(fullpath, settings->input.remapping_path))
+         settings->input.remapping_path[0] = '\0';
+   }
+
+   return 0;
+}
+
+static int action_start_options_file_delete_game(unsigned type, const char *label)
+{
+   char directory[PATH_MAX_LENGTH] = {0};
+   char abs_path[PATH_MAX_LENGTH]  = {0};
+   global_t *global                = global_get_ptr();
+   settings_t *settings            = config_get_ptr();
+   const char *core_name           = global ? global->libretro_name
+                                              : NULL;
+   const char *game_name           = global ? path_basename(global->basename)
+                                              : NULL;
+   char *opt_path;
+   
+   if (!global || !settings)
+      return 0;
+
+   fill_pathname_join(directory, settings->menu_config_directory,
+                      core_name, PATH_MAX_LENGTH);
+   fill_pathname_join(abs_path, directory, game_name, PATH_MAX_LENGTH);
+   strlcat(abs_path, ".opt", PATH_MAX_LENGTH);
+
+   if(!path_file_exists(abs_path))
+   {
+      rarch_main_msg_queue_push("ROM Options file does not exist", 1, 100, true);
+      return 0;
+   }
+   
+   if (remove(abs_path))
+      rarch_main_msg_queue_push("Error deleting ROM Options file", 1, 100, true);
+   else
+      rarch_main_msg_queue_push("Deleted ROM Options file", 1, 100, true);
+   
+   opt_path = core_option_conf_path(global->system.core_options);
+   core_option_get_core_conf_path(opt_path);
+   
+   return 0;
+}
+
+static int action_start_shader_preset(unsigned type, const char *label)
 {
    settings_t *settings = config_get_ptr();
 
    if (!settings)
       return -1;
 
-   settings->video.softfilter_plugin[0] = '\0';
+   settings->video.shader_path[0] = '\0';
+   game_settings_touched = true;
+   settings_touched = true;
    event_command(EVENT_CMD_REINIT);
+   return 0;
+}
+
+static int action_start_shader_preset_delete(unsigned type, const char *label)
+{
+   settings_t *settings = config_get_ptr();
+   const char              *menu_dir = NULL;
+   char preset_path[PATH_MAX_LENGTH] = {0};
+   menu_handle_t               *menu = menu_driver_get_ptr();
+   menu_list_t            *menu_list = menu_list_get_ptr();
+   menu_entry_t entry;
+   size_t selected;
+   
+   if (!settings || !menu || !menu_list)
+      return -1;
+
+   (void)preset_path;
+   (void)menu_dir;
+   (void)menu_list;
+   
+   // get directory
+   menu_list_get_last_stack(menu_list, &menu_dir, NULL, NULL, NULL);
+   
+   // get filename
+   selected = menu_navigation_get_current_selection();
+   selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
+   menu_entry_get(&entry, selected, NULL, false);
+
+   fill_pathname_join(preset_path, menu_dir, entry.path, PATH_MAX_LENGTH);
+
+   if (remove(preset_path))
+      rarch_main_msg_queue_push("Error deleting shader preset", 1, 100, true);
+   else
+   {
+      rarch_main_msg_queue_push("Deleted shader preset", 1, 100, true);
+      menu_entries_set_refresh();
+      if (!strcmp(preset_path, settings->video.shader_path))
+      {
+         settings->video.shader_path[0] = '\0';
+         game_settings_touched = true;
+         settings_touched = true;
+         event_command(EVENT_CMD_REINIT);
+      }
+   }
+   
    return 0;
 }
 
@@ -276,8 +428,17 @@ int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_REMAP_FILE_LOAD:
          cbs->action_start = action_start_remap_file_load;
          break;
-      case MENU_LABEL_VIDEO_FILTER:
-         cbs->action_start = action_start_video_filter_file_load;
+      case MENU_LABEL_REMAP_FILE_SAVE_CORE:
+         cbs->action_start = action_start_remap_file_delete_core;
+         break;
+      case MENU_LABEL_REMAP_FILE_SAVE_GAME:
+         cbs->action_start = action_start_remap_file_delete_game;
+         break;
+      case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
+         cbs->action_start = action_start_options_file_delete_game;
+         break;
+      case MENU_LABEL_VIDEO_SHADER_PRESET:
+         cbs->action_start = action_start_shader_preset;
          break;
       case MENU_LABEL_VIDEO_SHADER_PASS:
          cbs->action_start = action_start_shader_pass;
@@ -304,7 +465,9 @@ int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
 static int menu_cbs_init_bind_start_compare_type(menu_file_list_cbs_t *cbs,
       unsigned type)
 {
-   if (type >= MENU_SETTINGS_SHADER_PARAMETER_0
+   if (type == MENU_FILE_SHADER_PRESET)
+         cbs->action_start = action_start_shader_preset_delete;
+   else if (type >= MENU_SETTINGS_SHADER_PARAMETER_0
          && type <= MENU_SETTINGS_SHADER_PARAMETER_LAST)
       cbs->action_start = action_start_shader_action_parameter;
    else if (type >= MENU_SETTINGS_SHADER_PRESET_PARAMETER_0

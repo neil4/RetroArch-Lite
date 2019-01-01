@@ -30,7 +30,6 @@
 #include "menu_navigation.h"
 #include "menu_setting.h"
 #include "../libretro.h"
-#include "../playlist.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,9 +67,6 @@ typedef struct
    struct video_shader *shader;
 
    menu_input_t input;
-
-   content_playlist_t *playlist;
-   char db_playlist_file[PATH_MAX_LENGTH];
 } menu_handle_t;
 
 typedef struct menu_ctx_driver

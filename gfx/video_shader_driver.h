@@ -74,8 +74,10 @@ extern const shader_backend_t shader_null_backend;
 
 #if defined(HAVE_CG) || defined(HAVE_HLSL) || defined(HAVE_GLSL)
 
+#ifndef NO_SHADER_MANAGER
 #ifndef HAVE_SHADER_MANAGER
 #define HAVE_SHADER_MANAGER
+#endif
 #endif
 
 #include "video_shader_parse.h"

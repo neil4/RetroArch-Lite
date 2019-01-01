@@ -47,10 +47,7 @@ void menu_shader_manager_init(menu_handle_t *menu)
 
    shader = (struct video_shader*)menu->shader;
 
-   if (*global->core_specific_config_path
-         && settings->core_specific_config)
-      config_path = global->core_specific_config_path;
-   else if (*global->config_path)
+   if (*global->config_path)
       config_path = global->config_path;
 
    /* In a multi-config setting, we can't have
@@ -140,8 +137,6 @@ void menu_shader_manager_set_preset(struct video_shader *shader,
    config_file_t *conf         = NULL;
    settings_t *settings        = config_get_ptr();
 
-   settings->video.shader_enable = false;
-
    if (!video_driver_set_shader((enum rarch_shader_type)type, preset_path))
       return;
 
@@ -149,7 +144,6 @@ void menu_shader_manager_set_preset(struct video_shader *shader,
     * Only do this when the cgp actually works to avoid potential errors. */
    strlcpy(settings->video.shader_path, preset_path ? preset_path : "",
          sizeof(settings->video.shader_path));
-   settings->video.shader_enable = true;
 
    if (!preset_path)
       return;

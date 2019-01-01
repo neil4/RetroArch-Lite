@@ -7,15 +7,18 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBar.Tab;
+import android.support.v7.app.ActionBar.TabListener;
 import android.support.v7.app.ActionBarActivity;
 
-import com.retroarch.R;
-import com.retroarch.browser.preferences.fragments.AudioPreferenceFragment;
+import com.retroarchlite.R;
+import com.retroarch.browser.preferences.fragments.AudioVideoPreferenceFragment;
 import com.retroarch.browser.preferences.fragments.GeneralPreferenceFragment;
 import com.retroarch.browser.preferences.fragments.InputPreferenceFragment;
 import com.retroarch.browser.preferences.fragments.PathPreferenceFragment;
-import com.retroarch.browser.preferences.fragments.VideoPreferenceFragment;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
 import com.retroarch.browser.preferences.util.UserPreferences;
 
@@ -25,91 +28,147 @@ import com.retroarch.browser.preferences.util.UserPreferences;
  * This class can be considered the central activity for the settings, as this class
  * provides the backbone for the {@link ViewPager} that handles all of the fragments being used.
  */
-public final class PreferenceActivity extends ActionBarActivity implements OnSharedPreferenceChangeListener
+public final class PreferenceActivity extends ActionBarActivity implements TabListener, OnSharedPreferenceChangeListener
 {
-	@Override
-	public void onCreate(Bundle savedInstanceState)
-	{
-		super.onCreate(savedInstanceState);
+   // ViewPager for the fragments.
+   private ViewPager viewPager;
 
-		// Set the ViewPager.
-		setContentView(R.layout.preference_viewpager);
+   @Override
+   public void onCreate(Bundle savedInstanceState)
+   {
+      super.onCreate(savedInstanceState);
 
-		// Initialize the ViewPager.
-		final ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
-		viewPager.setAdapter(new PreferencesAdapter(getSupportFragmentManager()));
+      // Set the ViewPager.
+      setContentView(R.layout.preference_viewpager);
+      viewPager = (ViewPager) findViewById(R.id.viewPager);
 
-		// Register the preference change listener.
-		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		sPrefs.registerOnSharedPreferenceChangeListener(this);
-	}
+      // Initialize the ViewPager adapter.
+      final PreferencesAdapter adapter = new PreferencesAdapter(getSupportFragmentManager());
+      viewPager.setAdapter(adapter);
 
-	@Override
-	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
-	{
-		// Update the config file immediately when a preference has changed.
-		UserPreferences.updateConfigFile(this);
-	}
+      // Register the preference change listener.
+      final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+      sPrefs.registerOnSharedPreferenceChangeListener(this);
 
-	/**
-	 * The {@link FragmentPagerAdapter} that will back
-	 * the view pager of this {@link PreferenceActivity}.
-	 */
-	private final class PreferencesAdapter extends FragmentPagerAdapter
-	{
-		private final String[] pageTitles = {
-			getString(R.string.general_options),
-			getString(R.string.audio_options),
-			getString(R.string.input_options),
-			getString(R.string.video_options),
-			getString(R.string.path_options)
-		};
+      // Initialize the ActionBar.
+      final ActionBar actionBar = getSupportActionBar();
+      actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+      actionBar.addTab(actionBar.newTab().setText(R.string.general_options).setTabListener(this));
+      actionBar.addTab(actionBar.newTab().setText(R.string.audio_video_options).setTabListener(this));
+      actionBar.addTab(actionBar.newTab().setText(R.string.input_options).setTabListener(this));
+      actionBar.addTab(actionBar.newTab().setText(R.string.path_options).setTabListener(this));
 
-		/**
-		 * Constructor
-		 * 
-		 * @param fm the {@link FragmentManager} for this adapter.
-		 */
-		public PreferencesAdapter(FragmentManager fm)
-		{
-			super(fm);
-		}
+      // When swiping between different sections, select the corresponding
+      // tab. We can also use ActionBar.Tab#select() to do this if we have
+      // a reference to the Tab.
+      viewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener()
+      {
+         @Override
+         public void onPageSelected(int position)
+         {
+            actionBar.setSelectedNavigationItem(position);
+         }
+      } );
+   }
 
-		@Override
-		public Fragment getItem(int fragmentId)
-		{
-			switch (fragmentId)
-			{
-				case 0:
-					return new GeneralPreferenceFragment();
+   @Override
+   public void onTabSelected(Tab tab, FragmentTransaction ft)
+   {
+      // Switch to the fragment indicated by the tab's position.
+      viewPager.setCurrentItem(tab.getPosition());
+   }
 
-				case 1:
-					return new AudioPreferenceFragment();
+   @Override
+   public void onTabUnselected(Tab tab, FragmentTransaction ft)
+   {
+      // Do nothing.
+   }
 
-				case 2:
-					return new InputPreferenceFragment();
-					
-				case 3:
-					return new VideoPreferenceFragment();
+   @Override
+   public void onTabReselected(Tab tab, FragmentTransaction ft)
+   {
+      // Do nothing
+   }
 
-				case 4:
-					return new PathPreferenceFragment();
+   @Override
+   public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
+   {
+      // Do nothing
+   }
+   
+   @Override
+   public void onDestroy()
+   {
+      // TODO: Update config file only when preferences actually changed.
+      // Note: Choosing a directory path does not invoke onSharedPreferenceChanged
+      UserPreferences.updateConfigFile(this);
+      super.onDestroy();
+   }
 
-				default: // Should never happen
-					return null;
-			}
-		}
+   /**
+    * The {@link FragmentPagerAdapter} that will back
+    * the view pager of this {@link PreferenceActivity}.
+    */
+   private final class PreferencesAdapter extends FragmentPagerAdapter
+   {
+      /**
+       * Constructor
+       * 
+       * @param fm the {@link FragmentManager} for this adapter.
+       */
+      public PreferencesAdapter(FragmentManager fm)
+      {
+         super(fm);
+      }
 
-		@Override
-		public CharSequence getPageTitle(int position)
-		{
-			return pageTitles[position];
-		}
+      @Override
+      public Fragment getItem(int fragmentId)
+      {
+         switch (fragmentId)
+         {
+            case 0:
+               return new GeneralPreferenceFragment();
 
-		@Override
-		public int getCount()
-		{
-			return 5;
-		}
-	}
+            case 1:
+               return new AudioVideoPreferenceFragment();
+
+            case 2:
+               return new InputPreferenceFragment();
+               
+            case 3:
+               return new PathPreferenceFragment();
+
+            default: // Should never happen
+               return null;
+         }
+      }
+
+      @Override
+      public CharSequence getPageTitle(int position)
+      {
+         switch (position)
+         {
+            case 0:
+               return getString(R.string.general_options);
+
+            case 1:
+               return getString(R.string.audio_video_options);
+
+            case 2:
+               return getString(R.string.input_options);
+
+            case 3:
+               return getString(R.string.path_options);
+
+            default: // Should never happen
+               return null;
+         }
+      }
+
+      @Override
+      public int getCount()
+      {
+         return 4;
+      }
+   }
 }

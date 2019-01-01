@@ -21,7 +21,7 @@
 #include "ctr_sprite_shader_shbin.h"
 
 #include "../../general.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../video_viewport.h"
 #include "../video_monitor.h"
 

@@ -24,9 +24,6 @@
 #ifdef HAVE_THREADS
 #include <rthreads/rthreads.h>
 #endif
-#ifdef HAVE_LIBRETRODB
-#include "database_info.h"
-#endif
 #include "tasks/tasks.h"
 
 #ifdef __cplusplus
@@ -120,51 +117,15 @@ typedef struct nbio_handle
    unsigned status;
 } nbio_handle_t;
 
-#ifdef HAVE_LIBRETRODB
-typedef struct database_state_handle
-{
-   database_info_list_t *info;
-   struct string_list *list;
-   size_t list_index;
-   size_t entry_index;
-   uint32_t crc;
-   uint8_t *buf;
-   char zip_name[PATH_MAX_LENGTH];
-} database_state_handle_t;
-
-typedef struct db_handle
-{
-   database_state_handle_t state;
-   database_info_handle_t *handle;
-   msg_queue_t *msg_queue;
-   unsigned status;
-} db_handle_t;
-#endif
-
 typedef struct data_runloop
 {
 #ifdef HAVE_NETWORKING
    http_handle_t http;
 #endif
 
-#ifdef HAVE_LIBRETRODB
-   db_handle_t db;
-#endif
-
    nbio_handle_t nbio;
    bool inited;
 
-#ifdef HAVE_THREADS
-   bool thread_inited;
-   unsigned thread_code;
-   bool alive;
-
-   slock_t *lock;
-   slock_t *cond_lock;
-   slock_t *overlay_lock;
-   scond_t *cond;
-   sthread_t *thread;
-#endif
 } data_runloop_t;
 
 void rarch_main_data_msg_queue_push(unsigned type,

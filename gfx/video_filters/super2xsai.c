@@ -14,7 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Compile: gcc -o supertwoxsai.so -shared supertwoxsai.c -std=c99 -O3 -Wall -pedantic -fPIC
+/* Compile: gcc -o supertwoxsai.so -shared supertwoxsai.c -std=c99 -O3 -Wall -pedantic -fPIC */
 
 #include "softfilter.h"
 #include <stdlib.h>
@@ -68,16 +68,18 @@ static void *supertwoxsai_generic_create(const struct softfilter_config *config,
       unsigned max_width, unsigned max_height,
       unsigned threads, softfilter_simd_mask_t simd, void *userdata)
 {
+   struct filter_data *filt = (struct filter_data*)calloc(1, sizeof(*filt));
+   if (!filt)
+      return NULL;
+
    (void)simd;
    (void)config;
    (void)userdata;
 
-   struct filter_data *filt = (struct filter_data*)calloc(1, sizeof(*filt));
-   if (!filt)
-      return NULL;
    filt->workers = (struct softfilter_thread_data*)calloc(threads, sizeof(struct softfilter_thread_data));
    filt->threads = 1;
    filt->in_fmt  = in_fmt;
+
    if (!filt->workers)
    {
       free(filt);
@@ -199,11 +201,11 @@ static void supertwoxsai_generic_destroy(void *data)
 #endif
 
 static void supertwoxsai_generic_xrgb8888(unsigned width, unsigned height,
-      int first, int last, uint32_t *src, 
+      int first, int last, uint32_t *src,
       unsigned src_stride, uint32_t *dst, unsigned dst_stride)
 {
-   unsigned nextline, finish;
-   nextline = (last) ? 0 : src_stride;
+   unsigned finish;
+   unsigned nextline = (last) ? 0 : src_stride;
 
    for (; height; height--)
    {
@@ -219,7 +221,7 @@ static void supertwoxsai_generic_xrgb8888(unsigned width, unsigned height,
          //                             1  2  3 S1
          //                               A1 A2
          //--------------------------------------
-         
+
          supertwoxsai_function(supertwoxsai_result, supertwoxsai_interpolate_xrgb8888, supertwoxsai_interpolate2_xrgb8888);
       }
 
@@ -229,11 +231,11 @@ static void supertwoxsai_generic_xrgb8888(unsigned width, unsigned height,
 }
 
 static void supertwoxsai_generic_rgb565(unsigned width, unsigned height,
-      int first, int last, uint16_t *src, 
+      int first, int last, uint16_t *src,
       unsigned src_stride, uint16_t *dst, unsigned dst_stride)
 {
-   unsigned nextline, finish;
-   nextline = (last) ? 0 : src_stride;
+   unsigned finish;
+   unsigned nextline = (last) ? 0 : src_stride;
 
    for (; height; height--)
    {
@@ -249,7 +251,7 @@ static void supertwoxsai_generic_rgb565(unsigned width, unsigned height,
          //                             1  2  3 S1
          //                               A1 A2
          //--------------------------------------
-         
+
          supertwoxsai_function(supertwoxsai_result, supertwoxsai_interpolate_rgb565, supertwoxsai_interpolate2_rgb565);
       }
 
@@ -267,7 +269,10 @@ static void supertwoxsai_work_cb_rgb565(void *data, void *thread_data)
    unsigned height = thr->height;
 
    supertwoxsai_generic_rgb565(width, height,
-         thr->first, thr->last, input, thr->in_pitch / SOFTFILTER_BPP_RGB565, output, thr->out_pitch / SOFTFILTER_BPP_RGB565);
+         thr->first, thr->last, input,
+        (unsigned)(thr->in_pitch / SOFTFILTER_BPP_RGB565),
+        output,
+        (unsigned)(thr->out_pitch / SOFTFILTER_BPP_RGB565));
 }
 
 static void supertwoxsai_work_cb_xrgb8888(void *data, void *thread_data)
@@ -279,7 +284,10 @@ static void supertwoxsai_work_cb_xrgb8888(void *data, void *thread_data)
    unsigned height = thr->height;
 
    supertwoxsai_generic_xrgb8888(width, height,
-         thr->first, thr->last, input, thr->in_pitch / SOFTFILTER_BPP_XRGB8888, output, thr->out_pitch / SOFTFILTER_BPP_XRGB8888);
+         thr->first, thr->last, input,
+            (unsigned)(thr->in_pitch / SOFTFILTER_BPP_XRGB8888),
+            output,
+            (unsigned)(thr->out_pitch / SOFTFILTER_BPP_XRGB8888));
 }
 
 static void supertwoxsai_generic_packets(void *data,
@@ -287,8 +295,9 @@ static void supertwoxsai_generic_packets(void *data,
       void *output, size_t output_stride,
       const void *input, unsigned width, unsigned height, size_t input_stride)
 {
-   struct filter_data *filt = (struct filter_data*)data;
    unsigned i;
+   struct filter_data *filt = (struct filter_data*)data;
+
    for (i = 0; i < filt->threads; i++)
    {
       struct softfilter_thread_data *thr = (struct softfilter_thread_data*)&filt->workers[i];

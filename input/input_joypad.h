@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include "../driver.h"
+#include "../configuration.h"
 #include <retro_inline.h>
 
 /**

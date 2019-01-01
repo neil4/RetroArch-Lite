@@ -20,7 +20,7 @@
 #include "audio_monitor.h"
 #include "audio_utils.h"
 #include "audio_thread_wrapper.h"
-#include "../driver.h"
+#include "../configuration.h"
 #include "../general.h"
 #include "../retroarch.h"
 #include "../runloop.h"
@@ -825,6 +825,7 @@ void audio_driver_frame_is_reverse(void)
 void audio_monitor_adjust_system_rates(void)
 {
    float timing_skew;
+   float timing_ratio;
    settings_t *settings = config_get_ptr();
    struct retro_system_av_info *av_info = 
       video_viewport_get_system_av_info();
@@ -834,12 +835,12 @@ void audio_monitor_adjust_system_rates(void)
    if (info->sample_rate <= 0.0)
       return;
 
-   timing_skew                 = fabs(1.0f - info->fps / 
-                                 settings->video.refresh_rate);
+   timing_ratio                = settings->video.refresh_rate / info->fps;
+   timing_skew                 = fabs(1.0f - timing_ratio);
    audio_data.in_rate = info->sample_rate;
 
    if (timing_skew <= settings->audio.max_timing_skew)
-      audio_data.in_rate *= (settings->video.refresh_rate / info->fps);
+      audio_data.in_rate *= timing_ratio;
 
    RARCH_LOG("Set audio input rate to: %.2f Hz.\n",
          audio_data.in_rate);

@@ -17,7 +17,7 @@
 #ifndef RARCH_VIDEO_THREAD_H__
 #define RARCH_VIDEO_THREAD_H__
 
-#include "../driver.h"
+#include "../configuration.h"
 #include "../general.h"
 #include <boolean.h>
 #include <rthreads/rthreads.h>

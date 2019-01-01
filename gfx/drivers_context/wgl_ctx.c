@@ -21,7 +21,7 @@
 #define _WIN32_WINNT 0x0500 //_WIN32_WINNT_WIN2K
 #endif
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../dynamic.h"
 #include "../../runloop.h"
 #include "../video_context_driver.h"
@@ -111,10 +111,6 @@ static void create_gl_context(HWND hwnd)
       (const struct retro_hw_render_callback*)video_driver_callback();
    driver_t *driver = driver_get_ptr();
    bool debug       = hw_render->debug_context;
-
-#ifdef _WIN32
-   dll_handle = (HINSTANCE)dylib_load("OpenGL32.dll");
-#endif
 
    g_hdc = GetDC(hwnd);
    setup_pixel_format(g_hdc);
@@ -333,7 +329,8 @@ static void gfx_ctx_wgl_check_window(void *data, bool *quit,
 static void gfx_ctx_wgl_swap_buffers(void *data)
 {
    (void)data;
-   SwapBuffers(g_hdc);
+   if (wglSwapLayerBuffers(g_hdc, WGL_SWAP_MAIN_PLANE) == FALSE)
+      SwapBuffers(g_hdc);
 }
 
 static void gfx_ctx_wgl_set_resize(void *data,
@@ -396,6 +393,10 @@ static bool gfx_ctx_wgl_init(void *data)
 
    if (g_inited)
       return false;
+   
+#ifdef _WIN32
+   dll_handle = (HINSTANCE)dylib_load("OpenGL32.dll");
+#endif
 
    g_quit = false;
    g_restore_desktop = false;
@@ -603,7 +604,7 @@ static void gfx_ctx_wgl_destroy(void *data)
       ChangeDisplaySettingsEx(current_mon.szDevice, NULL, NULL, 0, NULL);
       g_restore_desktop = false;
    }
-
+   
    g_inited = false;
    g_major = g_minor = 0;
    p_swap_interval = NULL;

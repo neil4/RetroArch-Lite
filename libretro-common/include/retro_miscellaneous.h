@@ -40,8 +40,10 @@
 #if defined(_WIN32) && !defined(_XBOX)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+typedef unsigned int        uint;
 #elif defined(_WIN32) && defined(_XBOX)
 #include <Xtl.h>
+typedef unsigned int        uint;
 #endif
 #include <compat/msvc.h>
 
@@ -55,6 +57,10 @@
 
 #ifndef PATH_MAX_LENGTH
 #define PATH_MAX_LENGTH 4096
+#endif
+
+#ifndef NAME_MAX_LENGTH
+#define NAME_MAX_LENGTH 256
 #endif
 
 #ifndef max

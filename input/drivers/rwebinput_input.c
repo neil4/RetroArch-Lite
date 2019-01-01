@@ -21,7 +21,7 @@
 #include "../input_common.h"
 #include "../input_keymaps.h"
 
-#include "../../driver.h"
+#include "../../configuration.h"
 
 #include "../../general.h"
 #include "../keyboard_line.h"
@@ -259,4 +259,5 @@ input_driver_t input_rwebinput = {
    rwebinput_set_rumble,
    rwebinput_keyboard_mapping_is_blocked,
    rwebinput_keyboard_mapping_set_block,
+   NULL // haptic_feedback
 };

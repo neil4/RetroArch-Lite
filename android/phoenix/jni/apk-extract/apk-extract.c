@@ -6,8 +6,6 @@
 #include <retro_miscellaneous.h>
 #include "../native/com_retroarch_browser_NativeInterface.h"
 
-//#define VERBOSE_LOG
-
 #ifndef VERBOSE_LOG
 #undef RARCH_LOG
 #define RARCH_LOG(...)
@@ -30,10 +28,12 @@ static int zlib_cb(const char *name, const char *valid_exts,
    const char *subdir = user->subdir;
    const char *dest   = user->dest;
 
-   if (strstr(name, subdir) != name)
-      return 1;
-
-   name += strlen(subdir) + 1;
+   if ( subdir )
+   {
+      if (strstr(name, subdir) != name)
+         return 1;
+      name += strlen(subdir) + 1;  
+   }
 
    fill_pathname_join(path, dest, name, sizeof(path));
    fill_pathname_basedir(path_dir, path, sizeof(path_dir));
@@ -50,18 +50,10 @@ static int zlib_cb(const char *name, const char *valid_exts,
             cdata, cmode, csize, size, crc32, userdata))
    {
       if (cmode == 0)
-      {
          RARCH_ERR("Failed to write file: %s.\n", path);
-         return 0;
-      }
-      goto error;
    }
 
    return 1;
-
-error:
-   RARCH_ERR("Failed to deflate to: %s.\n", path);
-   return 0;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_retroarch_browser_NativeInterface_extractArchiveTo(

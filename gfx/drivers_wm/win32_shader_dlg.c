@@ -25,7 +25,7 @@
 #define _WIN32_IE 0x0300
 #endif
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../runloop.h"
 #include "../video_context_driver.h"
 #include "../drivers/gl_common.h"
@@ -166,7 +166,7 @@ void shader_dlg_params_reload(void)
 {
    HFONT hFont;
    RECT parent_rect;
-   int i, pos_x, pos_y;
+   int64_t i, pos_x, pos_y;
    struct video_shader* shader = video_shader_driver_get_current_shader();
 
    shader_dlg_params_clear();

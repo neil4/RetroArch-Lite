@@ -19,12 +19,15 @@
 
 #include <boolean.h>
 #include "libretro.h"
+#include "configuration.h"
 #include <stddef.h>
 #include <string/string_list.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+   
+extern bool options_touched;
 
 typedef struct core_option_manager core_option_manager_t;
 
@@ -149,6 +152,26 @@ void core_option_prev(core_option_manager_t *opt, size_t idx);
  * Reset core option specified by @idx and sets default value for option.
  **/
 void core_option_set_default(core_option_manager_t *opt, size_t idx);
+
+char* core_option_conf_path(core_option_manager_t *opt);
+
+/**
+ * core_option_get_core_conf_path:
+ * @param path             : pointer to PATH_MAX_LENGTH length string
+ * 
+ * Sets @path to default core-options file path
+ */
+void core_option_get_core_conf_path(char *path);
+
+/**
+ * core_option_get_game_conf_path:
+ * @param path             : pointer to PATH_MAX_LENGTH length string
+ * 
+ * Sets @path to ROM specific options file path if one exists
+ * 
+ * Returns: true if ROM options file found
+ */
+bool core_option_get_game_conf_path(char *path);
 
 #ifdef __cplusplus
 }

@@ -23,8 +23,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "menu_input.h"
 #include "menu.h"
+#include "menu_input.h"
 #include "menu_display.h"
 #include "menu_entry.h"
 #include "menu_setting.h"
@@ -155,10 +155,7 @@ void menu_input_st_string_callback(void *userdata, const char *str)
          switch (hash_label)
          {
             case MENU_LABEL_VIDEO_SHADER_PRESET_SAVE_AS:
-               menu_shader_manager_save_preset(str, false);
-               break;
-            case MENU_LABEL_REMAP_FILE_SAVE_AS:
-               input_remapping_save_file(str);
+               menu_shader_manager_save_preset(str, true);
                break;
             case MENU_LABEL_CHEAT_FILE_SAVE_AS:
                cheat_manager_save(global->cheat, str);
@@ -211,12 +208,10 @@ void menu_input_key_event(bool down, unsigned keycode,
    (void)down;
    (void)keycode;
    (void)mod;
-
-   if (character == '/')
-      menu_entry_action(NULL, 0, MENU_ACTION_SEARCH);
 }
 
-static void menu_input_poll_bind_state(struct menu_bind_state *state)
+static void menu_input_poll_bind_joypad_state(struct menu_bind_state *state,
+                                              bool return_skips)
 {
    unsigned i, b, a, h;
    const input_device_driver_t *joypad = input_driver_get_joypad_driver();
@@ -224,10 +219,11 @@ static void menu_input_poll_bind_state(struct menu_bind_state *state)
 
    if (!state)
       return;
-
+   
    memset(state->state, 0, sizeof(state->state));
-   state->skip = input_driver_state(NULL, 0,
-         RETRO_DEVICE_KEYBOARD, 0, RETROK_RETURN);
+   state->skip = (return_skips ?
+                  input_driver_state(NULL, 0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RETURN)
+                  : false);
 
    if (!joypad)
    {
@@ -375,19 +371,60 @@ static bool menu_input_poll_find_trigger(struct menu_bind_state *state,
    return false;
 }
 
-static bool menu_input_custom_bind_keyboard_cb(void *data, unsigned code)
+/* Workaround for misbound arrow keys */
+static enum retro_key keypad_to_arrow(enum retro_key code)
+{
+   if (code == RETROK_KP2)
+      return RETROK_DOWN;
+   if (code == RETROK_KP4)
+      return RETROK_LEFT;
+   if (code == RETROK_KP6)
+      return RETROK_RIGHT;
+   if (code == RETROK_KP8)
+      return RETROK_UP;
+   
+   return code;
+}
+
+static bool menu_input_hotkey_bind_keyboard_cb(void *data, unsigned code)
 {
    menu_input_t *menu_input = menu_input_get_ptr();
 
    if (!menu_input)
       return false;
-
+   
+   code = keypad_to_arrow(code);
    menu_input->binds.target->key = (enum retro_key)code;
-   menu_input->binds.begin++;
-   menu_input->binds.target++;
-   menu_input->binds.timeout_end = rarch_get_time_usec() +
-      MENU_KEYBOARD_BIND_TIMEOUT_SECONDS * 1000000;
+   menu_input->binds.begin = menu_input->binds.last + 1;
 
+   return (menu_input->binds.begin <= menu_input->binds.last);
+}
+
+static bool menu_input_retropad_bind_keyboard_cb(void *data, unsigned code)
+{
+   menu_input_t *menu_input = menu_input_get_ptr();
+   retro_time_t time_since_cb;
+   static retro_time_t last_cb_usec;
+   static enum retro_key last_code = RETROK_UNKNOWN;
+
+   if (!menu_input)
+      return false;
+   
+   time_since_cb = rarch_get_time_usec() - last_cb_usec;
+   last_cb_usec = rarch_get_time_usec();
+   
+   // Guard against held or repeated keys
+   if (time_since_cb > 100000 && code != last_code)
+   {
+      last_code = code;
+      code = keypad_to_arrow(code);
+      menu_input->binds.target->key = (enum retro_key)code;
+      menu_input->binds.begin++;
+      menu_input->binds.target++;
+      menu_input->binds.timeout_end = rarch_get_time_usec() +
+         MENU_KEYBOARD_BIND_TIMEOUT_SECONDS_LONG * 1000000;  
+   }
+   
    return (menu_input->binds.begin <= menu_input->binds.last);
 }
 
@@ -446,15 +483,21 @@ static int menu_input_set_bind_mode_common(rarch_setting_t  *setting,
    return 0;
 }
 
-static int menu_input_set_timeout(void)
+static int menu_input_set_timeout(enum menu_input_bind_mode type)
 {
-   menu_handle_t       *menu = menu_driver_get_ptr();
+   menu_handle_t      *menu = menu_driver_get_ptr();
    menu_input_t *menu_input = menu_input_get_ptr();
+   global_t         *global = global_get_ptr();
+   
+   int64_t time = (type == MENU_INPUT_BIND_SINGLE ?
+                   MENU_KEYBOARD_BIND_TIMEOUT_SECONDS
+                   : MENU_KEYBOARD_BIND_TIMEOUT_SECONDS_LONG);
 
-   menu_input->binds.timeout_end   = rarch_get_time_usec() +
-      MENU_KEYBOARD_BIND_TIMEOUT_SECONDS * 1000000;
-   input_keyboard_wait_keys(menu,
-         menu_input_custom_bind_keyboard_cb);
+   menu_input->binds.timeout_end = rarch_get_time_usec() + time * 1000000;
+   if (global->menu.bind_mode_keyboard)  // bind-all: keyboard mode
+      input_keyboard_wait_keys(menu, menu_input_retropad_bind_keyboard_cb);
+   else if (type == MENU_INPUT_BIND_SINGLE)  // hotkey: keyboard or joypad
+      input_keyboard_wait_keys(menu, menu_input_hotkey_bind_keyboard_cb);
 
    return 0;
 }
@@ -469,7 +512,7 @@ int menu_input_set_keyboard_bind_mode(void *data,
    if (menu_input_set_bind_mode_common(setting, type) == -1)
       return -1;
 
-   return menu_input_set_timeout();
+   return menu_input_set_timeout(type);
 }
 
 int menu_input_set_input_device_bind_mode(void *data,
@@ -484,85 +527,95 @@ int menu_input_set_input_device_bind_mode(void *data,
       return -1;
 
    menu_input_poll_bind_get_rested_axes(&menu_input->binds);
-   menu_input_poll_bind_state(&menu_input->binds);
+   menu_input_poll_bind_joypad_state(&menu_input->binds, false);
 
-   return 0;
+   return menu_input_set_timeout(type);
 }
 
-static int menu_input_bind_iterate_keyboard(int64_t current, int timeout)
+static int menu_input_bind_keyboard_stopcheck()
 {
-   bool           timed_out = false;
    menu_input_t *menu_input = menu_input_get_ptr();
    driver_t         *driver = driver_get_ptr();
 
    if (!menu_input)
       return -1;
 
-   if (timeout <= 0)
-   {
-      /* Could be unsafe, but whatever. */
-      menu_input->binds.target->key = RETROK_UNKNOWN;
-
-      menu_input->binds.begin++;
-      menu_input->binds.target++;
-      menu_input->binds.timeout_end = rarch_get_time_usec() +
-         MENU_KEYBOARD_BIND_TIMEOUT_SECONDS * 1000000;
-      timed_out = true;
-   }
-
    /* binds.begin is updated in keyboard_press callback. */
    if (menu_input->binds.begin > menu_input->binds.last)
    {
       /* Avoid new binds triggering things right away. */
       driver->flushing_input = true;
-
-      /* We won't be getting any key events, so just cancel early. */
-      if (timed_out)
-         input_keyboard_wait_keys_cancel();
-
+      input_keyboard_wait_keys_cancel();
       return 1;
    }
 
    return 0;
 }
 
-int menu_input_bind_iterate(void)
+static int menu_input_bind_handle_timeout(menu_input_t *menu_input, bool hotkey_bind)
+{
+   if (hotkey_bind)
+   {
+      menu_input->binds.target->key = RETROK_UNKNOWN;
+      menu_input->binds.target->joykey = NO_BTN;
+   }
+   
+   menu_input->binds.begin = menu_input->binds.last + 1;
+   input_keyboard_wait_keys_cancel();
+   return 1;
+}
+
+int menu_input_bind_iterate(uint32_t label_hash)
 {
    int64_t current;
    struct menu_bind_state binds;
    char msg[PATH_MAX_LENGTH]    = {0};
+   char fmt[64]                 = {0};
    int timeout                  = 0;
    menu_input_t *menu_input     = menu_input_get_ptr();
    driver_t *driver             = driver_get_ptr();
    global_t *global             = global_get_ptr();
    bool bind_mode_kb            = global ? global->menu.bind_mode_keyboard : false;
+   static int64_t hold_ms       = 0;
+   bool hotkey_bind             = (label_hash == MENU_LABEL_CUSTOM_BIND);
 
    menu_driver_render();
 
    current = rarch_get_time_usec();
    timeout = (menu_input->binds.timeout_end - current) / 1000000;
+   
+   if (timeout <= 0)
+      return menu_input_bind_handle_timeout(menu_input, hotkey_bind);
 
-   if (bind_mode_kb)
-   snprintf(msg, sizeof(msg),
-         "[%s]\npress keyboard\n(timeout %d seconds)",
-         input_config_bind_map[
-         menu_input->binds.begin - MENU_SETTINGS_BIND_BEGIN].desc,
-         timeout);
-    else
-        snprintf(msg, sizeof(msg),
-        "[%s]\npress joypad\n(RETURN to skip)",
-        input_config_bind_map[
-        menu_input->binds.begin - MENU_SETTINGS_BIND_BEGIN].desc);
+   if (bind_mode_kb)  // keyboard, all keys
+      strlcpy(fmt, "[%s]\npress keyboard\n(timeout %d seconds)", 64);
+   else if (hotkey_bind)  // keyboard or joypad, single key
+      strlcpy(fmt, "[%s]\npress keyboard or joypad\n(timeout %d seconds)", 64);
+   else  // joypad, all keys
+      strlcpy(fmt, "[%s]\npress joypad\n(RETURN to skip)\n(timeout %d seconds)", 64);
 
+   snprintf(msg, sizeof(msg), fmt,
+            input_config_bind_map[menu_input->binds.begin
+                                  - MENU_SETTINGS_BIND_BEGIN].desc, timeout);
    menu_driver_render_messagebox(msg);
 
-   if (bind_mode_kb)
-      return menu_input_bind_iterate_keyboard(current, timeout);
+   if ( (bind_mode_kb || hotkey_bind)
+        && menu_input_bind_keyboard_stopcheck() )
+      return 1;
+   
+   // Hack: Allow user time to let go of the button in odd cases
+   if (hold_ms > 0)
+   {
+      if (rarch_get_time_usec() > hold_ms)
+         hold_ms = 0;
+      return 0;
+   }
 
    binds = menu_input->binds;
 
    input_driver_keyboard_mapping_set_block(true);
-   menu_input_poll_bind_state(&binds);
+   if (!bind_mode_kb)
+      menu_input_poll_bind_joypad_state(&binds, !hotkey_bind);
 
    if ((binds.skip && !menu_input->binds.skip) ||
          menu_input_poll_find_trigger(&menu_input->binds, &binds))
@@ -571,6 +624,7 @@ int menu_input_bind_iterate(void)
 
       /* Avoid new binds triggering things right away. */
       driver->flushing_input = true;
+      hold_ms = rarch_get_time_usec() + MENU_INPUT_BIND_HOLD_USEC;
 
       binds.begin++;
 
@@ -578,6 +632,8 @@ int menu_input_bind_iterate(void)
          return 1;
 
       binds.target++;
+      binds.timeout_end = rarch_get_time_usec() +
+         MENU_KEYBOARD_BIND_TIMEOUT_SECONDS_LONG * 1000000;
    }
    menu_input->binds = binds;
 
@@ -1034,6 +1090,10 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
       ret = MENU_ACTION_LEFT;
    else if (trigger_input & (1ULL << RETRO_DEVICE_ID_JOYPAD_RIGHT))
       ret = MENU_ACTION_RIGHT;
+   else if (trigger_input & (1ULL << RETRO_DEVICE_ID_JOYPAD_R))
+      ret = MENU_ACTION_R;
+   else if (trigger_input & (1ULL << RETRO_DEVICE_ID_JOYPAD_L))
+      ret = MENU_ACTION_L;
    else if (trigger_input & (1ULL << settings->menu_scroll_up_btn))
       ret = MENU_ACTION_SCROLL_UP;
    else if (trigger_input & (1ULL << settings->menu_scroll_down_btn))
@@ -1042,10 +1102,6 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
       ret = MENU_ACTION_CANCEL;
    else if (trigger_input & (1ULL << settings->menu_ok_btn))
       ret = MENU_ACTION_OK;
-   else if (trigger_input & (1ULL << settings->menu_search_btn))
-      ret = MENU_ACTION_SEARCH;
-   else if (trigger_input & (1ULL << RETRO_DEVICE_ID_JOYPAD_Y))
-      ret = MENU_ACTION_SCAN;
    else if (trigger_input & (1ULL << settings->menu_default_btn))
       ret = MENU_ACTION_START;
    else if (trigger_input & (1ULL << settings->menu_info_btn))

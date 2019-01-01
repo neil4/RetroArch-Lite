@@ -48,8 +48,6 @@ typedef enum menu_action
    MENU_ACTION_LEFT,
    MENU_ACTION_RIGHT,
    MENU_ACTION_OK,
-   MENU_ACTION_SEARCH,
-   MENU_ACTION_SCAN,
    MENU_ACTION_CANCEL,
    MENU_ACTION_REFRESH,
    MENU_ACTION_INFO,
@@ -59,6 +57,8 @@ typedef enum menu_action
    MENU_ACTION_SCROLL_DOWN,
    MENU_ACTION_SCROLL_UP,
    MENU_ACTION_TOGGLE,
+   MENU_ACTION_L,
+   MENU_ACTION_R,        
    MENU_ACTION_NOOP
 } menu_action_t;
 
@@ -191,7 +191,7 @@ void menu_input_st_string_callback(void *userdata, const char *str);
 
 void menu_input_st_cheat_callback(void *userdata, const char *str);
 
-int menu_input_bind_iterate(void);
+int menu_input_bind_iterate(uint32_t label_hash);
 
 unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_state);
 

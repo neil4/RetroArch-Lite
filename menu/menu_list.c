@@ -18,7 +18,7 @@
 
 #include <retro_inline.h>
 
-#include "../driver.h"
+#include "../configuration.h"
 #include "menu.h"
 #include "menu_hash.h"
 #include "menu_list.h"
@@ -249,7 +249,8 @@ static int menu_list_flush_stack_type(
       unsigned type, unsigned final_type)
 {
    if (needle)
-      return strcmp(needle, label);
+      return !strcmp(menu_hash_to_str(MENU_VALUE_MAIN_MENU), label) ?
+               0 : strcmp(needle, label);
    return type != final_type;
 }
 

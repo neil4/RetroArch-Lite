@@ -25,6 +25,19 @@
 #include <file/file_list.h>
 #include <compat/strcasestr.h>
 #include <compat/posix_string.h>
+#include "../../runloop.h"
+
+static inline void set_mame_title(file_list_t *list, const char *path)
+{
+   settings_t *settings = config_get_ptr();
+   global_t     *global = global_get_ptr();
+   char *ext;
+   
+   if (global->mame_list && settings->menu.mame_titles
+       && (ext=strrchr(path,'.')) && !strcmp(".zip", ext))
+      config_get_string(global->mame_list, path,
+                        &list->list[list->size].alt);
+}
 
 void file_list_push(file_list_t *list,
       const char *path, const char *label,
@@ -55,7 +68,10 @@ void file_list_push(file_list_t *list,
    if (label)
       list->list[list->size].label      = strdup(label);
    if (path)
+   {
       list->list[list->size].path       = strdup(path);
+      set_mame_title(list, path);
+   }
 
    list->size++;
 }

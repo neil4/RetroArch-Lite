@@ -186,6 +186,7 @@ void init_libretro_sym(bool dummy);
  **/
 void uninit_libretro_sym(void);
 
+bool libretro_get_shared_context(void);
 
 #ifdef __cplusplus
 }

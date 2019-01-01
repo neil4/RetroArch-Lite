@@ -15,12 +15,13 @@
 
 #include <retro_miscellaneous.h>
 
-#include "../driver.h"
+#include "../configuration.h"
 #include "../runloop.h"
 #include "../runloop_data.h"
 #include "tasks.h"
 
-void rarch_main_data_overlay_image_upload_iterate(bool is_thread, void *data)
+#ifdef HAVE_OVERLAY
+void rarch_main_data_overlay_image_upload_iterate(void *data)
 {
    data_runloop_t *runloop = (data_runloop_t*)data;
    driver_t        *driver = driver_get_ptr();
@@ -30,11 +31,6 @@ void rarch_main_data_overlay_image_upload_iterate(bool is_thread, void *data)
    if (!driver->overlay || !runloop)
       return;
 
-#ifdef HAVE_THREADS
-   if (is_thread)
-      slock_lock(runloop->overlay_lock);
-#endif
-
    switch (driver->overlay->state)
    {
       case OVERLAY_STATUS_DEFERRED_LOADING:
@@ -43,25 +39,14 @@ void rarch_main_data_overlay_image_upload_iterate(bool is_thread, void *data)
       default:
          break;
    }
-
-#ifdef HAVE_THREADS
-   if (is_thread)
-      slock_unlock(runloop->overlay_lock);
-#endif
 }
 
-void rarch_main_data_overlay_iterate(bool is_thread, void *data)
+void rarch_main_data_overlay_iterate(void *data)
 {
-   data_runloop_t *runloop = (data_runloop_t*)data;
    driver_t *driver = NULL;
    
    if (rarch_main_is_idle())
       return;
-
-#ifdef HAVE_THREADS
-   if (is_thread)
-      slock_lock(runloop->overlay_lock);
-#endif
 
    driver = driver_get_ptr();
 
@@ -90,8 +75,6 @@ void rarch_main_data_overlay_iterate(bool is_thread, void *data)
    }
 
 end: ;
-#ifdef HAVE_THREADS
-   if (is_thread)
-      slock_unlock(runloop->overlay_lock);
-#endif
 }
+
+#endif  // HAVE_OVERLAY

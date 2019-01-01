@@ -24,11 +24,13 @@
 #include <ctype.h>
 #include <boolean.h>
 
-#include "../driver.h"
+#include "../configuration.h"
 
 #if defined(HAVE_CG) || defined(HAVE_HLSL) || defined(HAVE_GLSL)
+#ifndef NO_SHADER_MANAGER
 #ifndef HAVE_SHADER_MANAGER
 #define HAVE_SHADER_MANAGER
+#endif
 #endif
 #endif
 
@@ -53,6 +55,8 @@
 #define MENU_SETTINGS_CORE_OPTION_START 0x10000
 
 #define MENU_KEYBOARD_BIND_TIMEOUT_SECONDS 5
+#define MENU_KEYBOARD_BIND_TIMEOUT_SECONDS_LONG 10
+#define MENU_INPUT_BIND_HOLD_USEC 170000
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,7 +70,6 @@ typedef enum
    MENU_FILE_PATH,
    MENU_FILE_DEVICE,
    MENU_FILE_CORE,
-   MENU_FILE_PLAYLIST_ENTRY,
    MENU_FILE_CONTENTLIST_ENTRY,
    MENU_FILE_SHADER_PRESET,
    MENU_FILE_SHADER,
@@ -83,11 +86,7 @@ typedef enum
    MENU_FILE_REMAP,
    MENU_FILE_DOWNLOAD_CORE,
    MENU_FILE_DOWNLOAD_CORE_INFO,
-   MENU_FILE_RDB,
-   MENU_FILE_RDB_ENTRY,
-   MENU_FILE_CURSOR,
    MENU_FILE_RECORD_CONFIG,
-   MENU_FILE_PLAYLIST_COLLECTION,
    MENU_SETTINGS,
    MENU_SETTING_DRIVER,
    MENU_SETTING_ACTION,
@@ -180,7 +179,6 @@ void menu_free(menu_handle_t *menu);
  * menu_load_content:
  *
  * Loads content into currently selected core.
- * Will also optionally push the content entry to the history playlist.
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
@@ -189,6 +187,8 @@ bool menu_load_content(void);
 void menu_common_load_content(bool persist);
 
 void menu_update_system_info(menu_handle_t *menu, bool *load_no_content);
+
+void menu_reset(void);
 
 #ifdef __cplusplus
 }

@@ -227,8 +227,19 @@ static int frontend_win32_parse_drive_list(void *data)
    return 0;
 }
 
+static void frontend_win32_get_environment_settings(int *argc, char *argv[],
+      void *args, void *params_data)
+{
+   strlcpy(g_defaults.core_info_dir, ".\\info", sizeof(g_defaults.core_info_dir));
+   strlcpy(g_defaults.core_dir, ".\\cores", sizeof(g_defaults.core_dir));
+   strlcpy(g_defaults.menu_config_dir, ".\\config", sizeof(g_defaults.menu_config_dir));
+   strlcpy(g_defaults.savestate_dir, ".\\state", sizeof(g_defaults.savestate_dir));
+   strlcpy(g_defaults.sram_dir, ".\\save", sizeof(g_defaults.sram_dir));
+   strlcpy(g_defaults.system_dir, ".\\system", sizeof(g_defaults.system_dir));
+}
+
 const frontend_ctx_driver_t frontend_ctx_win32 = {
-   NULL,						   /* environment_get */
+   frontend_win32_get_environment_settings,
    frontend_win32_init,
    NULL,                           /* deinit */
    NULL,                           /* exitspawn */

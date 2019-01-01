@@ -19,7 +19,7 @@
 
 #include <file/config_file.h>
 #include <stdint.h>
-#include "../driver.h"
+#include "../configuration.h"
 
 #ifdef __cplusplus
 extern "C" {

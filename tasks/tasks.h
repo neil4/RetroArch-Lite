@@ -33,32 +33,21 @@ extern "C" {
  * Returns: 0 when finished, -1 when we should continue
  * with the transfer on the next frame.
  **/
-void rarch_main_data_http_iterate(bool is_thread,
-   void *data);
+void rarch_main_data_http_iterate(void *data);
 #endif
 
 #ifdef HAVE_RPNG
-void rarch_main_data_nbio_image_iterate(bool is_thread,
-   void *data);
-void rarch_main_data_nbio_image_upload_iterate(bool is_thread,
-   void *data);
-#endif
-
-#ifdef HAVE_LIBRETRODB
-#ifdef HAVE_MENU
-void rarch_main_data_db_iterate(bool is_thread, void *data);
-#endif
+void rarch_main_data_nbio_image_iterate(void *data);
+void rarch_main_data_nbio_image_upload_iterate(void *data);
 #endif
 
 #ifdef HAVE_OVERLAY
-void rarch_main_data_overlay_image_upload_iterate(bool is_thread,
-   void *data);
+void rarch_main_data_overlay_image_upload_iterate(void *data);
 
-void rarch_main_data_overlay_iterate(bool is_thread, void *data);
+void rarch_main_data_overlay_iterate(void *data);
 #endif
 
-void rarch_main_data_nbio_iterate(bool is_thread,
-   void *runloop);
+void rarch_main_data_nbio_iterate(void *runloop);
     
 void data_runloop_osd_msg(const char *s, size_t len);
 

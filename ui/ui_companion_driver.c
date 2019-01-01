@@ -14,7 +14,8 @@
  */
 
 #include "ui_companion_driver.h"
-#include "../driver.h"
+#include "../configuration.h"
+#include "../configuration.h"
 #include <string.h>
 
 #ifdef HAVE_CONFIG_H

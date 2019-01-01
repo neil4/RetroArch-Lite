@@ -115,8 +115,7 @@ void menu_entries_get_core_title(char *s, size_t len)
    if (!core_version)
       core_version = "";
 
-   snprintf(s, len, "%s - %s %s", PACKAGE_VERSION,
-         core_name, core_version);
+   snprintf(s, len, "%s %s", core_name, core_version);
 }
 
 static bool menu_entries_get_nonblocking_refresh(void)

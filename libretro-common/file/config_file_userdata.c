@@ -44,6 +44,7 @@
          (*values)[i] = (T)strtod(list->elems[i].data, NULL); \
       *out_num_values = list->size; \
       string_list_free(list); \
+      if (str) free(str); \
       return true; \
    } \
    else \

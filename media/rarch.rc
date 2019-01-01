@@ -1,5 +1,5 @@
 #include "../gfx/drivers_wm/win32_resource.h"
-1                       ICON                    "retroarch-icon.ico"
+1                       ICON                    "retroarchlite-icon.ico"
 2                       24                      "rarch.manifest"
 
 IDR_MENU MENU
@@ -7,7 +7,7 @@ BEGIN
    POPUP "File"
    BEGIN
       MENUITEM "Load Core",      ID_M_LOAD_CORE
-      MENUITEM "Load Content",   ID_M_LOAD_CONTENT
+      MENUITEM "Load ROM",   ID_M_LOAD_CONTENT
       MENUITEM SEPARATOR
       MENUITEM "Close",         ID_M_QUIT
    END

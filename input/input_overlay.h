@@ -41,6 +41,65 @@ extern "C" {
  * This interface requires that the video driver has support 
  * for the overlay interface.
  */
+   
+enum overlay_eight_way_type
+{
+   DPAD_AREA = 0,
+   ANALOG_DPAD_AREA,
+   ABXY_AREA,
+   ABRL_AREA,
+   ABRL2_AREA,
+   NUM_EIGHT_WAY_TYPES
+};
+
+struct overlay_eight_way_vals
+{
+   uint64_t up;
+   uint64_t right;
+   uint64_t down;
+   uint64_t left;
+   uint64_t up_right;
+   uint64_t down_right;
+   uint64_t down_left;
+   uint64_t up_left;
+   float slope_high;
+   float slope_low;
+};
+   
+enum overlay_aspect_ratio
+{
+   OVERLAY_ASPECT_RATIO_9_19 = 0,
+   OVERLAY_ASPECT_RATIO_9_18_5,
+   OVERLAY_ASPECT_RATIO_1_2,
+   OVERLAY_ASPECT_RATIO_9_16,
+   OVERLAY_ASPECT_RATIO_10_16,
+   OVERLAY_ASPECT_RATIO_3_4,
+   OVERLAY_ASPECT_RATIO_4_3,
+   OVERLAY_ASPECT_RATIO_16_10,
+   OVERLAY_ASPECT_RATIO_16_9,
+   OVERLAY_ASPECT_RATIO_2_1,
+   OVERLAY_ASPECT_RATIO_18_5_9,
+   OVERLAY_ASPECT_RATIO_19_9,
+   
+   OVERLAY_ASPECT_RATIO_END
+};
+
+#define LAST_OVERLAY_ASPECT_RATIO OVERLAY_ASPECT_RATIO_19_9
+
+struct overlay_aspect_ratio_elem
+{
+   char name[64];
+   float value;
+};
+
+extern struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_END];
+
+enum abxy_touch_method
+{
+   TOUCH_8WAY = 0,
+   TOUCH_AREA,
+   TOUCH_8WAY_AND_AREA
+};
 
 typedef struct video_overlay_interface
 {
@@ -106,6 +165,7 @@ struct overlay_desc
 
    enum overlay_type type;
    uint64_t key_mask;
+   uint64_t highlevel_mask;
    float analog_saturate_pct;
 
    unsigned next_index;
@@ -117,8 +177,18 @@ struct overlay_desc
    float alpha_mod;
    float range_mod;
 
+   float reach_right, reach_left, reach_up, reach_down;
+   float x_hitbox, y_hitbox;
+   float range_x_hitbox, range_y_hitbox;
+   
    bool updated;
    bool movable;
+   
+   /* values as-read from cfg, before vertical or aspect adjustments */
+   float x_orig;
+   float y_orig;
+   float range_x_orig;
+   float range_y_orig;
 };
 
 struct overlay
@@ -137,6 +207,9 @@ struct overlay
    float center_x, center_y;
 
    bool full_screen;
+   bool fullscreen_image;
+   
+   bool lightgun_overlay;
 
    char name[64];
 
@@ -219,6 +292,8 @@ typedef struct input_overlay_state
 {
    /* This is a bitmask of (1 << key_bind_id). */
    uint64_t buttons;
+   /* Bitmask for lightgun buttons */
+   uint16_t lightgun_buttons;
    /* Left X, Left Y, Right X, Right Y */
    int16_t analog[4]; 
 
@@ -290,6 +365,14 @@ void input_overlay_poll(input_overlay_t *ol,
       input_overlay_state_t *out, int16_t norm_x, int16_t norm_y);
 
 /**
+ * set_overlay_pointer_index
+ * @param idx driver index of in-use overlay pointer
+ * 
+ * Useful for indexing touch ellipse data
+ */
+void set_overlay_pointer_index(uint8_t idx);
+
+/**
  * input_overlay_post_poll:
  * @ol                    : overlay handle
  * 
@@ -330,6 +413,14 @@ void input_overlay_set_alpha_mod(input_overlay_t *ol, float mod);
 void input_overlay_set_scale_factor(input_overlay_t *ol, float scale);
 
 /**
+ * input_overlay_update_aspect_and_vertical:
+ * @ol                    : Overlay handle.
+ *
+ * Updates active overlay to current aspect ratio and vertical offset settings.
+ **/
+void input_overlay_update_aspect_and_vertical(input_overlay_t *ol);
+
+/**
  * input_overlay_next:
  * @ol                    : Overlay handle.
  *
@@ -337,6 +428,39 @@ void input_overlay_set_scale_factor(input_overlay_t *ol, float scale);
  * screen.
  **/
 void input_overlay_next(input_overlay_t *ol, float opacity);
+
+/**
+ * populate_8way_vals:
+ *
+ * Convert diagonal sensitivity to slope values for 8way_state functions
+ **/
+void populate_8way_vals();
+
+bool input_overlay_lightgun_active();
+
+/**
+ * input_overlay_lightgun_x
+ * 
+ * Returns current x coordinate for touchscreen lightgun. Range [-0x7fff,0x7fff]
+ */
+int16_t input_overlay_lightgun_x();
+void input_overlay_lightgun_set_x(int16_t x);
+
+/**
+ * input_overlay_lightgun_y
+ * 
+ * Returns current y coordinate for touchscreen lightgun. Range [-0x7fff,0x7fff]
+ */
+int16_t input_overlay_lightgun_y();
+void input_overlay_lightgun_set_y(int16_t y);
+
+/**
+ * input_overlay_lightgun_autotrigger
+ * 
+ * Returns true if lightgun pointer is pressed
+ */
+bool input_overlay_lightgun_autotrigger();
+void input_overlay_lightgun_set_autotrigger(bool trigger);
 
 #ifdef __cplusplus
 }

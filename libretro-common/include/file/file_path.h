@@ -385,6 +385,15 @@ static INLINE const char *path_default_slash(void)
 #endif
 }
 
+static INLINE const char *path_default_dotslash(void)
+{
+#ifdef _WIN32
+   return ".\\";
+#else
+   return "./";
+#endif
+}
+
 /** 
  * fill_pathname_slash:
  * @path               : path

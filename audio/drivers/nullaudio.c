@@ -14,7 +14,7 @@
  */
 
 #include "../../general.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 
 static void *null_audio_init(const char *device, unsigned rate, unsigned latency)
 {

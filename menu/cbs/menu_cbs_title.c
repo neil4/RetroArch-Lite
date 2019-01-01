@@ -122,13 +122,6 @@ static int action_get_title_custom_viewport(const char *path, const char *label,
    return 0;
 }
 
-static int action_get_title_content_collection_list(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "CONTENT COLLECTION LIST");
-   return 0;
-}
-
 static int action_get_title_video_shader_preset(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
@@ -136,6 +129,7 @@ static int action_get_title_video_shader_preset(const char *path, const char *la
    return 0;
 }
 
+#if 0
 static int action_get_title_generic(char *s, size_t len, const char *path,
       const char *text)
 {
@@ -159,111 +153,7 @@ static int action_get_title_generic(char *s, size_t len, const char *path,
 
    return 0;
 }
-
-static int action_get_title_deferred_database_manager_list(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE SELECTION");
-}
-
-static int action_get_title_deferred_cursor_manager_list(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST");
-}
-
-static int action_get_title_list_rdb_entry_developer(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: DEVELOPER ");
-}
-
-static int action_get_title_list_rdb_entry_publisher(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: PUBLISHER ");
-}
-
-static int action_get_title_list_rdb_entry_origin(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: ORIGIN ");
-}
-
-static int action_get_title_list_rdb_entry_franchise(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: FRANCHISE ");
-}
-
-static int action_get_title_list_rdb_entry_edge_magazine_rating(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: EDGE MAGAZINE RATING ");
-}
-
-static int action_get_title_list_rdb_entry_edge_magazine_issue(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: EDGE MAGAZINE ISSUE ");
-}
-
-static int action_get_title_list_rdb_entry_releasedate_by_month(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: RELEASEDATE BY MONTH ");
-}
-
-static int action_get_title_list_rdb_entry_releasedate_by_year(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: RELEASEDATE BY YEAR ");
-}
-
-static int action_get_title_list_rdb_entry_esrb_rating(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: ESRB RATING ");
-}
-
-static int action_get_title_list_rdb_entry_database_info(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-#if 0
-   snprintf(s, len, "DATABASE INFO: %s", elem1);
 #endif
-   return action_get_title_generic(s, len, path, "DATABASE INFO ");
-}
-
-static int action_get_title_list_rdb_entry_elspa_rating(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: ELSPA RATING ");
-}
-
-static int action_get_title_list_rdb_entry_pegi_rating(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: PEGI RATING ");
-}
-
-static int action_get_title_list_rdb_entry_cero_rating(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: CERO RATING ");
-}
-
-static int action_get_title_list_rdb_entry_bbfc_rating(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: BBFC RATING ");
-}
-
-static int action_get_title_list_rdb_entry_max_users(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   return action_get_title_generic(s, len, path, "DATABASE CURSOR LIST - FILTER: MAX USERS ");
-}
 
 static int action_get_title_deferred_core_list(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
@@ -330,17 +220,17 @@ static int action_get_title_action_generic(const char *path, const char *label,
    return 0;
 }
 
+static int action_get_title_core_updater(const char *path, const char *label, 
+      unsigned menu_type, char *s, size_t len)
+{
+   strlcpy(s, "CORE UPDATER", len);
+   return 0;
+}
+
 static int action_get_title_configurations(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
    snprintf(s, len, "CONFIG %s", path);
-   return 0;
-}
-
-static int action_get_title_content_database_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "DATABASE DIR %s", path);
    return 0;
 }
 
@@ -386,13 +276,6 @@ static int action_get_title_autoconfig_directory(const char *path, const char *l
    return 0;
 }
 
-static int action_get_title_playlist_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "PLAYLIST DIR %s", path);
-   return 0;
-}
-
 static int action_get_title_browser_directory(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
@@ -411,13 +294,6 @@ static int action_get_title_screenshot_directory(const char *path, const char *l
       unsigned menu_type, char *s, size_t len)
 {
    snprintf(s, len, "SCREENSHOT DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_cursor_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "CURSOR DIR %s", path);
    return 0;
 }
 
@@ -530,57 +406,6 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
 
    switch (label_hash)
    {
-      case MENU_LABEL_DEFERRED_DATABASE_MANAGER_LIST:
-         cbs->action_get_title = action_get_title_deferred_database_manager_list;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST:
-         cbs->action_get_title = action_get_title_deferred_cursor_manager_list;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_DEVELOPER:
-         cbs->action_get_title = action_get_title_list_rdb_entry_developer;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_PUBLISHER:
-         cbs->action_get_title = action_get_title_list_rdb_entry_publisher;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_ORIGIN:
-         cbs->action_get_title = action_get_title_list_rdb_entry_origin;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_FRANCHISE:
-         cbs->action_get_title = action_get_title_list_rdb_entry_franchise;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_EDGE_MAGAZINE_RATING:
-         cbs->action_get_title = action_get_title_list_rdb_entry_edge_magazine_rating;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_EDGE_MAGAZINE_ISSUE:
-         cbs->action_get_title = action_get_title_list_rdb_entry_edge_magazine_issue;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_RELEASEMONTH:
-         cbs->action_get_title = action_get_title_list_rdb_entry_releasedate_by_month;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_RELEASEYEAR:
-         cbs->action_get_title = action_get_title_list_rdb_entry_releasedate_by_year;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_ESRB_RATING:
-         cbs->action_get_title = action_get_title_list_rdb_entry_esrb_rating;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_ELSPA_RATING:
-         cbs->action_get_title = action_get_title_list_rdb_entry_elspa_rating;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_PEGI_RATING:
-         cbs->action_get_title = action_get_title_list_rdb_entry_pegi_rating;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_CERO_RATING:
-         cbs->action_get_title = action_get_title_list_rdb_entry_cero_rating;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_BBFC_RATING:
-         cbs->action_get_title = action_get_title_list_rdb_entry_bbfc_rating;
-         break;
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_MAX_USERS:
-         cbs->action_get_title = action_get_title_list_rdb_entry_max_users;
-         break;
-      case MENU_LABEL_DEFERRED_RDB_ENTRY_DETAIL:
-         cbs->action_get_title = action_get_title_list_rdb_entry_database_info;
-         break;
       case MENU_LABEL_DEFERRED_CORE_LIST:
          cbs->action_get_title = action_get_title_deferred_core_list;
          break;
@@ -608,9 +433,6 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_RGUI_BROWSER_DIRECTORY:
          cbs->action_get_title = action_get_title_browser_directory;
          break;
-      case MENU_LABEL_PLAYLIST_DIRECTORY:
-         cbs->action_get_title = action_get_title_playlist_directory;
-         break;
       case MENU_LABEL_CONTENT_DIRECTORY:
          cbs->action_get_title = action_get_title_content_directory;
          break;
@@ -626,9 +448,6 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_AUDIO_FILTER_DIR:
          cbs->action_get_title = action_get_title_audio_filter_directory;
          break;
-      case MENU_LABEL_CURSOR_DIRECTORY:
-         cbs->action_get_title = action_get_title_cursor_directory;
-         break;
       case MENU_LABEL_RECORDING_CONFIG_DIRECTORY:
          cbs->action_get_title = action_get_title_recording_config_directory;
          break;
@@ -640,9 +459,6 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_INPUT_REMAPPING_DIRECTORY:
          cbs->action_get_title = action_get_title_input_remapping_directory;
-         break;
-      case MENU_LABEL_CONTENT_DATABASE_DIRECTORY:
-         cbs->action_get_title = action_get_title_content_database_directory;
          break;
       case MENU_LABEL_SAVESTATE_DIRECTORY:
          cbs->action_get_title = action_get_title_savestate_directory;
@@ -658,12 +474,10 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_PERFORMANCE_COUNTERS:
       case MENU_LABEL_CORE_LIST:
-      case MENU_LABEL_MANAGEMENT:
       case MENU_LABEL_OPTIONS:
       case MENU_LABEL_SETTINGS:
       case MENU_LABEL_FRONTEND_COUNTERS:
       case MENU_LABEL_CORE_COUNTERS:
-      case MENU_LABEL_LOAD_CONTENT_HISTORY:
       case MENU_LABEL_INFO_SCREEN:
       case MENU_LABEL_SYSTEM_INFORMATION:
       case MENU_LABEL_CORE_INFORMATION:
@@ -672,13 +486,12 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_DISK_OPTIONS:
       case MENU_LABEL_CORE_OPTIONS:
       case MENU_LABEL_SHADER_OPTIONS:
-      case MENU_LABEL_VIDEO_OPTIONS:
       case MENU_LABEL_CORE_CHEAT_OPTIONS:
       case MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS:
-      case MENU_LABEL_DATABASE_MANAGER_LIST:
-      case MENU_LABEL_CURSOR_MANAGER_LIST:
-      case MENU_LABEL_DEFERRED_CORE_UPDATER_LIST:
          cbs->action_get_title = action_get_title_action_generic;
+         break;
+      case MENU_LABEL_DEFERRED_CORE_UPDATER_LIST:
+         cbs->action_get_title = action_get_title_core_updater;
          break;
       case MENU_LABEL_DISK_IMAGE_APPEND:
          cbs->action_get_title = action_get_title_disk_image_append;
@@ -691,9 +504,6 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_REMAP_FILE_LOAD:
          cbs->action_get_title = action_get_title_remap_file_load;
-         break;
-      case MENU_LABEL_CONTENT_COLLECTION_LIST:
-         cbs->action_get_title = action_get_title_content_collection_list;
          break;
       case MENU_LABEL_CUSTOM_VIEWPORT_2:
          cbs->action_get_title = action_get_title_custom_viewport;
@@ -743,6 +553,9 @@ static int menu_cbs_init_bind_title_compare_type(menu_file_list_cbs_t *cbs,
       case MENU_SETTINGS_CUSTOM_BIND:
       case MENU_SETTINGS_CUSTOM_BIND_KEYBOARD:
          cbs->action_get_title = action_get_title_input_settings;
+         break;
+      case MENU_SETTING_ACTION_CORE_DISK_OPTIONS:
+         cbs->action_get_title = action_get_title_action_generic;
          break;
       default:
          return -1;

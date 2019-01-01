@@ -37,6 +37,16 @@ static void shader_action_parameter_right_common(
    param->current += param->step;
    param->current = min(max(param->minimum, param->current), param->maximum);
 }
+
+static void shader_action_parameter_r_common(
+      struct video_shader_parameter *param,
+      struct video_shader *shader)
+{
+   if (!shader)
+      return;
+
+   param->current = param->maximum;
+}
 #endif
 
 static int shader_action_parameter_right(unsigned type, const char *label, bool wraparound)
@@ -47,6 +57,18 @@ static int shader_action_parameter_right(unsigned type, const char *label, bool 
       &shader->parameters[type - MENU_SETTINGS_SHADER_PARAMETER_0];
 
    shader_action_parameter_right_common(param, shader);
+#endif
+   return 0;
+}
+
+static int shader_action_parameter_r(unsigned type, const char *label)
+{
+#ifdef HAVE_SHADER_MANAGER
+   struct video_shader *shader = video_shader_driver_get_current_shader();
+   struct video_shader_parameter *param =
+      &shader->parameters[type - MENU_SETTINGS_SHADER_PARAMETER_0];
+
+   shader_action_parameter_r_common(param, shader);
 #endif
    return 0;
 }
@@ -64,6 +86,22 @@ static int shader_action_parameter_preset_right(unsigned type, const char *label
    param = &shader->parameters[type - MENU_SETTINGS_SHADER_PRESET_PARAMETER_0];
 
    shader_action_parameter_right_common(param, shader);
+#endif
+   return 0;
+}
+
+static int shader_action_parameter_preset_r(unsigned type, const char *label)
+{
+#ifdef HAVE_SHADER_MANAGER
+   struct video_shader_parameter *param = NULL;
+   menu_handle_t *menu = menu_driver_get_ptr();
+   struct video_shader *shader = menu ? menu->shader : NULL;
+   if (!menu || !shader)
+      return -1;
+
+   param = &shader->parameters[type - MENU_SETTINGS_SHADER_PRESET_PARAMETER_0];
+
+   shader_action_parameter_r_common(param, shader);
 #endif
    return 0;
 }
@@ -106,12 +144,36 @@ int action_right_input_desc(unsigned type, const char *label,
    return 0;
 }
 
+int action_r_input_desc(unsigned type, const char *label)
+{
+   unsigned inp_desc_index_offset = type - MENU_SETTINGS_INPUT_DESC_BEGIN;
+   unsigned inp_desc_user         = inp_desc_index_offset / (RARCH_FIRST_CUSTOM_BIND + 4);
+   unsigned inp_desc_button_index_offset = inp_desc_index_offset - (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
+   settings_t *settings = config_get_ptr();
+
+   if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
+      settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = RARCH_FIRST_CUSTOM_BIND - 1;
+   else
+      settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = 4 - 1;
+
+   return 0;
+}
+
 static int action_right_save_state(unsigned type, const char *label,
       bool wraparound)
 {
    settings_t *settings = config_get_ptr();
 
    settings->state_slot++;
+
+   return 0;
+}
+
+static int action_r_save_state(unsigned type, const char *label)
+{
+   settings_t *settings = config_get_ptr();
+
+   settings->state_slot += 10;
 
    return 0;
 }
@@ -340,21 +402,35 @@ static int bind_right_generic(unsigned type, const char *label,
    return menu_setting_set(type, label, MENU_ACTION_RIGHT, wraparound);
 }
 
+static int bind_r_generic(unsigned type, const char *label)
+{
+   return menu_setting_set(type, label, MENU_ACTION_R, false);
+}
+
 static int menu_cbs_init_bind_right_compare_type(menu_file_list_cbs_t *cbs,
       unsigned type, uint32_t menu_label_hash)
 {
    if (type >= MENU_SETTINGS_SHADER_PARAMETER_0
          && type <= MENU_SETTINGS_SHADER_PARAMETER_LAST)
+   {
       cbs->action_right = shader_action_parameter_right;
+      cbs->action_r = shader_action_parameter_r;
+   }
    else if (type >= MENU_SETTINGS_SHADER_PRESET_PARAMETER_0
          && type <= MENU_SETTINGS_SHADER_PRESET_PARAMETER_LAST)
+   {
       cbs->action_right = shader_action_parameter_preset_right;
+      cbs->action_r = shader_action_parameter_preset_r;
+   }
    else if (type >= MENU_SETTINGS_CHEAT_BEGIN
          && type <= MENU_SETTINGS_CHEAT_END)
       cbs->action_right = action_right_cheat;
    else if (type >= MENU_SETTINGS_INPUT_DESC_BEGIN
          && type <= MENU_SETTINGS_INPUT_DESC_END)
+   {
       cbs->action_right = action_right_input_desc;
+      cbs->action_r = action_r_input_desc;
+   }
    else if (type == MENU_SETTINGS_VIDEO_RESOLUTION)
       cbs->action_right = action_right_video_resolution;
    else if ((type >= MENU_SETTINGS_CORE_OPTION_START))
@@ -370,9 +446,6 @@ static int menu_cbs_init_bind_right_compare_type(menu_file_list_cbs_t *cbs,
          case MENU_FILE_DIRECTORY:
          case MENU_FILE_CARCHIVE:
          case MENU_FILE_CORE:
-         case MENU_FILE_RDB:
-         case MENU_FILE_RDB_ENTRY:
-         case MENU_FILE_CURSOR:
          case MENU_FILE_SHADER:
          case MENU_FILE_SHADER_PRESET:
          case MENU_FILE_IMAGE:
@@ -381,11 +454,9 @@ static int menu_cbs_init_bind_right_compare_type(menu_file_list_cbs_t *cbs,
          case MENU_FILE_AUDIOFILTER:
          case MENU_FILE_CONFIG:
          case MENU_FILE_USE_DIRECTORY:
-         case MENU_FILE_PLAYLIST_ENTRY:
          case MENU_FILE_DOWNLOAD_CORE:
          case MENU_FILE_CHEAT:
          case MENU_FILE_REMAP:
-         case MENU_FILE_PLAYLIST_COLLECTION:
          case MENU_SETTING_GROUP:
             switch (menu_label_hash)
             {
@@ -452,6 +523,7 @@ static int menu_cbs_init_bind_right_compare_label(menu_file_list_cbs_t *cbs,
          case MENU_LABEL_SAVESTATE:
          case MENU_LABEL_LOADSTATE:
             cbs->action_right = action_right_save_state;
+            cbs->action_r = action_r_save_state;
             break;
          case MENU_LABEL_VIDEO_SHADER_SCALE_PASS:
             cbs->action_right = action_right_shader_scale_pass;
@@ -485,6 +557,7 @@ int menu_cbs_init_bind_right(menu_file_list_cbs_t *cbs,
       return -1;
 
    cbs->action_right = bind_right_generic;
+   cbs->action_r = bind_r_generic;
 
    if (menu_cbs_init_bind_right_compare_label(cbs, label, label_hash, menu_label_hash, elem0) == 0)
       return 0;

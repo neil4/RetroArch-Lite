@@ -23,7 +23,7 @@
 
 #include "../../ps3/sdk_defines.h"
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../libretro.h"
 #include "../../general.h"
 
@@ -282,4 +282,5 @@ input_driver_t input_ps3 = {
    ps3_input_get_joypad_driver,
    ps3_input_keyboard_mapping_is_blocked,
    ps3_input_keyboard_mapping_set_block,
+   NULL // haptic_feedback
 };

@@ -19,7 +19,7 @@
 #pragma comment(lib, "opengl32")
 #endif
 
-#include "../../driver.h"
+#include "../../dynamic.h"
 #include "../../performance.h"
 #include <gfx/scaler/scaler.h>
 #include <formats/image.h>
@@ -157,10 +157,15 @@ static bool gl_check_eglimage_proc(void)
 #ifdef HAVE_GL_SYNC
 static bool gl_check_sync_proc(gl_t *gl)
 {
-   if (!gl_query_extension(gl, "ARB_sync"))
+#if defined(HAVE_OPENGLES3)
+      return true;
+#else
+   if (gl_query_extension(gl, "ARB_sync") &&
+         glFenceSync && glDeleteSync && glClientWaitSync)
+      return true;
+   else
       return false;
-
-   return glFenceSync && glDeleteSync && glClientWaitSync;
+#endif
 }
 #endif
 
@@ -216,9 +221,8 @@ static bool gl_shader_init(gl_t *gl)
    bool ret                        = false;
    const shader_backend_t *backend = NULL;
    settings_t *settings            = config_get_ptr();
-   const char *shader_path         = (settings->video.shader_enable && *settings->video.shader_path) ?
-      settings->video.shader_path : NULL;
-
+   const char *shader_path         = (*settings->video.shader_path) ?
+                                     settings->video.shader_path : NULL;
 
    if (!gl)
    {
@@ -1516,6 +1520,9 @@ static bool gl_frame(void *data, const void *frame,
 
    RARCH_PERFORMANCE_INIT(frame_run);
    RARCH_PERFORMANCE_START(frame_run);
+   
+   if (!gl)
+      return false;
 
    video_driver_get_size(&width, &height);
 
@@ -1704,7 +1711,7 @@ static bool gl_frame(void *data, const void *frame,
    gfx_ctx_swap_buffers(gl);
 
 #ifdef HAVE_GL_SYNC
-   if (settings->video.hard_sync && gl->have_sync)
+   if (settings->video.hard_sync && gl->have_sync && !driver->nonblock_state)
    {
       RARCH_PERFORMANCE_INIT(gl_fence);
       RARCH_PERFORMANCE_START(gl_fence);
@@ -2106,8 +2113,9 @@ static const gfx_ctx_driver_t *gl_get_context(gl_t *gl)
     
    (void)api_name;
 
-   gl->shared_context_use = settings->video.shared_context
-      && cb->context_type != RETRO_HW_CONTEXT_NONE;
+   gl->shared_context_use
+      = (settings->video.shared_context || libretro_get_shared_context())
+        && cb->context_type != RETRO_HW_CONTEXT_NONE;
 
    return gfx_ctx_init_first(gl, settings->video.context_driver,
          api, major, minor, gl->shared_context_use);
@@ -3259,10 +3267,8 @@ static const video_poke_interface_t gl_poke_interface = {
    gl_set_texture_enable,
 #endif
    gl_set_osd_msg,
-
    gl_show_mouse,
    NULL,
-
    gl_get_current_shader,
 };
 

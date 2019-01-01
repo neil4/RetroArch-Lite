@@ -69,8 +69,10 @@ LRESULT win32_menu_loop(HWND owner, WPARAM wparam)
 
 	switch (mode)
    {
-      case ID_M_LOAD_CORE:
       case ID_M_LOAD_CONTENT:
+         if (!*settings->libretro)
+            break;
+      case ID_M_LOAD_CORE:
          {
             char win32_file[PATH_MAX_LENGTH] = {0};
             const char *extensions  = NULL;
@@ -86,8 +88,10 @@ LRESULT win32_menu_loop(HWND owner, WPARAM wparam)
             else if (mode == ID_M_LOAD_CONTENT)
             {
                extensions  = "All Files\0*.*\0\0";
-               title       = "Load Content";
-               initial_dir = settings->menu_content_directory;
+               title       = "Load ROM";
+               initial_dir = *settings->core_content_directory ?
+                              settings->core_content_directory
+                              : settings->menu_content_directory;
             }
 
             if (win32_browser(owner, win32_file, extensions, title, initial_dir))

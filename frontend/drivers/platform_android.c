@@ -229,19 +229,9 @@ static void android_app_entry(void *data)
 {
    char *argv[1];
    int argc = 0;
-   int ret  = 0;
 
    if (rarch_main(argc, argv, data) != 0)
       goto end;
-#ifndef HAVE_MAIN
-   do
-   {
-      ret = rarch_main_iterate();
-      rarch_main_data_iterate();
-   }while (ret != -1);
-
-   main_exit(data);
-#endif
 
 end:
    exit(0);
@@ -449,6 +439,8 @@ static void frontend_android_get_environment_settings(int *argc,
    jobject                       obj = NULL;
    jstring                      jstr = NULL;
    struct android_app   *android_app = (struct android_app*)data;
+   global_t                  *global = global_get_ptr();
+   settings_t              *settings = config_get_ptr();
 
    if (!android_app)
       return;
@@ -541,7 +533,17 @@ static void frontend_android_get_environment_settings(int *argc,
 
       RARCH_LOG("Libretro path: [%s].\n", core_path);
       if (args && *core_path)
+      {
          args->libretro_path = core_path;
+         
+         strlcpy(settings->libretro, core_path, sizeof(settings->libretro));
+
+         strlcpy(settings->libretro_directory, core_path, PATH_MAX_LENGTH );
+         path_basedir(settings->libretro_directory);
+         global->has_set_libretro_directory = true;
+
+         update_libretro_name();
+      }
    }
 
    /* Content. */
@@ -563,12 +565,18 @@ static void frontend_android_get_environment_settings(int *argc,
       if (*path)
       {
          RARCH_LOG("Auto-start game %s.\n", path);
-         if (args && *path)
+         if (args)
             args->content_path = path;
+         strlcpy(global->fullpath, path, PATH_MAX_LENGTH);
+         
+         strlcpy(global->content_dir_override, path, PATH_MAX_LENGTH );
+         path_basedir(global->content_dir_override);
       }
    }
+   else
+      args->no_content = true;
 
-   /* Content. */
+   /* Paths. */
    CALL_OBJ_METHOD_PARAM(env, jstr, obj, android_app->getStringExtra,
          (*env)->NewStringUTF(env, "DATADIR"));
 
@@ -590,7 +598,7 @@ static void frontend_android_get_environment_settings(int *argc,
          if (args && *path)
          {
             fill_pathname_join(g_defaults.assets_dir, path,
-                  "assets", sizeof(g_defaults.savestate_dir));
+                  "assets", sizeof(g_defaults.assets_dir));
             fill_pathname_join(g_defaults.savestate_dir, path,
                   "savestates", sizeof(g_defaults.savestate_dir));
             fill_pathname_join(g_defaults.extraction_dir, path,
@@ -603,6 +611,8 @@ static void frontend_android_get_environment_settings(int *argc,
                   "shaders_glsl", sizeof(g_defaults.shader_dir));
             fill_pathname_join(g_defaults.overlay_dir, path,
                   "overlays", sizeof(g_defaults.overlay_dir));
+            fill_pathname_join(g_defaults.osk_overlay_dir, path,
+                  "overlays/keyboards", sizeof(g_defaults.osk_overlay_dir));
             fill_pathname_join(g_defaults.core_dir, path,
                   "cores", sizeof(g_defaults.core_dir));
             fill_pathname_join(g_defaults.core_info_dir,
@@ -613,8 +623,6 @@ static void frontend_android_get_environment_settings(int *argc,
                   path, "audio_filters", sizeof(g_defaults.audio_filter_dir));
             fill_pathname_join(g_defaults.video_filter_dir,
                   path, "video_filters", sizeof(g_defaults.video_filter_dir));
-            strlcpy(g_defaults.content_history_dir, 
-                  path, sizeof(g_defaults.content_history_dir));
          }
       }
    }
@@ -622,7 +630,7 @@ static void frontend_android_get_environment_settings(int *argc,
    frontend_android_get_name(device_model, sizeof(device_model));
    system_property_get("ro.product.id", device_id);
 
-   g_defaults.settings.video_threaded_enable = true;
+   g_defaults.settings.video_threaded_enable = false;
 
    // Set automatic default values per device
    if (device_is_xperia_play(device_model))
@@ -637,14 +645,6 @@ static void frontend_android_get_environment_settings(int *argc,
       g_defaults.settings.video_refresh_rate = 60.0;
    else if (!strcmp(device_model, "JSS15J"))
       g_defaults.settings.video_refresh_rate = 59.65;
-
-   /* FIXME - needs to be refactored */
-#if 0
-   /* Explicitly disable input overlay by default 
-    * for gamepad-like/console devices. */
-   if (device_is_game_console(device_model))
-      g_defaults.settings.input_overlay_enable = false;
-#endif
 }
 
 static void frontend_android_deinit(void *data)

@@ -1,41 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Configuration Style -->
-    <PreferenceCategory android:title="@string/config_style" >
+    <!-- Core Management -->
+    <PreferenceCategory android:title="@string/core_management">
+        <Preference 
+            android:title="@string/manage_cores"
+            android:summary="@string/manage_cores_desc">
+            <intent
+                android:targetClass="com.retroarch.browser.coremanager.CoreManagerActivity"
+                android:targetPackage="com.retroarchlite"/>
+        </Preference>
+    </PreferenceCategory>
+    
+    <!-- Titles -->
+    <PreferenceCategory android:title="@string/mame_titles" >
         <CheckBoxPreference
             android:defaultValue="true"
-            android:key="global_config_enable"
-            android:summary="@string/global_config_desc"
-            android:title="@string/global_config" />
-    </PreferenceCategory>
-
-    <!-- General -->
-    <PreferenceCategory android:title="@string/general" >
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="savestate_auto_load"
-            android:summary="@string/auto_load_state_desc"
-            android:title="@string/auto_load_state" />
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="savestate_auto_save"
-            android:summary="@string/auto_save_state_desc"
-            android:title="@string/auto_save_state" />
-    </PreferenceCategory>
-
-    <!-- Rewinding -->
-    <PreferenceCategory android:title="@string/rewinding" >
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="rewind_enable"
-            android:summary="@string/rewinding_desc"
+            android:key="mame_titles"
+            android:summary="@string/mame_titles_desc"
             android:title="@string/enable" />
-        <EditTextPreference
-            android:dependency="rewind_enable"
-            android:key="rewind_granularity"
-            android:numeric="integer"
-            android:summary="@string/rewind_granularity_desc"
-            android:title="@string/rewind_granularity"/>
     </PreferenceCategory>
 </PreferenceScreen>

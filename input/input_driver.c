@@ -16,8 +16,9 @@
 
 #include <string.h>
 #include <string/string_list.h>
+#include "../configuration.h"
+#include "../gfx/video_driver.h"
 #include "input_driver.h"
-#include "../driver.h"
 #include "../general.h"
 #include "../libretro.h"
 
@@ -324,8 +325,7 @@ bool input_driver_keyboard_mapping_is_blocked(void)
    const input_driver_t *input = input_get_ptr(driver);
 
    if (input->keyboard_mapping_is_blocked)
-      return driver->input->keyboard_mapping_is_blocked(
-            driver->input_data);
+      return input->keyboard_mapping_is_blocked(driver->input_data);
    return false;
 }
 
@@ -335,5 +335,5 @@ void input_driver_keyboard_mapping_set_block(bool value)
    const input_driver_t *input = input_get_ptr(driver);
 
    if (input->keyboard_mapping_set_block)
-      driver->input->keyboard_mapping_set_block(driver->input_data, value);
+      input->keyboard_mapping_set_block(driver->input_data, value);
 }

@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string/string_list.h>
-#include "../driver.h"
+#include "../configuration.h"
 #include "../general.h"
 
 static hid_driver_t *hid_drivers[] = {

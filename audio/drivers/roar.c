@@ -14,7 +14,7 @@
  */
 
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include <stdlib.h>
 #include <roaraudio.h>
 #include <errno.h>

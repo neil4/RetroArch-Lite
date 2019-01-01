@@ -28,6 +28,7 @@
 #define CB_MENU_BOXART        0x68b307cdU
 
 #ifdef HAVE_MENU
+#include "../configuration.h"
 #include "../menu/menu_driver.h"
 
 #ifdef HAVE_RPNG
@@ -250,7 +251,7 @@ static int rarch_main_data_image_iterate_transfer_parse(nbio_handle_t *nbio)
    return 0;
 }
 
-void rarch_main_data_nbio_image_iterate(bool is_thread, void *data)
+void rarch_main_data_nbio_image_iterate(void *data)
 {
    data_runloop_t      *runloop = (data_runloop_t*)data;
    nbio_handle_t         *nbio  = runloop ? &runloop->nbio : NULL;
@@ -258,8 +259,6 @@ void rarch_main_data_nbio_image_iterate(bool is_thread, void *data)
 
    if (!image || !nbio)
       return;
-
-   (void)is_thread;
 
    switch (image->status)
    {
@@ -285,8 +284,7 @@ void rarch_main_data_nbio_image_iterate(bool is_thread, void *data)
    }
 }
 
-void rarch_main_data_nbio_image_upload_iterate(bool is_thread,
-      void *data)
+void rarch_main_data_nbio_image_upload_iterate(void *data)
 {
    data_runloop_t     *runloop  = (data_runloop_t*)data;
    nbio_handle_t         *nbio  = runloop ? &runloop->nbio : NULL;
@@ -294,8 +292,6 @@ void rarch_main_data_nbio_image_upload_iterate(bool is_thread,
 
    if (!image || !nbio || !runloop)
       return;
-
-   (void)is_thread;
 
    switch (image->status)
    {
@@ -512,7 +508,7 @@ static int rarch_main_data_nbio_iterate_parse(nbio_handle_t *nbio)
    return 0;
 }
 
-void rarch_main_data_nbio_iterate(bool is_thread, void *data)
+void rarch_main_data_nbio_iterate(void *data)
 {
    data_runloop_t      *runloop = (data_runloop_t*)data;
    nbio_handle_t          *nbio = runloop ? &runloop->nbio : NULL;

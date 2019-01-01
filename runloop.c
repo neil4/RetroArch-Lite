@@ -655,7 +655,7 @@ static void rarch_update_frame_time(void)
    global->system.frame_time_last = curr_time;
 
    if (is_locked_fps)
-      global->system.frame_time_last = 0;
+      delta = 0;
 
    global->system.frame_time.callback(delta);
 }
@@ -673,15 +673,20 @@ static void rarch_limit_frame_time(void)
    runloop_t *runloop       = rarch_main_get_ptr();
    settings_t *settings     = config_get_ptr();
    retro_time_t current     = rarch_get_time_usec();
-   struct retro_system_av_info *av_info = 
-      video_viewport_get_system_av_info();
-   double effective_fps     = av_info->timing.fps * settings->fastforward_ratio;
+   double effective_fps;
+   if (settings->throttle_using_core_fps)
+   {
+      struct retro_system_av_info *av_info = video_viewport_get_system_av_info();
+      effective_fps = av_info->timing.fps * settings->fastforward_ratio;
+   }
+   else
+      effective_fps = settings->video.refresh_rate * settings->fastforward_ratio;
    double mft_f             = 1000000.0f / effective_fps;
 
    runloop->frames.limit.minimum_time = (retro_time_t) roundf(mft_f);
 
-   target        = runloop->frames.limit.last_time + 
-                   runloop->frames.limit.minimum_time;
+   target        = runloop->frames.limit.last_time
+                   + runloop->frames.limit.minimum_time;
    to_sleep_ms   = (target - current) / 1000;
 
    if (to_sleep_ms <= 0)
@@ -689,12 +694,10 @@ static void rarch_limit_frame_time(void)
       runloop->frames.limit.last_time = rarch_get_time_usec();
       return;
    }
-
+   
    rarch_sleep((unsigned int)to_sleep_ms);
-
-   /* Combat jitter a bit. */
-   runloop->frames.limit.last_time += 
-      runloop->frames.limit.minimum_time;
+   
+   runloop->frames.limit.last_time = target;
 }
 
 /**
@@ -746,7 +749,7 @@ static bool check_block_hotkey(bool enable_hotkey)
  * and you need a bitmask of more than 64 entries, reimplement
  * it to use something like rarch_bits_t.
  *
- * Returns: Input sample containg a mask of all pressed keys.
+ * Returns: Input sample containing a mask of all pressed keys.
  */
 static INLINE retro_input_t input_keys_pressed(void)
 {
@@ -858,7 +861,7 @@ static int rarch_main_iterate_quit(void)
 
       return 0;
    }
-
+   
    return -1;
 }
 
@@ -1148,6 +1151,15 @@ int rarch_main_iterate(void)
    rarch_main_iterate_linefeed_overlay();
 #endif
    
+   if (do_state_checks(&cmd))
+   {
+      /* RetroArch has been paused */
+      driver->retro_ctx.poll_cb();
+      rarch_sleep(100);
+      
+      return 1;
+   }
+   
 #ifdef HAVE_MENU
    if (menu_driver_alive())
    {
@@ -1166,15 +1178,6 @@ int rarch_main_iterate(void)
    {
       global->exec = false;
       return rarch_main_iterate_quit();
-   }
-
-   if (do_state_checks(&cmd))
-   {
-      /* RetroArch has been paused */
-      driver->retro_ctx.poll_cb();
-      rarch_sleep(10);
-
-      return 1;
    }
 
 #if defined(HAVE_THREADS)
@@ -1205,8 +1208,7 @@ int rarch_main_iterate(void)
    }
 
    if ((settings->video.frame_delay > 0) && !driver->nonblock_state)
-      rarch_sleep(settings->video.frame_delay);
-
+         rarch_sleep(settings->video.frame_delay);
 
    /* Run libretro for one frame. */
    pretro_run();

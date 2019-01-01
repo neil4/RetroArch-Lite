@@ -46,9 +46,6 @@ static const char *bind_user_prefix[MAX_USERS] = {
    "input_player16",
 };
 
-#define DECLARE_BIND(x, bind, desc) { true, 0, #x, desc, bind }
-#define DECLARE_META_BIND(level, x, bind, desc) { true, level, #x, desc, bind }
-
 const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
       DECLARE_BIND(b,         RETRO_DEVICE_ID_JOYPAD_B, "B button (down)"),
       DECLARE_BIND(y,         RETRO_DEVICE_ID_JOYPAD_Y, "Y button (left)"),
@@ -113,6 +110,7 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
 #endif
 };
 
+
 /**
  * input_translate_coord_viewport:
  * @mouse_x                        : Pointer X coordinate.
@@ -144,16 +142,20 @@ bool input_translate_coord_viewport(int mouse_x, int mouse_y,
       scaled_screen_x = -0x8000; /* OOB */
    if (scaled_screen_y < -0x7fff || scaled_screen_y > 0x7fff)
       scaled_screen_y = -0x8000; /* OOB */
-
+   
    mouse_x -= vp.x;
    mouse_y -= vp.y;
 
    scaled_x = (2 * mouse_x * 0x7fff) / (int)vp.width - 0x7fff;
    scaled_y = (2 * mouse_y * 0x7fff) / (int)vp.height - 0x7fff;
-   if (scaled_x < -0x7fff || scaled_x > 0x7fff)
-      scaled_x = -0x8000; /* OOB */
-   if (scaled_y < -0x7fff || scaled_y > 0x7fff)
-      scaled_y = -0x8000; /* OOB */
+   if (scaled_x < -0x7fff)
+      scaled_x = -0x7fff;
+   else if (scaled_x > 0x7fff)
+      scaled_x = 0x7fff;
+   if (scaled_y < -0x7fff) 
+      scaled_y = -0x7fff;
+   else if (scaled_y > 0x7fff)
+      scaled_y = 0x7fff;
 
    *res_x = scaled_x;
    *res_y = scaled_y;
@@ -232,6 +234,7 @@ unsigned input_translate_str_to_bind_id(const char *str)
    return RARCH_BIND_LIST_END;
 }
 
+
 static void parse_hat(struct retro_keybind *bind, const char *str)
 {
    uint16_t     hat;
@@ -292,6 +295,7 @@ void input_config_parse_joy_button(config_file_t *conf, const char *prefix,
 
    if (config_get_string(conf, key_label, &tmp_a))
       strlcpy(bind->joykey_label, tmp_a, sizeof(bind->joykey_label));
+   if (tmp_a) free(tmp_a);
 }
 
 void input_config_parse_joy_axis(config_file_t *conf, const char *prefix,
@@ -324,6 +328,7 @@ void input_config_parse_joy_axis(config_file_t *conf, const char *prefix,
 
    if (config_get_string(conf, key_label, &tmp_a))
       strlcpy(bind->joyaxis_label, tmp_a, sizeof(bind->joyaxis_label));
+   if (tmp_a) free(tmp_a);
 }
 
 #if !defined(IS_JOYCONFIG)

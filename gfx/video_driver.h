@@ -27,6 +27,7 @@
 #include "video_viewport.h"
 
 #include "../libretro.h"
+#include "../menu/menu_driver.h"
 #include "../input/input_driver.h"
 
 
@@ -373,6 +374,8 @@ void *video_driver_frame_filter_get_buf_ptr(void);
 enum retro_pixel_format video_driver_get_pixel_format(void);
 
 void video_driver_set_pixel_format(enum retro_pixel_format fmt);
+
+void video_driver_free_hw_context();
 
 /**
  * video_driver_cached_frame:

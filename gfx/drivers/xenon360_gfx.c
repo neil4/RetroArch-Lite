@@ -22,7 +22,7 @@
 #include <xenos/edram.h>
 #include <xenos/xenos.h>
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../general.h"
 
 #Include "../video_viewport.h"

@@ -16,7 +16,7 @@
 
 #include <rhash.h>
 
-#include "driver.h"
+#include "configuration.h"
 #include "general.h"
 #include "retroarch.h"
 #include "compat/posix_string.h"
@@ -495,4 +495,3 @@ void uninit_drivers(int flags)
    if ((flags & DRIVER_AUDIO) && !driver->audio_data_own)
       driver->audio_data = NULL;
 }
-

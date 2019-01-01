@@ -84,7 +84,7 @@ struct netplay
    /* We don't want to poll several times on a frame. */
    bool can_poll;
 
-   /* To compat UDP packet loss we also send 
+   /* To combat UDP packet loss we also send 
     * old data along with the packets. */
    uint32_t packet_buffer[UDP_FRAME_PACKETS * 2];
    uint32_t frame_count;
@@ -162,7 +162,7 @@ static bool send_chunk(netplay_t *netplay)
    {
       if (sendto(netplay->udp_fd, (const char*)netplay->packet_buffer,
                sizeof(netplay->packet_buffer), 0, addr,
-               sizeof(struct sockaddr)) != sizeof(netplay->packet_buffer))
+               sizeof(struct sockaddr_in6)) != sizeof(netplay->packet_buffer))
       {
          warn_hangup();
          netplay->has_connection = false;
@@ -1666,11 +1666,8 @@ bool init_netplay(void)
 
    retro_set_default_callbacks(&cbs);
 
-   if (*global->netplay_server)
-   {
+   if (global->netplay_is_client)
       RARCH_LOG("Connecting to netplay host...\n");
-      global->netplay_is_client = true;
-   }
    else
       RARCH_LOG("Waiting for client...\n");
 

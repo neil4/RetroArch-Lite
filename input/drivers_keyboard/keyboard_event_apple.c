@@ -22,7 +22,7 @@
 #include "../keyboard_line.h"
 #include "../drivers/cocoa_input.h"
 #include "../../general.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 
 #include "../drivers/apple_keycode.h"
 

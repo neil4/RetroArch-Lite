@@ -14,7 +14,7 @@
  */
 
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../general.h"
 #include <pulse/pulseaudio.h>
 #include <boolean.h>

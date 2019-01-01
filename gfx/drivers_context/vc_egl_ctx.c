@@ -14,7 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../runloop.h"
 #include "../video_context_driver.h"
 #include "../drivers/gl_common.h"

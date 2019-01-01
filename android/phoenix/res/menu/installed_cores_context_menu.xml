@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+   <item android:id="@+id/update_core"
+          android:title="@string/installed_cores_ctx_update_core"/> 
+    <item android:id="@+id/backup_core"
+          android:title="@string/installed_cores_ctx_backup_core"/>
+    <item android:id="@+id/reset_core_options"
+          android:title="@string/installed_cores_ctx_reset_core_options"/>
+    <item android:id="@+id/remove_core"
+          android:title="@string/installed_cores_ctx_remove_core"/>
+</menu>

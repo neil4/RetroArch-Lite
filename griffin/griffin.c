@@ -527,7 +527,6 @@ FILTERS
 #include "../gfx/video_filters/super2xsai.c"
 #include "../gfx/video_filters/supereagle.c"
 #include "../gfx/video_filters/2xbr.c"
-#include "../gfx/video_filters/darken.c"
 #include "../gfx/video_filters/epx.c"
 #include "../gfx/video_filters/scale2x.c"
 #include "../gfx/video_filters/blargg_ntsc_snes.c"
@@ -692,19 +691,11 @@ NETPLAY
 DATA RUNLOOP
 ============================================================ */
 #include "../tasks/task_file_transfer.c"
-#ifdef HAVE_LIBRETRODB
-#include "../tasks/task_database.c"
-#endif
 
 /*============================================================
 SCREENSHOTS
 ============================================================ */
 #include "../screenshot.c"
-
-/*============================================================
-PLAYLISTS
-============================================================ */
-#include "../playlist.c"
 
 /*============================================================
 MENU
@@ -728,7 +719,6 @@ MENU
 #include "../menu/cbs/menu_cbs_right.c"
 #include "../menu/cbs/menu_cbs_title.c"
 #include "../menu/cbs/menu_cbs_deferred_push.c"
-#include "../menu/cbs/menu_cbs_scan.c"
 #include "../menu/cbs/menu_cbs_get_value.c"
 #include "../menu/cbs/menu_cbs_iterate.c"
 #include "../menu/cbs/menu_cbs_up.c"
@@ -750,18 +740,6 @@ MENU
 
 #ifdef HAVE_RGUI
 #include "../menu/drivers/rgui.c"
-#endif
-
-#ifdef HAVE_OPENGL
-
-#ifdef HAVE_XMB
-#include "../menu/drivers/xmb.c"
-#endif
-
-#ifdef HAVE_GLUI
-#include "../menu/drivers/glui.c"
-#endif
-
 #endif
 
 #ifdef HAVE_COMMAND
@@ -833,18 +811,6 @@ XML
  AUDIO UTILS
 ============================================================ */
 #include "../audio/audio_utils.c"
-
-/*============================================================
- LIBRETRODB
-============================================================ */
-#ifdef HAVE_LIBRETRODB
-#include "../libretro-db/bintree.c"
-#include "../libretro-db/libretrodb.c"
-#include "../libretro-db/rmsgpack.c"
-#include "../libretro-db/rmsgpack_dom.c"
-#include "../libretro-db/query.c"
-#include "../database_info.c"
-#endif
 
 
 #ifdef __cplusplus

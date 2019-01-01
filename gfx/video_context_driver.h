@@ -18,7 +18,8 @@
 #define __VIDEO_CONTEXT_DRIVER_H
 
 #include <boolean.h>
-#include "../driver.h"
+#include "../configuration.h"
+#include "../dynamic.h"
 
 #ifdef HAVE_CONFIG_H
 #include "../config.h"

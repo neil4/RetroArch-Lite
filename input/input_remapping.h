@@ -35,6 +35,17 @@ extern "C" {
 bool input_remapping_load_file(const char *path);
 
 /**
+ * remap_file_load_auto
+ * 
+ * @return 0
+ * 
+ * Load Game-specific input remap file.
+ * If unsuccessful, load Core-specific input remap file.
+ * If still unsuccessful, initialize defaults.
+ **/
+int remap_file_load_auto();
+
+/**
  * input_remapping_save_file:
  * @path                     : Path to remapping file (relative path).
  *

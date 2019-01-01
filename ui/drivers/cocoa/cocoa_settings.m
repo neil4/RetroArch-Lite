@@ -23,7 +23,7 @@
 #include "../../../menu/menu_setting.h"
 #include "../../../input/drivers/cocoa_input.h"
 
-#include "../../../driver.h"
+#include "../../../configuration.h"
 #include "../../../input/input_common.h"
 #include "../../../input/input_keymaps.h"
 

@@ -45,7 +45,7 @@
 #endif
 
 #include "../../general.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_HLSL)
 #include "../video_shader_driver.h"

@@ -188,33 +188,6 @@ extern "C" {
 
 #define MENU_LABEL_TURBO                                                       0x107434f1U
 
-#define MENU_LABEL_VALUE_NO_PLAYLIST_ENTRIES_AVAILABLE                         0xea82695dU
-#define MENU_LABEL_VALUE_RDB_ENTRY_START_CONTENT                               0x2cf73cceU
-#define MENU_LABEL_RDB_ENTRY_ANALOG                                            0x9081c2ffU
-#define MENU_LABEL_RDB_ENTRY_RUMBLE                                            0xb8ae8ad4U
-#define MENU_LABEL_RDB_ENTRY_START_CONTENT                                     0x95025a55U
-#define MENU_LABEL_RDB_ENTRY_DESCRIPTION                                       0x26aa1f71U
-#define MENU_LABEL_RDB_ENTRY_NAME                                              0xc6ccf92eU
-#define MENU_LABEL_RDB_ENTRY_PUBLISHER                                         0x4d7bcdfbU
-#define MENU_LABEL_RDB_ENTRY_DEVELOPER                                         0x06f61093U
-#define MENU_LABEL_RDB_ENTRY_ORIGIN                                            0xb176aad5U
-#define MENU_LABEL_RDB_ENTRY_FRANCHISE                                         0xb31764a0U
-#define MENU_LABEL_RDB_ENTRY_ENHANCEMENT_HW                                    0x79ee4f11U
-#define MENU_LABEL_RDB_ENTRY_ESRB_RATING                                       0xe138fa3dU
-#define MENU_LABEL_RDB_ENTRY_BBFC_RATING                                       0x82dbc01eU
-#define MENU_LABEL_RDB_ENTRY_ELSPA_RATING                                      0x0def0906U
-#define MENU_LABEL_RDB_ENTRY_PEGI_RATING                                       0xd814cb56U
-#define MENU_LABEL_RDB_ENTRY_CERO_RATING                                       0x9d436f5aU
-#define MENU_LABEL_RDB_ENTRY_EDGE_MAGAZINE_RATING                              0x9735f631U
-#define MENU_LABEL_RDB_ENTRY_EDGE_MAGAZINE_ISSUE                               0xd5706415U
-#define MENU_LABEL_RDB_ENTRY_FAMITSU_MAGAZINE_RATING                           0x01a50315U
-#define MENU_LABEL_RDB_ENTRY_RELEASE_MONTH                                     0xad2f2c54U
-#define MENU_LABEL_RDB_ENTRY_RELEASE_YEAR                                      0x14c9c6bfU
-#define MENU_LABEL_RDB_ENTRY_MAX_USERS                                         0xfae91cc4U
-#define MENU_LABEL_RDB_ENTRY_SHA1                                              0xc6cfd31aU
-#define MENU_LABEL_RDB_ENTRY_MD5                                               0xdf3c7f93U
-#define MENU_LABEL_RDB_ENTRY_CRC32                                             0x9fae330aU
-
 #define MENU_LABEL_VIDEO_SHADER_DEFAULT_FILTER                                 0x4468cb1bU
 #define MENU_LABEL_VIDEO_SHADER_FILTER_PASS                                    0x1906c38dU
 #define MENU_LABEL_VIDEO_SHADER_SCALE_PASS                                     0x18f7b82fU
@@ -265,27 +238,7 @@ extern "C" {
 #define MENU_LABEL_QUIT_RETROARCH                                              0x84b0bc71U
 #define MENU_LABEL_VALUE_QUIT_RETROARCH                                        0x8e7024f2U
 #define MENU_LABEL_DEFERRED_VIDEO_FILTER                                       0x966ad201U
-#define MENU_LABEL_DEFERRED_CORE_LIST_SET                                      0xa6d5fdb4U
 #define MENU_LABEL_VALUE_STARTING_DOWNLOAD                                     0x42e10f03U
-#define MENU_LABEL_DEFERRED_DATABASE_MANAGER_LIST                              0x7c0b704fU
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST                                0x45446638U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_DEVELOPER            0xcbd89be5U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_PUBLISHER            0x125e594dU
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_ORIGIN               0x4ebaa767U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_FRANCHISE            0x77f9eff2U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_EDGE_MAGAZINE_RATING 0x1c7f8a43U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_EDGE_MAGAZINE_ISSUE  0xaaeebde7U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_FAMITSU_MAGAZINE_RATING 0xbf7ff5e7U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_ENHANCEMENT_HW       0x9866bda3U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_RELEASEMONTH         0x2b36ce66U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_RELEASEYEAR          0x9c7c6e91U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_ESRB_RATING          0x68eba20fU
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_ELSPA_RATING         0x8bf6ab18U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_PEGI_RATING          0x5fc77328U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_CERO_RATING          0x24f6172cU
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_BBFC_RATING          0x0a8e67f0U
-#define MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST_RDB_ENTRY_MAX_USERS            0xbfcba816U
-#define MENU_LABEL_DEFERRED_RDB_ENTRY_DETAIL                                   0xc35416c0U
 #define MENU_LABEL_DEFERRED_CORE_LIST                                          0xf157d289U
 #define MENU_LABEL_DEFERRED_CORE_UPDATER_LIST                                  0xbd4d493dU
 #define MENU_LABEL_CONFIGURATIONS                                              0x3e930a50U
@@ -293,8 +246,6 @@ extern "C" {
 #define MENU_LABEL_PERFORMANCE_COUNTERS                                        0xd8ab5049U
 #define MENU_LABEL_VALUE_PERFORMANCE_COUNTERS                                  0x20eb18caU
 #define MENU_LABEL_CORE_LIST                                                   0xa8c3bfc9U
-#define MENU_LABEL_MANAGEMENT                                                  0x096d05b7U
-#define MENU_LABEL_VALUE_MANAGEMENT                                            0x9afd7e78U
 #define MENU_LABEL_OPTIONS                                                     0x71f05091U
 #define MENU_LABEL_VALUE_OPTIONS                                               0xd2a8b871U
 #define MENU_LABEL_SETTINGS                                                    0x1304dc16U
@@ -302,8 +253,6 @@ extern "C" {
 #define MENU_LABEL_VALUE_FRONTEND_COUNTERS                                     0x5752bcf8U
 #define MENU_LABEL_VALUE_CORE_COUNTERS                                         0x4610e861U
 #define MENU_LABEL_CORE_COUNTERS                                               0x64cc83e0U
-#define MENU_LABEL_LOAD_CONTENT_HISTORY                                        0x60d82032U
-#define MENU_LABEL_VALUE_LOAD_CONTENT_HISTORY                                  0x03531ac3U
 #define MENU_LABEL_INFO_SCREEN                                                 0xd97853d0U
 #define MENU_LABEL_SYSTEM_INFORMATION                                          0x206ebf0fU
 #define MENU_LABEL_VALUE_SYSTEM_INFORMATION                                    0xa62fd7f0U
@@ -321,16 +270,12 @@ extern "C" {
 #define MENU_LABEL_VALUE_DISK_IMAGE_APPEND                                     0x1cb28c6bU
 #define MENU_LABEL_DISK_INDEX                                                  0x6c14bf54U
 #define MENU_LABEL_SHADER_OPTIONS                                              0x1f7d2fc7U
-#define MENU_LABEL_VIDEO_OPTIONS                                               0x6390c4e7U
 #define MENU_LABEL_VALUE_VIDEO_OPTIONS                                         0xb4349948U
 #define MENU_LABEL_VALUE_CORE_CHEAT_OPTIONS                                    0x8ba478bfU
 #define MENU_LABEL_CORE_CHEAT_OPTIONS                                          0x9293171dU
 #define MENU_LABEL_VALUE_CORE_INPUT_REMAPPING_OPTIONS                          0x7c65016dU
 #define MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS                                0x7836a8caU
 #define MENU_LABEL_VALUE_CURSOR_MANAGER                                        0xc3696afeU
-#define MENU_LABEL_VALUE_DATABASE_MANAGER                                      0x6af9d2b5U
-#define MENU_LABEL_DATABASE_MANAGER_LIST                                       0x7f853d8fU
-#define MENU_LABEL_CURSOR_MANAGER_LIST                                         0xa969e378U
 #define MENU_LABEL_VIDEO_SHADER_PASS                                           0x4fa31028U
 #define MENU_LABEL_VALUE_VIDEO_SHADER_PRESET                                   0xd149336fU
 #define MENU_LABEL_VIDEO_SHADER_PRESET                                         0xc5d3bae4U
@@ -350,7 +295,6 @@ extern "C" {
 #define MENU_LABEL_INPUT_OVERLAY                                               0x24e24796U
 #define MENU_LABEL_INPUT_OSK_OVERLAY                                           0x11f1c582U
 #define MENU_LABEL_CHEAT_DATABASE_PATH                                         0x01388b8aU
-#define MENU_LABEL_CURSOR_DIRECTORY                                            0xdee8d377U
 #define MENU_LABEL_OSK_OVERLAY_DIRECTORY                                       0xcce86287U
 #define MENU_LABEL_RECORDING_OUTPUT_DIRECTORY                                  0x30bece06U
 #define MENU_LABEL_RECORDING_CONFIG_DIRECTORY                                  0x3c3f274bU
@@ -358,12 +302,9 @@ extern "C" {
 #define MENU_LABEL_VIDEO_FILTER                                                0x1c0eb741U
 #define MENU_LABEL_VALUE_VIDEO_FILTER                                          0xc1690382U
 #define MENU_LABEL_MENU_WALLPAPER                                              0x3b84de01U
-#define MENU_LABEL_CONTENT_HISTORY_PATH                                        0x6f22fb9dU
 #define MENU_LABEL_AUDIO_DSP_PLUGIN                                            0x4a69572bU
 #define MENU_LABEL_VALUE_AUDIO_DSP_PLUGIN                                      0x1c9f180dU
 #define MENU_LABEL_RGUI_BROWSER_DIRECTORY                                      0xa86cba73U
-#define MENU_LABEL_CONTENT_DATABASE_DIRECTORY                                  0x6b443f80U
-#define MENU_LABEL_PLAYLIST_DIRECTORY                                          0x6361820bU
 #define MENU_LABEL_CORE_ASSETS_DIRECTORY                                       0x8ba5ee54U
 #define MENU_LABEL_CONTENT_DIRECTORY                                           0x7738dc14U
 #define MENU_LABEL_SCREENSHOT_DIRECTORY                                        0x552612d7U
@@ -425,7 +366,6 @@ extern "C" {
 #define MENU_LABEL_PRIVACY_SETTINGS                                            0xce106254U
 #define MENU_LABEL_SHADER_APPLY_CHANGES                                        0x4f7306b9U
 #define MENU_LABEL_VALUE_SHADER_APPLY_CHANGES                                  0x5ecf945bU
-#define MENU_LABEL_SAVE_NEW_CONFIG                                             0xcce9ab72U
 #define MENU_LABEL_VALUE_SAVE_NEW_CONFIG                                       0xd49f2c94U
 #define MENU_LABEL_ONSCREEN_DISPLAY_SETTINGS                                   0x67571029U
 #define MENU_LABEL_CHEAT_APPLY_CHANGES                                         0xde88aa27U
@@ -447,20 +387,16 @@ extern "C" {
 #define MENU_LABEL_VALUE_CONFIGURATIONS                                        0x88eb27f0U
 #define MENU_LABEL_VALUE_CHEAT_FILE_SAVE_AS                                    0xf2498a2dU
 #define MENU_LABEL_CHEAT_FILE_SAVE_AS                                          0x1f58dccaU
-#define MENU_LABEL_VALUE_REMAP_FILE_SAVE_AS                                    0x3ce7a81dU
-#define MENU_LABEL_REMAP_FILE_SAVE_AS                                          0xcebf7f3aU
 #define MENU_LABEL_VIDEO_SHADER_PRESET_SAVE_AS                                 0x3d6e5ce5U
 #define MENU_LABEL_VALUE_VIDEO_SHADER_PRESET_SAVE_AS                           0x405d77b2U
 #define MENU_LABEL_REMAP_FILE_SAVE_CORE                                        0x7c9d4c8fU
 #define MENU_LABEL_REMAP_FILE_SAVE_GAME                                        0x7c9f41e0U
-#define MENU_LABEL_CONTENT_COLLECTION_LIST                                     0x0f8a9086U
-#define MENU_LABEL_VALUE_CONTENT_COLLECTION_LIST                               0x7c20a99dU
+#define MENU_LABEL_OPTIONS_FILE_SAVE_GAME                                      0x25d9d117U
 #define MENU_LABEL_VALUE_UNABLE_TO_READ_COMPRESSED_FILE                        0xbae7be3eU
 #define MENU_LABEL_OSK_ENABLE                                                  0x8e208498U
 #define MENU_LABEL_AUDIO_MUTE                                                  0xe0ca1151U
 #define MENU_LABEL_VALUE_AUDIO_MUTE                                            0x5af25952U
 #define MENU_LABEL_EXIT_EMULATOR                                               0x86d5d467U
-#define MENU_LABEL_COLLECTION                                                  0x5fea5991U
 
 #define MENU_VALUE_SECONDS                                                     0x8b0028d4U
 

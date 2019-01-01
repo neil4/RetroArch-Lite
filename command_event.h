@@ -21,6 +21,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+   
+bool in_core_deinit();
 
 enum event_command
 {
@@ -56,6 +58,7 @@ enum event_command
    /* Initializes autosave. */
    EVENT_CMD_AUTOSAVE_INIT,
    EVENT_CMD_AUTOSAVE_STATE,
+   EVENT_CMD_SRAM_ENABLE_SAVE,  // TODO:  use this
    /* Stops audio. */
    EVENT_CMD_AUDIO_STOP,
    /* Starts audio. */
@@ -68,6 +71,8 @@ enum event_command
    EVENT_CMD_OVERLAY_DEINIT,
    /* Sets current scale factor for overlay. */
    EVENT_CMD_OVERLAY_SET_SCALE_FACTOR,
+   EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL,
+   EVENT_CMD_OVERLAY_POPULATE_8WAY,
    /* Sets current alpha modulation for overlay. */
    EVENT_CMD_OVERLAY_SET_ALPHA_MOD,
    /* Cycle to next overlay. */
@@ -82,10 +87,6 @@ enum event_command
    EVENT_CMD_RECORD_INIT,
    /* Deinitializes recording system. */
    EVENT_CMD_RECORD_DEINIT,
-   /* Deinitializes history playlist. */
-   EVENT_CMD_HISTORY_DEINIT,
-   /* Initializes history playlist. */
-   EVENT_CMD_HISTORY_INIT,
    /* Deinitializes core information. */
    EVENT_CMD_CORE_INFO_DEINIT,
    /* Initializes core information. */
@@ -120,10 +121,10 @@ enum event_command
    /* Unpauses retroArch. */
    EVENT_CMD_PAUSE,
    EVENT_CMD_PAUSE_CHECKS,
-   EVENT_CMD_MENU_SAVE_CONFIG,
    EVENT_CMD_MENU_PAUSE_LIBRETRO,
    /* Toggles menu on/off. */
    EVENT_CMD_MENU_TOGGLE,
+   EVENT_CMD_MENU_ENTRIES_REFRESH,
    /* Applies shader changes. */
    EVENT_CMD_SHADERS_APPLY_CHANGES,
    /* Initializes shader directory. */

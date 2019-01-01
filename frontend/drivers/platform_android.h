@@ -199,6 +199,10 @@ enum
    var = (*env)->CallStaticObjectMethod(env, clazz, methodId); \
    JNI_EXCEPTION(env)
 
+#define CALL_LONG_STATIC_METHOD(env, var, clazz, methodId) \
+   var = (*env)->CallStaticLongMethod(env, clazz, methodId); \
+   JNI_EXCEPTION(env)
+
 #define CALL_OBJ_STATIC_METHOD_PARAM(env, var, clazz, methodId, ...) \
    var = (*env)->CallStaticObjectMethod(env, clazz, methodId, __VA_ARGS__); \
    JNI_EXCEPTION(env)
@@ -217,6 +221,10 @@ enum
 
 #define CALL_BOOLEAN_METHOD(env, var, clazz_obj, methodId) \
    var = (*env)->CallBooleanMethod(env, clazz_obj, methodId); \
+   JNI_EXCEPTION(env)
+
+#define CALL_BOOLEAN_METHOD_PARAM(env, var, clazz_obj, methodId, ...) \
+   var = (*env)->CallBooleanMethod(env, clazz_obj, methodId, __VA_ARGS__); \
    JNI_EXCEPTION(env)
 
 #define CALL_DOUBLE_METHOD(env, var, clazz_obj, methodId) \

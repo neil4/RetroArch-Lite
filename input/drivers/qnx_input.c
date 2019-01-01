@@ -23,7 +23,7 @@
 #include <boolean.h>
 
 #include "../../general.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../input_autodetect.h"
 
 #define MAX_PADS 8
@@ -875,4 +875,5 @@ input_driver_t input_qnx = {
    qnx_input_get_joypad_driver,
    qnx_input_keyboard_mapping_is_blocked,
    qnx_input_keyboard_mapping_set_block,
+   NULL // haptic_feedback
 };

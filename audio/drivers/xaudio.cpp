@@ -14,7 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stddef.h>

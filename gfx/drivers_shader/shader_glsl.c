@@ -220,13 +220,18 @@ typedef struct glsl_shader_data
 static bool glsl_core;
 static unsigned glsl_major;
 static unsigned glsl_minor;
+static float* current_mat_data_pointer[GFX_MAX_SHADERS];
+static float current_mat_data[GFX_MAX_SHADERS];
+static unsigned current_idx;
 
 static GLint get_uniform(glsl_shader_data_t *glsl,
       GLuint prog, const char *base)
 {
    unsigned i;
    GLint loc;
-   char buf[64] = {0};
+   char buf[64];
+
+   buf[0] = '\0';
 
    snprintf(buf, sizeof(buf), "%s%s", glsl->glsl_shader->prefix, base);
    loc = glGetUniformLocation(prog, buf);
@@ -316,8 +321,27 @@ static bool compile_shader(glsl_shader_data_t *glsl,
       const char *define, const char *program)
 {
    GLint status;
-   char version[32] = {0};
-   if (glsl_core && !strstr(program, "#version"))
+   const char *source[4];
+   char version[32];
+   const char *existing_version = strstr(program, "#version");
+   version[0]                   = '\0';
+   if (existing_version)
+   {
+      const char* version_extra = "";
+      unsigned version_no = (unsigned)strtoul(existing_version + 8, (char**)&program, 10);
+#ifdef HAVE_OPENGLES
+      if (version_no < 130)
+         version_no = 100;
+      else
+      {
+         version_extra = " es";
+         version_no = 300;
+      }
+#endif
+      snprintf(version, sizeof(version), "#version %u%s\n", version_no, version_extra);
+      RARCH_LOG("[GLSL]: Using GLSL version %u%s.\n", version_no, version_extra);
+   }
+   else if (glsl_core)
    {
       unsigned version_no = 0;
       unsigned gl_ver = glsl_major * 100 + glsl_minor * 10;
@@ -342,7 +366,10 @@ static bool compile_shader(glsl_shader_data_t *glsl,
       RARCH_LOG("[GL]: Using GLSL version %u.\n", version_no);
    }
 
-   const char *source[] = { version, define, glsl->glsl_alias_define, program };
+   source[0] = version;
+   source[1] = define;
+   source[2] = glsl->glsl_alias_define;
+   source[3] = program;
    glShaderSource(shader, ARRAY_SIZE(source), source, NULL);
    glCompileShader(shader);
 
@@ -452,6 +479,9 @@ static bool compile_programs(glsl_shader_data_t *glsl, GLuint *gl_prog)
       const char *fragment         = NULL;
       struct video_shader_pass *pass = (struct video_shader_pass*)
          &glsl->glsl_shader->pass[i];
+      
+      if (!pass)
+         continue;
 
       /* If we load from GLSLP (CGP),
        * load the file here, and pretend
@@ -462,7 +492,6 @@ static bool compile_programs(glsl_shader_data_t *glsl, GLuint *gl_prog)
          RARCH_ERR("Failed to load GLSL shader: %s.\n", pass->source.path);
          return false;
       }
-      *pass->source.path = '\0';
 
       vertex   = pass->source.string.vertex;
       fragment = pass->source.string.fragment;
@@ -655,6 +684,8 @@ static void gl_glsl_destroy_resources(glsl_shader_data_t *glsl)
 
    if (!glsl)
       return;
+   
+   current_idx = 0;
 
    glUseProgram(0);
    for (i = 0; i < GFX_MAX_SHADERS; i++)
@@ -756,18 +787,10 @@ static bool gl_glsl_init(void *data, const char *path)
 
    if (path)
    {
-      bool ret;
+      bool ret = false;
       const char *path_ext = path_get_extension(path);
 
-      if (!strcmp(path_ext, "glsl"))
-      {
-         strlcpy(glsl->glsl_shader->pass[0].source.path, path,
-               sizeof(glsl->glsl_shader->pass[0].source.path));
-         glsl->glsl_shader->passes = 1;
-         glsl->glsl_shader->modern = true;
-         ret = true;
-      }
-      else if (!strcmp(path_ext, "glslp"))
+      if (memcmp(path_ext, "glslp", 5) == 0)
       {
          conf = config_file_new(path);
          if (conf)
@@ -775,11 +798,15 @@ static bool gl_glsl_init(void *data, const char *path)
             ret = video_shader_read_conf_cgp(conf, glsl->glsl_shader);
             glsl->glsl_shader->modern = true;
          }
-         else
-            ret = false;
       }
-      else
-         ret = false;
+      else if (memcmp(path_ext, "glsl", 4) == 0)
+      {
+         strlcpy(glsl->glsl_shader->pass[0].source.path, path,
+               sizeof(glsl->glsl_shader->pass[0].source.path));
+         glsl->glsl_shader->passes = 1;
+         glsl->glsl_shader->modern = true;
+         ret = true;
+      }
 
       if (!ret)
       {
@@ -874,7 +901,7 @@ static bool gl_glsl_init(void *data, const char *path)
 
    if (glsl->glsl_shader->variables)
    {
-      struct state_tracker_info info = {0};
+      struct state_tracker_info info;
 
       info.wram      = (uint8_t*)pretro_get_memory_data(RETRO_MEMORY_SYSTEM_RAM);
       info.info      = glsl->glsl_shader->variable;
@@ -1033,7 +1060,14 @@ static void gl_glsl_set_params(void *data, unsigned width, unsigned height,
          attribs_size++;
          attr++;
 
-         memcpy(buffer + size, info->coord, 8 * sizeof(GLfloat));
+         buffer[size ]       = info->coord[0];
+         buffer[size + 1]    = info->coord[1];
+         buffer[size + 2]    = info->coord[2];
+         buffer[size + 3]    = info->coord[3];
+         buffer[size + 4]    = info->coord[4];
+         buffer[size + 5]    = info->coord[5];
+         buffer[size + 6]    = info->coord[6];
+         buffer[size + 7]    = info->coord[7];
          size += 8;
       }
 
@@ -1062,7 +1096,14 @@ static void gl_glsl_set_params(void *data, unsigned width, unsigned height,
             attribs_size++;
             attr++;
 
-            memcpy(buffer + size, fbo_info[i].coord, 8 * sizeof(GLfloat));
+            buffer[size  ]      = fbo_info->coord[0];
+            buffer[size + 1]    = fbo_info->coord[1];
+            buffer[size + 2]    = fbo_info->coord[2];
+            buffer[size + 3]    = fbo_info->coord[3];
+            buffer[size + 4]    = fbo_info->coord[4];
+            buffer[size + 5]    = fbo_info->coord[5];
+            buffer[size + 6]    = fbo_info->coord[6];
+            buffer[size + 7]    = fbo_info->coord[7];
             size += 8;
          }
       }
@@ -1094,7 +1135,14 @@ static void gl_glsl_set_params(void *data, unsigned width, unsigned height,
          attribs_size++;
          attr++;
 
-         memcpy(buffer + size, prev_info[i].coord, 8 * sizeof(GLfloat));
+         buffer[size  ]      = fbo_info[i].coord[0];
+         buffer[size + 1]    = fbo_info[i].coord[1];
+         buffer[size + 2]    = fbo_info[i].coord[2];
+         buffer[size + 3]    = fbo_info[i].coord[3];
+         buffer[size + 4]    = fbo_info[i].coord[4];
+         buffer[size + 5]    = fbo_info[i].coord[5];
+         buffer[size + 6]    = fbo_info[i].coord[6];
+         buffer[size + 7]    = fbo_info[i].coord[7];
          size += 8;
       }
    }
@@ -1153,8 +1201,14 @@ static bool gl_glsl_set_mvp(void *data, const math_matrix_4x4 *mat)
    }
 
    loc = glsl->gl_uniforms[glsl->glsl_active_index].mvp;
-   if (loc >= 0)
-      glUniformMatrix4fv(loc, 1, GL_FALSE, mat->data);
+   if (loc >= 0) {
+      if (current_idx != glsl->glsl_active_index || mat->data != current_mat_data_pointer[glsl->glsl_active_index] || *mat->data != current_mat_data[glsl->glsl_active_index]) {
+         glUniformMatrix4fv(loc, 1, GL_FALSE, mat->data);
+         current_idx = glsl->glsl_active_index;
+         current_mat_data_pointer[glsl->glsl_active_index] = (float*)mat->data;
+         current_mat_data[glsl->glsl_active_index] = *mat->data;
+      }
+   }
 
    return true;
 }
@@ -1171,6 +1225,7 @@ static bool gl_glsl_set_coords(const void *data)
    const struct gl_coords *coords = (const struct gl_coords*)data;
    driver_t *driver = driver_get_ptr();
    glsl_shader_data_t *glsl = (glsl_shader_data_t*)driver->video_shader_data;
+   unsigned y;
 
    if (!glsl || !glsl->glsl_shader->modern || !coords)
    {
@@ -1200,8 +1255,8 @@ static bool gl_glsl_set_coords(const void *data)
       attribs_size++;
       attr++;
 
-      memcpy(buffer + size, coords->tex_coord, 
-            2 * coords->vertices * sizeof(GLfloat));
+      for (y = 0; y < (2 * coords->vertices); y++)
+         buffer[y + size] = coords->tex_coord[y];
       size += 2 * coords->vertices;
    }
 
@@ -1213,8 +1268,8 @@ static bool gl_glsl_set_coords(const void *data)
       attribs_size++;
       attr++;
 
-      memcpy(buffer + size, coords->vertex, 
-            2 * coords->vertices * sizeof(GLfloat));
+      for (y = 0; y < (2 * coords->vertices); y++)
+         buffer[y + size] = coords->vertex[y];
       size += 2 * coords->vertices;
    }
 
@@ -1226,8 +1281,8 @@ static bool gl_glsl_set_coords(const void *data)
       attribs_size++;
       attr++;
 
-      memcpy(buffer + size, coords->color,
-            4 * coords->vertices * sizeof(GLfloat));
+      for (y = 0; y < (4 * coords->vertices); y++)
+         buffer[y + size] = coords->color[y];
       size += 4 * coords->vertices;
    }
 
@@ -1239,8 +1294,8 @@ static bool gl_glsl_set_coords(const void *data)
       attribs_size++;
       attr++;
 
-      memcpy(buffer + size, coords->lut_tex_coord,
-            2 * coords->vertices * sizeof(GLfloat));
+      for (y = 0; y < (2 * coords->vertices); y++)
+         buffer[y + size] = coords->lut_tex_coord[y];
       size += 2 * coords->vertices;
    }
 

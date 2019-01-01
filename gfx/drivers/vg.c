@@ -25,7 +25,7 @@
 #include "../../libretro.h"
 #include "../../general.h"
 #include "../../retroarch.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../performance.h"
 #include "../font_renderer_driver.h"
 #include "../../content.h"

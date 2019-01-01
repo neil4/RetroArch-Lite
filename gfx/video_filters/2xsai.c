@@ -1,6 +1,6 @@
 /*  RetroArch - A frontend for libretro.
  *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
- *  Copyright (C) 2011-2014 - Daniel De Matteis
+ *  Copyright (C) 2011-2017 - Daniel De Matteis
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU General Public License as published by the Free Software Found-
@@ -67,11 +67,11 @@ static void *twoxsai_generic_create(const struct softfilter_config *config,
       unsigned max_width, unsigned max_height,
       unsigned threads, softfilter_simd_mask_t simd, void *userdata)
 {
+   struct filter_data *filt = (struct filter_data*)calloc(1, sizeof(*filt));
+
    (void)simd;
    (void)config;
    (void)userdata;
-
-   struct filter_data *filt = (struct filter_data*)calloc(1, sizeof(*filt));
    if (!filt)
       return NULL;
    filt->workers = (struct softfilter_thread_data*)
@@ -225,11 +225,11 @@ static void twoxsai_generic_destroy(void *data)
 #endif
 
 static void twoxsai_generic_xrgb8888(unsigned width, unsigned height,
-      int first, int last, uint32_t *src, 
+      int first, int last, uint32_t *src,
       unsigned src_stride, uint32_t *dst, unsigned dst_stride)
 {
-   unsigned nextline, finish;
-   nextline = (last) ? 0 : src_stride;
+   unsigned finish;
+   unsigned nextline = (last) ? 0 : src_stride;
 
    for (; height; height--)
    {
@@ -257,11 +257,11 @@ static void twoxsai_generic_xrgb8888(unsigned width, unsigned height,
 }
 
 static void twoxsai_generic_rgb565(unsigned width, unsigned height,
-      int first, int last, uint16_t *src, 
+      int first, int last, uint16_t *src,
       unsigned src_stride, uint16_t *dst, unsigned dst_stride)
 {
-   unsigned nextline, finish;
-   nextline = (last) ? 0 : src_stride;
+   unsigned finish;
+   unsigned nextline = (last) ? 0 : src_stride;
 
    for (; height; height--)
    {
@@ -290,7 +290,7 @@ static void twoxsai_generic_rgb565(unsigned width, unsigned height,
 
 static void twoxsai_work_cb_rgb565(void *data, void *thread_data)
 {
-   struct softfilter_thread_data *thr = 
+   struct softfilter_thread_data *thr =
       (struct softfilter_thread_data*)thread_data;
    uint16_t *input = (uint16_t*)thr->in_data;
    uint16_t *output = (uint16_t*)thr->out_data;
@@ -299,14 +299,14 @@ static void twoxsai_work_cb_rgb565(void *data, void *thread_data)
 
    twoxsai_generic_rgb565(width, height,
          thr->first, thr->last, input,
-         thr->in_pitch / SOFTFILTER_BPP_RGB565,
+         (unsigned)(thr->in_pitch / SOFTFILTER_BPP_RGB565),
          output,
-         thr->out_pitch / SOFTFILTER_BPP_RGB565);
+         (unsigned)(thr->out_pitch / SOFTFILTER_BPP_RGB565));
 }
 
 static void twoxsai_work_cb_xrgb8888(void *data, void *thread_data)
 {
-   struct softfilter_thread_data *thr = 
+   struct softfilter_thread_data *thr =
       (struct softfilter_thread_data*)thread_data;
    uint32_t *input = (uint32_t*)thr->in_data;
    uint32_t *output = (uint32_t*)thr->out_data;
@@ -315,9 +315,9 @@ static void twoxsai_work_cb_xrgb8888(void *data, void *thread_data)
 
    twoxsai_generic_xrgb8888(width, height,
          thr->first, thr->last, input,
-         thr->in_pitch / SOFTFILTER_BPP_XRGB8888,
+         (unsigned)(thr->in_pitch / SOFTFILTER_BPP_XRGB8888),
          output,
-         thr->out_pitch / SOFTFILTER_BPP_XRGB8888);
+         (unsigned)(thr->out_pitch / SOFTFILTER_BPP_XRGB8888));
 }
 
 static void twoxsai_generic_packets(void *data,
@@ -326,16 +326,17 @@ static void twoxsai_generic_packets(void *data,
       const void *input, unsigned width,
       unsigned height, size_t input_stride)
 {
-   struct filter_data *filt = (struct filter_data*)data;
    unsigned i;
+   struct filter_data *filt = (struct filter_data*)data;
+
    for (i = 0; i < filt->threads; i++)
    {
-      struct softfilter_thread_data *thr = 
+      struct softfilter_thread_data *thr =
          (struct softfilter_thread_data*)&filt->workers[i];
 
       unsigned y_start = (height * i) / filt->threads;
       unsigned y_end = (height * (i + 1)) / filt->threads;
-      thr->out_data = (uint8_t*)output + y_start * 
+      thr->out_data = (uint8_t*)output + y_start *
          TWOXSAI_SCALE * output_stride;
       thr->in_data = (const uint8_t*)input + y_start * input_stride;
       thr->out_pitch = output_stride;
@@ -343,7 +344,7 @@ static void twoxsai_generic_packets(void *data,
       thr->width = width;
       thr->height = y_end - y_start;
 
-      /* Workers need to know if they can access pixels 
+      /* Workers need to know if they can access pixels
        * outside their given buffer.
        */
       thr->first = y_start;

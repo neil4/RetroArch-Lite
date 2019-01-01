@@ -39,7 +39,9 @@
 #include "shared.h"
 
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_HLSL)
+#ifndef NO_SHADER_MANAGER
 #define HAVE_SHADER_MANAGER
+#endif
 #endif
 
 #if defined(_XBOX1)

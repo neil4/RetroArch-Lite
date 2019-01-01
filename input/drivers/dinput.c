@@ -278,7 +278,7 @@ static bool dinput_key_pressed(void *data, int key)
          settings->input.binds[0], 0, key);
 }
 
-static int16_t dinput_lightgun_state(struct dinput_input *di, unsigned id)
+static int16_t dinput_lightgun_mouse_state(struct dinput_input *di, unsigned id)
 {
    switch (id)
    {
@@ -300,6 +300,44 @@ static int16_t dinput_lightgun_state(struct dinput_input *di, unsigned id)
 
    return 0;
 }
+
+#ifdef HAVE_OVERLAY
+static int16_t dinput_lightgun_overlay_state(unsigned id)
+{
+   driver_t *driver         = driver_get_ptr();
+   global_t *global         = global_get_ptr();
+   
+   switch(id)
+   {
+      case RETRO_DEVICE_ID_LIGHTGUN_X:
+         // todo: should be relative! (should also be obsolete)
+      case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
+         return input_overlay_lightgun_x();
+      case RETRO_DEVICE_ID_LIGHTGUN_Y:
+      case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
+         return input_overlay_lightgun_y();
+      case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
+         if (global->overlay_lightgun_autotrigger)
+            return input_overlay_lightgun_autotrigger();
+      case RETRO_DEVICE_ID_LIGHTGUN_CURSOR:
+      case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
+      case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
+      case RETRO_DEVICE_ID_LIGHTGUN_START:
+      case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
+      case RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP:
+      case RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN:
+      case RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT:
+      case RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT:
+         return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
+      case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:  // hack
+         return (driver->overlay_state.lightgun_buttons
+                 & (1<<RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN)) != 0;
+      default:
+         return 0;
+   }
+   return 0;
+}
+#endif
 
 static int16_t dinput_mouse_state(struct dinput_input *di, unsigned id)
 {
@@ -432,7 +470,12 @@ static int16_t dinput_input_state(void *data,
                device == RARCH_DEVICE_POINTER_SCREEN);
 
       case RETRO_DEVICE_LIGHTGUN:
-         return dinput_lightgun_state(di, id);
+#ifdef HAVE_OVERLAY
+            if (settings->input.overlay_enable)
+               return dinput_lightgun_overlay_state(id);
+            else
+#endif
+         return dinput_lightgun_mouse_state(di, id);
    }
 
    return 0;
@@ -709,4 +752,5 @@ input_driver_t input_dinput = {
    dinput_get_joypad_driver,
    dinput_keyboard_mapping_is_blocked,
    dinput_keyboard_mapping_set_block,
+   NULL // haptic_feedback
 };

@@ -16,6 +16,7 @@
 
 #include <string.h>
 #include <string/string_list.h>
+#include "../configuration.h"
 #include "video_driver.h"
 #include "video_thread_wrapper.h"
 #include "video_pixel_converter.h"
@@ -1265,4 +1266,22 @@ enum retro_pixel_format video_driver_get_pixel_format(void)
 void video_driver_set_pixel_format(enum retro_pixel_format fmt)
 {
    video_state.pix_fmt = fmt;
+}
+
+void video_driver_free_hw_context()
+{
+   driver_t *driver = driver_get_ptr();
+   
+   struct retro_hw_render_callback *hw_render = 
+      (struct retro_hw_render_callback*)video_driver_callback();
+
+   if (hw_render->context_destroy && !driver->video_cache_context)
+   {
+      // hack(?) - dismiss menu before destroying context
+      rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
+      hw_render->context_destroy();
+      rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING);
+   }
+
+   memset(hw_render, 0, sizeof(*hw_render));
 }

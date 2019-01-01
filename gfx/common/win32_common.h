@@ -19,7 +19,7 @@
 
 #include <string.h>
 #include <boolean.h>
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../video_context_driver.h"
 
 #ifdef __cplusplus

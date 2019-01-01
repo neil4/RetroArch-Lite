@@ -470,47 +470,21 @@ static void event_init_controllers(void)
             RARCH_LOG("Disconnecting device from port %u.\n", i + 1);
             pretro_set_controller_port_device(i, device);
             break;
-         case RETRO_DEVICE_JOYPAD:
-            break;
          default:
             /* Some cores do not properly range check port argument.
              * This is broken behavior of course, but avoid breaking
              * cores needlessly. */
-            RARCH_LOG("Connecting %s (ID: %u) to port %u.\n", ident,
-                  device, i + 1);
-            pretro_set_controller_port_device(i, device);
+            if (i < global->system.num_ports)
+            {
+               RARCH_LOG("Connecting %s (ID: %u) to port %u.\n", ident,
+                     device, i + 1);
+               pretro_set_controller_port_device(i, device);
+            }
             break;
       }
    }
 }
 
-static void event_deinit_core(bool reinit)
-{
-   global_t *global     = global_get_ptr();
-   settings_t *settings = config_get_ptr();
-
-   pretro_unload_game();
-   pretro_deinit();
-
-   if (reinit)
-      event_command(EVENT_CMD_DRIVERS_DEINIT);
-
-   /* per-core saves: restore the original path so the config is not affected */
-   if(settings->sort_savefiles_enable)
-      strlcpy(global->savefile_dir,orig_savefile_dir,sizeof(global->savefile_dir));
-   if(settings->sort_savestates_enable)
-      strlcpy(global->savestate_dir,orig_savestate_dir,sizeof(global->savestate_dir)); 
-  
-  /* auto overrides: reload the original config */
-   if(global->overrides_active)
-   {
-      config_unload_override();
-      global->overrides_active = false;
-   }
-
-   pretro_set_environment(rarch_environment_cb);
-   uninit_libretro_sym();
-}
 
 static void event_init_cheats(void)
 {
@@ -636,6 +610,7 @@ static void event_set_savestate_auto_index(void)
 static bool event_init_content(void)
 {
    global_t *global = global_get_ptr();
+   settings_t *settings = config_get_ptr();
 
    /* No content to be loaded for dummy core,
     * just successfully exit. */
@@ -652,6 +627,10 @@ static bool event_init_content(void)
       return true;
 
    event_set_savestate_auto_index();
+   if (settings->auto_remaps_enable)
+      remap_file_load_auto();
+   
+   game_config_file_load_auto();
 
    if (event_load_save_files())
       RARCH_LOG("Skipping SRAM load.\n");
@@ -667,32 +646,11 @@ static bool event_init_core(void)
 {
    global_t *global     = global_get_ptr();
    driver_t *driver     = driver_get_ptr();
-   settings_t *settings = config_get_ptr();
-
-   /* per-core saves: save the original path */
-   if(orig_savefile_dir[0] == '\0')
-      strlcpy(orig_savefile_dir,global->savefile_dir,sizeof(orig_savefile_dir));
-   if(orig_savestate_dir[0] == '\0')
-      strlcpy(orig_savestate_dir,global->savestate_dir,sizeof(orig_savestate_dir));
-
-   /* auto overrides: apply overrides */
-   if(settings->auto_overrides_enable)
-   {
-      if (config_load_override())
-         global->overrides_active = true;
-      else
-         global->overrides_active = false; 
-   }
-
+   
    pretro_set_environment(rarch_environment_cb);
 
-   /* auto-remap: apply remap files */
-   if(settings->auto_remaps_enable)
-      config_load_remap();
-
    /* per-core saves: reset redirection paths */
-   if(settings->sort_savestates_enable || settings->sort_savefiles_enable)
-      set_paths_redirect(global->basename);
+   set_paths_redirect();
 
    rarch_verify_api_version();
    pretro_init();
@@ -738,111 +696,6 @@ static void event_init_remapping(void)
       return;
 
    input_remapping_load_file(settings->input.remapping_path);
-}
-
-/**
- * event_save_core_config:
- *
- * Saves a new (core) configuration to a file. Filename is based
- * on heuristics to avoid typing.
- *
- * Returns: true (1) on success, otherwise false (0).
- **/
-static bool event_save_core_config(void)
-{
-   char config_dir[PATH_MAX_LENGTH]  = {0};
-   char config_name[PATH_MAX_LENGTH] = {0};
-   char config_path[PATH_MAX_LENGTH] = {0};
-   char msg[PATH_MAX_LENGTH]         = {0};
-   bool ret                          = false;
-   bool found_path                   = false;
-   bool overrides_active             = false;
-   settings_t *settings              = config_get_ptr();
-   global_t   *global                = global_get_ptr();
-
-   *config_dir = '\0';
-
-   if (*settings->menu_config_directory)
-      strlcpy(config_dir, settings->menu_config_directory,
-            sizeof(config_dir));
-   else if (*global->config_path) /* Fallback */
-      fill_pathname_basedir(config_dir, global->config_path,
-            sizeof(config_dir));
-   else
-   {
-      const char *message = "Config directory not set. Cannot save new config.";
-      rarch_main_msg_queue_push(message, 1, 180, true);
-      RARCH_ERR("%s\n", message);
-      return false;
-   }
-
-   /* Infer file name based on libretro core. */
-   if (*settings->libretro && path_file_exists(settings->libretro))
-   {
-      unsigned i;
-
-      /* In case of collision, find an alternative name. */
-      for (i = 0; i < 16; i++)
-      {
-         char tmp[64] = {0};
-
-         fill_pathname_base(config_name, settings->libretro,
-               sizeof(config_name));
-         path_remove_extension(config_name);
-         fill_pathname_join(config_path, config_dir, config_name,
-               sizeof(config_path));
-
-         *tmp = '\0';
-
-         if (i)
-            snprintf(tmp, sizeof(tmp), "-%u.cfg", i);
-         else
-            strlcpy(tmp, ".cfg", sizeof(tmp));
-
-         strlcat(config_path, tmp, sizeof(config_path));
-
-         if (!path_file_exists(config_path))
-         {
-            found_path = true;
-            break;
-         }
-      }
-   }
-
-   /* Fallback to system time... */
-   if (!found_path)
-   {
-      RARCH_WARN("Cannot infer new config path. Use current time.\n");
-      fill_dated_filename(config_name, "cfg", sizeof(config_name));
-      fill_pathname_join(config_path, config_dir, config_name,
-            sizeof(config_path));
-   }
-
-   /* Overrides block config file saving, make it appear as overrides weren't enabled for a manual save */
-   if (global->overrides_active)
-   {
-      global->overrides_active = false;
-	  overrides_active = true;
-   }
-
-   if ((ret = config_save_file(config_path)))
-   {
-      strlcpy(global->config_path, config_path,
-            sizeof(global->config_path));
-      snprintf(msg, sizeof(msg), "Saved new config to \"%s\".",
-            config_path);
-      RARCH_LOG("%s\n", msg);
-   }
-   else
-   {
-      snprintf(msg, sizeof(msg), "Failed saving config to \"%s\".",
-            config_path);
-      RARCH_ERR("%s\n", msg);
-   }
-
-   rarch_main_msg_queue_push(msg, 1, 180, true);
-   global->overrides_active = overrides_active;
-   return ret;
 }
 
 /**
@@ -964,7 +817,7 @@ bool event_command(enum event_command cmd)
    driver_t  *driver    = driver_get_ptr();
    global_t  *global    = global_get_ptr();
    settings_t *settings = config_get_ptr();
-
+   
    (void)i;
 
    switch (cmd)
@@ -1003,6 +856,7 @@ bool event_command(enum event_command cmd)
          }
          break;
       case EVENT_CMD_LOAD_CORE:
+         rarch_update_config();
          event_command(EVENT_CMD_LOAD_CORE_PERSIST);
 #ifndef HAVE_DYNAMIC
          event_command(EVENT_CMD_QUIT);
@@ -1037,6 +891,9 @@ bool event_command(enum event_command cmd)
          else
             rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING);
          break;
+      case EVENT_CMD_MENU_ENTRIES_REFRESH:
+         menu_entries_set_refresh();
+         break;
       case EVENT_CMD_CONTROLLERS_INIT:
          event_init_controllers();
          break;
@@ -1048,6 +905,7 @@ bool event_command(enum event_command cmd)
          /* bSNES since v073r01 resets controllers to JOYPAD
           * after a reset, so just enforce it here. */
          event_command(EVENT_CMD_CONTROLLERS_INIT);
+         rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
          break;
       case EVENT_CMD_SAVE_STATE:
          if (settings->savestate_auto_index)
@@ -1075,8 +933,12 @@ bool event_command(enum event_command cmd)
          }
          break;
       case EVENT_CMD_UNLOAD_CORE:
+         *settings->libretro = '\0';
+         rarch_update_config();
          event_command(EVENT_CMD_PREPARE_DUMMY);
          event_command(EVENT_CMD_LOAD_CORE_DEINIT);
+         
+         global->content_is_init = false;
          break;
       case EVENT_CMD_QUIT:
          rarch_main_set_state(RARCH_ACTION_STATE_QUIT);
@@ -1248,26 +1110,8 @@ bool event_command(enum event_command cmd)
             return false;
          break;
       case EVENT_CMD_RECORD_INIT:
-         event_command(EVENT_CMD_HISTORY_DEINIT);
          if (!recording_init())
             return false;
-         break;
-      case EVENT_CMD_HISTORY_DEINIT:
-         if (g_defaults.history)
-         {
-            content_playlist_write_file(g_defaults.history);
-            content_playlist_free(g_defaults.history);
-         }
-         g_defaults.history = NULL;
-         break;
-      case EVENT_CMD_HISTORY_INIT:
-         event_command(EVENT_CMD_HISTORY_DEINIT);
-         if (!settings->history_list_enable)
-            return false;
-         RARCH_LOG("Loading history file: [%s].\n", settings->content_history_path);
-         g_defaults.history = content_playlist_init(
-               settings->content_history_path,
-               settings->content_history_size);
          break;
       case EVENT_CMD_CORE_INFO_DEINIT:
          if (!global)
@@ -1284,18 +1128,19 @@ bool event_command(enum event_command cmd)
          event_command(EVENT_CMD_CORE_INFO_DEINIT);
 
          if (*settings->libretro_directory)
-            global->core_info = core_info_list_new();
+            global->core_info = core_info_list_new(false);
          break;
       case EVENT_CMD_CORE_DEINIT:
-      {
-         struct retro_hw_render_callback *cb = video_driver_callback();
-         event_deinit_core(true);
-
-         if (cb)
-            memset(cb, 0, sizeof(*cb));
-
+         video_driver_free_hw_context();
+         
+         pretro_unload_game();
+         pretro_deinit();
+         
+         event_command(EVENT_CMD_DRIVERS_DEINIT);
+         
+         pretro_set_environment(rarch_environment_cb);
+         uninit_libretro_sym();
          break;
-      }
       case EVENT_CMD_CORE_INIT:
          if (!event_init_core())
             return false;
@@ -1322,12 +1167,22 @@ bool event_command(enum event_command cmd)
                settings->input.overlay_scale);
 #endif
          break;
+      case EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL:
+#ifdef HAVE_OVERLAY
+         input_overlay_update_aspect_and_vertical(driver->overlay);
+#endif
+         break;
       case EVENT_CMD_OVERLAY_SET_ALPHA_MOD:
 #ifdef HAVE_OVERLAY
          input_overlay_set_alpha_mod(driver->overlay,
                settings->input.overlay_opacity);
 #endif
          break;
+      case EVENT_CMD_OVERLAY_POPULATE_8WAY:
+#ifdef HAVE_OVERLAY
+         populate_8way_vals();
+#endif
+         break;         
       case EVENT_CMD_DRIVERS_DEINIT:
          uninit_drivers(DRIVERS_CMD_ALL);
          break;
@@ -1338,8 +1193,8 @@ bool event_command(enum event_command cmd)
          uninit_drivers(DRIVER_AUDIO);
          init_drivers(DRIVER_AUDIO);
          break;
-      case EVENT_CMD_RESET_CONTEXT:
-         event_command(EVENT_CMD_DRIVERS_DEINIT);
+      case EVENT_CMD_RESET_CONTEXT:           
+         event_command(EVENT_CMD_DRIVERS_DEINIT);   
          event_command(EVENT_CMD_DRIVERS_INIT);
          break;
       case EVENT_CMD_QUIT_RETROARCH:
@@ -1356,10 +1211,6 @@ bool event_command(enum event_command cmd)
 #endif
          if (driver->frontend_ctx && driver->frontend_ctx->set_fork)
             driver->frontend_ctx->set_fork(true, false);
-         break;
-      case EVENT_CMD_MENU_SAVE_CONFIG:
-         if (!event_save_core_config())
-            return false;
          break;
       case EVENT_CMD_SHADERS_APPLY_CHANGES:
 #ifdef HAVE_MENU
@@ -1513,6 +1364,7 @@ bool event_command(enum event_command cmd)
 #endif
          break;
       case EVENT_CMD_FULLSCREEN_TOGGLE:
+         settings_touched = true;
          if (!video_driver_has_windowed())
             return false;
 

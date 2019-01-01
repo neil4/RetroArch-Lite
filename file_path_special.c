@@ -87,7 +87,7 @@ void fill_pathname_expand_special(char *out_path,
          in_path++;
       }
    }
-   else if ((in_path[0] == ':') &&
+   else if ((in_path[0] == ':' || in_path[0] == '.') &&
 #ifdef _WIN32
          ((in_path[1] == '/') || (in_path[1] == '\\'))
 #else

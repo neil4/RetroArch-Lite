@@ -17,7 +17,7 @@
 #include "../input_autodetect.h"
 #include "../input_common.h"
 #include "../input_hid_driver.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 
 static const hid_driver_t *generic_hid;
 

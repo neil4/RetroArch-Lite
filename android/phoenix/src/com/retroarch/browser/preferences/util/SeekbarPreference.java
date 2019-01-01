@@ -1,6 +1,6 @@
 package com.retroarch.browser.preferences.util;
 
-import com.retroarch.R;
+import com.retroarchlite.R;
 
 import android.content.Context;
 import android.preference.DialogPreference;

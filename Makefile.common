@@ -1,11 +1,3 @@
-ifeq ($(HAVE_LIBRETRODB),)
-   HAVE_LIBRETRODB = 1
-endif
-
-ifeq ($(HAVE_LIBRETRODB), 1)
-	DEFINES += -DHAVE_LIBRETRODB
-endif
-
 ifeq ($(HAVE_FBO), 1)
    DEFINES += -DHAVE_FBO
 endif
@@ -44,14 +36,6 @@ endif
 CFLAGS += -I./libretro-common/include
 
 # Switches
-
-# Extra menu drivers if GL supported
-ifeq ($(HAVE_OPENGL), 1)
-ifeq ($(HAVE_RGUI), 1)
-HAVE_GLUI = 1
-HAVE_XMB = 1
-endif
-endif
 
 # System
 
@@ -141,10 +125,14 @@ OBJ += frontend/frontend.o \
 		input/input_keymaps.o \
 		input/input_remapping.o \
 		input/input_sensor.o \
-		input/keyboard_line.o \
-		tasks/task_overlay.o \
-		input/input_overlay.o \
-		patch.o \
+		input/keyboard_line.o
+	
+ifdef HAVE_OVERLAY
+OBJ += tasks/task_overlay.o \
+		input/input_overlay.o
+endif
+
+OBJ += patch.o \
 		libretro-common/queues/fifo_buffer.o \
 		core_options.o \
 		libretro-common/compat/compat.o \
@@ -177,7 +165,6 @@ OBJ += frontend/frontend.o \
 		input/drivers_hid/null_hid.o \
 		input/drivers_joypad/null_joypad.o \
 		input/drivers_joypad/hid_joypad.o \
-		playlist.o \
 		movie.o \
 		record/record_driver.o \
 		record/drivers/record_null.o \
@@ -192,18 +179,6 @@ ifeq ($(HAVE_QT), 1)
 OBJ += ui/drivers/ui_qt.o
 # TODO/FIXME - figure out which libraries we need to link against
 LIBS += -lQt5Quick -lQt5Widgets -lQt5Gui -lQt5Qml -lQt5Network -lQt5Core -lglu32 -lopengl32 -L./ui/drivers/qt/release -lwrapper
-endif
-
-# LibretroDB
-
-ifeq ($(HAVE_LIBRETRODB), 1)
-OBJ += libretro-db/bintree.o \
-		 libretro-db/libretrodb.o \
-		 libretro-db/query.o \
-		 libretro-db/rmsgpack.o \
-		 libretro-db/rmsgpack_dom.o \
-		 database_info.o \
-		 tasks/task_database.o 
 endif
 
 # Miscellaneous
@@ -327,14 +302,6 @@ ifeq ($(HAVE_RGUI), 1)
    OBJ += menu/drivers/rgui.o
    DEFINES += -DHAVE_MENU -DHAVE_RGUI
    HAVE_MENU_COMMON = 1
-ifeq ($(HAVE_GLUI), 1)
-   OBJ += menu/drivers/glui.o
-   DEFINES += -DHAVE_GLUI
-endif
-ifeq ($(HAVE_XMB), 1)
-   OBJ += menu/drivers/xmb.o
-   DEFINES += -DHAVE_XMB
-endif
 endif
 
 ifeq ($(HAVE_MENU_COMMON), 1)
@@ -356,7 +323,6 @@ ifeq ($(HAVE_MENU_COMMON), 1)
 			 menu/cbs/menu_cbs_left.o \
 			 menu/cbs/menu_cbs_right.o \
 			 menu/cbs/menu_cbs_deferred_push.o \
-			 menu/cbs/menu_cbs_scan.o \
 			 menu/cbs/menu_cbs_get_value.o \
 			 menu/cbs/menu_cbs_iterate.o \
 			 menu/cbs/menu_cbs_title.o \
@@ -480,7 +446,7 @@ ifeq ($(HAVE_GL_CONTEXT),)
       HAVE_GL_CONTEXT=1
    endif
 
-   ifeq ($(HAVE_GLES3), 1)
+   ifeq ($(HAVE_OPENGLES3), 1)
       HAVE_GL_CONTEXT=1
    endif
 endif
@@ -545,8 +511,8 @@ ifeq ($(HAVE_GL_CONTEXT), 1)
    ifeq ($(HAVE_GLES), 1)
       LIBS += $(GLES_LIBS)
       DEFINES += $(GLES_CFLAGS) -DHAVE_OPENGLES -DHAVE_OPENGLES2
-      ifeq ($(HAVE_GLES3), 1)
-         DEFINES += -DHAVE_OPENGLES3
+      ifeq ($(HAVE_OPENGLES3), 1)
+         DEFINES += -DHAVE_GL_SYNC
       endif
       OBJ += libretro-common/glsym/glsym_es2.o
    else

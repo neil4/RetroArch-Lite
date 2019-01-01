@@ -24,6 +24,7 @@
 #include "../file_ops.h"
 #include "../general.h"
 #include "../runloop_data.h"
+#include "../performance.h"
 #include "tasks.h"
 
 #define CB_CORE_UPDATER_DOWNLOAD 0x7412da7dU
@@ -83,6 +84,7 @@ static int cb_core_updater_download(void *data, size_t len)
    char output_path[PATH_MAX_LENGTH] = {0};
    char msg[PATH_MAX_LENGTH]         = {0};
    settings_t              *settings = config_get_ptr();
+   global_t                  *global = global_get_ptr();
 
    if (!data)
       return -1;
@@ -107,12 +109,16 @@ static int cb_core_updater_download(void *data, size_t len)
    if (!strcasecmp(file_ext,"zip"))
    {
       if (!zlib_parse_file(output_path, NULL, zlib_extract_core_callback,
-
                (void*)settings->libretro_directory))
          RARCH_LOG("Could not process ZIP file.\n");
+      
+      remove(output_path);
    }
 #endif
-
+   // refresh installed core list
+   core_info_list_free(global->core_info);
+   global->core_info = core_info_list_new(false);
+   
    return 0;
 }
 
@@ -140,18 +146,21 @@ static int rarch_main_data_http_conn_iterate_transfer_parse(http_handle_t *http)
 
 static int rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
 {
+   bool rv = true;
    size_t len = 0;
    char *data = (char*)net_http_data(http->handle, &len, false);
 
    if (data && http->cb)
       http->cb(data, len);
+   else
+      rv = false;
 
    net_http_delete(http->handle);
 
    http->handle = NULL;
    msg_queue_clear(http->msg_queue);
 
-   return 0;
+   return rv;
 }
 
 
@@ -266,6 +275,7 @@ static int rarch_main_data_http_iterate_transfer(void *data)
             char tmp[PATH_MAX_LENGTH] = {0};
             snprintf(tmp, sizeof(tmp), "Download progress: %d%%", percent);
             data_runloop_osd_msg(tmp, sizeof(tmp));
+            return 1;
         }
         
         return -1;
@@ -274,8 +284,30 @@ static int rarch_main_data_http_iterate_transfer(void *data)
     return 0;
 }
 
-void rarch_main_data_http_iterate(bool is_thread, void *data)
+/**
+ * rarch_main_data_http_iterate_cancel:
+ *
+ * Cancels HTTP transfer
+ **/
+static void rarch_main_data_http_iterate_cancel(void *data)
 {
+   http_handle_t *http = (http_handle_t*)data;
+    
+   rarch_main_msg_queue_push("Action canceled", 1, 180, false);
+   menu_entries_unset_nonblocking_refresh();
+
+   net_http_delete(http->handle);
+   http->handle = NULL;
+   msg_queue_clear(http->msg_queue);
+
+   http->status = HTTP_STATUS_POLL;
+}
+
+void rarch_main_data_http_iterate(void *data)
+{
+   const retro_time_t limit = 15e6;  // 15s ... TODO: adjustable time limit
+   static retro_time_t start;
+   
    data_runloop_t *runloop = (data_runloop_t*)data;
    http_handle_t *http = runloop ? &runloop->http : NULL;
    if (!http)
@@ -286,18 +318,24 @@ void rarch_main_data_http_iterate(bool is_thread, void *data)
       case HTTP_STATUS_CONNECTION_TRANSFER_PARSE:
          rarch_main_data_http_conn_iterate_transfer_parse(http);
          http->status = HTTP_STATUS_TRANSFER;
+         start = rarch_get_time_usec();
          break;
       case HTTP_STATUS_CONNECTION_TRANSFER:
          if (!rarch_main_data_http_con_iterate_transfer(http))
             http->status = HTTP_STATUS_CONNECTION_TRANSFER_PARSE;
          break;
       case HTTP_STATUS_TRANSFER_PARSE:
-         rarch_main_data_http_iterate_transfer_parse(http);
+         if (!rarch_main_data_http_iterate_transfer_parse(http))
+            core_updater_path[0] = '!';  // hack to signal failure
+         menu_entries_unset_nonblocking_refresh();
          http->status = HTTP_STATUS_POLL;
          break;
       case HTTP_STATUS_TRANSFER:
-         if (!rarch_main_data_http_iterate_transfer(http))
+         if (!rarch_main_data_http_iterate_transfer(http)
+             || rarch_get_time_usec() - start > limit)
             http->status = HTTP_STATUS_TRANSFER_PARSE;
+         else if (input_driver_key_pressed(RETRO_DEVICE_ID_JOYPAD_B))
+            rarch_main_data_http_iterate_cancel(http);
          break;
       case HTTP_STATUS_POLL:
       default:

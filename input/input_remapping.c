@@ -73,6 +73,45 @@ bool input_remapping_load_file(const char *path)
    return true;
 }
 
+int remap_file_load_auto()
+{
+   // Look for game-specific file first, then core-specific file
+   char directory[PATH_MAX_LENGTH]  = {0};
+   char buf[PATH_MAX_LENGTH]        = {0};
+   char fullpath[PATH_MAX_LENGTH]   = {0};
+   global_t *global                 = global_get_ptr();
+   settings_t *settings             = config_get_ptr();
+   const char *core_name            = global ? global->libretro_name
+                                               : NULL;
+   const char *game_name            = global ? path_basename(global->basename)
+                                               : NULL;
+   
+   if (!global || !settings)
+      return 0;
+
+   fill_pathname_join(directory, settings->input_remapping_directory,
+                      core_name, PATH_MAX_LENGTH);
+   fill_pathname_join(buf, directory, game_name, PATH_MAX_LENGTH);
+   fill_pathname_noext(fullpath, buf, ".rmp", PATH_MAX_LENGTH);
+
+   if( !path_file_exists(fullpath) )
+   {  // fall back to core remap file
+      fill_pathname_join(buf,directory,core_name,PATH_MAX_LENGTH);
+      fill_pathname_noext(fullpath, buf, ".rmp", PATH_MAX_LENGTH);
+   }
+   
+   if( path_file_exists(fullpath)
+       && input_remapping_load_file(fullpath) )
+      strlcpy(settings->input.remapping_path, fullpath, PATH_MAX_LENGTH);
+   else
+   {  // fall back to default mapping
+      settings->input.remapping_path[0] = '\0';
+      input_remapping_set_defaults();
+   }
+
+   return 0;
+}
+
 /**
  * input_remapping_save_file:
  * @path                     : Path to remapping file (relative path).
@@ -121,6 +160,9 @@ bool input_remapping_save_file(const char *path)
 
    ret = config_file_write(conf, remap_file);
    config_file_free(conf);
+   
+   if (ret)
+      strlcpy(settings->input.remapping_path, remap_file, PATH_MAX_LENGTH);
 
    return ret;
 }

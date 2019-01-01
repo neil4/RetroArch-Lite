@@ -88,7 +88,6 @@ static void print_features(void)
 {
    puts("");
    puts("Features:");
-   _PSUPP(libretrodb, "LibretroDB", "LibretroDB support");
    _PSUPP(command, "Command", "Command interface support");
    _PSUPP(network_command, "Network Command", "Network Command interface support");
    _PSUPP(sdl, "SDL", "SDL input/audio/video drivers");
@@ -309,62 +308,86 @@ static void set_special_paths(char **argv, unsigned num_content)
             sizeof(settings->system_directory));
 }
 
-void set_paths_redirect(const char *path)
+void set_paths_redirect()
 {
    global_t                *global   = global_get_ptr();
    settings_t              *settings = config_get_ptr();
    uint32_t global_library_name_hash = ((global && global->system.info.library_name &&
             (global->system.info.library_name[0] != '\0'))
          ? djb2_calculate(global->system.info.library_name) : 0);
-
-   if(
-         global_library_name_hash != 0 &&
-         (global_library_name_hash != MENU_VALUE_NO_CORE))
+   
+   /* Default to subdirectories "save" and "state */
+   if (*global->savefile_dir)
+      strlcpy(core_savefile_dir, global->savefile_dir,
+                                 sizeof(global->savefile_dir));
+   else
    {
-      /* per-core saves: append the library_name to the save location */
+      strlcpy(core_savefile_dir, path_default_dotslash(), sizeof(core_savefile_dir));
+      strlcat(core_savefile_dir, "save", sizeof(core_savefile_dir));
+   }
+   
+   if (*global->savestate_dir)
+      strlcpy(core_savestate_dir, global->savestate_dir,
+                                  sizeof(global->savestate_dir));
+   else
+   {
+      strlcpy(core_savestate_dir, path_default_dotslash(), sizeof(core_savestate_dir));
+      strlcat(core_savestate_dir, "state", sizeof(core_savestate_dir));
+   }
+   
+   /* Default input_remapping_directory to menu_config_directory if empty.
+    * Subdirectories are created later. */
+   if (settings->input_remapping_directory[0] == '\0')
+      strlcpy(settings->input_remapping_directory,
+              settings->menu_config_directory,
+              sizeof(settings->menu_config_directory));
+
+   if (global_library_name_hash != MENU_VALUE_NO_CORE)
+   {
+      /* per-core saves: append the libretro_name to the save location */
       if (settings->sort_savefiles_enable)
       {
-         strlcpy(orig_savefile_dir,global->savefile_dir,sizeof(global->savefile_dir));
          fill_pathname_dir(
-               global->savefile_dir,
-               global->savefile_dir,
-               global->system.info.library_name,
-               sizeof(global->savefile_dir));
+               core_savefile_dir,
+               global->libretro_name,
+               "",
+               sizeof(core_savefile_dir));
 
-         // if path doesn't exist try to create it, if everything fails revert to the original path
-         if(!path_is_directory(global->savefile_dir))
-            if(!path_mkdir(global->savefile_dir))
-               strlcpy(global->savefile_dir,
-                     orig_savefile_dir,
-                     sizeof(global->savefile_dir));
+         /* if path doesn't exist, try to create it.
+          * If everything fails revert to the original path. */
+         if(!path_is_directory(core_savefile_dir))
+            if(!path_mkdir(core_savefile_dir))
+               strlcpy(core_savefile_dir,
+                       global->savefile_dir,
+                       sizeof(global->savefile_dir));
       }
 
-      /* per-core states: append the library_name to the save location */
+      /* per-core states: append the libretro_name to the save location */
       if (settings->sort_savestates_enable)
       {
-         strlcpy(orig_savestate_dir,
-               global->savestate_dir,
-               sizeof(global->savestate_dir));
-         fill_pathname_dir(global->savestate_dir,
-               global->savestate_dir,
-               global->system.info.library_name,
-               sizeof(global->savestate_dir));
+         fill_pathname_dir(
+               core_savestate_dir,
+               global->libretro_name,
+               "",
+               sizeof(core_savestate_dir));
 
          /* If path doesn't exist, try to create it.
           * If everything fails, revert to the original path. */
-         if(!path_is_directory(global->savestate_dir))
-            if(!path_mkdir(global->savestate_dir))
-               strlcpy(global->savestate_dir,
-                     orig_savestate_dir,
-                     sizeof(global->savestate_dir));
+         if(!path_is_directory(core_savestate_dir))
+            if(!path_mkdir(core_savestate_dir))
+               strlcpy(core_savestate_dir,
+                       global->savestate_dir,
+                       sizeof(global->savestate_dir));
       }
    }
 
-   if(path_is_directory(global->savefile_dir))
-      strlcpy(global->savefile_name,global->savefile_dir,sizeof(global->savefile_dir));
+   if(path_is_directory(core_savefile_dir))
+      strlcpy(global->savefile_name,
+              core_savefile_dir, sizeof(core_savefile_dir));
 
-   if(path_is_directory(global->savestate_dir))
-      strlcpy(global->savestate_name,global->savestate_dir,sizeof(global->savestate_dir));
+   if(path_is_directory(core_savestate_dir))
+      strlcpy(global->savestate_name,
+              core_savestate_dir, sizeof(core_savestate_dir));
 
    if (path_is_directory(global->savefile_name))
    {
@@ -404,7 +427,7 @@ void rarch_set_paths(const char *path)
    fill_pathname_noext(global->cheatfile_name, global->basename,
          ".cht", sizeof(global->cheatfile_name));
 
-   set_paths_redirect(path);
+   set_paths_redirect();
 
    /* If this is already set, do not overwrite it
     * as this was initialized before in a menu or otherwise. */
@@ -453,8 +476,6 @@ static void parse_input(int argc, char *argv[])
    *global->bps_name                     = '\0';
    *global->ips_name                     = '\0';
    *global->subsystem                    = '\0';
-
-   global->overrides_active              = false;
 
    if (argc < 2)
    {
@@ -636,6 +657,7 @@ static void parse_input(int argc, char *argv[])
             if (path_is_directory(optarg))
             {
                *settings->libretro = '\0';
+               *settings->core_content_directory = '\0';
                strlcpy(settings->libretro_directory, optarg,
                      sizeof(settings->libretro_directory));
                global->has_set_libretro = true;
@@ -1006,9 +1028,7 @@ void rarch_main_alloc(void)
 
    if (!settings)
       return;
-
-   event_command(EVENT_CMD_HISTORY_DEINIT);
-
+   
    rarch_main_clear_state();
    rarch_main_data_clear_state();
 }
@@ -1412,37 +1432,6 @@ void rarch_main_deinit(void)
 }
 
 /**
- * rarch_playlist_load_content:
- * @playlist             : Playlist handle.
- * @idx                  : Index in playlist.
- *
- * Initializes core and loads content based on playlist entry.
- **/
-void rarch_playlist_load_content(void *data, unsigned idx)
-{
-   const char *path             = NULL;
-   const char *core_path        = NULL;
-   content_playlist_t *playlist = (content_playlist_t*)data;
-   menu_handle_t *menu          = menu_driver_get_ptr();
-   settings_t  *settings        = config_get_ptr();
-
-   if (!playlist)
-      return;
-
-   content_playlist_get_index(playlist,
-         idx, &path, NULL, &core_path, NULL, NULL, NULL);
-
-   strlcpy(settings->libretro, core_path, sizeof(settings->libretro));
-
-   if (menu)
-      menu->load_no_content = (path) ? false : true;
-
-   rarch_environment_cb(RETRO_ENVIRONMENT_EXEC, (void*)path);
-
-   event_command(EVENT_CMD_LOAD_CORE);
-}
-
-/**
  * rarch_defer_core:
  * @core_info            : Core info list handle.
  * @dir                  : Directory. Gets joined with @path.
@@ -1544,11 +1533,51 @@ bool rarch_replace_config(const char *path)
    if (settings->config_save_on_exit && *global->config_path)
       config_save_file(global->config_path);
 
-   strlcpy(global->config_path, path, sizeof(global->config_path));
+      strlcpy(global->config_path, path, sizeof(global->config_path));
    global->block_config_read = false;
    *settings->libretro = '\0'; /* Load core in new config. */
+   *settings->core_content_directory = '\0';
+   *global->libretro_name = '\0';
 
    event_command(EVENT_CMD_PREPARE_DUMMY);
 
    return true;
+}
+
+void rarch_update_config()
+{
+   settings_t *settings = config_get_ptr();
+   global_t   *global   = global_get_ptr();
+   bool block_config_read_old;
+
+   /* save config using old libretro_name for core-specific settings */
+   if (settings->config_save_on_exit)
+   {
+      if (settings_touched && *global->config_path)
+         config_save_file(global->config_path);
+
+      if (game_settings_touched)
+         game_config_file_save();
+
+      if (global->system.core_options)
+      {
+         if (options_touched)
+            core_option_flush(global->system.core_options);
+         core_option_free(global->system.core_options);
+         global->system.core_options = NULL;
+      }
+   }
+
+   /* get new core's libretro_name */
+   update_libretro_name();
+
+   /* load global or core-specific settings, or defaults if no core loaded */
+   block_config_read_old = global->block_config_read;
+   global->block_config_read = false;
+   config_load();
+   global->block_config_read = block_config_read_old;
+
+   settings_touched = false;
+   game_settings_touched = false;
+   options_touched = false;
 }

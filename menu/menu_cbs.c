@@ -99,10 +99,6 @@ void menu_cbs_init(void *data,
 
    menu_cbs_init_log(ret, "CANCEL", label, elem0, elem1, type);
 
-   ret = menu_cbs_init_bind_scan(cbs, path, label, type, idx, elem0, elem1, label_hash, menu_label_hash);
-
-   menu_cbs_init_log(ret, "SCAN", label, elem0, elem1, type);
-
    ret = menu_cbs_init_bind_start(cbs, path, label, type, idx, elem0, elem1, label_hash, menu_label_hash);
 
    menu_cbs_init_log(ret, "START", label, elem0, elem1, type);

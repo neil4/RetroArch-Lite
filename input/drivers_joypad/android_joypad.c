@@ -44,11 +44,19 @@ static bool android_joypad_init(void *data)
    }
 
    engine_handle_dpad = engine_handle_dpad_default;
+#ifdef ANDROID_AARCH64
+   if ((dlopen("/system/lib64/libandroid.so", RTLD_LOCAL | RTLD_LAZY)) == 0)
+   {
+      RARCH_WARN("Unable to open libandroid.so\n");
+      return false;
+   }
+#else
    if ((dlopen("/system/lib/libandroid.so", RTLD_LOCAL | RTLD_LAZY)) == 0)
    {
       RARCH_WARN("Unable to open libandroid.so\n");
-      return true;
+      return false;
    }
+#endif
 
    if ((p_AMotionEvent_getAxisValue = dlsym(RTLD_DEFAULT,
                "AMotionEvent_getAxisValue")))

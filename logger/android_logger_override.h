@@ -21,7 +21,7 @@
 #include <android/log.h>
 
 // Log tag. Used for logcat filtering, e.g.: adb logcat RetroArch:V *:S
-#define RARCH_LOG_TAG "RetroArch"
+#define RARCH_LOG_TAG "RetroArchLite"
 
 #ifndef RARCH_LOG
 #define RARCH_LOG(...)  __android_log_print(ANDROID_LOG_INFO, RARCH_LOG_TAG, __VA_ARGS__)

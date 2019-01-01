@@ -14,7 +14,7 @@
  */
 
 #include "../../general.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../performance.h"
 
 

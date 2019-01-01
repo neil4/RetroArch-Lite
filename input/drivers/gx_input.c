@@ -26,7 +26,7 @@
 #define M_PI 3.14159265358979323846264338327
 #endif
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../libretro.h"
 
 #ifndef MAX_PADS
@@ -165,4 +165,5 @@ input_driver_t input_gx = {
    gx_input_get_joypad_driver,
    gx_input_keyboard_mapping_is_blocked,
    gx_input_keyboard_mapping_set_block,
+   NULL // haptic_feedback
 };

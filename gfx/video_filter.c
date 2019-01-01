@@ -250,7 +250,7 @@ static bool create_softfilter_graph(rarch_softfilter_t *filt,
    return true;
 }
 
-#ifdef HAVE_DYLIB
+#if defined(HAVE_DYLIB) && !defined(HAVE_FILTERS_BUILTIN)
 static bool append_softfilter_plugs(rarch_softfilter_t *filt,
       struct string_list *list)
 {
@@ -318,7 +318,6 @@ extern const struct softfilter_implementation *twoxsai_get_implementation(softfi
 extern const struct softfilter_implementation *supereagle_get_implementation(softfilter_simd_mask_t simd);
 extern const struct softfilter_implementation *supertwoxsai_get_implementation(softfilter_simd_mask_t simd);
 extern const struct softfilter_implementation *twoxbr_get_implementation(softfilter_simd_mask_t simd);
-extern const struct softfilter_implementation *darken_get_implementation(softfilter_simd_mask_t simd);
 extern const struct softfilter_implementation *scale2x_get_implementation(softfilter_simd_mask_t simd);
 
 static const softfilter_get_implementation_t soft_plugs_builtin[] = {
@@ -326,7 +325,6 @@ static const softfilter_get_implementation_t soft_plugs_builtin[] = {
    lq2x_get_implementation,
    phosphor2x_get_implementation,
    twoxbr_get_implementation,
-   darken_get_implementation,
    twoxsai_get_implementation,
    supertwoxsai_get_implementation,
    supereagle_get_implementation,

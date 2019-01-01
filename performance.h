@@ -116,6 +116,12 @@ uint64_t rarch_get_cpu_features(void);
  **/
 unsigned rarch_get_cpu_cores(void);
 
+/**
+ * rarch_get_memory_use_megabytes
+ * 
+ * Gets RAM total and usage
+ */
+void rarch_get_memory_use_megabytes(unsigned int* total, unsigned int* used);
 
 #ifdef __cplusplus
 }

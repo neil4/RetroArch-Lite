@@ -15,7 +15,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../general.h"
 #include "../drivers_font_renderer/bitmap.h"
 #include "../../menu/menu_driver.h"

@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../libretro.h"
 
 #include <input/input.h>
@@ -135,4 +135,5 @@ input_driver_t input_xenon360 = {
    xenon360_input_set_rumble,
    NULL,
    NULL,
+   NULL // haptic_feedback
 };

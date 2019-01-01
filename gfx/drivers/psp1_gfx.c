@@ -24,7 +24,7 @@
 #include <retro_inline.h>
 #include "psp_sdk_defines.h"
 #include "../../general.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../video_viewport.h"
 #include "../video_monitor.h"
 

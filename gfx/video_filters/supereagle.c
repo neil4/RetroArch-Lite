@@ -1,6 +1,6 @@
 /*  RetroArch - A frontend for libretro.
  *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
- *  Copyright (C) 2011-2014 - Daniel De Matteis
+ *  Copyright (C) 2011-2017 - Daniel De Matteis
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU General Public License as published by the Free Software Found-
@@ -14,7 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Compile: gcc -o supereagle.so -shared supereagle.c -std=c99 -O3 -Wall -pedantic -fPIC
+/* Compile: gcc -o supereagle.so -shared supereagle.c -std=c99 -O3 -Wall -pedantic -fPIC */
 
 #include "softfilter.h"
 #include <stdlib.h>
@@ -68,11 +68,10 @@ static void *supereagle_generic_create(const struct softfilter_config *config,
       unsigned max_width, unsigned max_height,
       unsigned threads, softfilter_simd_mask_t simd, void *userdata)
 {
+   struct filter_data *filt = (struct filter_data*)calloc(1, sizeof(*filt));
    (void)simd;
    (void)config;
    (void)userdata;
-
-   struct filter_data *filt = (struct filter_data*)calloc(1, sizeof(*filt));
    if (!filt)
       return NULL;
    filt->workers = (struct softfilter_thread_data*)calloc(threads, sizeof(struct softfilter_thread_data));
@@ -216,11 +215,11 @@ static void supereagle_generic_destroy(void *data)
 #endif
 
 static void supereagle_generic_xrgb8888(unsigned width, unsigned height,
-      int first, int last, uint32_t *src, 
+      int first, int last, uint32_t *src,
       unsigned src_stride, uint32_t *dst, unsigned dst_stride)
 {
-   unsigned finish, nextline;
-   nextline = (last) ? 0 : src_stride;
+   unsigned finish;
+   unsigned nextline = (last) ? 0 : src_stride;
 
    for (; height; height--)
    {
@@ -240,11 +239,11 @@ static void supereagle_generic_xrgb8888(unsigned width, unsigned height,
 }
 
 static void supereagle_generic_rgb565(unsigned width, unsigned height,
-      int first, int last, uint16_t *src, 
+      int first, int last, uint16_t *src,
       unsigned src_stride, uint16_t *dst, unsigned dst_stride)
 {
-   unsigned nextline, finish;
-   nextline = (last) ? 0 : src_stride;
+   unsigned finish;
+   unsigned nextline = (last) ? 0 : src_stride;
 
    for (; height; height--)
    {
@@ -272,7 +271,10 @@ static void supereagle_work_cb_rgb565(void *data, void *thread_data)
    unsigned height = thr->height;
 
    supereagle_generic_rgb565(width, height,
-         thr->first, thr->last, input, thr->in_pitch / SOFTFILTER_BPP_RGB565, output, thr->out_pitch / SOFTFILTER_BPP_RGB565);
+         thr->first, thr->last, input,
+            (unsigned)(thr->in_pitch / SOFTFILTER_BPP_RGB565),
+            output,
+            (unsigned)(thr->out_pitch / SOFTFILTER_BPP_RGB565));
 }
 
 static void supereagle_work_cb_xrgb8888(void *data, void *thread_data)
@@ -284,7 +286,10 @@ static void supereagle_work_cb_xrgb8888(void *data, void *thread_data)
    unsigned height = thr->height;
 
    supereagle_generic_xrgb8888(width, height,
-         thr->first, thr->last, input, thr->in_pitch / SOFTFILTER_BPP_XRGB8888, output, thr->out_pitch / SOFTFILTER_BPP_XRGB8888);
+         thr->first, thr->last, input,
+        (unsigned)(thr->in_pitch / SOFTFILTER_BPP_XRGB8888),
+        output,
+        (unsigned)(thr->out_pitch / SOFTFILTER_BPP_XRGB8888));
 }
 
 static void supereagle_generic_packets(void *data,
@@ -292,8 +297,9 @@ static void supereagle_generic_packets(void *data,
       void *output, size_t output_stride,
       const void *input, unsigned width, unsigned height, size_t input_stride)
 {
-   struct filter_data *filt = (struct filter_data*)data;
    unsigned i;
+   struct filter_data *filt = (struct filter_data*)data;
+
    for (i = 0; i < filt->threads; i++)
    {
       struct softfilter_thread_data *thr = (struct softfilter_thread_data*)&filt->workers[i];
@@ -307,7 +313,7 @@ static void supereagle_generic_packets(void *data,
       thr->width = width;
       thr->height = y_end - y_start;
 
-      // Workers need to know if they can access pixels outside their given buffer.
+      /* Workers need to know if they can access pixels outside their given buffer. */
       thr->first = y_start;
       thr->last = y_end == height;
 

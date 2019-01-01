@@ -169,13 +169,19 @@ error:
    core_info_list_free(core_info_list);
 }
 
-core_info_list_t *core_info_list_new(void)
+core_info_list_t *core_info_list_new(bool downloadable_cores)
 {
    size_t i;
    core_info_t *core_info = NULL;
    core_info_list_t *core_info_list = NULL;
    settings_t *settings = config_get_ptr();
-   struct string_list *contents = dir_list_new_special(NULL, DIR_LIST_CORES);
+   struct string_list *contents;
+   char *substr;
+   
+   if (downloadable_cores)
+      contents = dir_list_new(settings->libretro_info_path, "info", false);
+   else
+      contents = dir_list_new_special(NULL, DIR_LIST_CORES);
 
    if (!contents)
       return NULL;
@@ -196,6 +202,13 @@ core_info_list_t *core_info_list_new(void)
       char info_path_base[PATH_MAX_LENGTH] = {0};
       char info_path[PATH_MAX_LENGTH]      = {0};
       core_info[i].path = strdup(contents->elems[i].data);
+      
+      if (downloadable_cores)
+      {  // for simplicity, get a platform-free name
+         substr = strstr(core_info[i].path, "_libretro");
+         if (substr)
+            *substr = '\0';
+      }
 
       if (!core_info[i].path)
          break;
@@ -205,9 +218,12 @@ core_info_list_t *core_info_list_new(void)
       path_remove_extension(info_path_base);
 
 #if defined(RARCH_MOBILE) || (defined(RARCH_CONSOLE) && !defined(PSP))
-      char *substr = strrchr(info_path_base, '_');
-      if (substr)
-         *substr = '\0';
+      if (!downloadable_cores)
+      {
+         substr = strrchr(info_path_base, '_');
+         if (substr)
+            *substr = '\0';
+      }
 #endif
 
       strlcat(info_path_base, ".info", sizeof(info_path_base));

@@ -836,7 +836,8 @@ void config_file_dump(config_file_t *conf, FILE *file)
    list = (struct config_entry_list*)conf->entries;
    while (list)
    {
-      if (!list->readonly)
+      // Don't write null or empty values
+      if (!list->readonly && strncmp(list->value,"nul", 3) && strcmp(list->value,""))
          fprintf(file, "%s = \"%s\"\n", list->key, list->value);
       list = list->next;
    }
@@ -850,7 +851,7 @@ bool config_entry_exists(config_file_t *conf, const char *entry)
    {
       if (!strcmp(entry, list->key))
          return true;
-      list = list->next;
+      list = list->next; 
    }
 
    return false;
@@ -883,3 +884,29 @@ bool config_get_entry_list_next(struct config_file_entry *entry)
    return true;
 }
 
+void config_remove_entry(config_file_t *conf, const char *entry)
+{
+   struct config_entry_list *list = conf->entries;
+   struct config_entry_list *prev = NULL;
+
+   while (list)
+   {
+      if (!strcmp(entry, list->key))
+      {
+         if (prev)
+            prev->next = list->next;
+         else
+            conf->entries = list->next;
+         
+         free(list->key);
+         free(list->value);
+         free(list);
+         break;
+      }
+      else
+      {
+         prev = list;
+         list = list->next;
+      }
+   }
+}

@@ -17,7 +17,7 @@
 #include <string.h>
 #include <string/string_list.h>
 #include "camera_driver.h"
-#include "../driver.h"
+#include "../configuration.h"
 #include "../general.h"
 #include "../runloop.h"
 

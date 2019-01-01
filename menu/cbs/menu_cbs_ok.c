@@ -76,16 +76,6 @@ static int rarch_defer_core_wrapper(menu_displaylist_info_t *info,
       case -1:
          switch (hash_label)
          {
-            case MENU_LABEL_COLLECTION:
-               info->list          = menu_list->menu_stack;
-               info->type          = 0;
-               info->directory_ptr = idx;
-               rdb_entry_start_game_selection_ptr = idx;
-               strlcpy(info->path, settings->libretro_directory, sizeof(info->path));
-               strlcpy(info->label,
-                     menu_hash_to_str(MENU_LABEL_DEFERRED_CORE_LIST_SET), sizeof(info->label));
-               ret = menu_displaylist_push_list(info, DISPLAYLIST_GENERIC);
-               break;
             default:
                event_command(EVENT_CMD_LOAD_CORE);
                menu_common_load_content(false);
@@ -101,11 +91,6 @@ static int rarch_defer_core_wrapper(menu_displaylist_info_t *info,
 
          switch (hash_label)
          {
-            case MENU_LABEL_COLLECTION:
-               rdb_entry_start_game_selection_ptr = idx;
-               strlcpy(info->label,
-                     menu_hash_to_str(MENU_LABEL_DEFERRED_CORE_LIST_SET), sizeof(info->label));
-               break;
             default:
                strlcpy(info->label,
                      menu_hash_to_str(MENU_LABEL_DEFERRED_CORE_LIST), sizeof(info->label));
@@ -154,71 +139,6 @@ static int action_ok_file_load_detect_core(const char *path,
 
    return -1;
 }
-
-static int action_ok_playlist_entry(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   uint32_t core_name_hash, core_path_hash;
-   const char *entry_path       = NULL;
-   const char *entry_label      = NULL;
-   const char *core_path        = NULL;
-   const char *core_name        = NULL;
-   size_t selection_ptr         = 0;
-   content_playlist_t *playlist = g_defaults.history;
-   menu_handle_t *menu          = menu_driver_get_ptr();
-   uint32_t hash_label          = menu_hash_calculate(label);
-
-   if (!menu)
-      return -1;
-
-   switch (hash_label)
-   {
-      case MENU_LABEL_COLLECTION:
-      case MENU_LABEL_RDB_ENTRY_START_CONTENT:
-         if (!menu->playlist)
-         {
-            menu->playlist = content_playlist_init(menu->db_playlist_file, 1000);
-
-            if (!menu->playlist)
-               return -1;
-         }
-
-         playlist = menu->playlist;
-         break;
-   }
-
-   selection_ptr = entry_idx;
-
-   switch (hash_label)
-   {
-      case MENU_LABEL_RDB_ENTRY_START_CONTENT:
-         selection_ptr = rdb_entry_start_game_selection_ptr;
-         break;
-   }
-
-   content_playlist_get_index(playlist, selection_ptr,
-         &entry_path, &entry_label, &core_path, &core_name, NULL, NULL); 
-
-#if 0
-   RARCH_LOG("path: %s, label: %s, core path: %s, core name: %s, idx: %d\n", entry_path, entry_label,
-         core_path, core_name, selection_ptr);
-#endif
-
-   core_path_hash = core_path ? menu_hash_calculate(core_path) : 0;
-   core_name_hash = core_name ? menu_hash_calculate(core_name) : 0;
-
-   if (
-         (core_path_hash == MENU_VALUE_DETECT) &&
-         (core_name_hash == MENU_VALUE_DETECT)
-      )
-      return action_ok_file_load_with_detect_core(entry_path, label, type, selection_ptr, entry_idx);
-
-   rarch_playlist_load_content(playlist, selection_ptr);
-
-   return -1;
-}
-
-
 
 static int action_ok_cheat_apply_changes(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
@@ -364,6 +284,8 @@ static int action_ok_shader_preset(const char *path,
    strlcpy(info.path, settings->video.shader_dir, sizeof(info.path));
    strlcpy(info.label, label, sizeof(info.label));
 
+   game_settings_touched = true;
+   settings_touched = true;
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
 }
 
@@ -380,7 +302,10 @@ static int action_ok_push_content_list(const char *path,
    info.list          = menu_list->menu_stack;
    info.type          = MENU_FILE_DIRECTORY;
    info.directory_ptr = idx;
-   strlcpy(info.path, settings->menu_content_directory, sizeof(info.path));
+   strlcpy(info.path, *settings->core_content_directory ?
+                      settings->core_content_directory
+                      : settings->menu_content_directory,
+                      sizeof(info.path));
    strlcpy(info.label, label, sizeof(info.label));
 
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
@@ -399,7 +324,10 @@ static int action_ok_disk_image_append_list(const char *path,
    info.list          = menu_list->menu_stack;
    info.type          = type;
    info.directory_ptr = idx;
-   strlcpy(info.path, settings->menu_content_directory, sizeof(info.path));
+   strlcpy(info.path, *settings->core_content_directory ?
+                      settings->core_content_directory
+                      : settings->menu_content_directory,
+                      sizeof(info.path));
    strlcpy(info.label, label, sizeof(info.label));
 
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
@@ -460,26 +388,6 @@ static int action_ok_audio_dsp_plugin(const char *path,
    strlcpy(info.path, settings->audio.filter_dir, sizeof(info.path));
    strlcpy(info.label,
          menu_hash_to_str(MENU_LABEL_AUDIO_DSP_PLUGIN), sizeof(info.label));
-
-   return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
-}
-
-static int action_ok_video_filter(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   menu_displaylist_info_t info = {0};
-   settings_t *settings         = config_get_ptr();
-   menu_list_t     *menu_list   = menu_list_get_ptr();
-
-   if (!menu_list)
-      return -1;
-
-   info.list          = menu_list->menu_stack;
-   info.type          = 0;
-   info.directory_ptr = idx;
-   strlcpy(info.path, settings->video.filter_dir, sizeof(info.path));
-   strlcpy(info.label,
-         menu_hash_to_str(MENU_LABEL_DEFERRED_VIDEO_FILTER), sizeof(info.label));
 
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
 }
@@ -553,43 +461,6 @@ static int action_ok_record_configfile(const char *path,
    info.type          = type;
    info.directory_ptr = idx;
    strlcpy(info.path, global->record.config_dir, sizeof(info.path));
-   strlcpy(info.label, label, sizeof(info.label));
-
-   return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
-}
-
-static int action_ok_playlist_collection(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   menu_displaylist_info_t info   = {0};
-   menu_list_t       *menu_list   = menu_list_get_ptr();
-
-   if (!menu_list)
-      return -1;
-
-   info.list          = menu_list->menu_stack;
-   info.type          = type;
-   info.directory_ptr = idx;
-   strlcpy(info.path, path, sizeof(info.path));
-   strlcpy(info.label, label, sizeof(info.label));
-
-   return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
-}
-
-static int action_ok_content_collection_list(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   menu_displaylist_info_t   info = {0};
-   menu_list_t       *menu_list   = menu_list_get_ptr();
-   settings_t       *settings     = config_get_ptr();
-
-   if (!menu_list)
-      return -1;
-
-   info.list          = menu_list->menu_stack;
-   info.type          = type;
-   info.directory_ptr = idx;
-   strlcpy(info.path, settings->playlist_directory, sizeof(info.path));
    strlcpy(info.label, label, sizeof(info.label));
 
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
@@ -678,7 +549,7 @@ static int action_ok_video_filter_file_load(const char *path,
 
    event_command(EVENT_CMD_REINIT);
 
-   menu_list_flush_stack(menu_list, menu_hash_to_str(MENU_LABEL_VIDEO_OPTIONS), 0);
+   menu_list_flush_stack(menu_list, "Video Settings", 0);
 
    return 0;
 }
@@ -770,8 +641,8 @@ static int action_ok_shader_preset_load(const char *path,
    menu_shader_manager_set_preset(menu->shader,
          video_shader_parse_type(shader_path, RARCH_SHADER_NONE),
          shader_path);
-   menu_list_flush_stack(menu_list,
-         menu_hash_to_str(MENU_LABEL_SHADER_OPTIONS), 0);
+   menu_list_flush_stack(menu_list, "Video Settings", 0);
+   
    return 0;
 #else
    return -1;
@@ -802,30 +673,26 @@ static int action_ok_cheat_file_save_as(const char *path,
    return 0;
 }
 
-static int action_ok_remap_file_save_as(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   menu_input_key_start_line("Remapping Filename",
-         label, type, idx, menu_input_st_string_callback);
-   return 0;
-}
-
 static int action_ok_remap_file_save_core(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    char directory[PATH_MAX_LENGTH]   = {0};
-   char file[PATH_MAX_LENGTH]        = {0};
+   char rel_path[PATH_MAX_LENGTH]        = {0};
    global_t *global                  = global_get_ptr();
    settings_t *settings              = config_get_ptr();
-   const char *core_name             = global ? global->system.info.library_name : NULL;
+   const char *core_name             = global ? global->libretro_name
+                                                : NULL;
+   if (!global || !settings)
+      return 0;
 
-   fill_pathname_join(directory,settings->input_remapping_directory,core_name,PATH_MAX_LENGTH);
-   fill_pathname_join(file,core_name,core_name,PATH_MAX_LENGTH);
+   fill_pathname_join(directory, settings->input_remapping_directory,
+                      core_name, PATH_MAX_LENGTH);
+   fill_pathname_join(rel_path, core_name, core_name, PATH_MAX_LENGTH);
 
    if(!path_file_exists(directory))
        path_mkdir(directory);
 
-   if(input_remapping_save_file(file))
+   if(input_remapping_save_file(rel_path))
       rarch_main_msg_queue_push("Remap file saved successfully", 1, 100, true);
    else
       rarch_main_msg_queue_push("Error saving remap file", 1, 100, true);
@@ -837,19 +704,24 @@ static int action_ok_remap_file_save_game(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    char directory[PATH_MAX_LENGTH] = {0};
-   char file[PATH_MAX_LENGTH]      = {0};
+   char rel_path[PATH_MAX_LENGTH]      = {0};
    global_t *global                = global_get_ptr();
    settings_t *settings            = config_get_ptr();
-   const char *core_name           = global ? global->system.info.library_name : NULL;
-   const char *game_name           = global ? path_basename(global->basename)  : NULL;
+   const char *core_name           = global ? global->libretro_name
+                                              : NULL;
+   const char *game_name           = global ? path_basename(global->basename)
+                                              : NULL;
+   if (!global || !settings)
+      return 0;
 
-   fill_pathname_join(directory,settings->input_remapping_directory,core_name,PATH_MAX_LENGTH);
-   fill_pathname_join(file,core_name,game_name,PATH_MAX_LENGTH);
+   fill_pathname_join(directory, settings->input_remapping_directory,
+                      core_name, PATH_MAX_LENGTH);
+   fill_pathname_join(rel_path, core_name, game_name, PATH_MAX_LENGTH);
 
    if(!path_file_exists(directory))
        path_mkdir(directory);
 
-   if(input_remapping_save_file(file))
+   if(input_remapping_save_file(rel_path))
       rarch_main_msg_queue_push("Remap file saved successfully", 1, 100, true);
    else
       rarch_main_msg_queue_push("Error saving remap file", 1, 100, true);
@@ -857,38 +729,50 @@ static int action_ok_remap_file_save_game(const char *path,
    return 0;
 }
 
+static int action_ok_options_file_save_game(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   char directory[PATH_MAX_LENGTH] = {0};
+   char abs_path[PATH_MAX_LENGTH]  = {0};
+   global_t *global                = global_get_ptr();
+   settings_t *settings            = config_get_ptr();
+   const char *core_name           = global ? global->libretro_name
+                                              : NULL;
+   const char *game_name           = global ? path_basename(global->basename)
+                                              : NULL;
+   char *opt_path;
+   
+   if (!global || !settings)
+      return 0;
+
+   fill_pathname_join(directory, settings->menu_config_directory,
+                      core_name, PATH_MAX_LENGTH);
+   fill_pathname_join(abs_path, directory, game_name, PATH_MAX_LENGTH);
+   strlcat(abs_path, ".opt", PATH_MAX_LENGTH);
+
+   if(!path_file_exists(directory))
+       path_mkdir(directory);
+   
+   opt_path = core_option_conf_path(global->system.core_options);
+   
+   strlcpy(opt_path, abs_path, sizeof(abs_path));
+   
+   if (core_option_flush(global->system.core_options))
+      rarch_main_msg_queue_push("ROM Options file created successfully", 1, 100, true);
+   else
+   {
+      rarch_main_msg_queue_push("Error creating options file", 1, 100, true);
+      core_option_get_core_conf_path(opt_path);
+   }
+
+   return 0;
+}
+
 static int action_ok_path_use_directory(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
+   settings_touched = true;
    return menu_entry_pathdir_set_value(0, NULL);
-}
-
-static int action_ok_core_deferred_set(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   char core_display_name[PATH_MAX_LENGTH] = {0};
-   menu_handle_t                     *menu = menu_driver_get_ptr();
-   menu_list_t                  *menu_list = menu_list_get_ptr();
-   if (!menu || !menu_list)
-      return -1;
-
-   rarch_assert(menu->playlist != NULL);
-
-   core_info_get_name(path, core_display_name, sizeof(core_display_name));
-
-   idx = rdb_entry_start_game_selection_ptr;
-
-   content_playlist_update(menu->playlist, idx,
-         menu->playlist->entries[idx].path, menu->playlist->entries[idx].label,
-         path , core_display_name,
-         menu->playlist->entries[idx].crc32,
-         menu->playlist->entries[idx].db_name);
-
-   content_playlist_write_file(menu->playlist);
-
-   menu_list_pop_stack(menu_list);
-
-   return -1;
 }
 
 static int action_ok_core_load_deferred(const char *path,
@@ -911,40 +795,6 @@ static int action_ok_core_load_deferred(const char *path,
    return -1;
 }
 
-static int action_ok_database_manager_list_deferred(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   return 0;
-}
-
-static int action_ok_rdb_entry(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   char tmp[PATH_MAX_LENGTH]               = {0};
-   menu_displaylist_info_t            info = {0};
-   menu_list_t                  *menu_list = menu_list_get_ptr();
-   if (!menu_list)
-      return -1;
-
-   strlcpy(tmp, menu_hash_to_str(MENU_LABEL_DEFERRED_RDB_ENTRY_DETAIL), sizeof(tmp));
-   strlcat(tmp, "|",  sizeof(tmp));
-   strlcat(tmp, path, sizeof(tmp));
-
-   info.list          = menu_list->menu_stack;
-   info.type          = 0;
-   info.directory_ptr = idx;
-   strlcpy(info.path, label, sizeof(info.path));
-   strlcpy(info.label, tmp, sizeof(info.label));
-
-   return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
-}
-
-static int action_ok_cursor_manager_list_deferred(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   return 0;
-}
-
 static int action_ok_core_load(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -965,7 +815,7 @@ static int action_ok_core_load(const char *path,
    fill_pathname_join(settings->libretro, menu_path, path,
          sizeof(settings->libretro));
    event_command(EVENT_CMD_LOAD_CORE);
-   menu_list_pop_stack(menu_list);
+   menu_list_flush_stack(menu_list, NULL, MENU_SETTINGS);
 #if defined(HAVE_DYNAMIC)
    /* No content needed for this core, load core immediately. */
 
@@ -1030,56 +880,6 @@ static int action_ok_directory_push(const char *path,
    info.directory_ptr = idx;
    strlcpy(info.path, cat_path, sizeof(info.path));
    strlcpy(info.label, menu_label, sizeof(info.label));
-
-   return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
-}
-
-static int action_ok_database_manager_list(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   char rdb_path[PATH_MAX_LENGTH] = {0};
-   menu_displaylist_info_t info   = {0};
-   menu_list_t         *menu_list = menu_list_get_ptr();
-   settings_t          *settings  = config_get_ptr();
-
-   if (!menu_list || !path || !label)
-      return -1;
-
-   fill_pathname_join(rdb_path, settings->content_database,
-         path, sizeof(rdb_path));
-
-   info.list          = menu_list->menu_stack;
-   info.type          = 0;
-   info.directory_ptr = idx;
-   strlcpy(info.path, rdb_path, sizeof(info.path));
-   strlcpy(info.label,
-         menu_hash_to_str(MENU_LABEL_DEFERRED_DATABASE_MANAGER_LIST),
-         sizeof(info.label));
-
-   return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
-}
-
-static int action_ok_cursor_manager_list(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   char cursor_path[PATH_MAX_LENGTH] = {0};
-   menu_displaylist_info_t      info = {0};
-   settings_t              *settings = config_get_ptr();
-   menu_list_t            *menu_list = menu_list_get_ptr();
-
-   if (!menu_list)
-      return -1;
-
-   fill_pathname_join(cursor_path, settings->cursor_directory,
-         path, sizeof(cursor_path));
-
-   info.list          = menu_list->menu_stack;
-   info.type          = 0;
-   info.directory_ptr = idx;
-   strlcpy(info.path, cursor_path, sizeof(info.path));
-   strlcpy(info.label,
-         menu_hash_to_str(MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST),
-         sizeof(info.label));
 
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
 }
@@ -1199,37 +999,6 @@ static int action_ok_set_path(const char *path,
    return 0;
 }
 
-static int action_ok_custom_viewport(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   menu_displaylist_info_t info = {0};
-   int ret                  = 0;
-   video_viewport_t *custom = video_viewport_get_custom();
-   settings_t *settings     = config_get_ptr();
-   menu_list_t   *menu_list = menu_list_get_ptr();
-
-   if (!menu_list)
-      return -1;
-
-   info.list          = menu_list->menu_stack;
-   info.type          = MENU_SETTINGS_CUSTOM_VIEWPORT;
-   info.directory_ptr = idx;
-   strlcpy(info.label, "custom_viewport_1", sizeof(info.label));
-
-   ret = menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
-
-   video_driver_viewport_info(custom);
-
-   aspectratio_lut[ASPECT_RATIO_CUSTOM].value =
-      (float)custom->width / custom->height;
-
-   settings->video.aspect_ratio_idx = ASPECT_RATIO_CUSTOM;
-
-   event_command(EVENT_CMD_VIDEO_SET_ASPECT_RATIO);
-   return ret;
-}
-
-
 static int generic_action_ok_command(enum event_command cmd)
 {
    if (!event_command(cmd))
@@ -1297,12 +1066,6 @@ static int action_ok_quit(const char *path,
    return generic_action_ok_command(EVENT_CMD_QUIT);
 }
 
-static int action_ok_save_new_config(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   return generic_action_ok_command(EVENT_CMD_MENU_SAVE_CONFIG);
-}
-
 static int action_ok_resume_content(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -1354,77 +1117,6 @@ static int action_ok_lookup_setting(const char *path,
    return menu_setting_set(type, label, MENU_ACTION_OK, false);
 }
 
-static int action_ok_rdb_entry_submenu(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   int ret;
-   union string_list_elem_attr attr;
-   char new_label[PATH_MAX_LENGTH] = {0};
-   menu_displaylist_info_t info    = {0};
-   char *rdb                       = NULL;
-   int len                         = 0;
-   struct string_list *str_list    = NULL;
-   struct string_list *str_list2   = NULL;
-   menu_list_t          *menu_list = menu_list_get_ptr();
-
-   if (!menu_list || !label)
-      return -1;
-
-   str_list = string_split(label, "|");
-
-   if (!str_list)
-      return -1;
-
-   str_list2 = string_list_new();
-   if (!str_list2)
-   {
-      string_list_free(str_list);
-      return -1;
-   }
-
-   /* element 0 : label
-    * element 1 : value
-    * element 2 : database path
-    */
-
-   attr.i = 0;
-
-   len += strlen(str_list->elems[1].data) + 1;
-   string_list_append(str_list2, str_list->elems[1].data, attr);
-
-   len += strlen(str_list->elems[2].data) + 1;
-   string_list_append(str_list2, str_list->elems[2].data, attr);
-
-   rdb = (char*)calloc(len, sizeof(char));
-
-   if (!rdb)
-   {
-      string_list_free(str_list);
-      string_list_free(str_list2);
-      return -1;
-   }
-
-   string_list_join_concat(rdb, len, str_list2, "|");
-
-   strlcpy(new_label, menu_hash_to_str(MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST),
-         sizeof(new_label));
-   strlcat(new_label, "_", sizeof(new_label));
-   strlcat(new_label, str_list->elems[0].data, sizeof(new_label));
-
-   info.list          = menu_list->menu_stack;
-   info.type          = 0;
-   info.directory_ptr = idx;
-   strlcpy(info.path, rdb, sizeof(info.path));
-   strlcpy(info.label, new_label, sizeof(info.label));
-
-   ret = menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
-
-   string_list_free(str_list);
-   string_list_free(str_list2);
-
-   return ret;
-}
-
 static int action_ok_help(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -1474,45 +1166,10 @@ static int action_ok_video_resolution(const char *path,
    return 0;
 }
 
-static int is_rdb_entry(uint32_t label_hash)
-{
-   switch (label_hash)
-   {
-      case MENU_LABEL_RDB_ENTRY_PUBLISHER:
-      case MENU_LABEL_RDB_ENTRY_DEVELOPER:
-      case MENU_LABEL_RDB_ENTRY_ORIGIN:
-      case MENU_LABEL_RDB_ENTRY_FRANCHISE:
-      case MENU_LABEL_RDB_ENTRY_ENHANCEMENT_HW:
-      case MENU_LABEL_RDB_ENTRY_ESRB_RATING:
-      case MENU_LABEL_RDB_ENTRY_BBFC_RATING:
-      case MENU_LABEL_RDB_ENTRY_ELSPA_RATING:
-      case MENU_LABEL_RDB_ENTRY_PEGI_RATING:
-      case MENU_LABEL_RDB_ENTRY_CERO_RATING:
-      case MENU_LABEL_RDB_ENTRY_EDGE_MAGAZINE_RATING:
-      case MENU_LABEL_RDB_ENTRY_EDGE_MAGAZINE_ISSUE:
-      case MENU_LABEL_RDB_ENTRY_FAMITSU_MAGAZINE_RATING:
-      case MENU_LABEL_RDB_ENTRY_RELEASE_MONTH:
-      case MENU_LABEL_RDB_ENTRY_RELEASE_YEAR:
-      case MENU_LABEL_RDB_ENTRY_MAX_USERS:
-         break;
-      default:
-         return -1;
-   }
-
-   return 0;
-}
-
 static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
-      const char *label, uint32_t hash, const char *elem0)
+      const char *label, uint32_t hash)
 {
    rarch_setting_t *setting = menu_setting_find(label);
-   uint32_t elem0_hash      = menu_hash_calculate(elem0);
-
-   if (elem0[0] != '\0' && (is_rdb_entry(elem0_hash) == 0))
-   {
-      cbs->action_ok = action_ok_rdb_entry_submenu;
-      return 0;
-   }
 
    if (setting && setting->browser_selection_type == ST_DIR)
    {
@@ -1549,9 +1206,6 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_UNLOAD_CORE:
          cbs->action_ok = action_ok_unload_core;
          break;
-      case MENU_LABEL_SAVE_NEW_CONFIG:
-         cbs->action_ok = action_ok_save_new_config;
-         break;
       case MENU_LABEL_HELP:
          cbs->action_ok = action_ok_help;
          break;
@@ -1567,9 +1221,6 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_AUDIO_DSP_PLUGIN:
          cbs->action_ok = action_ok_audio_dsp_plugin;
          break;
-      case MENU_LABEL_VIDEO_FILTER:
-         cbs->action_ok = action_ok_video_filter;
-         break;
       case MENU_LABEL_REMAP_FILE_LOAD:
          cbs->action_ok = action_ok_remap_file;
          break;
@@ -1584,7 +1235,6 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          cbs->action_ok = action_ok_shader_parameters;
          break;
       case MENU_LABEL_SHADER_OPTIONS:
-      case MENU_LABEL_VIDEO_OPTIONS:
       case MENU_VALUE_INPUT_SETTINGS:
       case MENU_LABEL_CORE_OPTIONS:
       case MENU_LABEL_CORE_CHEAT_OPTIONS:
@@ -1596,7 +1246,6 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_PERFORMANCE_COUNTERS:
       case MENU_LABEL_FRONTEND_COUNTERS:
       case MENU_LABEL_CORE_COUNTERS:
-      case MENU_LABEL_MANAGEMENT:
       case MENU_LABEL_OPTIONS:
          cbs->action_ok = action_ok_push_default;
          break;
@@ -1606,11 +1255,6 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_DETECT_CORE_LIST_OK:
          cbs->action_ok = action_ok_file_load_detect_core;
-         break;
-      case MENU_LABEL_LOAD_CONTENT_HISTORY:
-      case MENU_LABEL_CURSOR_MANAGER_LIST:
-      case MENU_LABEL_DATABASE_MANAGER_LIST:
-         cbs->action_ok = action_ok_push_generic_list;
          break;
       case MENU_LABEL_SHADER_APPLY_CHANGES:
          cbs->action_ok = action_ok_shader_apply_changes;
@@ -1624,17 +1268,14 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_CHEAT_FILE_SAVE_AS:
          cbs->action_ok = action_ok_cheat_file_save_as;
          break;
-      case MENU_LABEL_REMAP_FILE_SAVE_AS:
-         cbs->action_ok = action_ok_remap_file_save_as;
-         break;
       case MENU_LABEL_REMAP_FILE_SAVE_CORE:
          cbs->action_ok = action_ok_remap_file_save_core;
          break;
       case MENU_LABEL_REMAP_FILE_SAVE_GAME:
          cbs->action_ok = action_ok_remap_file_save_game;
          break;
-      case MENU_LABEL_CONTENT_COLLECTION_LIST:
-         cbs->action_ok = action_ok_content_collection_list;
+      case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
+         cbs->action_ok = action_ok_options_file_save_game;
          break;
       case MENU_LABEL_CORE_LIST:
          cbs->action_ok = action_ok_core_list;
@@ -1653,7 +1294,7 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
 }
 
 static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
-      uint32_t label_hash, uint32_t menu_label_hash, unsigned type)
+      uint32_t menu_label_hash, unsigned type)
 {
    if (type == MENU_SETTINGS_CUSTOM_BIND_KEYBOARD ||
          type == MENU_SETTINGS_CUSTOM_BIND)
@@ -1674,11 +1315,8 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
          case MENU_SETTINGS_VIDEO_RESOLUTION:
             cbs->action_ok = action_ok_video_resolution;
             break;
-         case MENU_FILE_PLAYLIST_ENTRY:
-            cbs->action_ok = action_ok_playlist_entry;
-            break;
-         case MENU_FILE_PLAYLIST_COLLECTION:
-            cbs->action_ok = action_ok_playlist_collection;
+         case MENU_SETTING_ACTION_CORE_DISK_OPTIONS:
+            cbs->action_ok = action_ok_push_default;
             break;
          case MENU_FILE_CONTENTLIST_ENTRY:
             cbs->action_ok = action_ok_push_generic_list;
@@ -1719,9 +1357,6 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
                case MENU_LABEL_DEFERRED_CORE_LIST:
                   cbs->action_ok = action_ok_core_load_deferred;
                   break;
-               case MENU_LABEL_DEFERRED_CORE_LIST_SET:
-                  cbs->action_ok = action_ok_core_deferred_set;
-                  break;
                case MENU_LABEL_CORE_LIST:
                   cbs->action_ok = action_ok_core_load;
                   break;
@@ -1734,32 +1369,6 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
             cbs->action_ok = action_ok_core_updater_download;
             break;
          case MENU_FILE_DOWNLOAD_CORE_INFO:
-            break;
-         case MENU_FILE_RDB:
-            switch (menu_label_hash)
-            {
-               case MENU_LABEL_DEFERRED_DATABASE_MANAGER_LIST:
-                  cbs->action_ok = action_ok_database_manager_list_deferred;
-                  break;
-               case MENU_LABEL_DATABASE_MANAGER_LIST:
-               case MENU_VALUE_HORIZONTAL_MENU:
-                  cbs->action_ok = action_ok_database_manager_list;
-                  break;
-            }
-            break;
-         case MENU_FILE_RDB_ENTRY:
-            cbs->action_ok = action_ok_rdb_entry;
-            break;
-         case MENU_FILE_CURSOR:
-            switch (menu_label_hash)
-            {
-               case MENU_LABEL_DEFERRED_DATABASE_MANAGER_LIST:
-                  cbs->action_ok = action_ok_cursor_manager_list_deferred;
-                  break;
-               case MENU_LABEL_CURSOR_MANAGER_LIST:
-                  cbs->action_ok = action_ok_cursor_manager_list;
-                  break;
-            }
             break;
          case MENU_FILE_FONT:
          case MENU_FILE_OVERLAY:
@@ -1791,9 +1400,6 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
                   break;
             }
             break;
-         case MENU_SETTINGS_CUSTOM_VIEWPORT:
-            cbs->action_ok = action_ok_custom_viewport;
-            break;
          case MENU_SETTINGS:
          case MENU_SETTING_GROUP:
          case MENU_SETTING_SUBGROUP:
@@ -1820,10 +1426,10 @@ int menu_cbs_init_bind_ok(menu_file_list_cbs_t *cbs,
 
    cbs->action_ok = action_ok_lookup_setting;
 
-   if (menu_cbs_init_bind_ok_compare_label(cbs, label, label_hash, elem0) == 0)
+   if (menu_cbs_init_bind_ok_compare_label(cbs, label, label_hash) == 0)
       return 0;
 
-   if (menu_cbs_init_bind_ok_compare_type(cbs, label_hash, menu_label_hash, type) == 0)
+   if (menu_cbs_init_bind_ok_compare_type(cbs, menu_label_hash, type) == 0)
       return 0;
 
    return -1;

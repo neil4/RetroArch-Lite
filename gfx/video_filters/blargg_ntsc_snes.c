@@ -1,6 +1,6 @@
 /*  RetroArch - A frontend for libretro.
  *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
- *  Copyright (C) 2011-2014 - Daniel De Matteis
+ *  Copyright (C) 2011-2017 - Daniel De Matteis
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU General Public License as published by the Free Software Found-
@@ -19,6 +19,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <boolean.h>
+
+#include <string/stdstring.h>
+
 #include "snes_ntsc/snes_ntsc.h"
 #include "snes_ntsc/snes_ntsc.c"
 
@@ -80,22 +83,22 @@ static void blargg_ntsc_snes_initialize(void *data,
 
    if (config->get_string(userdata, "tvtype", &tvtype, "composite"))
    {
-      if (!strcmp(tvtype, "composite"))
+      if (memcmp(tvtype, "composite", 9) == 0)
       {
          setup = snes_ntsc_composite;
          setup.merge_fields = 1;
       }
-      else if (!strcmp(tvtype, "rf"))
+      else if (memcmp(tvtype, "rf", 2) == 0)
       {
          setup = snes_ntsc_composite;
          setup.merge_fields = 0;
       }
-      else if (!strcmp(tvtype, "rgb"))
+      else if (memcmp(tvtype, "rgb", 3) == 0)
       {
          setup = snes_ntsc_rgb;
          setup.merge_fields = 1;
       }
-      else if (!strcmp(tvtype, "svideo"))
+      else if (memcmp(tvtype, "svideo", 6) == 0)
       {
          setup = snes_ntsc_svideo;
          setup.merge_fields = 1;
@@ -121,9 +124,8 @@ static void *blargg_ntsc_snes_generic_create(const struct softfilter_config *con
       unsigned max_width, unsigned max_height,
       unsigned threads, softfilter_simd_mask_t simd, void *userdata)
 {
-   (void)simd;
-
    struct filter_data *filt = (struct filter_data*)calloc(1, sizeof(*filt));
+   (void)simd;
    if (!filt)
       return NULL;
    filt->workers = (struct softfilter_thread_data*)
@@ -169,18 +171,23 @@ static void blargg_ntsc_snes_render_rgb565(void *data, int width, int height,
       uint16_t *input, int pitch, uint16_t *output, int outpitch)
 {
    struct filter_data *filt = (struct filter_data*)data;
+#if 0
    if(width <= 256)
+#endif
       snes_ntsc_blit(filt->ntsc, input, pitch, filt->burst,
             width, height, output, outpitch * 2, first, last);
+   // For now, disabled snes_ntsc_blit_hires to be friendlier to other emulators
+#if 0
    else
       snes_ntsc_blit_hires(filt->ntsc, input, pitch, filt->burst,
             width, height, output, outpitch * 2, first, last);
+#endif
 
    filt->burst ^= filt->burst_toggle;
 }
 
 static void blargg_ntsc_snes_rgb565(void *data, unsigned width, unsigned height,
-      int first, int last, uint16_t *src, 
+      int first, int last, uint16_t *src,
       unsigned src_stride, uint16_t *dst, unsigned dst_stride)
 {
    blargg_ntsc_snes_render_rgb565(data, width, height,
@@ -192,7 +199,7 @@ static void blargg_ntsc_snes_rgb565(void *data, unsigned width, unsigned height,
 
 static void blargg_ntsc_snes_work_cb_rgb565(void *data, void *thread_data)
 {
-   struct softfilter_thread_data *thr = 
+   struct softfilter_thread_data *thr =
       (struct softfilter_thread_data*)thread_data;
    uint16_t *input = (uint16_t*)thr->in_data;
    uint16_t *output = (uint16_t*)thr->out_data;
@@ -201,9 +208,9 @@ static void blargg_ntsc_snes_work_cb_rgb565(void *data, void *thread_data)
 
    blargg_ntsc_snes_rgb565(data, width, height,
          thr->first, thr->last, input,
-         thr->in_pitch / SOFTFILTER_BPP_RGB565,
+         (unsigned)(thr->in_pitch / SOFTFILTER_BPP_RGB565),
          output,
-         thr->out_pitch / SOFTFILTER_BPP_RGB565);
+         (unsigned)(thr->out_pitch / SOFTFILTER_BPP_RGB565));
 }
 
 static void blargg_ntsc_snes_generic_packets(void *data,
@@ -215,7 +222,7 @@ static void blargg_ntsc_snes_generic_packets(void *data,
    unsigned i;
    for (i = 0; i < filt->threads; i++)
    {
-      struct softfilter_thread_data *thr = 
+      struct softfilter_thread_data *thr =
          (struct softfilter_thread_data*)&filt->workers[i];
 
       unsigned y_start = (height * i) / filt->threads;
@@ -227,7 +234,7 @@ static void blargg_ntsc_snes_generic_packets(void *data,
       thr->width = width;
       thr->height = y_end - y_start;
 
-      /* Workers need to know if they can 
+      /* Workers need to know if they can
        * access pixels outside their given buffer. */
       thr->first = y_start;
       thr->last = y_end == height;

@@ -60,6 +60,8 @@ static dylib_t lib_handle;
 
 #define SYM_DUMMY(x) p##x = libretro_dummy_##x
 
+static bool core_set_shared_context = false;
+
 void (*pretro_init)(void);
 void (*pretro_deinit)(void);
 
@@ -116,6 +118,11 @@ static bool environ_cb_get_system_info(unsigned cmd, void *data)
    }
 
    return true;
+}
+
+bool libretro_get_shared_context(void)
+{
+   return core_set_shared_context;
 }
 
 /**
@@ -327,9 +334,7 @@ static void load_symbols(bool is_dummy)
 #ifdef HAVE_DYNAMIC
       settings_t *settings = config_get_ptr();
 
-      /* Need to use absolute path for this setting. It can be 
-       * saved to content history, and a relative path would 
-       * break in that scenario. */
+      /* Need to use absolute path for this setting. */
       path_resolve_realpath(settings->libretro,
             sizeof(settings->libretro));
 
@@ -483,8 +488,8 @@ void uninit_libretro_sym(void)
 
    if (global->system.core_options)
    {
-      core_option_flush(global->system.core_options);
       core_option_free(global->system.core_options);
+      global->system.core_options = NULL;
    }
 
    /* No longer valid. */
@@ -493,6 +498,7 @@ void uninit_libretro_sym(void)
    memset(&global->system, 0, sizeof(global->system));
    driver->camera_active = false;
    driver->location_active = false;
+   core_set_shared_context = false;
 
    /* Performance counters no longer valid. */
    retro_perf_clear();
@@ -592,22 +598,16 @@ bool rarch_environment_cb(unsigned cmd, void *data)
 
          if (global->system.core_options)
          {
-            core_option_flush(global->system.core_options);
             core_option_free(global->system.core_options);
+            global->system.core_options = NULL;
          }
 
          {
             const struct retro_variable *vars = (const struct retro_variable*)data;
-            char buf[PATH_MAX_LENGTH]         = {0};
-            const char *options_path          = settings->core_options_path;
-
-            if (!*options_path && *global->config_path)
-            {
-               fill_pathname_resolve_relative(buf, global->config_path,
-                     "retroarch-core-options.cfg", sizeof(buf));
-               options_path = buf;
-            }
-            global->system.core_options = core_option_new(options_path, vars);
+            char conf_path[PATH_MAX_LENGTH] = {0};
+            if (!core_option_get_game_conf_path(conf_path))
+               core_option_get_core_conf_path(conf_path);
+            global->system.core_options = core_option_new(conf_path, vars);
          }
 
          break;
@@ -655,10 +655,10 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          break;
 
       case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
-         *(const char**)data = *global->savefile_dir ?
-            global->savefile_dir : NULL;
+         *(const char**)data = core_savefile_dir[0] ?
+            core_savefile_dir : NULL;
          RARCH_LOG("Environ SAVE_DIRECTORY: \"%s\".\n",
-               global->savefile_dir);
+               core_savefile_dir);
          break;
 
       case RETRO_ENVIRONMENT_GET_USERNAME:
@@ -838,7 +838,7 @@ bool rarch_environment_cb(unsigned cmd, void *data)
 
             case RETRO_HW_CONTEXT_OPENGL:
             case RETRO_HW_CONTEXT_OPENGL_CORE:
-               RARCH_ERR("Requesting OpenGL context, but RetroArch is compiled against OpenGLES2. Cannot use HW context.\n");
+               RARCH_ERR("Requesting OpenGL context, but RetroArch is compiled against OpenGLES. Cannot use HW context.\n");
                return false;
 #elif defined(HAVE_OPENGL)
             case RETRO_HW_CONTEXT_OPENGLES2:
@@ -1134,14 +1134,44 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          }
          break;
       }
+      
+      //TODO
+      //case RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER:
+      
+      //TODO
+      //case RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE:
+
+      //TODO
+      //case RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS:
+         
+      //TODO
+      //case RETRO_ENVIRONMENT_SET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE:
+    
+      //TODO
+      //case RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS:
+      
+      case RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT:
+      {
+         core_set_shared_context = true;
+         break;
+      }
+      
+      //TODO
+      //case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE:
+      
+      //TODO
+      //case RETRO_ENVIRONMENT_GET_MIDI_INTERFACE:
 
       /* Private extensions for internal use, not part of libretro API. */
       case RETRO_ENVIRONMENT_SET_LIBRETRO_PATH:
          RARCH_LOG("Environ (Private) SET_LIBRETRO_PATH.\n");
 
          if (path_file_exists((const char*)data))
+         {
             strlcpy(settings->libretro, (const char*)data,
                   sizeof(settings->libretro));
+            update_libretro_name();
+         }
          else
             return false;
          break;

@@ -26,7 +26,7 @@
 #if !defined(__cplusplus) && defined(_WIN32)
 
 #ifndef INLINE
-#define INLINE _inline
+#define INLINE inline
 #endif
 
 #else

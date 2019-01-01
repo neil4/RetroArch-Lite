@@ -367,8 +367,6 @@ static const gfx_ctx_driver_t *gfx_ctx_init(void *data,
       enum gfx_ctx_api api, unsigned major,
       unsigned minor, bool hw_render_ctx)
 {
-   settings_t *settings = config_get_ptr();
-
    if (ctx->bind_api(data, api, major, minor))
    {
       bool initialized = ctx->init(data);
@@ -377,8 +375,7 @@ static const gfx_ctx_driver_t *gfx_ctx_init(void *data,
          return NULL;
 
       if (ctx->bind_hw_render)
-         ctx->bind_hw_render(data,
-               settings->video.shared_context && hw_render_ctx);
+         ctx->bind_hw_render(data, hw_render_ctx);
 
       return ctx;
    }

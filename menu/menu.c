@@ -52,38 +52,10 @@ static void menu_environment_get(int *argc, char *argv[],
    wrap_args->touched       = true;
 }
 
-static void menu_push_to_history_playlist(void)
-{
-   settings_t *settings = config_get_ptr();
-   global_t *global     = global_get_ptr();
-
-   if (!settings->history_list_enable)
-      return;
-
-   if (*global->fullpath)
-   {
-      char tmp[PATH_MAX_LENGTH] = {0};
-      char str[PATH_MAX_LENGTH] = {0};
-
-      fill_pathname_base(tmp, global->fullpath, sizeof(tmp));
-      snprintf(str, sizeof(str), "INFO - Loading %s ...", tmp);
-      rarch_main_msg_queue_push(str, 1, 1, false);
-   }
-
-   content_playlist_push(g_defaults.history,
-         global->fullpath,
-         NULL,
-         settings->libretro,
-         global->menu.info.library_name,
-         NULL,
-         NULL);
-}
-
 /**
  * menu_load_content:
  *
  * Loads content into currently selected core.
- * Will also optionally push the content entry to the history playlist.
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
@@ -119,12 +91,7 @@ bool menu_load_content(void)
    }
 
    menu_shader_manager_init(menu);
-
-   event_command(EVENT_CMD_HISTORY_INIT);
-
-   if (*global->fullpath || (menu && menu->load_no_content))
-      menu_push_to_history_playlist();
-
+ 
    event_command(EVENT_CMD_VIDEO_SET_ASPECT_RATIO);
    event_command(EVENT_CMD_RESUME);
 
@@ -150,6 +117,24 @@ static int menu_init_entries(menu_entries_t *entries)
       return -1;
 
    return 0;
+}
+
+static void menu_init_mame_list()
+{
+   char *mamelist_path = NULL;
+   global_t *global = global_get_ptr();
+   settings_t *settings = config_get_ptr();
+   static bool inited;
+   
+   if (!inited)
+   {
+      mamelist_path = calloc(PATH_MAX_LENGTH, sizeof(char));
+      fill_pathname_join(mamelist_path, settings->libretro_info_path,
+            "mamelist.txt", PATH_MAX_LENGTH);
+      global->mame_list = (config_file_t*)config_file_new(mamelist_path);
+      free(mamelist_path);
+      inited = true;
+   }
 }
 
 /**
@@ -189,9 +174,15 @@ void *menu_init(const void *data)
    if (!menu->shader)
       goto error;
 #endif
+   
+   menu_init_mame_list();
 
    menu->push_start_screen          = settings->menu_show_start_screen;
-   settings->menu_show_start_screen = false;
+   if (menu->push_start_screen)
+   {
+      settings->menu_show_start_screen = false;
+      settings_touched = true;
+   }
 
    menu_shader_manager_init(menu);
 
@@ -254,11 +245,6 @@ void menu_free(menu_handle_t *menu)
    if (!menu || !disp)
       return;
 
-
-   if (menu->playlist)
-      content_playlist_free(menu->playlist);
-   menu->playlist = NULL;
-  
    menu_shader_free(menu);
 
    menu_driver_free(menu);
@@ -271,10 +257,11 @@ void menu_free(menu_handle_t *menu)
 
    menu_free_list(&menu->entries);
 
-   event_command(EVENT_CMD_HISTORY_DEINIT);
-
    if (global->core_info)
       core_info_list_free(global->core_info);
+   
+   if (global->mame_list)
+      config_file_free(global->mame_list);
 
    if (global->core_info_current)
       free(global->core_info_current);
@@ -322,4 +309,14 @@ int menu_iterate(retro_input_t input,
       return -1;
 
    return 0;
+}
+
+void menu_reset(void)
+{
+   menu_handle_t *menu   = menu_driver_get_ptr();
+   
+   menu_displaylist_init(menu);
+   
+   while (menu_entries_show_back())
+      menu_list_pop_stack(menu->entries.menu_list);
 }

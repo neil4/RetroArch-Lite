@@ -46,15 +46,13 @@
  * NDK r4: Initial release
  */
 #include <sys/system_properties.h>
-#ifdef __arm__
-#include <machine/cpu-features.h>
-#endif
 #include <pthread.h>
 #include "performance_android.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <retro_inline.h>
 
@@ -372,7 +370,7 @@ static void android_cpuInit(void)
 
    RARCH_LOG("found cpuCount = %d\n", g_cpuCount);
 
-#ifdef __ARM_ARCH__
+#ifdef ANDROID_ARM
    /* Extract architecture from the "CPU Architecture" field.
     * The list is well-known, unlike the the output of
     * the 'Processor' field which can vary greatly.
@@ -462,7 +460,7 @@ static void android_cpuInit(void)
       }
       free(cpuFeatures);
    }
-#endif /* __ARM_ARCH__ */
+#endif /* ANDROID_ARM */
 
 #ifdef __i386__
    g_cpuFamily = ANDROID_CPU_FAMILY_X86;

@@ -19,7 +19,7 @@
 
 #include <boolean.h>
 
-#include "../../driver.h"
+#include "../../configuration.h"
 
 #include "SDL.h"
 #include "../../gfx/video_context_driver.h"
@@ -419,4 +419,5 @@ input_driver_t input_sdl = {
    sdl_get_joypad_driver,
    sdl_keyboard_mapping_is_blocked,
    sdl_keyboard_mapping_set_block,
+   NULL // haptic_feedback
 };

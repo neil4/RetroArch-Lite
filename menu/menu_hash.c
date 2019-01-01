@@ -39,14 +39,10 @@ static const char *menu_hash_to_str_french(uint32_t hash)
    {
       case MENU_LABEL_VALUE_REMAP_FILE_LOAD:
          return "Charger un fichier de Remap";
-      case MENU_LABEL_VALUE_REMAP_FILE_SAVE_AS:
-         return "Enregistrer un fichier de Remap sous";
       case MENU_LABEL_VALUE_CUSTOM_RATIO:
          return "Ratio personnalise";
       case MENU_LABEL_VALUE_USE_THIS_DIRECTORY:
          return "<Choisir ce dossier>";
-      case MENU_LABEL_VALUE_RDB_ENTRY_START_CONTENT:
-         return "Lancer le contenu";
       case MENU_LABEL_VALUE_DISK_OPTIONS:
          return "Options de disques";
       case MENU_LABEL_VALUE_CORE_OPTIONS:
@@ -65,8 +61,6 @@ static const char *menu_hash_to_str_french(uint32_t hash)
          return "Ajouter une image de disque";
       case MENU_LABEL_VALUE_DISK_CYCLE_TRAY_STATUS:
          return "Etat du lecteur de disque";
-      case MENU_LABEL_VALUE_NO_PLAYLIST_ENTRIES_AVAILABLE:
-         return "Playlist vide.";
       case MENU_LABEL_VALUE_NO_CORE_INFORMATION_AVAILABLE:
          return "Pad d'informations disponibles.";
       case MENU_LABEL_VALUE_NO_CORE_OPTIONS_AVAILABLE:
@@ -75,10 +69,6 @@ static const char *menu_hash_to_str_french(uint32_t hash)
          return "Aucun Core disponible.";
       case MENU_VALUE_NO_CORE:
          return "Aucun Core";
-      case MENU_LABEL_VALUE_DATABASE_MANAGER:
-         return "Gestion de base de donnee";
-      case MENU_LABEL_VALUE_CURSOR_MANAGER:
-         return "Gestion de curseur";
       case MENU_VALUE_RECORDING_SETTINGS:
          return "Réglage de capture video";
       case MENU_VALUE_MAIN_MENU:
@@ -98,7 +88,7 @@ static const char *menu_hash_to_str_french(uint32_t hash)
       case MENU_LABEL_VALUE_SYSTEM_INFORMATION:
          return "Informations du systeme";
       case MENU_LABEL_VALUE_OPTIONS:
-         return "Options";
+         return "Core Options";
       case MENU_LABEL_VALUE_CORE_INFORMATION:
          return "Informations sur le Core";
       case MENU_LABEL_VALUE_DIRECTORY_NOT_FOUND:
@@ -111,8 +101,6 @@ static const char *menu_hash_to_str_french(uint32_t hash)
          return "Charger un contenu";
       case MENU_LABEL_VALUE_UNLOAD_CORE:
          return "Unload Core";
-      case MENU_LABEL_VALUE_MANAGEMENT:
-         return "Gestion avancee";
       case MENU_LABEL_VALUE_PERFORMANCE_COUNTERS:
          return "Compteurs de performance";
       case MENU_LABEL_VALUE_SAVE_STATE:
@@ -123,6 +111,8 @@ static const char *menu_hash_to_str_french(uint32_t hash)
          return "Reprendre";
       case MENU_LABEL_DRIVER_SETTINGS:
          return "Reglage des pilotes";
+      case MENU_LABEL_OVERLAY_SETTINGS:
+         return "Paramètres de l'Overlay à l'écran";
       case MENU_LABEL_VALUE_UNABLE_TO_READ_COMPRESSED_FILE:
          return "Impossible de lire l'archive.";
       case MENU_LABEL_VALUE_OVERLAY_SCALE:
@@ -130,7 +120,7 @@ static const char *menu_hash_to_str_french(uint32_t hash)
       case MENU_LABEL_VALUE_OVERLAY_PRESET:
          return "Overlay Preset";
       case MENU_LABEL_VALUE_AUDIO_LATENCY:
-         return "Audio Latency (ms)";
+         return "Audio Latency";
       case MENU_LABEL_VALUE_AUDIO_DEVICE:
          return "Audio Device";
       case MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET:
@@ -144,11 +134,11 @@ static const char *menu_hash_to_str_french(uint32_t hash)
       case MENU_LABEL_VALUE_BOXART:
          return "Afficher les vignettes";
       case MENU_LABEL_VALUE_CORE_INPUT_REMAPPING_OPTIONS:
-         return "Core Input Remapping Options";
+         return "Input Remapping Options";
       case MENU_LABEL_VALUE_VIDEO_OPTIONS:
          return "Options video";
       case MENU_LABEL_VALUE_SHADER_OPTIONS:
-         return "Options de Shaders";
+         return "  Options de Shaders";
       case MENU_LABEL_VALUE_NO_SHADER_PARAMETERS:
          return "No shader parameters.";
       case MENU_LABEL_VALUE_VIDEO_FILTER:
@@ -197,24 +187,14 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Apply Shader Changes";
       case MENU_LABEL_SHADER_APPLY_CHANGES:
          return "shader_apply_changes";
-      case MENU_LABEL_COLLECTION:
-         return "collection";
       case MENU_LABEL_REWIND_ENABLE:
          return "rewind_enable";
       case MENU_LABEL_VALUE_REWIND_ENABLE:
          return "Rewind Enable";
-      case MENU_LABEL_CONTENT_COLLECTION_LIST:
-         return "content_collection_list";
-      case MENU_LABEL_VALUE_CONTENT_COLLECTION_LIST:
-         return "Load Content (Collection)";
       case MENU_LABEL_DETECT_CORE_LIST:
          return "detect_core_list";
       case MENU_LABEL_VALUE_DETECT_CORE_LIST:
-         return "Load Content (Detect Core)";
-      case MENU_LABEL_LOAD_CONTENT_HISTORY:
-         return "history_list";
-      case MENU_LABEL_VALUE_LOAD_CONTENT_HISTORY:
-         return "Load Content (History)";
+         return "Load ROM (Detect Core)";
       case MENU_LABEL_AUDIO_ENABLE:
          return "audio_enable";
       case MENU_LABEL_VALUE_AUDIO_ENABLE:
@@ -232,11 +212,11 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_AUDIO_VOLUME:
          return "audio_volume";
       case MENU_LABEL_VALUE_AUDIO_VOLUME:
-         return "Audio Volume Level (dB)";
+         return "Adjust Volume";
       case MENU_LABEL_AUDIO_SYNC:
          return "audio_sync";
       case MENU_LABEL_VALUE_AUDIO_SYNC:
-         return "Audio Sync Enable";
+         return "Audio Sync";
       case MENU_LABEL_AUDIO_RATE_CONTROL_DELTA:
          return "audio_rate_control_delta";
       case MENU_LABEL_VALUE_AUDIO_RATE_CONTROL_DELTA:
@@ -249,50 +229,6 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Shader Passes";
       case MENU_LABEL_VIDEO_SHADER_NUM_PASSES:
          return "video_shader_num_passes";
-      case MENU_LABEL_RDB_ENTRY_DESCRIPTION:
-         return "rdb_entry_description";
-      case MENU_LABEL_RDB_ENTRY_ORIGIN:
-         return "rdb_entry_origin";
-      case MENU_LABEL_RDB_ENTRY_PUBLISHER:
-         return "rdb_entry_publisher";
-      case MENU_LABEL_RDB_ENTRY_DEVELOPER:
-         return "rdb_entry_developer";
-      case MENU_LABEL_RDB_ENTRY_FRANCHISE:
-         return "rdb_entry_franchise";
-      case MENU_LABEL_RDB_ENTRY_MAX_USERS:
-         return "rdb_entry_max_users";
-      case MENU_LABEL_RDB_ENTRY_NAME:
-         return "rdb_entry_name";
-      case MENU_LABEL_RDB_ENTRY_EDGE_MAGAZINE_RATING:
-         return "rdb_entry_edge_magazine_rating";
-      case MENU_LABEL_RDB_ENTRY_FAMITSU_MAGAZINE_RATING:
-         return "rdb_entry_famitsu_magazine_rating";
-      case MENU_LABEL_RDB_ENTRY_EDGE_MAGAZINE_ISSUE:
-         return "rdb_entry_edge_magazine_issue";
-      case MENU_LABEL_RDB_ENTRY_RELEASE_MONTH:
-         return "rdb_entry_releasemonth";
-      case MENU_LABEL_RDB_ENTRY_RELEASE_YEAR:
-         return "rdb_entry_releaseyear";
-      case MENU_LABEL_RDB_ENTRY_ENHANCEMENT_HW:
-         return "rdb_entry_enhancement_hw";
-      case MENU_LABEL_RDB_ENTRY_SHA1:
-         return "rdb_entry_sha1";
-      case MENU_LABEL_RDB_ENTRY_CRC32:
-         return "rdb_entry_crc32";
-      case MENU_LABEL_RDB_ENTRY_MD5:
-         return "rdb_entry_md5";
-      case MENU_LABEL_RDB_ENTRY_BBFC_RATING:
-         return "rdb_entry_bbfc_rating";
-      case MENU_LABEL_RDB_ENTRY_ESRB_RATING:
-         return "rdb_entry_esrb_rating";
-      case MENU_LABEL_RDB_ENTRY_ELSPA_RATING:
-         return "rdb_entry_elspa_rating";
-      case MENU_LABEL_RDB_ENTRY_PEGI_RATING:
-         return "rdb_entry_pegi_rating";
-      case MENU_LABEL_RDB_ENTRY_CERO_RATING:
-         return "rdb_entry_cero_rating";
-      case MENU_LABEL_RDB_ENTRY_ANALOG:
-         return "rdb_entry_analog";
       case MENU_LABEL_CONFIGURATIONS:
          return "configurations";
       case MENU_LABEL_VALUE_CONFIGURATIONS:
@@ -305,24 +241,22 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Rewind Granularity";
       case MENU_LABEL_REMAP_FILE_LOAD:
          return "remap_file_load";
+      case MENU_LABEL_REMAP_FILE_SAVE_CORE:
+         return "remap_file_save_core";
+      case MENU_LABEL_REMAP_FILE_SAVE_GAME:
+         return "remap_file_save_game";
       case MENU_LABEL_VALUE_REMAP_FILE_LOAD:
          return "Load Remap File";
-      case MENU_LABEL_REMAP_FILE_SAVE_AS:
-         return "remap_file_save_as";
-      case MENU_LABEL_VALUE_REMAP_FILE_SAVE_AS:
-         return "Save Remap File As";
+      case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
+         return "options_file_save_game";
       case MENU_LABEL_CUSTOM_RATIO:
          return "custom_ratio";
       case MENU_LABEL_VALUE_CUSTOM_RATIO:
-         return "Custom Ratio";
+         return "  Set Custom Aspect";
       case MENU_LABEL_VALUE_USE_THIS_DIRECTORY:
          return "<Use this directory>";
       case MENU_LABEL_USE_THIS_DIRECTORY:
          return "use_this_directory";
-      case MENU_LABEL_VALUE_RDB_ENTRY_START_CONTENT:
-         return "Start Content";
-      case MENU_LABEL_RDB_ENTRY_START_CONTENT:
-         return "rdb_entry_start_content";
       case MENU_LABEL_CUSTOM_BIND:
          return "custom_bind";
       case MENU_LABEL_CUSTOM_BIND_ALL:
@@ -332,21 +266,13 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_VALUE_DISK_OPTIONS:
          return "Core Disk Options";
       case MENU_LABEL_VALUE_CORE_OPTIONS:
-         return "Core Options";
+         return "Core-Provided Options";
       case MENU_LABEL_VALUE_CORE_CHEAT_OPTIONS:
          return "Core Cheat Options";
       case MENU_LABEL_CORE_CHEAT_OPTIONS:
          return "core_cheat_options";
       case MENU_LABEL_CORE_OPTIONS:
          return "core_options";
-      case MENU_LABEL_DATABASE_MANAGER_LIST:
-         return "database_manager_list";
-      case MENU_LABEL_DEFERRED_DATABASE_MANAGER_LIST:
-         return "deferred_database_manager_list";
-      case MENU_LABEL_CURSOR_MANAGER_LIST:
-         return "cursor_manager_list";
-      case MENU_LABEL_DEFERRED_CURSOR_MANAGER_LIST:
-         return "deferred_cursor_manager_list";
       case MENU_LABEL_VALUE_CHEAT_FILE_LOAD:
          return "Cheat File Load";
       case MENU_LABEL_CHEAT_FILE_LOAD:
@@ -355,8 +281,6 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "cheat_file_save_as";
       case MENU_LABEL_VALUE_CHEAT_FILE_SAVE_AS:
          return "Cheat File Save As";
-      case MENU_LABEL_DEFERRED_RDB_ENTRY_DETAIL:
-         return "deferred_rdb_entry_detail";
       case MENU_LABEL_FRONTEND_COUNTERS:
          return "frontend_counters";
       case MENU_LABEL_CORE_COUNTERS:
@@ -369,14 +293,14 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "disk_image_append";
       case MENU_LABEL_DEFERRED_CORE_LIST:
          return "deferred_core_list";
-      case MENU_LABEL_DEFERRED_CORE_LIST_SET:
-         return "deferred_core_list_set";
       case MENU_LABEL_VALUE_TAKE_SCREENSHOT:
          return "Take Screenshot";
       case MENU_LABEL_INFO_SCREEN:
          return "info_screen";
       case MENU_LABEL_VALUE_RESUME:
          return "Resume";
+      case MENU_LABEL_DISK_INDEX:
+         return "disk_index";
       case MENU_LABEL_VALUE_DISK_INDEX:
          return "Disk Index";
       case MENU_LABEL_VALUE_FRONTEND_COUNTERS:
@@ -385,8 +309,6 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Disk Image Append";
       case MENU_LABEL_VALUE_DISK_CYCLE_TRAY_STATUS:
          return "Disk Cycle Tray Status";
-      case MENU_LABEL_VALUE_NO_PLAYLIST_ENTRIES_AVAILABLE:
-         return "No playlist entries available.";
       case MENU_LABEL_VALUE_NO_CORE_INFORMATION_AVAILABLE:
          return "No core information available.";
       case MENU_LABEL_VALUE_NO_CORE_OPTIONS_AVAILABLE:
@@ -395,8 +317,6 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "No cores available.";
       case MENU_VALUE_NO_CORE:
          return "No Core";
-      case MENU_LABEL_VALUE_DATABASE_MANAGER:
-         return "Database Manager";
       case MENU_LABEL_VALUE_CURSOR_MANAGER:
          return "Cursor Manager";
       case MENU_VALUE_RECORDING_SETTINGS:
@@ -415,14 +335,10 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Help";
       case MENU_LABEL_HELP:
          return "help";
-      case MENU_LABEL_SAVE_NEW_CONFIG:
-         return "save_new_config";
-      case MENU_LABEL_VALUE_SAVE_NEW_CONFIG:
-         return "Save New Config";
       case MENU_LABEL_RESTART_CONTENT:
          return "restart_content";
       case MENU_LABEL_VALUE_RESTART_CONTENT:
-         return "Restart Content";
+         return "Restart ROM";
       case MENU_LABEL_TAKE_SCREENSHOT:
          return "take_screenshot";
       case MENU_LABEL_CORE_UPDATER_LIST:
@@ -436,7 +352,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_OPTIONS:
          return "options";
       case MENU_LABEL_VALUE_OPTIONS:
-         return "Options";
+         return "Core Options";
       case MENU_LABEL_CORE_INFORMATION:
          return "core_information";
       case MENU_LABEL_VALUE_CORE_INFORMATION:
@@ -450,15 +366,11 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_LOAD_CONTENT:
          return "load_content";
       case MENU_LABEL_VALUE_LOAD_CONTENT:
-         return "Load Content";
+         return "Load ROM";
       case MENU_LABEL_UNLOAD_CORE:
          return "unload_core";
       case MENU_LABEL_VALUE_UNLOAD_CORE:
          return "Unload Core";
-      case MENU_LABEL_MANAGEMENT:
-         return "advanced_management";
-      case MENU_LABEL_VALUE_MANAGEMENT:
-         return "Advanced Management";
       case MENU_LABEL_PERFORMANCE_COUNTERS:
          return "performance_counters";
       case MENU_LABEL_VALUE_PERFORMANCE_COUNTERS:
@@ -472,11 +384,13 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_VALUE_LOAD_STATE:
          return "Load State";
       case MENU_LABEL_VALUE_RESUME_CONTENT:
-         return "Resume Content";
+         return "Resume ROM";
       case MENU_LABEL_RESUME_CONTENT:
          return "resume_content";
       case MENU_LABEL_DRIVER_SETTINGS:
          return "Driver Settings";
+      case MENU_LABEL_OVERLAY_SETTINGS:
+         return "Onscreen Overlay Settings";
       case MENU_LABEL_VALUE_UNABLE_TO_READ_COMPRESSED_FILE:
          return "Unable to read compressed file.";
       case MENU_LABEL_OVERLAY_SCALE:
@@ -494,15 +408,15 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_AUDIO_LATENCY:
          return "audio_latency";
       case MENU_LABEL_VALUE_AUDIO_LATENCY:
-         return "Audio Latency (ms)";
+         return "Audio Latency";
       case MENU_LABEL_VALUE_AUDIO_DEVICE:
          return "Audio Device";
       case MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET:
-         return "Keyboard Overlay Preset";
+         return "Keyboard Overlay";
       case MENU_LABEL_OVERLAY_OPACITY:
          return "input_overlay_opacity";
       case MENU_LABEL_VALUE_OVERLAY_OPACITY:
-         return "Overlay Opacity";
+         return "Opacity";
       case MENU_LABEL_MENU_WALLPAPER:
          return "menu_wallpaper";
       case MENU_LABEL_VALUE_MENU_WALLPAPER:
@@ -518,13 +432,11 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS:
          return "core_input_remapping_options";
       case MENU_LABEL_VALUE_CORE_INPUT_REMAPPING_OPTIONS:
-         return "Core Input Remapping Options";
-      case MENU_LABEL_VIDEO_OPTIONS:
-         return "video_options";
+         return "Input Remapping Options";
       case MENU_LABEL_VALUE_VIDEO_OPTIONS:
          return "Video Options";
       case MENU_LABEL_VALUE_SHADER_OPTIONS:
-         return "Shader Options";
+         return "  Shader Options";
       case MENU_LABEL_SHADER_OPTIONS:
          return "shader_options";
       case MENU_LABEL_VIDEO_SHADER_PARAMETERS:

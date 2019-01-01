@@ -64,6 +64,30 @@ static void menu_action_setting_disp_set_label_remap_file_load(
          len);
 }
 
+static void menu_action_setting_disp_set_label_game_option_file(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   global_t *global = global_get_ptr();
+   const char *opt_name = path_basename
+                          (core_option_conf_path(global->system.core_options));
+   char buf[PATH_MAX_LENGTH] = {0};
+
+   *w = 19;
+   strlcpy(s2, path, len2);
+   
+   core_option_get_core_conf_path(buf);
+   if (strncmp(opt_name, path_basename(buf), NAME_MAX_LENGTH))
+      strlcpy(s, opt_name, NAME_MAX_LENGTH);
+   else
+      *s = '\0';
+}
+
 static void menu_action_setting_disp_set_label_configurations(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
@@ -136,10 +160,31 @@ static void menu_action_setting_disp_set_label_filter(
    *s = '\0';
    *w = 19;
    strlcpy(s2, path, len2);
-   strlcpy(s, "N/A", len);
+   strlcpy(s, "None", len);
 
    if (*settings->video.softfilter_plugin)
    strlcpy(s, path_basename(settings->video.softfilter_plugin),
+         len);
+}
+
+static void menu_action_setting_disp_set_label_shader_preset(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   settings_t *settings = config_get_ptr();
+
+   *s = '\0';
+   *w = 19;
+   strlcpy(s2, path, len2);
+   strlcpy(s, "None", len);
+
+   if (*settings->video.shader_path)
+   strlcpy(s, path_basename(settings->video.shader_path),
          len);
 }
 
@@ -705,6 +750,7 @@ static void menu_action_setting_disp_set_label_menu_file_filter(
          path, "(FILTER)", s2, len2);
 }
 
+#if 0
 static void menu_action_setting_disp_set_label_menu_file_url(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
@@ -717,8 +763,9 @@ static void menu_action_setting_disp_set_label_menu_file_url(
    menu_action_setting_generic_disp_set_label(w, s, len,
          path, "(URL)", s2, len2);
 }
+#endif
 
-static void menu_action_setting_disp_set_label_menu_file_rdb(
+static void menu_action_setting_disp_set_label_menu_core_url(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
       const char *label,
@@ -727,11 +774,14 @@ static void menu_action_setting_disp_set_label_menu_file_rdb(
       const char *path,
       char *s2, size_t len2)
 {
-   menu_action_setting_generic_disp_set_label(w, s, len,
-         path, "(RDB)", s2, len2);
+   menu_action_setting_generic_disp_set_label
+                        (w, s, len,
+                         ((*list->list[i].alt && list->list[i].alt[0]) ?
+                            list->list[i].alt : path),
+                        "(URL)", s2, len2);
 }
 
-static void menu_action_setting_disp_set_label_menu_file_cursor(
+static void menu_action_setting_disp_set_alt_label_menu_file_plain(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
       const char *label,
@@ -740,8 +790,9 @@ static void menu_action_setting_disp_set_label_menu_file_cursor(
       const char *path,
       char *s2, size_t len2)
 {
+   char* alt = list->list[i].alt;
    menu_action_setting_generic_disp_set_label(w, s, len,
-         path, "(CURSOR)", s2, len2);
+         (alt? alt : path), "(FILE)", s2, len2);
 }
 
 static void menu_action_setting_disp_set_label_menu_file_cheat(
@@ -774,7 +825,6 @@ static void menu_action_setting_disp_set_label(file_list_t* list,
    switch (hash_label)
    {
       case MENU_LABEL_PERFORMANCE_COUNTERS:
-      case MENU_LABEL_LOAD_CONTENT_HISTORY:
          *w = strlen(label);
          break;
    }
@@ -805,6 +855,10 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
          cbs->action_get_value =
             menu_action_setting_disp_set_label_remap_file_load;
          break;
+      case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
+         cbs->action_get_value =
+            menu_action_setting_disp_set_label_game_option_file;
+         break;
       case MENU_LABEL_VIDEO_SHADER_FILTER_PASS:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_shader_filter_pass;
@@ -829,6 +883,10 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
          cbs->action_get_value =
             menu_action_setting_disp_set_label_filter;
          break;
+      case MENU_LABEL_VIDEO_SHADER_PRESET:
+         cbs->action_get_value =
+            menu_action_setting_disp_set_label_shader_preset;
+         break;
       case MENU_LABEL_CONFIGURATIONS:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_configurations;
@@ -843,6 +901,8 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
 static int menu_cbs_init_bind_get_string_representation_compare_type(
       menu_file_list_cbs_t *cbs, unsigned type)
 {
+   settings_t *settings;
+   
    if (type >= MENU_SETTINGS_INPUT_DESC_BEGIN
          && type <= MENU_SETTINGS_INPUT_DESC_END)
       cbs->action_get_value =
@@ -876,8 +936,13 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
                menu_action_setting_disp_set_label_menu_file_core;
             break;
          case MENU_FILE_PLAIN:
-            cbs->action_get_value =
-               menu_action_setting_disp_set_label_menu_file_plain;
+            settings = config_get_ptr();
+            if (settings->menu.mame_titles)
+               cbs->action_get_value =
+                  menu_action_setting_disp_set_alt_label_menu_file_plain;
+            else
+               cbs->action_get_value =
+                  menu_action_setting_disp_set_label_menu_file_plain;
             break;
          case MENU_FILE_IMAGE:
             cbs->action_get_value =
@@ -926,15 +991,8 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
             break;
          case MENU_FILE_DOWNLOAD_CORE:
             cbs->action_get_value =
-               menu_action_setting_disp_set_label_menu_file_url;
+               menu_action_setting_disp_set_label_menu_core_url;
             break;
-         case MENU_FILE_RDB:
-            cbs->action_get_value =
-               menu_action_setting_disp_set_label_menu_file_rdb;
-            break;
-         case MENU_FILE_CURSOR:
-            cbs->action_get_value =
-               menu_action_setting_disp_set_label_menu_file_cursor;
             break;
          case MENU_FILE_CHEAT:
             cbs->action_get_value =

@@ -47,4 +47,25 @@
             android:summary="@string/system_directory_desc"
             android:dependency="system_directory_enable"/>
     </PreferenceCategory>
+    
+    <!-- Config -->
+    <PreferenceCategory android:title="@string/config">
+        <CheckBoxPreference android:title="@string/enable_custom_dir"
+            android:summary="@string/config_custom_dir"
+            android:key="config_directory_enable"
+            android:defaultValue="false"/>
+        <Preference
+            android:key="configDirPref"
+            android:title="@string/config_directory"
+            android:summary="@string/config_directory_desc"
+            android:dependency="config_directory_enable"/>
+    </PreferenceCategory>
+    
+    <!-- Local/Backup Installable Cores -->
+    <PreferenceCategory android:title="@string/backup_cores_paths">
+        <Preference
+            android:key="localCoresDirPref"
+            android:title="@string/backup_cores_directory"
+            android:summary="@string/backup_cores_directory_desc"/>
+    </PreferenceCategory>
 </PreferenceScreen>

@@ -10,7 +10,7 @@
 config.log
 /retroarch
 /retroarch.cfg
-/retroarch.exe
+/retroarchlite.exe
 /config.h
 /config.mk
 /tools/retroarch-joyconfig
@@ -63,11 +63,31 @@ apple/RetroArch_iOS.xcodeproj/project.xcworkspace/*
 
 # Android
 /android/phoenix/obj/
-/android/phoenix/assets/
-/android/phoenix/libs/
+/android/phoenix/assets/shaders_glsl/*
+/android/phoenix/assets/cores/*
+/android/phoenix/assets/info/*.info
+/android/phoenix/libs/appcompat/gen
+/android/phoenix/libs/appcompat/local.properties
+/android/phoenix/libs/googleplay/gen
+/android/phoenix/libs/googleplay/local.properties
+/android/phoenix/libs/appcompat/bin
+/android/phoenix/libs/googleplay/bin
 /android/phoenix/bin/
 /android/phoenix/gen/
 /android/phoenix/local.properties
+/android/phoenix64/obj/
+/android/phoenix64/assets/shaders_glsl/*
+/android/phoenix64/assets/cores/*
+/android/phoenix64/assets/info/*.info
+/android/phoenix64/libs/appcompat/gen
+/android/phoenix64/libs/appcompat/local.properties
+/android/phoenix64/libs/googleplay/gen
+/android/phoenix64/libs/googleplay/local.properties
+/android/phoenix64/libs/appcompat/bin
+/android/phoenix64/libs/googleplay/bin
+/android/phoenix64/bin/
+/android/phoenix64/gen/
+/android/phoenix64/local.properties
 
 # Cloned by libretro-fetch.sh
 /media/assets/
@@ -81,3 +101,5 @@ apple/iOS/modules/
 
 obj-unix/
 .vagrant/
+/android/phoenix/libs/appcompat/bin/
+/android/phoenix/libs/googleplay/bin/

@@ -15,7 +15,7 @@
  */
 
 #include "../../general.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 
 static void *nullinput_input_init(void)
 {
@@ -101,4 +101,5 @@ input_driver_t input_null = {
    nullinput_set_rumble,
    NULL,
    NULL,
+   NULL
 };

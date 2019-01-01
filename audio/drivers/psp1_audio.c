@@ -16,7 +16,7 @@
  */
 
 #include "../../general.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 
 #include <pspkernel.h>
 #include <pspaudio.h>

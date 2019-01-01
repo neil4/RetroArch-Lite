@@ -26,7 +26,7 @@
 #include "../input_joypad.h"
 #include "../input_keymaps.h"
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../gfx/video_viewport.h"
 #include "../../general.h"
 
@@ -196,7 +196,7 @@ static int16_t x_pointer_state(x11_input_t *x11,
    return 0;
 }
 
-static int16_t x_lightgun_state(x11_input_t *x11, unsigned id)
+static int16_t x_lightgun_mouse_state(x11_input_t *x11, unsigned id)
 {
    switch (id)
    {
@@ -216,6 +216,42 @@ static int16_t x_lightgun_state(x11_input_t *x11, unsigned id)
          return x11->mouse_m && x11->mouse_l; 
    }
 
+   return 0;
+}
+
+static int16_t x_lightgun_overlay_state(unsigned id)
+{
+   driver_t *driver         = driver_get_ptr();
+   global_t *global         = global_get_ptr();
+   
+   switch(id)
+   {
+      case RETRO_DEVICE_ID_LIGHTGUN_X:
+         // todo: should be relative! (should also be obsolete)
+      case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
+         return input_overlay_lightgun_x();
+      case RETRO_DEVICE_ID_LIGHTGUN_Y:
+      case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
+         return input_overlay_lightgun_y();
+      case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
+         if (global->overlay_lightgun_autotrigger)
+            return input_overlay_lightgun_autotrigger();
+      case RETRO_DEVICE_ID_LIGHTGUN_CURSOR:
+      case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
+      case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
+      case RETRO_DEVICE_ID_LIGHTGUN_START:
+      case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
+      case RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP:
+      case RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN:
+      case RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT:
+      case RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT:
+         return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
+      case RETRO_DEVICE_ID_LIGHTGUN_RELOAD: // hack
+         return (driver->overlay_state.lightgun_buttons
+                 & (1<<RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN)) != 0;
+      default:
+         return 0;
+   }
    return 0;
 }
 
@@ -251,7 +287,12 @@ static int16_t x_input_state(void *data,
                device == RARCH_DEVICE_POINTER_SCREEN);
 
       case RETRO_DEVICE_LIGHTGUN:
-         return x_lightgun_state(x11, id);
+#ifdef HAVE_OVERLAY
+            if (settings->input.overlay_enable)
+               return x_lightgun_overlay_state(x11, id);
+            else
+#endif
+         return x_lightgun_mouse_state(id);
    }
 
    return 0;
@@ -418,4 +459,5 @@ input_driver_t input_x = {
    x_get_joypad_driver,
    x_keyboard_mapping_is_blocked,
    x_keyboard_mapping_set_block,
+   NULL // haptic_feedback
 };

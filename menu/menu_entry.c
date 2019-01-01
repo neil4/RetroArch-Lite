@@ -475,6 +475,14 @@ int menu_entry_action(menu_entry_t *entry, unsigned i, enum menu_action action)
          if (cbs && cbs->action_right)
             ret = cbs->action_right(entry->type, entry->label, false);
          break;
+      case MENU_ACTION_L:
+         if (cbs && cbs->action_l)
+            ret = cbs->action_l(entry->type, entry->label);
+         break;
+      case MENU_ACTION_R:
+         if (cbs && cbs->action_r)
+            ret = cbs->action_r(entry->type, entry->label);
+         break;
       case MENU_ACTION_INFO:
          if (cbs && cbs->action_info)
             ret = cbs->action_info(entry->type, entry->label);
@@ -495,15 +503,6 @@ int menu_entry_action(menu_entry_t *entry, unsigned i, enum menu_action action)
       case MENU_ACTION_MESSAGE:
          if (disp)
             disp->msg_force = true;
-         break;
-
-      case MENU_ACTION_SEARCH:
-         menu_input_search_start();
-         break;
-
-      case MENU_ACTION_SCAN:
-         if (cbs && cbs->action_scan)
-            ret = cbs->action_scan(entry->path, entry->label, entry->type, i);
          break;
 
       default:

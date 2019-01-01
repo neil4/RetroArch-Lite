@@ -18,7 +18,7 @@
 #include <compat/strl.h>
 #include <queues/fifo_buffer.h>
 #include "../connect/joypad_connection.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../runloop.h"
 #include "../input_autodetect.h"
 #include "../input_hid_driver.h"

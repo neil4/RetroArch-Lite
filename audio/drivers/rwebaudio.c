@@ -17,7 +17,7 @@
 #include <unistd.h>
 #include <boolean.h>
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../general.h"
 
 /* forward declarations */

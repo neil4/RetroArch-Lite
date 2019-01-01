@@ -24,7 +24,7 @@
 
 #include <boolean.h>
 #include <retro_inline.h>
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../keyboard_line.h"
 #include "../input_keymaps.h"
 

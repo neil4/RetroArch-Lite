@@ -57,7 +57,7 @@ static void memstream_init(memstream_t *stream, uint8_t *buffer, size_t max_size
 
 memstream_t *memstream_open(void)
 {
-	memstream_t *stream;
+   memstream_t *stream;
    if (!g_buffer || !g_size)
       return NULL;
 

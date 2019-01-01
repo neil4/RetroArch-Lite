@@ -16,7 +16,7 @@
 
 #include "keyboard_line.h"
 #include "../general.h"
-#include "../driver.h"
+#include "../configuration.h"
 #include "../retroarch.h"
 #include <stddef.h>
 #include <string.h>

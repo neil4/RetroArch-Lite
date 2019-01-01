@@ -1,37 +1,36 @@
 package com.retroarch.browser.preferences.fragments;
 
-import com.retroarch.R;
+import android.content.ComponentName;
+import android.content.Intent;
+import com.retroarchlite.R;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
-import com.retroarch.browser.preferences.util.UserPreferences;
 
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
-import android.preference.Preference;
-import android.preference.Preference.OnPreferenceClickListener;
 
 /**
  * A {@link PreferenceListFragment} that handles the general settings.
  */
 public final class GeneralPreferenceFragment extends PreferenceListFragment
 {
-	@Override
-	public void onCreate(Bundle savedInstanceState)
-	{
-		super.onCreate(savedInstanceState);
+   @Override
+   public void onCreate(Bundle savedInstanceState)
+   {
+      super.onCreate(savedInstanceState);
 
-		// Add general preferences from the XML.
-		addPreferencesFromResource(R.xml.general_preferences);
-
-		// Set a listener for the global configuration checkbox.
-		final CheckBoxPreference usingGlobalConfig = (CheckBoxPreference) findPreference("global_config_enable");
-		usingGlobalConfig.setOnPreferenceClickListener(new OnPreferenceClickListener(){
-			@Override
-			public boolean onPreferenceClick(Preference preference)
-			{
-				UserPreferences.updateConfigFile(getActivity());
-				UserPreferences.readbackConfigFile(getActivity());
-				return true;
-			}
-		});
-	}
+      // Add general preferences from the XML.
+      if (have64bitCoreManager())
+         addPreferencesFromResource(R.xml.general_preferences_32_64);
+      else
+         addPreferencesFromResource(R.xml.general_preferences);
+   }
+   
+   protected boolean have64bitCoreManager()
+   {
+      Intent intent = new Intent();
+      intent.setComponent(new ComponentName("com.retroarchlite64",
+                                            "com.retroarch.browser.coremanager.CoreManagerActivity"));
+      return !getContext().getPackageManager()
+                          .queryIntentActivities(intent, 0)
+                          .isEmpty();
+   }
 }

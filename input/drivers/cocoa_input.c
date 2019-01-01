@@ -22,7 +22,7 @@
 #include "../input_keymaps.h"
 #include "cocoa_input.h"
 #include "../../general.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 
 #include "apple_keycode.h"
 
@@ -455,4 +455,5 @@ input_driver_t input_cocoa = {
    cocoa_input_get_joypad_driver,
    cocoa_input_keyboard_mapping_is_blocked,
    cocoa_input_keyboard_mapping_set_block,
+   NULL // haptic_feedback
 };

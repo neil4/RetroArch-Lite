@@ -22,7 +22,7 @@
 #include "menu_setting.h"
 #include "menu_hash.h"
 
-#include "../driver.h"
+#include "../configuration.h"
 #include "../general.h"
 #include "../gfx/video_monitor.h"
 #include "../dynamic.h"
@@ -240,6 +240,14 @@ static int setting_handler(rarch_setting_t *setting, unsigned action)
          if (setting->action_start)
             return setting->action_start(setting);
          break;
+      case MENU_ACTION_L:
+         if (setting->action_set_min)
+            return setting->action_set_min(setting);
+         break;
+      case MENU_ACTION_R:
+         if (setting->action_set_max)
+            return setting->action_set_max(setting);
+         break;
    }
 
    return -1;
@@ -253,6 +261,14 @@ int menu_action_handle_setting(rarch_setting_t *setting,
 
    if (!setting)
       return -1;
+
+   // Save on exit if something has changed.
+   if ( setting->group
+        && strcmp(setting->group, menu_hash_to_str(MENU_VALUE_MAIN_MENU)) )
+   {
+      settings_touched = true;
+      game_settings_touched = true;
+   }
 
    switch (setting->type)
    {
@@ -483,13 +499,78 @@ static void setting_reset_setting(rarch_setting_t* setting)
       setting->change_handler(setting);
 }
 
+/**
+ * setting_set_min:
+ * @setting            : pointer to setting
+ *
+ * Reset a setting's value to its minimum.
+ **/
+static void setting_set_min(rarch_setting_t* setting)
+{
+   if (!setting)
+      return;
+   
+   if ((setting->flags & SD_FLAG_HAS_RANGE) == false)
+      return;
+
+   switch (setting->type)
+   {
+      case ST_INT:
+         *setting->value.integer          = (int)setting->min;
+         break;
+      case ST_UINT:
+         *setting->value.unsigned_integer = (uint)setting->min;
+         break;
+      case ST_FLOAT:
+         *setting->value.fraction         = (float)setting->min;
+         break;
+      default:
+         return;
+   }
+
+   if (setting->change_handler)
+      setting->change_handler(setting);
+}
+
+/**
+ * setting_set_max:
+ * @setting            : pointer to setting
+ *
+ * Reset a setting's value to its maximum.
+ **/
+static void setting_set_max(rarch_setting_t* setting)
+{
+   if (!setting)
+      return;
+   
+   if ((setting->flags & SD_FLAG_HAS_RANGE) == false)
+      return;
+
+   switch (setting->type)
+   {
+      case ST_INT:
+         *setting->value.integer          = (int)setting->max;
+         break;
+      case ST_UINT:
+         *setting->value.unsigned_integer = (uint)setting->max;
+         break;
+      case ST_FLOAT:
+         *setting->value.fraction         = (float)setting->max;
+         break;
+      default:
+         return;
+   }
+
+   if (setting->change_handler)
+      setting->change_handler(setting);
+}
 
 /**
  * setting_set_with_string_representation:
  * @setting            : pointer to setting
  * @value              : value for the setting (string)
  *
- * Set a settings' value with a string. It is assumed
+ * Set a setting's value with a string. It is assumed
  * that the string has been properly formatted.
  **/
 int setting_set_with_string_representation(rarch_setting_t* setting,
@@ -642,6 +723,29 @@ static int setting_generic_action_start_default(void *data)
    return 0;
 }
 
+static int setting_generic_action_set_min(void *data)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   
+   if (!setting)
+      return -1;
+
+   setting_set_min(setting);
+
+   return 0;
+}
+
+static int setting_generic_action_set_max(void *data)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+
+   if (!setting)
+      return -1;
+
+   setting_set_max(setting);
+
+   return 0;
+}
 
 static int setting_action_start_analog_dpad_mode(void *data)
 {
@@ -714,7 +818,8 @@ static int setting_string_action_start_generic(void *data)
    if (!setting)
       return -1;
 
-   *setting->value.string = '\0';
+   if (setting->type == ST_STRING || setting->type == ST_DIR)
+      setting_reset_setting(setting);
 
    return 0;
 }
@@ -1024,6 +1129,47 @@ static int setting_uint_action_right_default(void *data, bool wraparound)
    return 0;
 }
 
+#if 0
+static int setting_int_action_left_default(void *data, bool wraparound)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+
+   if (!setting)
+      return -1;
+
+   if (*setting->value.integer != setting->min)
+      *setting->value.integer =
+         *setting->value.integer - setting->step;
+
+   if (setting->enforce_minrange)
+   {
+      if (*setting->value.integer < setting->min)
+         *setting->value.integer = setting->min;
+   }
+
+   return 0;
+}
+
+static int setting_int_action_right_default(void *data, bool wraparound)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+
+   if (!setting)
+      return -1;
+
+   *setting->value.integer =
+      *setting->value.integer + setting->step;
+
+   if (setting->enforce_maxrange)
+   {
+      if (*setting->value.integer > setting->max)
+         *setting->value.integer = setting->max;
+   }
+
+   return 0;
+}
+#endif
+
 static int setting_fraction_action_left_default(
       void *data, bool wraparound)
 {
@@ -1146,6 +1292,87 @@ static int load_content_action_toggle(void *data, bool wraparound)
 /**
  ******* ACTION OK CALLBACK FUNCTIONS *******
 **/
+
+static int setting_action_ok_custom_viewport(void *data, bool wraparound)
+{
+   menu_displaylist_info_t info = {0};
+   int ret                  = 0;
+   video_viewport_t *custom = video_viewport_get_custom();
+   settings_t *settings     = config_get_ptr();
+   menu_list_t   *menu_list = menu_list_get_ptr();
+   menu_navigation_t *nav   = menu_navigation_get_ptr();
+   
+   (void)data;
+   (void)wraparound;
+
+   if (!menu_list)
+      return -1;
+   
+   info.list          = menu_list->menu_stack;
+   info.type          = MENU_SETTINGS_CUSTOM_VIEWPORT;
+   info.directory_ptr = nav->selection_ptr;
+   strlcpy(info.label, "custom_viewport_1", sizeof(info.label));
+
+   ret = menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
+
+   video_driver_viewport_info(custom);
+
+   aspectratio_lut[ASPECT_RATIO_CUSTOM].value =
+      (float)custom->width / custom->height;
+
+   settings->video.aspect_ratio_idx = ASPECT_RATIO_CUSTOM;
+
+   event_command(EVENT_CMD_VIDEO_SET_ASPECT_RATIO);
+   return ret;
+}
+
+static int setting_action_ok_quickset_core_content_directory(void *data, bool wraparound)
+{
+   global_t *global                = global_get_ptr();
+   settings_t *settings            = config_get_ptr();
+   
+   (void)data;
+   (void)wraparound;
+   
+   strlcpy(settings->core_content_directory, global->fullpath, PATH_MAX_LENGTH);
+   path_basedir(settings->core_content_directory);
+
+   settings_touched = true;   
+   return 0;
+}
+
+static int setting_action_ok_video_filter(void *data, bool wraparound)
+{
+   menu_displaylist_info_t info = {0};
+   settings_t *settings         = config_get_ptr();
+   menu_list_t *menu_list       = menu_list_get_ptr();
+   menu_navigation_t *nav       = menu_navigation_get_ptr();
+
+   if (!menu_list)
+      return -1;
+
+
+   info.list          = menu_list->menu_stack;
+   info.type          = MENU_FILE_VIDEOFILTER;
+   info.directory_ptr = nav->selection_ptr;
+   strlcpy(info.path, settings->video.filter_dir, sizeof(info.path));
+   strlcpy(info.label,
+         menu_hash_to_str(MENU_LABEL_DEFERRED_VIDEO_FILTER), sizeof(info.label));
+
+   return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
+}
+
+static int setting_action_start_video_filter(void *data)
+{
+   settings_t *settings = config_get_ptr();
+
+   if (!settings)
+      return -1;
+
+   settings->video.softfilter_plugin[0] = '\0';
+   event_command(EVENT_CMD_REINIT);
+   return 0;
+}
 
 static int setting_action_ok_bind_all(void *data, bool wraparound)
 {
@@ -1300,7 +1527,6 @@ static int setting_bind_action_ok(void *data, bool wraparound)
 
    return 0;
 }
-
 
 /**
  ******* SET LABEL CALLBACK FUNCTIONS *******
@@ -1465,6 +1691,57 @@ static void setting_get_string_representation_uint_aspect_ratio_index(void *data
       strlcpy(s,
             aspectratio_lut[*setting->value.unsigned_integer].name,
             len);
+}
+
+#ifdef HAVE_OVERLAY
+static void setting_get_string_representation_uint_overlay_aspect_ratio_index(void *data,
+      char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting)
+      strlcpy(s,
+            overlay_aspectratio_lut[*setting->value.unsigned_integer].name,
+            len);
+}
+#endif
+
+static void setting_get_string_representation_uint_scope_index(void *data,
+      char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting)
+      strlcpy(s,
+            scope_lut[*setting->value.unsigned_integer].name,
+            len);
+}
+
+static void setting_get_string_representation_millisec(void *data,
+      char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting)
+   {
+      if (*setting->value.unsigned_integer > 0)
+         sprintf(s, "%u ms", *setting->value.unsigned_integer);
+      else
+         strcpy(s, "None");
+   }
+}
+
+static void setting_get_string_representation_touch_method(void *data,
+      char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting)
+   {
+      unsigned val = *setting->value.unsigned_integer;
+      if (val == TOUCH_8WAY)
+         strcpy(s, "8-way direction");
+      else if (val == TOUCH_AREA)
+         strcpy(s, "Contact Area");
+      else
+         strcpy(s, "8-way + Area");
+   }
 }
 
 static void setting_get_string_representation_uint_libretro_device(void *data,
@@ -1759,6 +2036,8 @@ static rarch_setting_t setting_float_setting(const char* name,
    result.original_value.fraction = *target;
    result.default_value.fraction  = default_value;
    result.action_start            = setting_generic_action_start_default;
+   result.action_set_min          = setting_generic_action_set_min;
+   result.action_set_max          = setting_generic_action_set_max;
    result.action_left             = setting_fraction_action_left_default;
    result.action_right            = setting_fraction_action_right_default;
    result.action_ok               = setting_generic_action_ok_default;
@@ -1854,11 +2133,19 @@ static rarch_setting_t setting_int_setting(const char* name,
    result.subgroup               = subgroup;
    result.parent_group           = parent_group;
 
-   result.change_handler         = change_handler;
-   result.read_handler           = read_handler;
-   result.value.integer          = target;
-   result.original_value.integer = *target;
-   result.default_value.integer  = default_value;
+   result.change_handler                  = change_handler;
+   result.read_handler                    = read_handler;
+   result.value.integer                   = target;
+   result.original_value.integer          = *target;
+   result.default_value.integer           = default_value;
+   result.action_start                    = setting_generic_action_start_default;
+   result.action_set_min                  = setting_generic_action_set_min;
+   result.action_set_max                  = setting_generic_action_set_max;
+   result.action_left                     = setting_int_action_left_default;
+   result.action_right                    = setting_int_action_right_default;
+   result.action_ok                       = setting_generic_action_ok_default;
+   result.action_select                   = setting_generic_action_ok_default;
+   result.action_cancel                   = NULL;
 
    result.get_string_representation       = &setting_get_string_representation_int;
 
@@ -1903,6 +2190,8 @@ static rarch_setting_t setting_uint_setting(const char* name,
    result.original_value.unsigned_integer = *target;
    result.default_value.unsigned_integer  = default_value;
    result.action_start                    = setting_generic_action_start_default;
+   result.action_set_min                  = setting_generic_action_set_min;
+   result.action_set_max                  = setting_generic_action_set_max;
    result.action_left                     = setting_uint_action_left_default;
    result.action_right                    = setting_uint_action_right_default;
    result.action_ok                       = setting_generic_action_ok_default;
@@ -2059,6 +2348,8 @@ rarch_setting_t setting_string_setting(enum setting_type type,
          result.browser_selection_type = ST_PATH;
          result.get_string_representation = &setting_get_string_representation_st_path;
          break;
+      case ST_STRING:
+         result.action_start           = setting_string_action_start_generic;
       default:
          break;
    }
@@ -2186,20 +2477,6 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "will use that as top folder. If Core \n"
                "Directory is a full path, it will start \n"
                "in the folder where the file is.");
-         break;
-      case MENU_LABEL_LOAD_CONTENT_HISTORY:
-         snprintf(s, len,
-               " -- Loading content from history. \n"
-               " \n"
-               "As content is loaded, content and libretro \n"
-               "core combinations are saved to history. \n"
-               " \n"
-               "The history is saved to a file in the same \n"
-               "directory as the RetroArch config file. If \n"
-               "no config file was loaded in startup, history \n"
-               "will not be saved or loaded, and will not exist \n"
-               "in the main menu."
-               );
          break;
       case MENU_LABEL_VIDEO_DRIVER:
          driver_hash = menu_hash_calculate(settings->video.driver);
@@ -3324,16 +3601,10 @@ static void general_write_handler(void *data)
          break;
       case MENU_LABEL_NETPLAY_MODE:
 #ifdef HAVE_NETPLAY
-         if (!global->netplay_is_client)
-            *global->netplay_server = '\0';
          global->has_set_netplay_mode = true;
 #endif
          break;
       case MENU_LABEL_NETPLAY_SPECTATOR_MODE_ENABLE:
-#ifdef HAVE_NETPLAY
-         if (global->netplay_is_spectate)
-            *global->netplay_server = '\0';
-#endif
          break;
       case MENU_LABEL_NETPLAY_DELAY_FRAMES:
 #ifdef HAVE_NETPLAY
@@ -3477,6 +3748,7 @@ static void settings_data_list_current_add_flags(
    setting_add_special_callbacks(list, list_info, values);
 }
 
+#ifdef HAVE_OVERLAY
 static void overlay_enable_toggle_change_handler(void *data)
 {
    rarch_setting_t *setting = (rarch_setting_t *)data;
@@ -3489,6 +3761,7 @@ static void overlay_enable_toggle_change_handler(void *data)
    else
       event_command(EVENT_CMD_OVERLAY_DEINIT);
 }
+#endif
 
 static bool setting_append_list_main_menu_options(
       rarch_setting_t **list,
@@ -3498,76 +3771,62 @@ static bool setting_append_list_main_menu_options(
 {
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
-   settings_t *settings  = config_get_ptr();
    global_t *global      = global_get_ptr();
    const char *main_menu = menu_hash_to_str(MENU_VALUE_MAIN_MENU);
 
    START_GROUP(group_info,main_menu, parent_group);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-
+   
+#ifndef SINGLE_CORE
+   settings_t *settings = config_get_ptr();
 #if defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT)
-   CONFIG_ACTION(
-         "core_list",
-         menu_hash_to_str(MENU_LABEL_CORE_LIST),
-         group_info.name,
-         subgroup_info.name,
-         parent_group);
-   (*list)[list_info->index - 1].size = sizeof(settings->libretro);
-   (*list)[list_info->index - 1].value.string = settings->libretro;
-   (*list)[list_info->index - 1].values = EXT_EXECUTABLES;
-   // It is not a good idea to have chosen action_toggle as the place
-   // to put this callback. It should be called whenever the browser
-   // needs to get the directory to browse into. It's not quite like
-   // get_string_representation, but it is close.
-   (*list)[list_info->index - 1].action_left  = core_list_action_toggle;
-   (*list)[list_info->index - 1].action_right = core_list_action_toggle;
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_LOAD_CORE);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
-
-   {
-      struct retro_system_info *info = (struct retro_system_info*)
-         global ? &global->system.info : NULL;
-      uint32_t info_library_name_hash = info ? menu_hash_calculate(info->library_name) : 0;
-
-      if (info && (info_library_name_hash != MENU_VALUE_NO_CORE))
-      {
-         CONFIG_ACTION(
-               menu_hash_to_str(MENU_LABEL_UNLOAD_CORE),
-               menu_hash_to_str(MENU_LABEL_VALUE_UNLOAD_CORE),
-               group_info.name,
-               subgroup_info.name,
-               parent_group);
-      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_UNLOAD_CORE);
-
-      CONFIG_ACTION(
-            menu_hash_to_str(MENU_LABEL_CORE_INFORMATION),
-            menu_hash_to_str(MENU_LABEL_VALUE_CORE_INFORMATION),
-            group_info.name,
-            subgroup_info.name,
-            parent_group); }
-   }
-#endif
-
-
-#ifdef HAVE_LIBRETRODB
-   CONFIG_ACTION(
-         menu_hash_to_str(MENU_LABEL_CONTENT_COLLECTION_LIST),
-         menu_hash_to_str(MENU_LABEL_VALUE_CONTENT_COLLECTION_LIST),
-         group_info.name,
-         subgroup_info.name,
-         parent_group);
-#endif
-
-   if (settings->history_list_enable)
+   if (!*settings->libretro)  // no core loaded
    {
       CONFIG_ACTION(
-            menu_hash_to_str(MENU_LABEL_LOAD_CONTENT_HISTORY),
-            menu_hash_to_str(MENU_LABEL_VALUE_LOAD_CONTENT_HISTORY),
+            "core_list",
+            menu_hash_to_str(MENU_LABEL_CORE_LIST),
             group_info.name,
             subgroup_info.name,
             parent_group);
+      (*list)[list_info->index - 1].size = sizeof(settings->libretro);
+      (*list)[list_info->index - 1].value.string = settings->libretro;
+      (*list)[list_info->index - 1].values = EXT_EXECUTABLES;
+      // It is not a good idea to have chosen action_toggle as the place
+      // to put this callback. It should be called whenever the browser
+      // needs to get the directory to browse into. It's not quite like
+      // get_string_representation, but it is close.
+      (*list)[list_info->index - 1].action_left  = core_list_action_toggle;
+      (*list)[list_info->index - 1].action_right = core_list_action_toggle;
+      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_LOAD_CORE);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
    }
-   if (global->core_info && core_info_list_num_info_files(global->core_info))
+   else  // core loaded
+   {
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_LOAD_CONTENT),
+            menu_hash_to_str(MENU_LABEL_VALUE_LOAD_CONTENT),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+      (*list)[list_info->index - 1].size = sizeof(global->fullpath);
+      (*list)[list_info->index - 1].value.string   = global->fullpath;
+      (*list)[list_info->index - 1].action_left    = load_content_action_toggle;
+      (*list)[list_info->index - 1].action_right   = load_content_action_toggle;
+      (*list)[list_info->index - 1].action_select  = load_content_action_toggle;
+      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_LOAD_CONTENT);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
+      
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_UNLOAD_CORE),
+            menu_hash_to_str(MENU_LABEL_VALUE_UNLOAD_CORE),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_UNLOAD_CORE);
+   }
+#endif // #if defined(HAVE_DYNAMIC)...
+   if (!*settings->libretro
+       && global->core_info && core_info_list_num_info_files(global->core_info))
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_DETECT_CORE_LIST),
@@ -3577,34 +3836,46 @@ static bool setting_append_list_main_menu_options(
             parent_group);
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
    }
-   CONFIG_ACTION(
-         menu_hash_to_str(MENU_LABEL_LOAD_CONTENT),
-         menu_hash_to_str(MENU_LABEL_VALUE_LOAD_CONTENT),
-         group_info.name,
-         subgroup_info.name,
-         parent_group);
-   (*list)[list_info->index - 1].size = sizeof(global->fullpath);
-   (*list)[list_info->index - 1].value.string   = global->fullpath;
-   (*list)[list_info->index - 1].action_left    = load_content_action_toggle;
-   (*list)[list_info->index - 1].action_right   = load_content_action_toggle;
-   (*list)[list_info->index - 1].action_select  = load_content_action_toggle;
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_LOAD_CONTENT);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
+#else // #ifndef SINGLE_CORE
+   {
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_LOAD_CONTENT),
+            menu_hash_to_str(MENU_LABEL_VALUE_LOAD_CONTENT),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+      (*list)[list_info->index - 1].size = sizeof(global->fullpath);
+      (*list)[list_info->index - 1].value.string   = global->fullpath;
+      (*list)[list_info->index - 1].action_left    = load_content_action_toggle;
+      (*list)[list_info->index - 1].action_right   = load_content_action_toggle;
+      (*list)[list_info->index - 1].action_select  = load_content_action_toggle;
+      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_LOAD_CONTENT);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
+   }
+#endif  // #ifndef SINGLE_CORE
 
-   CONFIG_ACTION(
-         menu_hash_to_str(MENU_LABEL_MANAGEMENT),
-         menu_hash_to_str(MENU_LABEL_VALUE_MANAGEMENT),
-         group_info.name,
-         subgroup_info.name,
-         parent_group);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   if (global->content_is_init)
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_OPTIONS),
+            menu_hash_to_str(MENU_LABEL_VALUE_OPTIONS),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+   
+#ifndef ANDROID
+#if defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT)
+   if (*settings->libretro)  // core loaded
+   {
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_CORE_INFORMATION),
+            menu_hash_to_str(MENU_LABEL_VALUE_CORE_INFORMATION),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+   }
+#endif
+#endif
 
-   CONFIG_ACTION(
-         menu_hash_to_str(MENU_LABEL_OPTIONS),
-         menu_hash_to_str(MENU_LABEL_VALUE_OPTIONS),
-         group_info.name,
-         subgroup_info.name,
-         parent_group);
 
    if (mask & SL_FLAG_MAIN_MENU_SETTINGS)
    {
@@ -3615,7 +3886,7 @@ static bool setting_append_list_main_menu_options(
             subgroup_info.name,
             parent_group);
    }
-
+   
    CONFIG_ACTION(
          menu_hash_to_str(MENU_LABEL_SYSTEM_INFORMATION),
          menu_hash_to_str(MENU_LABEL_VALUE_SYSTEM_INFORMATION),
@@ -3624,12 +3895,17 @@ static bool setting_append_list_main_menu_options(
          parent_group);
 
 #ifdef HAVE_NETWORKING
-   CONFIG_ACTION(
-         menu_hash_to_str(MENU_LABEL_CORE_UPDATER_LIST),
-         menu_hash_to_str(MENU_LABEL_VALUE_CORE_UPDATER_LIST),
-         group_info.name,
-         subgroup_info.name,
-         parent_group);
+#ifndef SINGLE_CORE
+   if (settings->menu.show_core_updater)
+   {
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_CORE_UPDATER_LIST),
+            menu_hash_to_str(MENU_LABEL_VALUE_CORE_UPDATER_LIST),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+   }
+#endif
 #endif
 
    if (global->perfcnt_enable)
@@ -3672,6 +3948,7 @@ static bool setting_append_list_main_menu_options(
       (*list)[list_info->index - 1].get_string_representation = &get_string_representation_savestate;
       menu_settings_list_current_add_cmd  (list, list_info, EVENT_CMD_LOAD_STATE);
 
+#if 0
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_TAKE_SCREENSHOT),
             menu_hash_to_str(MENU_LABEL_VALUE_TAKE_SCREENSHOT),
@@ -3679,16 +3956,7 @@ static bool setting_append_list_main_menu_options(
             subgroup_info.name,
             parent_group);
       menu_settings_list_current_add_cmd  (list, list_info, EVENT_CMD_TAKE_SCREENSHOT);
-
-      CONFIG_ACTION(
-            menu_hash_to_str(MENU_LABEL_RESUME_CONTENT),
-            menu_hash_to_str(MENU_LABEL_VALUE_RESUME_CONTENT),
-            group_info.name,
-            subgroup_info.name,
-            parent_group);
-      menu_settings_list_current_add_cmd  (list, list_info, EVENT_CMD_RESUME);
-      (*list)[list_info->index - 1].action_ok     = &setting_bool_action_ok_exit;
-      (*list)[list_info->index - 1].action_select = &setting_bool_action_ok_exit;
+#endif
 
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_RESTART_CONTENT),
@@ -3710,27 +3978,14 @@ static bool setting_append_list_main_menu_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_RESTART_RETROARCH);
 #endif
 
-   CONFIG_ACTION(
-         menu_hash_to_str(MENU_LABEL_CONFIGURATIONS),
-         menu_hash_to_str(MENU_LABEL_VALUE_CONFIGURATIONS),
-         group_info.name,
-         subgroup_info.name,
-         parent_group);
-
-   CONFIG_ACTION(
-         menu_hash_to_str(MENU_LABEL_SAVE_NEW_CONFIG),
-         menu_hash_to_str(MENU_LABEL_VALUE_SAVE_NEW_CONFIG),
-         group_info.name,
-         subgroup_info.name,
-         parent_group);
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_SAVE_CONFIG);
-
+#if 0
    CONFIG_ACTION(
          menu_hash_to_str(MENU_LABEL_HELP),
          menu_hash_to_str(MENU_LABEL_VALUE_HELP),
          group_info.name,
          subgroup_info.name,
          parent_group);
+#endif
 
 #if !defined(IOS)
    /* Apple rejects iOS apps that lets you forcibly quit an application. */
@@ -3759,6 +4014,7 @@ static bool setting_append_list_driver_options(
    settings_t *settings = config_get_ptr();
    
    START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_DRIVER_SETTINGS), parent_group);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
@@ -3908,7 +4164,7 @@ static bool setting_append_list_core_options(
    CONFIG_BOOL(
          settings->video.shared_context,
          "video_shared_context",
-         "HW Shared Context Enable",
+         "Shared Context (Core specific)",
          false,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -3917,7 +4173,6 @@ static bool setting_append_list_core_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_BOOL(
          settings->load_dummy_on_core_shutdown,
@@ -3931,12 +4186,11 @@ static bool setting_append_list_core_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_BOOL(
          settings->core.set_supports_no_game_enable,
          "core_set_supports_no_game_enable",
-         "Supports No Content Enable",
+         "Supports No Content Enable (Core specific)",
          true,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -3945,7 +4199,6 @@ static bool setting_append_list_core_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -3963,6 +4216,7 @@ static bool setting_append_list_configuration_options(
    settings_t *settings = config_get_ptr();
 
    START_GROUP(group_info, "Configuration Settings", parent_group);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
@@ -3982,35 +4236,9 @@ static bool setting_append_list_configuration_options(
          general_read_handler);
 
    CONFIG_BOOL(
-         settings->core_specific_config,
-         "core_specific_config",
-         "Configuration Per-Core",
-         default_core_specific_config,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-
-   CONFIG_BOOL(
-         settings->auto_overrides_enable,
-         "auto_overrides_enable",
-         "Load Override Files Automatically",
-         default_auto_overrides_enable,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-
-   CONFIG_BOOL(
          settings->auto_remaps_enable,
          "auto_remaps_enable",
-         "Load Remap Files Automatically",
+         "Auto Load Input Remap Files",
          default_auto_remaps_enable,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -4034,6 +4262,9 @@ static bool setting_append_list_saving_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   
+   if (!settings->menu.show_saving_menu)
+      return true;
 
    START_GROUP(group_info, "Saving Settings", parent_group);
 
@@ -4224,13 +4455,16 @@ static bool setting_append_list_frame_throttling_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   
+   if (!settings->menu.show_frame_throttle_menu)
+      return true;
 
    START_GROUP(group_info, "Frame Throttle Settings", parent_group);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-
+   
    CONFIG_BOOL(
          settings->fastforward_ratio_throttle_enable,
          "fastforward_ratio_throttle_enable",
@@ -4243,6 +4477,41 @@ static bool setting_append_list_frame_throttling_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   
+   CONFIG_BOOL(
+      settings->throttle_using_core_fps,
+      "throttle_using_core_fps",
+      "  Use Refresh Rate from",
+      throttle_using_core_fps,
+      "Video Setting",
+      "Core",
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+      
+   CONFIG_UINT(
+      settings->throttle_setting_scope,
+      "throttle_setting_scope",
+      "  Scope",
+      throttle_setting_scope,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+   
 
    CONFIG_FLOAT(
          settings->fastforward_ratio,
@@ -4269,6 +4538,7 @@ static bool setting_append_list_frame_throttling_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 1, 10, 1.0, true, true);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -4283,6 +4553,9 @@ static bool setting_append_list_rewind_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   
+   if (!settings->menu.show_rewind_menu)
+      return true;
 
    START_GROUP(group_info, "Rewind Settings", parent_group);
 
@@ -4328,7 +4601,6 @@ static bool setting_append_list_rewind_options(
             general_write_handler,
             general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 1, 32768, 1, true, false);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -4346,6 +4618,7 @@ static bool setting_append_list_recording_options(
    global_t   *global   = global_get_ptr();
 
    START_GROUP(group_info, "Recording Settings", parent_group);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
@@ -4453,7 +4726,7 @@ static bool setting_append_list_video_options(
    START_GROUP(group_info, "Video Settings", parent_group);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
-
+  
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
 
    CONFIG_BOOL(settings->fps_show,
@@ -4516,6 +4789,7 @@ static bool setting_append_list_video_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_FLOAT(
          settings->video.refresh_rate,
@@ -4528,7 +4802,7 @@ static bool setting_append_list_video_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 0, 0.001, true, false);
+   menu_settings_list_current_add_range(list, list_info, 49, 241, 0.001, true, true);
 
    CONFIG_FLOAT(
          settings->video.refresh_rate,
@@ -4576,6 +4850,7 @@ static bool setting_append_list_video_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_BOOL(
          settings->video.aspect_ratio_auto,
@@ -4589,11 +4864,12 @@ static bool setting_append_list_video_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_UINT(
          settings->video.aspect_ratio_idx,
          "aspect_ratio_index",
-         "Aspect Ratio Index",
+         "Aspect Ratio",
          aspect_ratio_idx,
          group_info.name,
          subgroup_info.name,
@@ -4615,6 +4891,36 @@ static bool setting_append_list_video_options(
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_aspect_ratio_index;
+   
+   CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_CUSTOM_RATIO),
+            menu_hash_to_str(MENU_LABEL_VALUE_CUSTOM_RATIO),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+      (*list)[list_info->index - 1].action_ok      = &setting_action_ok_custom_viewport;
+      (*list)[list_info->index - 1].action_cancel  = NULL;
+
+   CONFIG_UINT(
+      settings->video.aspect_ratio_idx_scope,
+      "aspect_ratio_index_scope",
+      "  Scope",
+      CORE_SPECIFIC,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
 
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Scaling", group_info.name, subgroup_info, parent_group);
@@ -4632,6 +4938,7 @@ static bool setting_append_list_video_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 1.0, 10.0, 1.0, true, true);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 #endif
 
    CONFIG_BOOL(
@@ -4646,6 +4953,7 @@ static bool setting_append_list_video_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
 #ifdef GEKKO
    CONFIG_UINT(
@@ -4686,6 +4994,7 @@ static bool setting_append_list_video_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
 #if defined(__CELLOS_LV2__)
    CONFIG_BOOL(
@@ -4701,21 +5010,6 @@ static bool setting_append_list_video_options(
          general_write_handler,
          general_read_handler);
 #endif
-
-   CONFIG_UINT(
-         settings->video.rotation,
-         "video_rotation",
-         "Rotation",
-         0,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 3, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_video_rotation;
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
 #if defined(HW_RVL) || defined(_XBOX360)
    CONFIG_UINT(
@@ -4752,6 +5046,54 @@ static bool setting_append_list_video_options(
          subgroup_info,
          parent_group);
 
+   CONFIG_BOOL(
+         settings->video.vsync,
+         "video_vsync",
+         "VSync",
+         vsync,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   
+   CONFIG_UINT(
+      settings->video.vsync_scope,
+      "vsync_scope",
+      "  Scope",
+      vsync_scope,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+
+   CONFIG_UINT(
+         settings->video.swap_interval,
+         "video_swap_interval",
+         "  Swap Interval",
+         swap_interval,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
+   menu_settings_list_current_add_range(list, list_info, 1, 4, 1, true, true);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO|SD_FLAG_ADVANCED);
+   
 #if defined(HAVE_THREADS) && !defined(RARCH_CONSOLE)
    CONFIG_BOOL(
          settings->video.threaded,
@@ -4766,74 +5108,65 @@ static bool setting_append_list_video_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_REINIT);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO|SD_FLAG_ADVANCED);
+   
+   CONFIG_UINT(
+      settings->video.threaded_scope,
+      "video_threaded_scope",
+      "  Scope",
+      video_threaded_scope,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
 #endif
-
-   CONFIG_BOOL(
-         settings->video.vsync,
-         "video_vsync",
-         "VSync",
-         vsync,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-
+   
+   END_SUB_GROUP(list, list_info, parent_group);
+   
    CONFIG_UINT(
-         settings->video.swap_interval,
-         "video_swap_interval",
-         "VSync Swap Interval",
-         swap_interval,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
-   menu_settings_list_current_add_range(list, list_info, 1, 4, 1, true, true);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO|SD_FLAG_ADVANCED);
-
-   CONFIG_BOOL(
-         settings->video.hard_sync,
-         "video_hard_sync",
-         "Hard GPU Sync",
-         hard_sync,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-
-   CONFIG_UINT(
-         settings->video.hard_sync_frames,
-         "video_hard_sync_frames",
-         "Hard GPU Sync Frames",
-         hard_sync_frames,
+         settings->video.rotation,
+         "video_rotation",
+         "Rotation",
+         0,
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0, 3, 1, true, true);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_video_rotation;
+   
    CONFIG_UINT(
-         settings->video.frame_delay,
-         "video_frame_delay",
-         "Frame Delay",
-         frame_delay,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 15, 1, true, true);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+      settings->video.rotation_scope,
+      "video_rotation_scope",
+      "  Scope",
+      GLOBAL,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
 
 #if !defined(RARCH_MOBILE)
    CONFIG_BOOL(
@@ -4848,8 +5181,9 @@ static bool setting_append_list_video_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 #endif
-   END_SUB_GROUP(list, list_info, parent_group);
+
    START_SUB_GROUP(
          list,
          list_info,
@@ -4898,6 +5232,7 @@ static bool setting_append_list_video_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
 #if defined(_XBOX1) || defined(HW_RVL)
    CONFIG_BOOL(
@@ -4932,6 +5267,62 @@ static bool setting_append_list_video_options(
    menu_settings_list_current_add_range(list, list_info, 0, 5, 1, true, true);
 #endif
    END_SUB_GROUP(list, list_info, parent_group);
+         
+#if defined(HAVE_DYLIB) || defined(HAVE_FILTERS_BUILTIN)
+   CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_VIDEO_FILTER),
+            "SW Filter",
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+      (*list)[list_info->index - 1].action_ok      = &setting_action_ok_video_filter;
+      (*list)[list_info->index - 1].action_start   = &setting_action_start_video_filter;
+      (*list)[list_info->index - 1].action_cancel  = NULL; 
+#endif
+
+#ifdef HAVE_SHADER_MANAGER
+   CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_VIDEO_SHADER_PRESET),
+            "HW Shader Preset",
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+      (*list)[list_info->index - 1].action_cancel  = NULL;
+      
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_SHADER_OPTIONS),
+            menu_hash_to_str(MENU_LABEL_VALUE_SHADER_OPTIONS),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+      (*list)[list_info->index - 1].action_cancel  = NULL;
+#endif
+      
+      CONFIG_UINT(
+      settings->video.filter_shader_scope,
+      "video_filter_shader_scope",
+#ifdef HAVE_SHADER_MANAGER
+      "  Scope (Filter & Shader)",
+#else
+      "  Scope",
+#endif
+      video_filter_shader_scope,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index; 
+
    END_GROUP(list, list_info, parent_group);
 
    return true;
@@ -4947,6 +5338,7 @@ static bool setting_append_list_font_options(
    settings_t *settings = config_get_ptr();
 
    START_GROUP(group_info, "Onscreen Display Settings", parent_group);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
@@ -5074,7 +5466,7 @@ static bool setting_append_list_audio_options(
          menu_hash_to_str(MENU_LABEL_AUDIO_VOLUME),
          menu_hash_to_str(MENU_LABEL_VALUE_AUDIO_VOLUME),
          audio_volume,
-         "%.1f",
+         "%.1f dB",
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -5121,6 +5513,27 @@ static bool setting_append_list_audio_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   
+   CONFIG_UINT(
+      settings->audio.sync_scope,
+      "audio_sync_scope",
+      "  Scope",
+      audio_sync_scope,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;  
 
    CONFIG_UINT(
          settings->audio.latency,
@@ -5135,6 +5548,8 @@ static bool setting_append_list_audio_options(
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 1, 256, 1.0, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_IS_DEFERRED);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_millisec;
 
    CONFIG_FLOAT(
          settings->audio.rate_control_delta,
@@ -5155,7 +5570,6 @@ static bool setting_append_list_audio_options(
          0.001,
          true,
          false);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_FLOAT(
          settings->audio.max_timing_skew,
@@ -5172,11 +5586,10 @@ static bool setting_append_list_audio_options(
          list,
          list_info,
          0.01,
-         0.5,
+         0.25,
          0.01,
          true,
          true);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_UINT(
          settings->audio.block_frames,
@@ -5238,11 +5651,112 @@ static bool setting_append_list_audio_options(
          general_read_handler);
    menu_settings_list_current_add_values(list, list_info, "dsp");
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_DSP_FILTER_INIT);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY | SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
 
+   return true;
+}
+
+static bool setting_append_list_latency_options(
+      rarch_setting_t **list,
+      rarch_setting_info_t *list_info,
+      const char *parent_group)
+{
+   rarch_setting_group_info_t group_info    = {0};
+   rarch_setting_group_info_t subgroup_info = {0};
+   settings_t *settings = config_get_ptr();
+
+   START_GROUP(group_info, "Latency Settings", parent_group);
+   parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
+   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
+   
+#ifdef HAVE_GL_SYNC
+   CONFIG_BOOL(
+         settings->video.hard_sync,
+         "video_hard_sync",
+         "Hard GPU Sync",
+         hard_sync,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   
+   CONFIG_UINT(
+         settings->video.hard_sync_frames,
+         "video_hard_sync_frames",
+         "  Sync Frames",
+         hard_sync_frames,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 3, 1, true, true);
+   
+   CONFIG_UINT(
+      settings->video.hard_sync_scope,
+      "video_hard_sync_scope",
+      "  Scope",
+      video_hard_sync_scope,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;   
+#endif
+
+   CONFIG_UINT(
+         settings->video.frame_delay,
+         "video_frame_delay",
+         "Frame Delay",
+         frame_delay,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 15, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_millisec;
+
+   CONFIG_UINT(
+      settings->video.frame_delay_scope,
+      "video_frame_delay_scope",
+      "  Scope",
+      frame_delay_scope,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index; 
+   
+   END_SUB_GROUP(list, list_info, parent_group);
+   END_GROUP(list, list_info, parent_group);
    return true;
 }
 
@@ -5255,6 +5769,9 @@ static bool setting_append_list_input_hotkey_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   
+   if (!settings->menu.show_hotkey_menu)
+      return true;
 
    START_GROUP(group_info, "Input Hotkey Binds", parent_group);
 
@@ -5294,7 +5811,7 @@ static bool setting_append_list_input_options(
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
-
+	
    START_GROUP(group_info, "Input Settings", parent_group);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
@@ -5305,14 +5822,37 @@ static bool setting_append_list_input_options(
          settings->input.max_users,
          "input_max_users",
          "Max Users",
-         MAX_USERS,
+         2,
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 1, MAX_USERS, 1, true, true);
-
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
+   menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+   
+   CONFIG_UINT(
+      settings->input.max_users_scope,
+      "input_max_users_scope",
+      "  Scope",
+      GLOBAL,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+   
    CONFIG_BOOL(
          settings->input.remap_binds_enable,
          "input_remap_binds_enable",
@@ -5325,6 +5865,7 @@ static bool setting_append_list_input_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_BOOL(
          settings->input.autodetect_enable,
@@ -5338,6 +5879,7 @@ static bool setting_append_list_input_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_BOOL(
          settings->input.autoconfig_descriptor_label_show,
@@ -5435,11 +5977,11 @@ static bool setting_append_list_input_options(
                "input_player%u_bind_defaults", user + 1);
 
       snprintf(label[user], sizeof(label[user]),
-               "User %u Device Index", user + 1);
+               "User %u Host Device", user + 1);
       snprintf(label_type[user], sizeof(label_type[user]),
-               "User %u Device Type", user + 1);
+               "User %u Virtual Device", user + 1);
       snprintf(label_analog[user], sizeof(label_analog[user]),
-               "User %u Analog To Digital Type", user + 1);
+               "User %u Analog To Dpad Type", user + 1);
       snprintf(label_bind_all[user], sizeof(label_bind_all[user]),
                "User %u Bind All", user + 1);
       snprintf(label_bind_defaults[user], sizeof(label_bind_defaults[user]),
@@ -5519,6 +6061,27 @@ static bool setting_append_list_input_options(
       (*list)[list_info->index - 1].action_ok      = &setting_action_ok_bind_defaults;
       (*list)[list_info->index - 1].action_cancel  = NULL;
    }
+   
+   CONFIG_UINT(
+      settings->input.libretro_device_scope,
+      "input_libretro_device_scope",
+      "  Scope (Virtual & Analog)",
+      GLOBAL,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
 
    START_SUB_GROUP(
          list,
@@ -5581,17 +6144,21 @@ static bool setting_append_list_overlay_options(
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
+   driver_t   *driver   = driver_get_ptr();
 
-   START_GROUP(group_info, "Onscreen Overlay Settings", parent_group);
+   if (!settings->menu.show_overlay_menu)
+      return true;
+      
+   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_OVERLAY_SETTINGS), parent_group);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-
+   
    CONFIG_BOOL(
          settings->input.overlay_enable,
          "input_overlay_enable",
-         "Display Overlay",
+         "Enable Overlay",
          true,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -5601,24 +6168,14 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    (*list)[list_info->index - 1].change_handler = overlay_enable_toggle_change_handler;
-
-   CONFIG_BOOL(
-         settings->osk.enable,
-         "input_osk_overlay_enable",
-         "Display Keyboard Overlay",
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
+#ifdef ANDROID
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+#endif
 
    CONFIG_PATH(
          settings->input.overlay,
          menu_hash_to_str(MENU_LABEL_OVERLAY_PRESET),
-         menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_PRESET),
+         "Overlay",
          global->overlay_dir,
          group_info.name,
          subgroup_info.name,
@@ -5628,12 +6185,156 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_values(list, list_info, "cfg");
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_INIT);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
+   
+   CONFIG_UINT(
+      settings->input.overlay_scope,
+      "input_overlay_scope",
+      "  Scope",
+      CORE_SPECIFIC,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+   
+   CONFIG_FLOAT(
+         settings->input.dpad_diagonal_sensitivity,
+         "input_dpad_diagonal_sensitivity",
+         "Dpad Diagonal Sensitivity",
+         75.0f,
+         "%.0f%%",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
+   menu_settings_list_current_add_cmd(
+         list,
+         list_info,
+         EVENT_CMD_OVERLAY_POPULATE_8WAY);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_IS_DEFERRED);
+   
+   CONFIG_UINT(
+         settings->input.abxy_method,
+         "input_abxy_method",
+         "ABXY Input Method",
+         TOUCH_8WAY,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, TOUCH_8WAY, TOUCH_8WAY_AND_AREA, 1, true, true);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
+   menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+   (*list)[list_info->index - 1].get_string_representation = 
+   &setting_get_string_representation_touch_method; 
+   
+   if (settings->input.abxy_method != TOUCH_AREA)
+   {
+      CONFIG_FLOAT(
+            settings->input.abxy_overlap,
+            "input_abxy_overlap",
+            "  Diagonal Sensitivity",
+            50.0f,
+            "%.0f%%",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
+      menu_settings_list_current_add_cmd(
+            list,
+            list_info,
+            EVENT_CMD_OVERLAY_POPULATE_8WAY);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+   }
+   
+   if (settings->input.abxy_method != TOUCH_8WAY)
+   {
+      CONFIG_FLOAT(
+            settings->input.abxy_ellipse_magnify,
+            "input_abxy_ellipse_magnify",
+            "  Magnify Contact Area",
+            1.0f,
+            "%.1fx",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.2f, true, true);
+      CONFIG_FLOAT(
+            settings->input.abxy_ellipse_multitouch_boost,
+            "input_abxy_ellipse_multitouch_boost",
+            "  MultiTouch Boost",
+            1.0f,
+            "%.1fx",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0.5f, 3.0f, 0.1f, true, true);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   }
+   
+   CONFIG_UINT(
+      settings->input.dpad_abxy_diag_sens_scope,
+      "input_dpad_abxy_diag_sens_scope",
+      "  Scope (Dpad & ABXY)",
+      GLOBAL,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+
+   if (driver && driver->input && driver->input->haptic_feedback)
+   {
+      CONFIG_UINT(
+            settings->input.vibrate_time,
+            "input_vibrate_time",
+            "Vibration",
+            0,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0, 30, 1, true, true);
+      menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_millisec;
+   }
 
    CONFIG_FLOAT(
          settings->input.overlay_opacity,
          menu_hash_to_str(MENU_LABEL_OVERLAY_OPACITY),
          menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_OPACITY),
-         0.7f,
+         0.4f,
          "%.2f",
          group_info.name,
          subgroup_info.name,
@@ -5643,7 +6344,128 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_SET_ALPHA_MOD);
    menu_settings_list_current_add_range(list, list_info, 0, 1, 0.01, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
-
+   
+   CONFIG_UINT(
+      settings->input.overlay_opacity_scope,
+      "input_overlay_opacity_scope",
+      "  Scope",
+      GLOBAL,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+   
+   CONFIG_FLOAT(
+         settings->input.overlay_adjust_vertical,
+         "input_overlay_adjust_vertical",
+         "Adjust Vertical",
+         0.0f,
+         "%.2f",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, -0.5f, 0.5f, 0.01f, true, true);
+   menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL);
+   
+   CONFIG_BOOL(
+      settings->input.overlay_adjust_vertical_lock_edges,
+      "input_overlay_adjust_vertical_lock_edges",
+      "  Clamp Edge Buttons",
+      true,
+      menu_hash_to_str(MENU_VALUE_OFF),
+      menu_hash_to_str(MENU_VALUE_ON),
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL);
+   
+   CONFIG_BOOL(
+         settings->input.overlay_adjust_aspect,
+         "input_overlay_adjust_aspect",
+         "Adjust Aspect Ratio",
+         true,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL);
+   
+   CONFIG_UINT(
+         settings->input.overlay_aspect_ratio_index,
+         "input_overlay_aspect_ratio_index",
+         "  Assumed Overlay Aspect",
+         OVERLAY_ASPECT_RATIO_16_9,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         LAST_OVERLAY_ASPECT_RATIO,
+         1,
+         true,
+         true);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_overlay_aspect_ratio_index;
+   
+   CONFIG_FLOAT(
+         settings->input.overlay_bisect_aspect_ratio,
+         "input_overlay_bisect_aspect_ratio",
+         "  Bisect to Aspect",
+         2.0f,
+         "%.2f",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0.5f, 2.5f, 0.01, true, true);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL);
+   
+   CONFIG_UINT(
+      settings->input.overlay_adjust_vert_horiz_scope,
+      "input_overlay_adjust_vert_horiz_scope",
+      "  Scope (Vert & Aspect)",
+      GLOBAL,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+   
    CONFIG_FLOAT(
          settings->input.overlay_scale,
          menu_hash_to_str(MENU_LABEL_OVERLAY_SCALE),
@@ -5658,7 +6480,22 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_SET_SCALE_FACTOR);
    menu_settings_list_current_add_range(list, list_info, 0, 2, 0.01, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
+   CONFIG_BOOL(
+         settings->osk.enable,
+         "input_osk_overlay_enable",
+         "Enable Keyboard Overlay",
+         true,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   
    END_SUB_GROUP(list, list_info, parent_group);
 
    START_SUB_GROUP(list, list_info, "Onscreen Keyboard Overlay", group_info.name, subgroup_info, parent_group);
@@ -5697,6 +6534,121 @@ static bool setting_append_list_menu_options(
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
+   
+   CONFIG_BOOL(
+         settings->menu.show_advanced_settings,
+         "menu_show_advanced_settings",
+         "Show advanced settings",
+         show_advanced_settings,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);  
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
+   
+#ifdef HAVE_OVERLAY
+   CONFIG_BOOL(
+         settings->menu.show_overlay_menu,
+         "show_overlay_menu",
+         "Show Overlay menu",
+         show_overlay_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+#endif
+   CONFIG_BOOL(
+         settings->menu.show_frame_throttle_menu,
+         "show_frame_throttle_menu",
+         "Show Throttle menu",
+         show_frame_throttle_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+    CONFIG_BOOL(
+         settings->menu.show_netplay_menu,
+         "show_netplay_menu",
+         "Show Netplay menu",
+         show_netplay_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_saving_menu,
+         "show_saving_menu",
+         "Show Saving menu",
+         show_saving_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_hotkey_menu,
+         "show_hotkey_menu",
+         "Show Input Hotkey menu",
+         show_hotkey_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_rewind_menu,
+         "show_rewind_menu",
+         "Show Rewind menu",
+         show_rewind_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_cheat_options,
+         "show_cheat_options",
+         "Show Cheat Options",
+         show_cheat_options,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+#ifndef ANDROID
+   CONFIG_BOOL(
+         settings->menu.show_core_updater,
+         "show_core_updater",
+         "Show Core Updater",
+         show_core_updater,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+#endif
 
    CONFIG_PATH(
          settings->menu.wallpaper,
@@ -5710,6 +6662,7 @@ static bool setting_append_list_menu_options(
          general_read_handler);
    menu_settings_list_current_add_values(list, list_info, "png");
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_BOOL(
          settings->menu.dynamic_wallpaper_enable,
@@ -5723,6 +6676,7 @@ static bool setting_append_list_menu_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_BOOL(
          settings->menu.boxart_enable,
@@ -5736,6 +6690,7 @@ static bool setting_append_list_menu_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_BOOL(
          settings->menu.pause_libretro,
@@ -5783,23 +6738,9 @@ static bool setting_append_list_menu_options(
    START_SUB_GROUP(list, list_info, "Navigation", group_info.name, subgroup_info, parent_group);
 
    CONFIG_BOOL(
-         settings->menu.navigation.wraparound.horizontal_enable,
-         "menu_navigation_wraparound_horizontal_enable",
-         "Navigation Wrap-Around Horizontal",
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_BOOL(
          settings->menu.navigation.wraparound.vertical_enable,
          "menu_navigation_wraparound_vertical_enable",
-         "Navigation Wrap-Around Vertical",
+         "Navigation Wrap-Around",
          true,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -5812,49 +6753,6 @@ static bool setting_append_list_menu_options(
 
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
-
-   CONFIG_BOOL(
-         settings->menu.collapse_subgroups_enable,
-         "menu_collapse_subgroups_enable",
-         "Collapse SubGroups",
-         collapse_subgroups_enable,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_BOOL(
-         settings->menu.show_advanced_settings,
-         "menu_show_advanced_settings",
-         "Show advanced settings",
-         show_advanced_settings,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-
-#ifdef HAVE_THREADS
-   CONFIG_BOOL(
-         settings->menu.threaded_data_runloop_enable,
-         "threaded_data_runloop_enable",
-         "Threaded data runloop",
-         threaded_data_runloop_enable,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-#endif
 
    /* These colors are hints. The menu driver is not required to use them. */
    CONFIG_HEX(
@@ -5902,7 +6800,7 @@ static bool setting_append_list_menu_options(
    CONFIG_BOOL(
          settings->menu.navigation.browser.filter.supported_extensions_enable,
          "menu_navigation_browser_filter_supported_extensions_enable",
-         "Browser - Filter by supported extensions",
+         "Browser: Filter by supported extensions",
          true,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -5911,7 +6809,21 @@ static bool setting_append_list_menu_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-
+   
+   
+   CONFIG_BOOL(
+         settings->menu.mame_titles,
+         "mame_titles",
+         "Browser: Use MAME titles",
+         mame_titles,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);  
+   
    CONFIG_BOOL(
          settings->menu_show_start_screen,
          "rgui_show_start_screen",
@@ -5924,6 +6836,7 @@ static bool setting_append_list_menu_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_BOOL(
          settings->menu.timedate_enable,
@@ -5967,6 +6880,7 @@ static bool setting_append_list_menu_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_UINT(
          settings->menu.dpi.override_value,
@@ -5979,6 +6893,7 @@ static bool setting_append_list_menu_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 72, 999, 1, true, true);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -5996,6 +6911,7 @@ static bool setting_append_list_ui_options(
    settings_t *settings = config_get_ptr();
 
    START_GROUP(group_info, "UI Settings", parent_group);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
@@ -6085,6 +7001,7 @@ static bool setting_append_list_archive_options(
    settings_t *settings = config_get_ptr();
 
    START_GROUP(group_info, "Archive Settings", parent_group);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
@@ -6115,12 +7032,13 @@ static bool setting_append_list_core_updater_options(
       rarch_setting_info_t *list_info,
       const char *parent_group)
 {
-#ifdef HAVE_NETWORKING
+#if defined(HAVE_NETWORKING) && !defined(SINGLE_CORE)
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
 
    START_GROUP(group_info, "Core Updater Settings", parent_group);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
 
    CONFIG_STRING(
@@ -6177,8 +7095,11 @@ static bool setting_append_list_netplay_options(
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
+   
+   if (!settings->menu.show_netplay_menu)
+      return true;
 
-   START_GROUP(group_info, "Network Settings", parent_group);
+   START_GROUP(group_info, "Netplay Settings", parent_group);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
@@ -6187,58 +7108,7 @@ static bool setting_append_list_netplay_options(
    CONFIG_BOOL(
          global->netplay_enable,
          "netplay_enable",
-         "Netplay Enable",
-         false,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-
-   CONFIG_BOOL(
-         settings->input.netplay_client_swap_input,
-         "netplay_client_swap_input",
-         "Swap Netplay Input",
-         netplay_client_swap_input,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-
-   CONFIG_STRING(
-         global->netplay_server,
-         "netplay_ip_address",
-         "IP Address",
-         "",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-
-   CONFIG_BOOL(
-         global->netplay_is_client,
-         "netplay_mode",
-         "Netplay Client Enable",
-         false,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-
-   CONFIG_BOOL(
-         global->netplay_is_spectate,
-         "netplay_spectator_mode_enable",
-         "Netplay Spectator Enable",
+         "Launch on next ROM Load",
          false,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -6248,23 +7118,49 @@ static bool setting_append_list_netplay_options(
          general_write_handler,
          general_read_handler);
    
-   CONFIG_UINT(
-         global->netplay_sync_frames,
-         "netplay_delay_frames",
-         "Netplay Delay Frames",
-         0,
+   CONFIG_BOOL(
+         global->netplay_is_client,
+         "netplay_mode",
+         "Netplay Mode",
+         false,
+         "Host",
+         "Client",
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 10, 1, true, false);
+
+   CONFIG_BOOL(
+         settings->input.netplay_client_swap_input,
+         "netplay_client_swap_input",
+         "Swap Input Port",
+         netplay_client_swap_input,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
+   CONFIG_STRING(
+         global->netplay_server,
+         "netplay_ip_address",
+         "Host IP Address",
+         "192.168.43.1",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
+   
    CONFIG_UINT(
          global->netplay_port,
          "netplay_tcp_udp_port",
-         "Netplay TCP/UDP Port",
+         "UDP Port",
          RARCH_DEFAULT_PORT,
          group_info.name,
          subgroup_info.name,
@@ -6273,6 +7169,32 @@ static bool setting_append_list_netplay_options(
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 1, 99999, 1, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
+   
+   CONFIG_UINT(
+         global->netplay_sync_frames,
+         "netplay_delay_frames",
+         "Allowed Latency (Frames)",
+         2,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 16, 1, true, false);
+
+   CONFIG_BOOL(
+         global->netplay_is_spectate,
+         "netplay_spectator_mode_enable",
+         "Spectate Only",
+         false,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
 
@@ -6333,111 +7255,6 @@ static bool setting_append_list_netplay_options(
    return true;
 }
 
-#if 0
-static bool setting_append_list_patch_options(
-      rarch_setting_t **list,
-      rarch_setting_info_t *list_info,
-      const char *parent_group)
-{
-   rarch_setting_group_info_t group_info    = {0};
-   rarch_setting_group_info_t subgroup_info = {0};
-
-   START_GROUP(group_info, "Patch Settings", parent_group);
-
-   parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
-
-   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info);
-
-   CONFIG_BOOL(
-         global->ups_pref,
-         "ups_pref",
-         "UPS Patching Enable",
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         general_write_handler,
-         general_read_handler);
-
-   CONFIG_BOOL(
-         global->bps_pref,
-         "bps_pref",
-         "BPS Patching Enable",
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         general_write_handler,
-         general_read_handler);
-
-   CONFIG_BOOL(
-         global->ips_pref,
-         "ips_pref",
-         "IPS Patching Enable",
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         general_write_handler,
-         general_read_handler);
-
-   END_SUB_GROUP(list, list_info, parent_group);
-   END_GROUP(list, list_info, parent_group);
-
-   return true;
-}
-#endif
-
-static bool setting_append_list_playlist_options(
-      rarch_setting_t **list,
-      rarch_setting_info_t *list_info,
-      const char *parent_group)
-{
-   rarch_setting_group_info_t group_info    = {0};
-   rarch_setting_group_info_t subgroup_info = {0};
-   settings_t *settings = config_get_ptr();
-
-   START_GROUP(group_info, "Playlist Settings", parent_group);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
-
-   START_SUB_GROUP(list, list_info, "History", group_info.name, subgroup_info, parent_group);
-
-   CONFIG_BOOL(
-         settings->history_list_enable,
-         "history_list_enable",
-         "History List Enable",
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-
-   CONFIG_UINT(
-         settings->content_history_size,
-         "content_history_size",
-         "History List Size",
-         default_content_history_size,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 0, 1.0, true, false);
-
-   END_SUB_GROUP(list, list_info, parent_group);
-   END_GROUP(list, list_info, parent_group);
-
-   return true;
-}
-
 static bool setting_append_list_user_options(
       rarch_setting_t **list,
       rarch_setting_info_t *list_info,
@@ -6448,6 +7265,7 @@ static bool setting_append_list_user_options(
    settings_t *settings = config_get_ptr();
 
    START_GROUP(group_info, "User Settings", parent_group);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
@@ -6504,10 +7322,59 @@ static bool setting_append_list_directory_options(
    global_t *global     = global_get_ptr();
 
    START_GROUP(group_info, "Directory Settings", parent_group);
+#ifdef SINGLE_CORE
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+#endif
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
+   
+   CONFIG_DIR(
+         settings->menu_content_directory,
+         "rgui_browser_directory",
+         "Default ROM Directory",
+         "",
+         "<default>",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(
+         list,
+         list_info,
+         SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+
+   if (*settings->libretro)
+   {
+      CONFIG_DIR(
+            settings->core_content_directory,
+            "core_broswer_dir",
+            "Core ROM Directory",
+            "",
+            "<default>",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      settings_data_list_current_add_flags(
+            list,
+            list_info,
+            SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+      
+      if (*global->fullpath)
+      {
+      CONFIG_ACTION(
+            "core_broswer_dir_quick_set",
+            "  Use Loaded ROM's Dir",
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+      (*list)[list_info->index - 1].action_ok = &setting_action_ok_quickset_core_content_directory;
+      }
+   }
 
    CONFIG_DIR(
          settings->core_assets_directory,
@@ -6524,6 +7391,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_DIR(
          settings->assets_directory,
@@ -6540,6 +7408,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_DIR(
          settings->dynamic_wallpapers_directory,
@@ -6556,6 +7425,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_DIR(
          settings->boxarts_directory,
@@ -6572,23 +7442,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
-
-   CONFIG_DIR(
-         settings->menu_content_directory,
-         "rgui_browser_directory",
-         "Browser Directory",
-         "",
-         "<default>",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(
-         list,
-         list_info,
-         SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
-
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_DIR(
          settings->menu_config_directory,
@@ -6605,6 +7459,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
 
    CONFIG_DIR(
@@ -6641,40 +7496,6 @@ static bool setting_append_list_directory_options(
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
 
-#ifdef HAVE_LIBRETRODB
-   CONFIG_DIR(
-         settings->content_database,
-         "content_database_path",
-         "Content Database Directory",
-         "",
-         "<None>",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(
-         list,
-         list_info,
-         SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
-
-   CONFIG_DIR(
-         settings->cursor_directory,
-         "cursor_directory",
-         "Cursor Directory",
-         "",
-         "<None>",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(
-         list,
-         list_info,
-         SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
-#endif
-
    CONFIG_DIR(
          settings->cheat_database,
          "cheat_database_path",
@@ -6690,6 +7511,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_DIR(
          settings->video.filter_dir,
@@ -6706,6 +7528,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_DIR(
          settings->audio.filter_dir,
@@ -6722,6 +7545,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_DIR(
          settings->video.shader_dir,
@@ -6738,6 +7562,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_DIR(
          global->record.output_dir,
@@ -6754,6 +7579,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_DIR(
          global->record.config_dir,
@@ -6770,6 +7596,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
 #ifdef HAVE_OVERLAY
    CONFIG_DIR(
@@ -6810,7 +7637,7 @@ static bool setting_append_list_directory_options(
          "screenshot_directory",
          "Screenshot Directory",
          "",
-         "<Content dir>",
+         "<ROM dir>",
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -6820,6 +7647,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_DIR(
          settings->input.autoconfig_dir,
@@ -6836,6 +7664,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_DIR(
          settings->input_remapping_directory,
@@ -6854,27 +7683,11 @@ static bool setting_append_list_directory_options(
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
 
    CONFIG_DIR(
-         settings->playlist_directory,
-         "playlist_directory",
-         "Playlist Directory",
-         "",
-         "<default>",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(
-         list,
-         list_info,
-         SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
-
-   CONFIG_DIR(
          global->savefile_dir,
          "savefile_directory",
          "Savefile Directory",
          "",
-         "<Content dir>",
+         "<default>",
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -6890,7 +7703,7 @@ static bool setting_append_list_directory_options(
          "savestate_directory",
          "Savestate Directory",
          "",
-         "<Content dir>",
+         "<default>",
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -6906,7 +7719,7 @@ static bool setting_append_list_directory_options(
          "system_directory",
          "System Directory",
          "",
-         "<Content dir>",
+         "<default>",
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -6932,6 +7745,7 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -6949,6 +7763,7 @@ static bool setting_append_list_privacy_options(
    settings_t *settings = config_get_ptr();
 
    START_GROUP(group_info, "Privacy Settings", parent_group);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
@@ -6987,6 +7802,7 @@ static bool setting_append_list_privacy_options(
    return true;
 }
 
+#if 0
 static bool setting_append_list_input_player_options(
       rarch_setting_t **list,
       rarch_setting_info_t *list_info,
@@ -7079,6 +7895,7 @@ static bool setting_append_list_input_player_options(
 
    return true;
 }
+#endif
 
 void menu_setting_free(rarch_setting_t *list)
 {
@@ -7136,28 +7953,46 @@ rarch_setting_t *menu_setting_new(unsigned mask)
       if (!setting_append_list_main_menu_options(&list, list_info, root, mask))
          goto error;
    }
-
-   if (mask & SL_FLAG_DRIVER_OPTIONS)
+   
+   if (mask & SL_FLAG_OVERLAY_OPTIONS)
    {
-      if (!setting_append_list_driver_options(&list, list_info, root))
+      if (!setting_append_list_overlay_options(&list, list_info, root))
          goto error;
    }
-
-   if (mask & SL_FLAG_CORE_OPTIONS)
+   
+   if (mask & SL_FLAG_VIDEO_OPTIONS)
    {
-      if (!setting_append_list_core_options(&list, list_info, root))
+      if (!setting_append_list_video_options(&list, list_info, root))
          goto error;
    }
-
-   if (mask & SL_FLAG_CONFIGURATION_OPTIONS)
+   
+   if (mask & SL_FLAG_LATENCY_OPTIONS)
    {
-      if (!setting_append_list_configuration_options(&list, list_info, root))
+      if (!setting_append_list_latency_options(&list, list_info, root))
          goto error;
    }
-
-   if (mask & SL_FLAG_LOGGING_OPTIONS)
+   
+   if (mask & SL_FLAG_AUDIO_OPTIONS)
    {
-      if (!setting_append_list_logging_options(&list, list_info, root))
+      if (!setting_append_list_audio_options(&list, list_info, root))
+         goto error;
+   }
+   
+   if (mask & SL_FLAG_FRAME_THROTTLE_OPTIONS)
+   {
+      if (!setting_append_list_frame_throttling_options(&list, list_info, root))
+         goto error;
+   }
+   
+   if (mask & SL_FLAG_MENU_OPTIONS)
+   {
+      if (!setting_append_list_menu_options(&list, list_info, root))
+         goto error;
+   }
+   
+   if (mask & SL_FLAG_NETPLAY_OPTIONS)
+   {
+      if (!setting_append_list_netplay_options(&list, list_info, root))
          goto error;
    }
    
@@ -7167,41 +8002,76 @@ rarch_setting_t *menu_setting_new(unsigned mask)
          goto error;
    }
 
+   if (mask & SL_FLAG_DRIVER_OPTIONS)
+   {
+      if (!setting_append_list_driver_options(&list, list_info, root))
+         goto error;
+   }
+   
+   if (mask & SL_FLAG_CONFIGURATION_OPTIONS)
+   {
+      if (!setting_append_list_configuration_options(&list, list_info, root))
+         goto error;
+   }
+   
    if (mask & SL_FLAG_REWIND_OPTIONS)
    {
       if (!setting_append_list_rewind_options(&list, list_info, root))
          goto error;
    }
-
-   if (mask & SL_FLAG_VIDEO_OPTIONS)
-   {
-      if (!setting_append_list_video_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_AUDIO_OPTIONS)
-   {
-      if (!setting_append_list_audio_options(&list, list_info, root))
-         goto error;
-   }
-
+   
    if (mask & SL_FLAG_INPUT_OPTIONS)
    {
-      unsigned user;
-      settings_t      *settings = config_get_ptr();
-
       if (!setting_append_list_input_options(&list, list_info, root))
          goto error;
 
+#if 0
+      unsigned user;
+      settings_t      *settings = config_get_ptr();
       for (user = 0; user < settings->input.max_users; user++)
          setting_append_list_input_player_options(&list, list_info, root, user);
+#endif
    }
-
-
-    
+   
    if (mask & SL_FLAG_INPUT_HOTKEY_OPTIONS)
    {
       if (!setting_append_list_input_hotkey_options(&list, list_info, root))
+         goto error;
+   }
+
+   if (mask & SL_FLAG_CORE_OPTIONS)
+   {
+      if (!setting_append_list_core_options(&list, list_info, root))
+         goto error;
+   }
+   
+   if (mask & SL_FLAG_UI_OPTIONS)
+   {
+      if (!setting_append_list_ui_options(&list, list_info, root))
+         goto error;
+   }
+   
+   if (mask & SL_FLAG_USER_OPTIONS)
+   {
+      if (!setting_append_list_user_options(&list, list_info, root))
+         goto error;
+   }
+   
+   if (mask & SL_FLAG_DIRECTORY_OPTIONS)
+   {
+      if (!setting_append_list_directory_options(&list, list_info, root))
+         goto error;
+   }
+   
+   if (mask & SL_FLAG_PRIVACY_OPTIONS)
+   {
+      if (!setting_append_list_privacy_options(&list, list_info, root))
+         goto error;
+   }
+   
+   if (mask & SL_FLAG_ARCHIVE_OPTIONS)
+   {
+      if (!setting_append_list_archive_options(&list, list_info, root))
          goto error;
    }
 
@@ -7210,34 +8080,10 @@ rarch_setting_t *menu_setting_new(unsigned mask)
       if (!setting_append_list_recording_options(&list, list_info, root))
          goto error;
    }
-
-   if (mask & SL_FLAG_FRAME_THROTTLE_OPTIONS)
-   {
-      if (!setting_append_list_frame_throttling_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_FONT_OPTIONS)
-   {
-      if (!setting_append_list_font_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_OVERLAY_OPTIONS)
-   {
-      if (!setting_append_list_overlay_options(&list, list_info, root))
-         goto error;
-   }
    
-   if (mask & SL_FLAG_MENU_OPTIONS)
+   if (mask & SL_FLAG_LOGGING_OPTIONS)
    {
-      if (!setting_append_list_menu_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_UI_OPTIONS)
-   {
-      if (!setting_append_list_ui_options(&list, list_info, root))
+      if (!setting_append_list_logging_options(&list, list_info, root))
          goto error;
    }
 
@@ -7249,45 +8095,15 @@ rarch_setting_t *menu_setting_new(unsigned mask)
    }
 #endif
 
-   if (mask & SL_FLAG_PLAYLIST_OPTIONS)
-   {
-      if (!setting_append_list_playlist_options(&list, list_info, root))
-         goto error;
-   }
-
    if (mask & SL_FLAG_CORE_UPDATER_OPTIONS)
    {
       if (!setting_append_list_core_updater_options(&list, list_info, root))
          goto error;
    }
-
-   if (mask & SL_FLAG_NETPLAY_OPTIONS)
+   
+   if (mask & SL_FLAG_FONT_OPTIONS)
    {
-      if (!setting_append_list_netplay_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_ARCHIVE_OPTIONS)
-   {
-      if (!setting_append_list_archive_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_USER_OPTIONS)
-   {
-      if (!setting_append_list_user_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_DIRECTORY_OPTIONS)
-   {
-      if (!setting_append_list_directory_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_PRIVACY_OPTIONS)
-   {
-      if (!setting_append_list_privacy_options(&list, list_info, root))
+      if (!setting_append_list_font_options(&list, list_info, root))
          goto error;
    }
 

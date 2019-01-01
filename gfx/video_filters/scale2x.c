@@ -1,6 +1,6 @@
 /*  RetroArch - A frontend for libretro.
  *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
- *  Copyright (C) 2011-2014 - Daniel De Matteis
+ *  Copyright (C) 2011-2017 - Daniel De Matteis
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU General Public License as published by the Free Software Found-
@@ -14,7 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Compile: gcc -o scale2x.so -shared scale2x.c -std=c99 -O3 -Wall -pedantic -fPIC
+/* Compile: gcc -o scale2x.so -shared scale2x.c -std=c99 -O3 -Wall -pedantic -fPIC */
 
 #include "softfilter.h"
 #include <stdlib.h>
@@ -101,9 +101,9 @@ static void scale2x_generic_xrgb8888(unsigned width, unsigned height,
       uint32_t *dst, unsigned dst_stride)
 {
    unsigned x, y;
-   uint32_t *out0, *out1;
-   out0 = (uint32_t*)dst;
-   out1 = (uint32_t*)(dst + dst_stride);
+   uint32_t *out0 = (uint32_t*)dst;
+   uint32_t *out1 = (uint32_t*)(dst + dst_stride);
+
    SCALE2X_GENERIC(uint32_t, width, height, first, last,
          src, src_stride, dst, dst_stride, out0, out1);
 }
@@ -129,11 +129,10 @@ static void *scale2x_generic_create(const struct softfilter_config *config,
       unsigned max_width, unsigned max_height,
       unsigned threads, softfilter_simd_mask_t simd, void *userdata)
 {
+   struct filter_data *filt = (struct filter_data*)calloc(1, sizeof(*filt));
    (void)simd;
    (void)config;
    (void)userdata;
-
-   struct filter_data *filt = (struct filter_data*)calloc(1, sizeof(*filt));
    if (!filt)
       return NULL;
    filt->workers = (struct softfilter_thread_data*)
@@ -169,7 +168,7 @@ static void scale2x_generic_destroy(void *data)
 
 static void scale2x_work_cb_xrgb8888(void *data, void *thread_data)
 {
-   struct softfilter_thread_data *thr = 
+   struct softfilter_thread_data *thr =
       (struct softfilter_thread_data*)thread_data;
    const uint32_t *input = (const uint32_t*)thr->in_data;
    uint32_t *output = (uint32_t*)thr->out_data;
@@ -178,14 +177,14 @@ static void scale2x_work_cb_xrgb8888(void *data, void *thread_data)
 
    scale2x_generic_xrgb8888(width, height,
          thr->first, thr->last, input,
-         thr->in_pitch / SOFTFILTER_BPP_XRGB8888,
+         (unsigned)(thr->in_pitch / SOFTFILTER_BPP_XRGB8888),
          output,
-         thr->out_pitch / SOFTFILTER_BPP_XRGB8888);
+         (unsigned)(thr->out_pitch / SOFTFILTER_BPP_XRGB8888));
 }
 
 static void scale2x_work_cb_rgb565(void *data, void *thread_data)
 {
-   struct softfilter_thread_data *thr = 
+   struct softfilter_thread_data *thr =
       (struct softfilter_thread_data*)thread_data;
    const uint16_t *input = (const uint16_t*)thr->in_data;
    uint16_t *output = (uint16_t*)thr->out_data;
@@ -193,10 +192,10 @@ static void scale2x_work_cb_rgb565(void *data, void *thread_data)
    unsigned height = thr->height;
 
    scale2x_generic_rgb565(width, height,
-         thr->first, thr->last, input, 
-         thr->in_pitch / SOFTFILTER_BPP_RGB565,
+         thr->first, thr->last, input,
+         (unsigned)(thr->in_pitch / SOFTFILTER_BPP_RGB565),
          output,
-         thr->out_pitch / SOFTFILTER_BPP_RGB565);
+         (unsigned)(thr->out_pitch / SOFTFILTER_BPP_RGB565));
 }
 
 static void scale2x_generic_packets(void *data,
@@ -208,12 +207,12 @@ static void scale2x_generic_packets(void *data,
    unsigned i;
    for (i = 0; i < filt->threads; i++)
    {
-      struct softfilter_thread_data *thr = 
+      struct softfilter_thread_data *thr =
          (struct softfilter_thread_data*)&filt->workers[i];
 
       unsigned y_start = (height * i) / filt->threads;
       unsigned y_end = (height * (i + 1)) / filt->threads;
-      thr->out_data = (uint8_t*)output + y_start * 
+      thr->out_data = (uint8_t*)output + y_start *
          SCALE2X_SCALE * output_stride;
       thr->in_data = (const uint8_t*)input + y_start * input_stride;
       thr->out_pitch = output_stride;
@@ -221,7 +220,7 @@ static void scale2x_generic_packets(void *data,
       thr->width = width;
       thr->height = y_end - y_start;
 
-      /* Workers need to know if they can access pixels 
+      /* Workers need to know if they can access pixels
        * outside their given buffer. */
       thr->first = y_start;
       thr->last = y_end == height;

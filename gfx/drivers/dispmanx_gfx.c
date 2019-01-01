@@ -13,7 +13,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../general.h"
 #include "../../retroarch.h"
 #include "../video_viewport.h"

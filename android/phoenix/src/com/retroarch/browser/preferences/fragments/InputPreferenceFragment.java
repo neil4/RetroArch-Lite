@@ -1,75 +1,80 @@
 package com.retroarch.browser.preferences.fragments;
 
+import com.retroarchlite.R;
 import java.io.File;
-
-import com.retroarch.R;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import com.retroarch.browser.dirfragment.DirectoryFragment;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
-
-import android.app.AlertDialog;
-import android.content.Context;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
-import android.provider.Settings;
-import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
 
 /**
  * A {@link PreferenceListFragment} responsible for handling the input preferences.
  */
 public final class InputPreferenceFragment extends PreferenceListFragment implements OnPreferenceClickListener
 {
-	@Override
-	public void onCreate(Bundle savedInstanceState)
-	{
-		super.onCreate(savedInstanceState);
-		
-		// Add input preferences from the XML.
-		addPreferencesFromResource(R.xml.input_preferences);
+   @Override
+   public void onCreate(Bundle savedInstanceState)
+   {
+      super.onCreate(savedInstanceState);
+      
+      // Add input preferences from the XML.
+      addPreferencesFromResource(R.xml.input_preferences);
 
-		// Set preference listeners
-		findPreference("set_ime_pref").setOnPreferenceClickListener(this);
-		findPreference("report_ime_pref").setOnPreferenceClickListener(this);
-		findPreference("inputOverlayDirPref").setOnPreferenceClickListener(this);
-	}
+      // Set preference listeners
+      findPreference("reextract_overlays_pref").setOnPreferenceClickListener(this);
+      findPreference("install_overlays_pref").setOnPreferenceClickListener(this);
+   }
 
-	@Override
-	public boolean onPreferenceClick(Preference preference)
-	{
-		final String prefKey = preference.getKey();
+   @Override
+   public boolean onPreferenceClick(Preference preference)
+   {
+      final String prefKey = preference.getKey();
 
-		// Set Input Method preference
-		if (prefKey.equals("set_ime_pref"))
-		{
-			// Show an IME picker so the user can change their set IME.
-			InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-			imm.showInputMethodPicker();
-		}
-		// Report IME preference
-		else if (prefKey.equals("report_ime_pref"))
-		{
-			final String currentIme = Settings.Secure.getString(getActivity().getContentResolver(),
-					Settings.Secure.DEFAULT_INPUT_METHOD);
-			
-			AlertDialog.Builder reportImeDialog = new AlertDialog.Builder(getActivity());
-			reportImeDialog.setTitle(R.string.current_ime);
-			reportImeDialog.setMessage(currentIme);
-			reportImeDialog.setNegativeButton(R.string.close, null);
-			reportImeDialog.show();
-		}
-		// Input Overlay selection
-		else if (prefKey.equals("inputOverlayDirPref"))
-		{
-			final DirectoryFragment overlayBrowser = DirectoryFragment.newInstance(R.string.input_overlay_select);
-			File overlayDir = new File(getActivity().getApplicationInfo().dataDir, "overlays");
-			if (overlayDir.exists())
-				overlayBrowser.setStartDirectory(overlayDir.getAbsolutePath());
-			
-			overlayBrowser.addAllowedExts(".cfg");
-			overlayBrowser.setPathSettingKey("input_overlay");
-			overlayBrowser.show(getFragmentManager(), "overlayBrowser");
-		}
+      if (prefKey.equals("install_overlays_pref"))
+      {
+         final DirectoryFragment overlayFileBrowser
+                 = DirectoryFragment.newInstance("");         
+         overlayFileBrowser.setPathSettingKey("overlay_zip");
+         overlayFileBrowser.addAllowedExts("zip");
+         overlayFileBrowser.setIsDirectoryTarget(false);
+         overlayFileBrowser.show(getFragmentManager(), "overlayFileBrowser");
+      }
+      else if (prefKey.equals("reextract_overlays_pref"))
+      {
+         final DirectoryFragment overlayFileBrowser
+                 = DirectoryFragment.newInstance("");
+         
+         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+         builder.setMessage("Confirm: Update/Restore Overlays?\nUser-installed overlays will be removed.")
+            .setCancelable(true)
+            .setPositiveButton("Yes",
+                  new DialogInterface.OnClickListener()
+                  {
+                     public void onClick(DialogInterface dialog, int id)
+                     {
+                        boolean success = overlayFileBrowser.RestoreDirFromZip(
+                                getActivity().getApplicationInfo().sourceDir,
+                               "assets/overlays",
+                                getActivity().getApplicationInfo().dataDir + "/overlays");
+                        if (success) {
+                           Toast.makeText(getContext(), "Overlays Restored.", Toast.LENGTH_SHORT).show();
+                        }
+                     }
+                  })
+            .setNegativeButton("No", new DialogInterface.OnClickListener()
+            {
+               public void onClick(DialogInterface dialog, int id) {}
+            });
+         Dialog dialog = builder.create();
+         dialog.show();
+      }
 
-		return true;
-	}
+      return true;
+   }
+   
 }

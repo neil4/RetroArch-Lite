@@ -1,7 +1,6 @@
 package com.retroarch.browser.preferences.util;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,12 +8,13 @@ import java.io.InputStreamReader;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
-//import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.os.Environment;
+import java.io.File;
 
 /**
  * Utility class for retrieving, saving, or loading preferences.
@@ -23,7 +23,7 @@ public final class UserPreferences
 {
 	// Logging tag.
 	private static final String TAG = "UserPreferences";
-
+   
 	// Disallow explicit instantiation.
 	private UserPreferences()
 	{
@@ -38,79 +38,7 @@ public final class UserPreferences
 	 */
 	public static String getDefaultConfigPath(Context ctx)
 	{
-		// Internal/External storage dirs.
-		final String internal = ctx.getFilesDir().getAbsolutePath();
-		String external = null;
-
-		// Get the App's external storage folder
-		final String state = android.os.Environment.getExternalStorageState();
-		if (android.os.Environment.MEDIA_MOUNTED.equals(state)) {
-			File extsd = ctx.getExternalFilesDir(null);
-			external = extsd.getAbsolutePath();
-		}
-
-		// Native library directory and data directory for this front-end.
-		final String dataDir = ctx.getApplicationInfo().dataDir;
-		final String coreDir = dataDir + "/cores/";
-
-		// Get libretro name and path
-		final SharedPreferences prefs = getPreferences(ctx);
-		final String libretro_path = prefs.getString("libretro_path", coreDir);
-
-		// Check if global config is being used. Return true upon failure.
-		final boolean globalConfigEnabled = prefs.getBoolean("global_config_enable", true);
-
-		String append_path;
-		// If we aren't using the global config.
-		if (!globalConfigEnabled && !libretro_path.equals(coreDir))
-		{
-			String sanitized_name = sanitizeLibretroPath(libretro_path);
-			append_path = File.separator + sanitized_name + ".cfg";
-		}
-		else // Using global config.
-		{
-			append_path = File.separator + "retroarch.cfg";
-		}
-
-		if (external != null)
-		{
-			String confPath = external + append_path;
-			if (new File(confPath).exists())
-				return confPath;
-		}
-		else if (internal != null)
-		{
-			String confPath = internal + append_path;
-			if (new File(confPath).exists())
-				return confPath;
-		}
-		else
-		{
-			String confPath = "/mnt/extsd" + append_path;
-			if (new File(confPath).exists())
-				return confPath;
-		}
-
-		// Config file does not exist. Create empty one.
-
-		// emergency fallback
-		String new_path = "/mnt/sd" + append_path;
-
-		if (external != null)
-			new_path = external + append_path;
-		else if (internal != null)
-			new_path = internal + append_path;
-		else if (dataDir != null)
-			new_path = dataDir + append_path;
-
-		try {
-			new File(new_path).createNewFile();
-		}
-		catch (IOException e)
-		{
-			Log.e(TAG, "Failed to create config file to: " + new_path);
-		}
-		return new_path;
+      return ctx.getApplicationInfo().dataDir + "/retroarch.cfg";
 	}
 
 	/**
@@ -129,40 +57,23 @@ public final class UserPreferences
 		SharedPreferences prefs = getPreferences(ctx);
 		SharedPreferences.Editor edit = prefs.edit();
 
-		// General Settings
-		readbackBool(config, edit, "rewind_enable");
-		readbackString(config, edit, "rewind_granularity");
-		readbackBool(config, edit, "savestate_auto_load");
-		readbackBool(config, edit, "savestate_auto_save");
-
 		// Audio Settings.
-		// TODO: Other audio settings
 		readbackBool(config, edit, "audio_rate_control");
-		readbackBool(config, edit, "audio_enable");
+      readbackString(config, edit, "audio_latency");
 
 		// Input Settings
 		readbackString(config, edit, "input_overlay");
 		readbackBool(config, edit, "input_overlay_enable");
-		readbackDouble(config, edit, "input_overlay_opacity");
+      readbackFloat(config, edit, "input_overlay_opacity");
 		readbackBool(config, edit, "input_autodetect_enable");
 
 		// Video Settings
-		readbackBool(config, edit, "video_scale_integer");
-		readbackBool(config, edit, "video_smooth");
-		readbackBool(config, edit, "video_threaded");
-		readbackBool(config, edit, "video_allow_rotate");
-		readbackBool(config, edit, "video_font_enable");
-		readbackBool(config, edit, "video_vsync");
 		readbackString(config, edit, "video_refresh_rate");
+      
+      // General Settings
+      readbackBool(config, edit, "mame_titles");
 
-		// Path settings
-		readbackString(config, edit, "rgui_browser_directory");
-		readbackString(config, edit, "savefile_directory");
-		readbackString(config, edit, "savestate_directory");
-		readbackBool(config, edit, "savefile_directory_enable"); // Ignored by RetroArch
-		readbackBool(config, edit, "savestate_directory_enable"); // Ignored by RetroArch
-
-		edit.apply();
+		edit.commit();
 	}
 
 	/**
@@ -173,119 +84,100 @@ public final class UserPreferences
 	 */
 	public static void updateConfigFile(Context ctx)
 	{
-		String path = getDefaultConfigPath(ctx);
-		ConfigFile config = new ConfigFile(path);
+      final String config_path = getDefaultConfigPath(ctx);  // main config
+      ConfigFile config = new ConfigFile(config_path);
+      Log.i(TAG, "Writing config to: " + config_path);
 
-		Log.i(TAG, "Writing config to: " + path);
+      final String default_base = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RetroArchLite";
+      final String default_save = default_base + "/save";
+      final String default_sys = default_base + "/system";
+      final String default_config = default_base + "/config";  // content configs, core options, and remaps
+      final String default_state = default_base + "/state";
+      final String dataDir = ctx.getApplicationInfo().dataDir;
+      final String coreDir = dataDir + "/cores/";
 
-		final String dataDir = ctx.getApplicationInfo().dataDir;
-		final String coreDir = dataDir + "/cores/";
-
-		final SharedPreferences prefs = getPreferences(ctx);
+      final SharedPreferences prefs = getPreferences(ctx);
 		
-		config.setString("libretro_path", prefs.getString("libretro_path", coreDir));
-		config.setString("libretro_directory", coreDir);
-		config.setString("rgui_browser_directory", prefs.getString("rgui_browser_directory", ""));
-		config.setBoolean("audio_rate_control", prefs.getBoolean("audio_rate_control", true));
+      // Internal directories
+      //
+      config.setString("libretro_directory", coreDir);
+      config.setString("rgui_browser_directory", prefs.getString("rgui_browser_directory", ""));
+      
+      // Audio, Video
+      //
+		config.setBoolean("audio_rate_control", prefs.getBoolean("audio_rate_control", false));
 		config.setInt("audio_out_rate", getOptimalSamplingRate(ctx));
+      if (Build.VERSION.SDK_INT >= 17 && prefs.getBoolean("audio_latency_auto", true))
+         config.setInt("audio_block_frames", getLowLatencyBufferSize(ctx));
+      else
+         config.setInt("audio_latency", Integer.parseInt(prefs.getString("audio_latency", "64")));
+      config.setString("video_refresh_rate", prefs.getString("video_refresh_rate", ""));
+      
+      // Save, State, System, & Config paths
+      //
+      String save_dir = prefs.getBoolean("savefile_directory_enable", false) ?
+                        prefs.getString("savefile_directory", default_save) : default_save;
+      config.setString("savefile_directory", save_dir);
+      new File(save_dir).mkdirs();
+       
+      String state_dir = prefs.getBoolean("savestate_directory_enable", false) ?
+                         prefs.getString("savestate_directory", default_state) : default_state;
+      config.setString("savestate_directory", state_dir);
+      new File(state_dir).mkdirs();
 
-		// Refactor this entire mess and make this usable for per-core config
-		if (Build.VERSION.SDK_INT >= 17 && prefs.getBoolean("audio_latency_auto", true))
-		{
-			config.setInt("audio_block_frames", getLowLatencyBufferSize(ctx));
-		}
+      String sys_dir = prefs.getBoolean("system_directory_enable", false) ?
+                       prefs.getString("system_directory", default_sys) : default_sys;
+      config.setString("system_directory", sys_dir);
+      new File(sys_dir).mkdirs();
+      
+      String cfg_dir = prefs.getBoolean("config_directory_enable", false) ?
+                       prefs.getString("rgui_config_directory", default_config) : default_config;
+      config.setString("rgui_config_directory", cfg_dir);
+      config.setString("input_remapping_directory", cfg_dir);
+      new File(cfg_dir).mkdirs();
+      
+      // Input
+      //
+      if (prefs.contains("input_overlay_enable"))
+         config.setBoolean("input_overlay_enable", prefs.getBoolean("input_overlay_enable", true));
+      config.setFloat("input_overlay_opacity", prefs.getFloat("input_overlay_opacity", 0.4f));
+      config.setBoolean("input_autodetect_enable", prefs.getBoolean("input_autodetect_enable", true));
+      
+      // Menu
+      config.setBoolean("mame_titles",
+                        prefs.getBoolean("mame_titles", false));
 
-		config.setBoolean("audio_enable", prefs.getBoolean("audio_enable", true));
-		config.setBoolean("video_smooth", prefs.getBoolean("video_smooth", true));
-		config.setBoolean("video_allow_rotate", prefs.getBoolean("video_allow_rotate", true));
-		config.setBoolean("savestate_auto_load", prefs.getBoolean("savestate_auto_load", true));
-		config.setBoolean("savestate_auto_save", prefs.getBoolean("savestate_auto_save", false));
-		config.setBoolean("rewind_enable", prefs.getBoolean("rewind_enable", false));
-		config.setInt("rewind_granularity", Integer.parseInt(prefs.getString("rewind_granularity", "1")));
-		config.setBoolean("video_vsync", prefs.getBoolean("video_vsync", true));
-		config.setBoolean("input_autodetect_enable", prefs.getBoolean("input_autodetect_enable", true));
-		config.setString("video_refresh_rate", prefs.getString("video_refresh_rate", ""));
-		config.setBoolean("video_threaded", prefs.getBoolean("video_threaded", true));
+      // FIXME: This is incomplete. Need analog axes as well.
+      for (int i = 1; i <= 4; i++)
+      {
+         final String[] btns =
+         { 
+            "up", "down", "left", "right",
+            "a", "b", "x", "y", "start", "select",
+            "l", "r", "l2", "r2", "l3", "r3"
+         };
 
-		// Refactor these weird values - 'full', 'auto', 'square', whatever -
-		// go by what we have in the menu - makes maintaining state easier too
-		String aspect = prefs.getString("video_aspect_ratio", "auto");
-		if (aspect.equals("full"))
-		{
-			config.setBoolean("video_force_aspect", false);
-		}
-		else if (aspect.equals("auto"))
-		{
-			config.setBoolean("video_force_aspect", true);
-			config.setBoolean("video_force_aspect_auto", true);
-			config.setDouble("video_aspect_ratio", -1.0);
-		}
-		else if (aspect.equals("square"))
-		{
-			config.setBoolean("video_force_aspect", true);
-			config.setBoolean("video_force_aspect_auto", false);
-			config.setDouble("video_aspect_ratio", -1.0);
-		}
-		else
-		{
-			double aspect_ratio = Double.parseDouble(aspect);
-			config.setBoolean("video_force_aspect", true);
-			config.setDouble("video_aspect_ratio", aspect_ratio);
-		}
+         for (String b : btns)
+         {
+            String p = "input_player" + i + "_" + b + "_btn";
+            if (prefs.contains(p))
+               config.setInt(p, prefs.getInt(p, 0));
+            else
+               config.setString(p, "nul");
+         }
+      }
 
-		config.setBoolean("video_scale_integer", prefs.getBoolean("video_scale_integer", false));
-
-		if (prefs.contains("input_overlay_enable"))
-			config.setBoolean("input_overlay_enable", prefs.getBoolean("input_overlay_enable", true));
-		config.setString("input_overlay", prefs.getString("input_overlay", ""));
-
-		if (prefs.getBoolean("savefile_directory_enable", false))
-		{
-		   config.setString("savefile_directory", prefs.getString("savefile_directory", ""));
-		}
-		if (prefs.getBoolean("savestate_directory_enable", false))
-		{
-		   config.setString("savestate_directory", prefs.getString("savestate_directory", ""));
-		}
-		if (prefs.getBoolean("system_directory_enable", false))
-		{
-		   config.setString("system_directory", prefs.getString("system_directory", ""));
-		}
-
-		config.setBoolean("video_font_enable", prefs.getBoolean("video_font_enable", true));
-		config.setString("content_history_path", dataDir + "/content_history.rpl");
-
-		// FIXME: This is incomplete. Need analog axes as well.
-		for (int i = 1; i <= 4; i++)
-		{
-			final String[] btns =
-			{ 
-				"up", "down", "left", "right",
-				"a", "b", "x", "y", "start", "select",
-				"l", "r", "l2", "r2", "l3", "r3"
-			};
-
-			for (String b : btns)
-			{
-				String p = "input_player" + i + "_" + b + "_btn";
-				if (prefs.contains(p))
-					config.setInt(p, prefs.getInt(p, 0));
-				else
-					config.setString(p, "nul");
-			}
-		}
-
-		try
-		{
-			config.write(path);
-		}
-		catch (IOException e)
-		{
-			Log.e(TAG, "Failed to save config file to: " + path);
-		}
+      try
+      {
+         config.write(config_path);
+      }
+      catch (IOException e)
+      {
+         Log.e(TAG, "Failed to save config file to: " + config_path);
+      }
 	}
 
-	private static void readbackString(ConfigFile cfg, SharedPreferences.Editor edit, String key)
+	public static void readbackString(ConfigFile cfg, SharedPreferences.Editor edit, String key)
 	{
 		if (cfg.keyExists(key))
 			edit.putString(key, cfg.getString(key));
@@ -309,7 +201,6 @@ public final class UserPreferences
 			edit.remove(key);
 	}
 
-	/*
 	private static void readbackFloat(ConfigFile cfg, SharedPreferences.Editor edit, String key)
 	{
 		if (cfg.keyExists(key))
@@ -317,9 +208,8 @@ public final class UserPreferences
 		else
 			edit.remove(key);
 	}
-	*/
 
-	/**
+   /*
 	private static void readbackInt(ConfigFile cfg, SharedPreferences.Editor edit, String key)
 	{
 		if (cfg.keyExists(key))
@@ -327,26 +217,8 @@ public final class UserPreferences
 		else
 			edit.remove(key);
 	}
-	*/
-
-	/**
-	 * Sanitizes a libretro core path.
-	 * 
-	 * @param path The path to the libretro core.
-	 * 
-	 * @return the sanitized libretro path.
-	 */
-	private static String sanitizeLibretroPath(String path)
-	{
-		String sanitized_name = path.substring(
-				path.lastIndexOf('/') + 1,
-				path.lastIndexOf('.'));
-		sanitized_name = sanitized_name.replace("neon", "");
-		sanitized_name = sanitized_name.replace("libretro_", "");
-
-		return sanitized_name;
-	}
-
+   */
+   
 	/**
 	 * Gets a {@link SharedPreferences} instance containing current settings.
 	 * 
@@ -415,32 +287,5 @@ public final class UserPreferences
 
 		Log.i(TAG, "Using sampling rate: " + ret + " Hz");
 		return ret;
-	}
-
-	/**
-	 * Retrieves the CPU info, as provided by /proc/cpuinfo.
-	 * 
-	 * @return the CPU info.
-	 */
-	public static String readCPUInfo()
-	{
-		StringBuilder result = new StringBuilder(255);
-
-		try
-		{
-			BufferedReader br = new BufferedReader(new InputStreamReader(
-					new FileInputStream("/proc/cpuinfo")));
-
-			String line;
-			while ((line = br.readLine()) != null)
-				result.append(line).append('\n');
-			br.close();
-		}
-		catch (IOException ex)
-		{
-			ex.printStackTrace();
-		}
-
-		return result.toString();
 	}
 }

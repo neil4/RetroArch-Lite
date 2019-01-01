@@ -33,7 +33,7 @@ FILE *rarch_main_log_file(void);
 #if defined(IS_SALAMANDER)
 #define PROGRAM_NAME "RetroArch Salamander"
 #elif defined(RARCH_INTERNAL)
-#define PROGRAM_NAME "RetroArch"
+#define PROGRAM_NAME "RetroArch Lite"
 #else
 #define PROGRAM_NAME "N/A"
 #endif

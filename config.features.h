@@ -140,12 +140,6 @@ static const bool _sl_supp = true;
 static const bool _sl_supp = false;
 #endif
 
-#ifdef HAVE_LIBRETRODB
-static const bool _libretrodb_supp = true;
-#else
-static const bool _libretrodb_supp = false;
-#endif
-
 #ifdef HAVE_RSOUND
 static const bool _rsound_supp = true;
 #else

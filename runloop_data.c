@@ -28,14 +28,6 @@
 #include "menu/menu_input.h"
 #endif
 
-enum
-{
-   THREAD_CODE_INIT = 0,
-   THREAD_CODE_DEINIT,
-   THREAD_CODE_ALIVE,
-} thread_code_enum;
-
-
 static char data_runloop_msg[PATH_MAX_LENGTH];
 
 static struct data_runloop *g_data_runloop;
@@ -45,41 +37,12 @@ data_runloop_t *rarch_main_data_get_ptr(void)
    return g_data_runloop;
 }
 
-#ifdef HAVE_THREADS
-static void data_runloop_thread_deinit(data_runloop_t *runloop)
-{
-   if (!runloop->thread_inited)
-   {
-      slock_lock(runloop->cond_lock);
-      runloop->alive = false;
-      scond_signal(runloop->cond);
-      slock_unlock(runloop->cond_lock);
-      sthread_join(runloop->thread);
-
-      slock_free(runloop->lock);
-      slock_free(runloop->cond_lock);
-      slock_free(runloop->overlay_lock);
-      scond_free(runloop->cond);
-   }
-}
-#endif
-
 void rarch_main_data_deinit(void)
 {
    data_runloop_t *runloop = rarch_main_data_get_ptr();
 
    if (!runloop)
       return;
-
-#ifdef HAVE_THREADS
-   if (runloop->thread_inited)
-   {
-      data_runloop_thread_deinit(runloop);
-
-      runloop->thread_inited = false;
-      runloop->thread_code   = THREAD_CODE_DEINIT;
-   }
-#endif
 
    runloop->inited = false;
 }
@@ -93,20 +56,17 @@ void rarch_main_data_free(void)
    runloop = NULL;
 }
 
-static void data_runloop_iterate(bool is_thread, data_runloop_t *runloop)
+static void data_runloop_iterate(data_runloop_t *runloop)
 {
-   rarch_main_data_nbio_iterate       (is_thread, runloop);
+   rarch_main_data_nbio_iterate(runloop);
 #ifdef HAVE_RPNG
-   rarch_main_data_nbio_image_iterate (is_thread, runloop);
+   rarch_main_data_nbio_image_iterate(runloop);
 #endif
 #ifdef HAVE_OVERLAY
-   rarch_main_data_overlay_iterate    (is_thread, runloop);
+   rarch_main_data_overlay_iterate(runloop);
 #endif
 #ifdef HAVE_NETWORKING
-   rarch_main_data_http_iterate       (is_thread, runloop);
-#endif
-#ifdef HAVE_LIBRETRODB
-   rarch_main_data_db_iterate         (is_thread, runloop);
+   rarch_main_data_http_iterate(runloop);
 #endif
 }
 
@@ -116,7 +76,6 @@ bool rarch_main_data_active(data_runloop_t *runloop)
    bool                  image_active, nbio_active, http_active,
                          http_conn_active, overlay_active;
    bool                  active = false;
-   bool               db_active = false;
 
    driver_t             *driver = driver_get_ptr();
    nbio_handle_t          *nbio = runloop ? &runloop->nbio : NULL;
@@ -126,11 +85,6 @@ bool rarch_main_data_active(data_runloop_t *runloop)
 #ifdef HAVE_NETWORKING
    http_handle_t          *http = runloop ? &runloop->http : NULL;
    struct http_connection_t *http_conn = http ? http->connection.handle : NULL;
-#endif
-#ifdef HAVE_LIBRETRODB
-   database_info_handle_t   *db = runloop ? runloop->db.handle : NULL;
-   db_active                    = db && db->status != DATABASE_STATUS_NONE;
-   active                       = active || db_active;
 #endif
 
 #ifdef HAVE_OVERLAY
@@ -158,7 +112,6 @@ bool rarch_main_data_active(data_runloop_t *runloop)
    (void)http_active;
    (void)http_conn_active;
    (void)overlay_active;
-   (void)db_active;
 
 #if 0
    RARCH_LOG("runloop nbio : %d, image: %d, http: %d, http conn: %d, overlay: %d\n", nbio_active, image_active,
@@ -169,100 +122,18 @@ bool rarch_main_data_active(data_runloop_t *runloop)
    return active;
 }
 
-#ifdef HAVE_THREADS
-static void data_thread_loop(void *data)
-{
-   data_runloop_t *runloop = (data_runloop_t*)data;
-
-   RARCH_LOG("[Data Thread]: Initializing data thread.\n");
-
-   slock_lock(runloop->lock);
-   while (!runloop->thread_inited)
-      scond_wait(runloop->cond, runloop->lock);
-   slock_unlock(runloop->lock);
-
-   RARCH_LOG("[Data Thread]: Starting data thread.\n");
-
-   while (runloop->alive)
-   {
-      slock_lock(runloop->lock);
-
-      if (!runloop->alive)
-         break;
-
-      data_runloop_iterate(true, runloop);
-
-      if (!rarch_main_data_active(runloop))
-         rarch_sleep(10);
-
-      slock_unlock(runloop->lock);
-
-   }
-
-   RARCH_LOG("[Data Thread]: Stopping data thread.\n");
-}
-#endif
-
-#ifdef HAVE_THREADS
-static void rarch_main_data_thread_init(void)
-{
-   data_runloop_t *runloop  = rarch_main_data_get_ptr();
-
-   if (!runloop)
-      return;
-
-   runloop->lock            = slock_new();
-   runloop->cond_lock       = slock_new();
-   runloop->overlay_lock    = slock_new();
-   runloop->cond            = scond_new();
-
-   runloop->thread    = sthread_create(data_thread_loop, runloop);
-
-   if (!runloop->thread)
-      goto error;
-
-   slock_lock(runloop->lock);
-   runloop->thread_inited   = true;
-   runloop->alive           = true;
-   runloop->thread_code     = THREAD_CODE_ALIVE;
-   slock_unlock(runloop->lock);
-
-   return;
-
-error:
-   slock_free(runloop->lock);
-   slock_free(runloop->cond_lock);
-   slock_free(runloop->overlay_lock);
-   scond_free(runloop->cond);
-}
-#endif
-
 void rarch_main_data_iterate(void)
 {
    data_runloop_t *runloop      = rarch_main_data_get_ptr();
    settings_t     *settings     = config_get_ptr();
    
    (void)settings;
-#ifdef HAVE_THREADS
-   if (settings->menu.threaded_data_runloop_enable)
-   {
-      switch (runloop->thread_code)
-      {
-         case THREAD_CODE_INIT:
-            rarch_main_data_thread_init();
-            break;
-         case THREAD_CODE_DEINIT:
-         case THREAD_CODE_ALIVE:
-            break;
-      }
-   }
-#endif
 
 #ifdef HAVE_OVERLAY
-   rarch_main_data_overlay_image_upload_iterate(false, runloop);
+   rarch_main_data_overlay_image_upload_iterate(runloop);
 #endif
 #ifdef HAVE_RPNG
-   rarch_main_data_nbio_image_upload_iterate(false, runloop);
+   rarch_main_data_nbio_image_upload_iterate(runloop);
 #endif
 
    if (data_runloop_msg[0] != '\0')
@@ -274,13 +145,8 @@ void rarch_main_data_iterate(void)
 #ifdef HAVE_MENU
    menu_entries_refresh(MENU_ACTION_REFRESH);
 #endif
-
-#ifdef HAVE_THREADS
-   if (settings->menu.threaded_data_runloop_enable && runloop->alive)
-      return;
-#endif
-
-   data_runloop_iterate(false, runloop);
+   
+   data_runloop_iterate(runloop);
 }
 
 static data_runloop_t *rarch_main_data_new(void)
@@ -289,11 +155,6 @@ static data_runloop_t *rarch_main_data_new(void)
 
    if (!runloop)
       return NULL;
-
-#ifdef HAVE_THREADS
-   runloop->thread_inited = false;
-   runloop->alive         = false;
-#endif
 
    runloop->inited = true;
 
@@ -318,10 +179,6 @@ void rarch_main_data_init_queues(void)
       rarch_assert(runloop->nbio.msg_queue       = msg_queue_new(8));
    if (!runloop->nbio.image.msg_queue)
       rarch_assert(runloop->nbio.image.msg_queue = msg_queue_new(8));
-#ifdef HAVE_LIBRETRODB
-   if (!runloop->db.msg_queue)
-      rarch_assert(runloop->db.msg_queue         = msg_queue_new(8));
-#endif
 }
 
 void rarch_main_data_msg_queue_push(unsigned type,
@@ -352,12 +209,6 @@ void rarch_main_data_msg_queue_push(unsigned type,
 #endif
 #ifdef HAVE_OVERLAY
       case DATA_TYPE_OVERLAY:
-         snprintf(new_msg, sizeof(new_msg), "%s|%s", msg, msg2);
-         break;
-#endif
-#ifdef HAVE_LIBRETRODB
-      case DATA_TYPE_DB:
-         queue = runloop->db.msg_queue;
          snprintf(new_msg, sizeof(new_msg), "%s|%s", msg, msg2);
          break;
 #endif

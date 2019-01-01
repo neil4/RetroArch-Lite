@@ -145,10 +145,18 @@ cheat_manager_t *cheat_manager_load(const char *path)
       snprintf(enable_key, sizeof(enable_key), "cheat%u_enable", i);
 
       if (config_get_string(conf, desc_key, &tmp))
+      {
          cheat->cheats[i].desc   = strdup(tmp);
+         free(tmp);
+         tmp = NULL;
+      }
 
       if (config_get_string(conf, code_key, &tmp))
+      {
          cheat->cheats[i].code   = strdup(tmp);
+         free(tmp);
+         tmp = NULL;
+      }
 
       if (config_get_bool(conf, enable_key, &tmp_bool))
          cheat->cheats[i].state  = tmp_bool;

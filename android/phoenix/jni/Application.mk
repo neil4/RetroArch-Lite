@@ -13,7 +13,7 @@ else
 endif
 
 ifndef TARGET_ABIS
-   APP_ABI := armeabi-v7a mips x86
+   APP_ABI := armeabi-v7a
 else
    APP_ABI := $(TARGET_ABIS)
 endif

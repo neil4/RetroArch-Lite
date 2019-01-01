@@ -21,7 +21,7 @@
 #include "libretro.h"
 #include "core_info.h"
 #include "core_options.h"
-#include "driver.h"
+#include "configuration.h"
 #include "rewind.h"
 #include "autosave.h"
 #include "movie.h"
@@ -77,6 +77,7 @@ typedef struct global
 
    core_info_list_t *core_info;
    core_info_t *core_info_current;
+   config_file_t *mame_list;  // .zip to MAME title mapping
 
    uint32_t content_crc;
 
@@ -114,6 +115,10 @@ typedef struct global
    
    char basename[PATH_MAX_LENGTH];
    char fullpath[PATH_MAX_LENGTH];
+   char libretro_name[NAME_MAX_LENGTH];  // sanitized library name
+#ifdef SINGLE_CORE
+   char content_dir_override[PATH_MAX_LENGTH];
+#endif
 
    /* A list of save types and associated paths for all content. */
    struct string_list *savefiles;
@@ -133,6 +138,7 @@ typedef struct global
 #ifdef HAVE_OVERLAY
    char overlay_dir[PATH_MAX_LENGTH];
    char osk_overlay_dir[PATH_MAX_LENGTH];
+   bool overlay_lightgun_autotrigger;  // trigger on x,y update
 #endif
 
    bool block_patch;
@@ -231,7 +237,7 @@ typedef struct global
 
 #ifdef HAVE_NETPLAY
    /* Netplay. */
-   char netplay_server[PATH_MAX_LENGTH];
+   char netplay_server[46];
    bool netplay_enable;
    bool netplay_is_client;
    bool netplay_is_spectate;
@@ -320,9 +326,6 @@ typedef struct global
 
    bool libretro_no_content;
    bool libretro_dummy;
-
-   /* Config file associated with per-core configs. */
-   char core_specific_config_path[PATH_MAX_LENGTH];
 
    retro_keyboard_event_t frontend_key_event;
 } global_t;

@@ -70,33 +70,31 @@ enum setting_list_flags
 {
    SL_FLAG_MAIN_MENU             =  (1 << 0),
    SL_FLAG_MAIN_MENU_SETTINGS    =  (1 << 1),
-   SL_FLAG_DRIVER_OPTIONS        =  (1 << 2),
-   SL_FLAG_CORE_OPTIONS          =  (1 << 3),
-   SL_FLAG_CONFIGURATION_OPTIONS =  (1 << 4),
-   SL_FLAG_REWIND_OPTIONS        =  (1 << 5),
-   SL_FLAG_VIDEO_OPTIONS         =  (1 << 6),
-   SL_FLAG_SHADER_OPTIONS        =  (1 << 7),
-   SL_FLAG_FONT_OPTIONS          =  (1 << 8),
-   SL_FLAG_AUDIO_OPTIONS         =  (1 << 9),
-   SL_FLAG_INPUT_OPTIONS         =  (1 << 10),
-   SL_FLAG_INPUT_HOTKEY_OPTIONS  =  (1 << 11),
-   SL_FLAG_OVERLAY_OPTIONS       =  (1 << 12),
-   SL_FLAG_MENU_OPTIONS          =  (1 << 13),
-   SL_FLAG_UI_OPTIONS            =  (1 << 14),
-   SL_FLAG_CORE_UPDATER_OPTIONS  =  (1 << 15),
-   SL_FLAG_NETPLAY_OPTIONS       =  (1 << 16),
+   SL_FLAG_OVERLAY_OPTIONS       =  (1 << 2),
+   SL_FLAG_VIDEO_OPTIONS         =  (1 << 3),
+   SL_FLAG_LATENCY_OPTIONS       =  (1 << 4),
+   SL_FLAG_AUDIO_OPTIONS         =  (1 << 5),
+   SL_FLAG_FRAME_THROTTLE_OPTIONS=  (1 << 6),
+   SL_FLAG_MENU_OPTIONS          =  (1 << 7),
+   SL_FLAG_NETPLAY_OPTIONS       =  (1 << 8),
+   SL_FLAG_SAVING_OPTIONS        =  (1 << 9),
+   SL_FLAG_DRIVER_OPTIONS        =  (1 << 10),
+   SL_FLAG_CONFIGURATION_OPTIONS =  (1 << 11),
+   SL_FLAG_REWIND_OPTIONS        =  (1 << 12),
+   SL_FLAG_INPUT_OPTIONS         =  (1 << 13),
+   SL_FLAG_INPUT_HOTKEY_OPTIONS  =  (1 << 14),
+   SL_FLAG_CORE_OPTIONS          =  (1 << 15),
+   SL_FLAG_UI_OPTIONS            =  (1 << 16),
    SL_FLAG_USER_OPTIONS          =  (1 << 17),
    SL_FLAG_DIRECTORY_OPTIONS     =  (1 << 18),
    SL_FLAG_PRIVACY_OPTIONS       =  (1 << 19),
-   SL_FLAG_PLAYLIST_OPTIONS      =  (1 << 20),
-   SL_FLAG_ARCHIVE_OPTIONS       =  (1 << 21),
-   SL_FLAG_PATCH_OPTIONS         =  (1 << 22),
-   SL_FLAG_RECORDING_OPTIONS     =  (1 << 23),
-   SL_FLAG_FRAME_THROTTLE_OPTIONS=  (1 << 24),
-   SL_FLAG_LOGGING_OPTIONS       =  (1 << 25),
-   SL_FLAG_SAVING_OPTIONS        =  (1 << 26),
-   SL_FLAG_ALL                   =  (1 << 27),
-   SL_FLAG_ALLOW_EMPTY_LIST      =  (1 << 28)
+   SL_FLAG_ARCHIVE_OPTIONS       =  (1 << 20),
+   SL_FLAG_RECORDING_OPTIONS     =  (1 << 21),
+   SL_FLAG_LOGGING_OPTIONS       =  (1 << 22),
+   SL_FLAG_CORE_UPDATER_OPTIONS  =  (1 << 23),
+   SL_FLAG_FONT_OPTIONS          =  (1 << 24),
+   SL_FLAG_ALL                   =  (1 << 25),
+   SL_FLAG_ALLOW_EMPTY_LIST      =  (1 << 26)
 };
 
 #define SL_FLAG_ALL_SETTINGS (SL_FLAG_ALL - SL_FLAG_MAIN_MENU)
@@ -106,6 +104,8 @@ typedef int  (*action_left_handler_t          )(void *data, bool wraparound);
 typedef int  (*action_right_handler_t         )(void *data, bool wraparound);
 typedef int  (*action_up_handler_t            )(void *data);
 typedef int  (*action_down_handler_t          )(void *data);
+typedef int  (*action_l_handler_t             )(void *data);
+typedef int  (*action_r_handler_t             )(void *data);
 typedef int  (*action_start_handler_t         )(void *data);
 typedef int  (*action_iterate_handler_t       )(unsigned action);
 typedef int  (*action_cancel_handler_t        )(void *data);
@@ -150,6 +150,8 @@ typedef struct rarch_setting
    change_handler_t              deferred_handler;
    change_handler_t              read_handler;
    action_start_handler_t        action_start;
+   action_l_handler_t            action_set_min;
+   action_r_handler_t            action_set_max;
    action_iterate_handler_t      action_iterate;
    action_left_handler_t         action_left;
    action_right_handler_t        action_right;

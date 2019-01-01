@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Core Management -->
+    <PreferenceCategory android:title="@string/core_management">
+        <Preference 
+            android:title="@string/manage_cores32"
+            android:summary="@string/manage_cores32_desc">
+            <intent
+                android:targetClass="com.retroarch.browser.coremanager.CoreManagerActivity"
+                android:targetPackage="com.retroarchlite"/>
+        </Preference>
+        <Preference 
+            android:title="@string/manage_cores64"
+            android:summary="@string/manage_cores64_desc">
+            <intent
+                android:targetClass="com.retroarch.browser.coremanager.CoreManagerActivity"
+                android:targetPackage="com.retroarchlite64"/>
+        </Preference>
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="append_abi_to_corenames"
+            android:summary="@string/append_abi_to_corenames_desc"
+            android:title="@string/append_abi_to_corenames" />
+    </PreferenceCategory>
+    
+    <!-- Titles -->
+    <PreferenceCategory android:title="@string/mame_titles" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="mame_titles"
+            android:summary="@string/mame_titles_desc"
+            android:title="@string/enable" />
+    </PreferenceCategory>
+</PreferenceScreen>

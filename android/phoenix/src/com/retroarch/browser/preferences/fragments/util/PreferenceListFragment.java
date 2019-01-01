@@ -16,7 +16,7 @@
 
 package com.retroarch.browser.preferences.fragments.util;
 
-import com.retroarch.R;
+import com.retroarchlite.R;
 
 import android.content.Intent;
 import android.os.Bundle;

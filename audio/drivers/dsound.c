@@ -29,7 +29,7 @@
 #define DSERR_PRIOLEVELNEEDED           MAKE_DSHRESULT(70)
 #endif
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include <stdlib.h>
 #include <boolean.h>
 #include <stddef.h>

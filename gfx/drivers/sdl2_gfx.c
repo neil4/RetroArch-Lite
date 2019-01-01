@@ -16,7 +16,7 @@
 
 #include "SDL.h"
 #include "SDL_syswm.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 #include <stdlib.h>
 #include <string.h>
 #include "../../general.h"

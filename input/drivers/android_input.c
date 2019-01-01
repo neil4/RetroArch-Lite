@@ -28,7 +28,7 @@
 #include "../input_joypad.h"
 #include "../../performance.h"
 #include "../../general.h"
-#include "../../driver.h"
+#include "../../configuration.h"
 
 
 #define MAX_TOUCH 16
@@ -53,7 +53,12 @@ struct input_pointer
 {
    int16_t x, y;
    int16_t full_x, full_y;
+   /* Ellipse values, for internal use on fullscreen overlays */
+   float orientation, touch_major, touch_minor;
 };
+
+extern void set_ellipse(uint8_t, const float, const float, const float);
+extern void reset_ellipse(uint8_t);
 
 enum
 {
@@ -94,6 +99,18 @@ typedef struct android_input
    ASensorEventQueue *sensorEventQueue;
    const input_device_driver_t *joypad;
 } android_input_t;
+
+typedef struct android_input_poll_scratchpad
+{
+   int32_t id[MAX_TOUCH];
+   int32_t last_known_action;  // of any poll
+   uint8_t downs;  // num downs or pointer downs
+   uint8_t taps;  // quick down+up between polls
+   bool any_events;
+} android_input_poll_scratchpad_t;
+
+static android_input_poll_scratchpad_t frame;
+static pthread_cond_t vibrate_flag;
 
 static void frontend_android_get_version_sdk(int32_t *sdk);
 
@@ -429,8 +446,82 @@ static void engine_handle_cmd(void)
    }
 }
 
-static void *android_input_init(void)
+/* Used for vibration and setting media volume control */
+static void *jni_thread_func(void* data)
 {
+   (void)data;
+   
+   settings_t* settings = config_get_ptr();
+   jobject jobj = g_android->activity->clazz;
+   JavaVM* p_jvm = g_android->activity->vm;
+   JNIEnv* p_jenv;
+   
+   jobject vibrator_service;
+   jclass vibrator_class;
+   jclass activity_class;
+   jmethodID getSystemService_id;
+   jmethodID vibrate_method_id;
+   jmethodID vol_control_id;
+   pthread_mutex_t g_vibrate_mutex;
+   
+   jint status = (*p_jvm)->AttachCurrentThreadAsDaemon(p_jvm, &p_jenv, 0);
+   if (status < 0)
+   {
+      RARCH_ERR("jni_thread_func: Failed to attach current thread.\n");
+      return NULL;
+   }
+   GET_OBJECT_CLASS( p_jenv, activity_class, jobj )
+   
+  /*
+   * set volume control to media
+   */
+   GET_METHOD_ID( p_jenv,
+                  vol_control_id,
+                  activity_class,
+                  "setVolumeControlStream",
+                  "(I)V" )
+   CALL_VOID_METHOD_PARAM( p_jenv, jobj, vol_control_id, (jint)3 )
+   
+   /*
+    * setup timed vibrate method
+    */
+   GET_METHOD_ID( p_jenv,
+                  getSystemService_id,
+                  activity_class,
+                  "getSystemService",
+                  "(Ljava/lang/String;)Ljava/lang/Object;" )
+   CALL_OBJ_METHOD_PARAM( p_jenv,
+                          vibrator_service,
+                          jobj,
+                          getSystemService_id,
+                          (*p_jenv)->NewStringUTF( p_jenv, "vibrator" ) )
+   GET_OBJECT_CLASS( p_jenv, vibrator_class, vibrator_service )
+   GET_METHOD_ID( p_jenv,
+                  vibrate_method_id,
+                  vibrator_class,
+                  "vibrate",
+                  "(J)V" )
+   
+   pthread_mutex_init(&g_vibrate_mutex, NULL);
+   
+   /* Sit and wait for vibrate_flag.*/
+   for (;;)
+   {
+      pthread_cond_wait(&vibrate_flag, &g_vibrate_mutex);
+      CALL_VOID_METHOD_PARAM( p_jenv,
+                              vibrator_service,
+                              vibrate_method_id,
+                              (jlong)(settings->input.vibrate_time) )
+   }
+}
+
+void android_input_vibrate()
+{
+   pthread_cond_signal(&vibrate_flag);
+}
+
+static void *android_input_init(void)
+{  
    int32_t sdk;
    settings_t *settings = config_get_ptr();
    android_input_t *android = (android_input_t*)calloc(1, sizeof(*android));
@@ -450,6 +541,11 @@ static void *android_input_init(void)
    else
       engine_lookup_name = android_input_lookup_name_prekitkat;
 
+   // Start the JNI thread if it isn't running.
+   static pthread_t jni_thread_id = 0;
+   if ( !jni_thread_id )
+      pthread_create( &jni_thread_id, NULL, jni_thread_func, NULL );
+	  
    return android;
 }
 
@@ -457,54 +553,84 @@ static int zeus_id = -1;
 static int zeus_second_id = -1;
 
 static INLINE int android_input_poll_event_type_motion(
-      android_input_t *android, AInputEvent *event,
-      int port, int source)
+      android_input_t *android, AInputEvent *event, int source)
 {
    int getaction, action;
    size_t motion_pointer;
-   bool keyup;
+   size_t up_pointer = MAX_TOUCH;
+   size_t event_pointer_count;
+   bool keyup, keydown;
+   float x, y;
 
-   if (source & ~(AINPUT_SOURCE_TOUCHSCREEN | AINPUT_SOURCE_MOUSE))
+   if (source & ~(AINPUT_SOURCE_TOUCHSCREEN | AINPUT_SOURCE_MOUSE | AINPUT_SOURCE_STYLUS))
       return 1;
 
+   frame.any_events = true;
    getaction = AMotionEvent_getAction(event);
    action = getaction & AMOTION_EVENT_ACTION_MASK;
    motion_pointer = getaction >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-   keyup = (
-         action == AMOTION_EVENT_ACTION_UP ||
-         action == AMOTION_EVENT_ACTION_CANCEL ||
-         action == AMOTION_EVENT_ACTION_POINTER_UP) ||
-      (source == AINPUT_SOURCE_MOUSE &&
-       action != AMOTION_EVENT_ACTION_DOWN);
+   
+   keyup = ( action == AMOTION_EVENT_ACTION_UP
+             || action == AMOTION_EVENT_ACTION_CANCEL
+             || action == AMOTION_EVENT_ACTION_POINTER_UP
+             || (source == AINPUT_SOURCE_MOUSE
+                 && (action != AMOTION_EVENT_ACTION_DOWN)) );
+   keydown = ( action == AMOTION_EVENT_ACTION_DOWN
+               || action == AMOTION_EVENT_ACTION_POINTER_DOWN );
 
-   if (keyup && motion_pointer < MAX_TOUCH)
+   if ( keydown && frame.downs < MAX_TOUCH )
    {
-      memmove(android->pointer + motion_pointer, 
-            android->pointer + motion_pointer + 1,
-            (MAX_TOUCH - motion_pointer - 1) * sizeof(struct input_pointer));
-      if (android->pointer_count > 0)
-         android->pointer_count--;
+      // record all action-downs and action-pointer-downs since last poll
+      frame.id[frame.downs++]
+         = AMotionEvent_getPointerId(event,motion_pointer);
    }
-   else
+   else if (keyup && motion_pointer < MAX_TOUCH)
    {
-      float x, y;
-      int pointer_max = min(AMotionEvent_getPointerCount(event), MAX_TOUCH);
-
-      for (motion_pointer = 0; motion_pointer < pointer_max; motion_pointer++)
+      up_pointer = motion_pointer;
+      
+      // capture action-ups of quick taps
+      uint8_t i;
+      for ( i = 0; i < frame.downs; i++ )
       {
-         x = AMotionEvent_getX(event, motion_pointer);
-         y = AMotionEvent_getY(event, motion_pointer);
-
-         input_translate_coord_viewport(x, y,
-               &android->pointer[motion_pointer].x,
-               &android->pointer[motion_pointer].y,
-               &android->pointer[motion_pointer].full_x,
-               &android->pointer[motion_pointer].full_y);
-
-         android->pointer_count = max(
-               android->pointer_count,
-               motion_pointer + 1);
+         if ( AMotionEvent_getPointerId(event,motion_pointer)
+                 == frame.id[i] )
+         {
+            x = AMotionEvent_getX(event, motion_pointer);
+            y = AMotionEvent_getY(event, motion_pointer);
+            
+            int16_t* p = &android->pointer[frame.taps].x;
+            input_translate_coord_viewport(x, y, p, p+1, p+2, p+3 );
+            
+            // Ignore ellipse data for quick taps.
+            reset_ellipse(frame.taps);
+            
+            frame.taps++;
+            frame.id[i] = -1;
+         }
       }
+   }
+   
+   frame.last_known_action = action;
+   android->pointer_count = frame.taps;
+
+   event_pointer_count = min(AMotionEvent_getPointerCount(event), MAX_TOUCH);
+   for (motion_pointer = 0; motion_pointer < event_pointer_count; motion_pointer++)
+   {
+      if ( motion_pointer == up_pointer )
+         continue;
+      uint8_t idx = android->pointer_count;
+      
+      x = AMotionEvent_getX(event, motion_pointer);
+      y = AMotionEvent_getY(event, motion_pointer);
+      
+      int16_t* p = &android->pointer[idx].x;
+      input_translate_coord_viewport(x, y, p, p+1, p+2, p+3);
+      
+      set_ellipse(idx, AMotionEvent_getOrientation(event, motion_pointer),
+                       AMotionEvent_getTouchMajor(event, motion_pointer),
+                       AMotionEvent_getTouchMinor(event, motion_pointer));
+      
+      android->pointer_count++;
    }
 
    return 0;
@@ -517,6 +643,7 @@ static INLINE void android_input_poll_event_type_key(
 {
    uint8_t *buf = android->pad_state[port];
    int action  = AKeyEvent_getAction(event);
+   global_t* global = global_get_ptr();
 
    /* some controllers send both the up and down events at once
     * when the button is released for "special" buttons, like menu buttons
@@ -530,6 +657,13 @@ static INLINE void android_input_poll_event_type_key(
 
    if ((keycode == AKEYCODE_VOLUME_UP || keycode == AKEYCODE_VOLUME_DOWN))
       *handled = 0;
+   else if (keycode == AKEYCODE_BACK || keycode == AKEYCODE_MENU)
+   {
+      if (action == AKEY_EVENT_ACTION_DOWN)
+         global->lifecycle_state |= (1ULL << RARCH_MENU_TOGGLE);
+      else if (action == AKEY_EVENT_ACTION_UP)
+         global->lifecycle_state &= ~(1ULL << RARCH_MENU_TOGGLE);
+   }
 }
 
 static int android_input_get_id_port(android_input_t *android, int id,
@@ -537,7 +671,7 @@ static int android_input_get_id_port(android_input_t *android, int id,
 {
    unsigned i;
    if (source & (AINPUT_SOURCE_TOUCHSCREEN | AINPUT_SOURCE_MOUSE | 
-            AINPUT_SOURCE_TOUCHPAD))
+            AINPUT_SOURCE_TOUCHPAD | AINPUT_SOURCE_STYLUS ))
       return 0; /* touch overlay is always user 1 */
 
    for (i = 0; i < android->pads_connected; i++)
@@ -784,8 +918,7 @@ static void android_input_handle_input(void *data)
          switch (type_event)
          {
             case AINPUT_EVENT_TYPE_MOTION:
-               if (android_input_poll_event_type_motion(android, event,
-                        port, source))
+               if (android_input_poll_event_type_motion(android, event, source))
                   engine_handle_dpad(android, event, port, source);
                break;
             case AINPUT_EVENT_TYPE_KEY:
@@ -829,11 +962,12 @@ static void android_input_handle_user(void *data)
 static void android_input_poll(void *data)
 {
    int ident;
-
-   while ((ident = 
-            ALooper_pollAll((input_driver_key_pressed(RARCH_PAUSE_TOGGLE))
-               ? -1 : 0,
-               NULL, NULL, NULL)) >= 0)
+   android_input_t *android = (android_input_t*)data;
+   frame.taps = 0;
+   frame.downs = 0;
+   frame.any_events = false;
+   
+   while ((ident = ALooper_pollAll( 0, NULL, NULL, NULL)) >= 0)
    {
       switch (ident)
       {
@@ -848,6 +982,10 @@ static void android_input_poll(void *data)
             break;
       }
    }
+   
+   // need to reset pointer_count since between-poll taps are added artificially
+   if (!frame.any_events && frame.last_known_action == AMOTION_EVENT_ACTION_UP)
+      android->pointer_count = 0;
 }
 
 bool android_run_events(void *data)
@@ -870,7 +1008,9 @@ static int16_t android_input_state(void *data,
       unsigned idx, unsigned id)
 {
    android_input_t *android = (android_input_t*)data;
-
+   driver_t *driver         = driver_get_ptr();
+   global_t *global         = global_get_ptr();
+   
    switch (device)
    {
       case RETRO_DEVICE_JOYPAD:
@@ -886,11 +1026,7 @@ static int16_t android_input_state(void *data,
             case RETRO_DEVICE_ID_POINTER_Y:
                return android->pointer[idx].y;
             case RETRO_DEVICE_ID_POINTER_PRESSED:
-               return (idx < android->pointer_count) &&
-                  (android->pointer[idx].x != -0x8000) &&
-                  (android->pointer[idx].y != -0x8000);
-            case RARCH_DEVICE_ID_POINTER_BACK:
-               return BIT_GET(android->pad_state[0], AKEYCODE_BACK);
+               return (idx < android->pointer_count);
          }
          break;
       case RARCH_DEVICE_POINTER_SCREEN:
@@ -901,11 +1037,37 @@ static int16_t android_input_state(void *data,
             case RETRO_DEVICE_ID_POINTER_Y:
                return android->pointer[idx].full_y;
             case RETRO_DEVICE_ID_POINTER_PRESSED:
-               return (idx < android->pointer_count) &&
-                  (android->pointer[idx].full_x != -0x8000) &&
-                  (android->pointer[idx].full_y != -0x8000);
-            case RARCH_DEVICE_ID_POINTER_BACK:
-               return BIT_GET(android->pad_state[0], AKEYCODE_BACK);
+               return (idx < android->pointer_count);         
+         }
+         break;
+      case RETRO_DEVICE_LIGHTGUN:
+         switch(id)
+         {
+            case RETRO_DEVICE_ID_LIGHTGUN_X:
+               // todo: should be relative! (should also be obsolete)
+            case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
+               return input_overlay_lightgun_x();
+            case RETRO_DEVICE_ID_LIGHTGUN_Y:
+            case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
+               return input_overlay_lightgun_y();
+            case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
+               if (global->overlay_lightgun_autotrigger)
+                  return input_overlay_lightgun_autotrigger();
+            case RETRO_DEVICE_ID_LIGHTGUN_CURSOR:
+            case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
+            case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
+            case RETRO_DEVICE_ID_LIGHTGUN_START:
+            case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
+            case RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP:
+            case RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN:
+            case RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT:
+            case RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT:
+               return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
+            case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
+               return (driver->overlay_state.lightgun_buttons
+                       & (1<<RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN)) != 0;       
+            default:
+               return 0;
          }
          break;
    }
@@ -1085,4 +1247,5 @@ input_driver_t input_android = {
    android_input_get_joypad_driver,
    android_input_keyboard_mapping_is_blocked,
    android_input_keyboard_mapping_set_block,
+   android_input_vibrate
 };

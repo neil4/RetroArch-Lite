@@ -18,7 +18,7 @@
 #include <file/file_path.h>
 #include "record_driver.h"
 
-#include "../driver.h"
+#include "../configuration.h"
 #include "../dynamic.h"
 #include "../general.h"
 #include "../retroarch.h"

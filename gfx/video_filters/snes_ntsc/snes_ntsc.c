@@ -171,6 +171,7 @@ void snes_ntsc_blit( snes_ntsc_t const* ntsc, SNES_NTSC_IN_T const* input, long 
 	}
 }
 
+#if 0  // Disabled for higher compatibility
 void snes_ntsc_blit_hires( snes_ntsc_t const* ntsc, SNES_NTSC_IN_T const* input, long in_row_width,
 		int burst_phase, int in_width, int in_height, void* rgb_out, long out_pitch, int first, int last )
 {
@@ -236,6 +237,7 @@ void snes_ntsc_blit_hires( snes_ntsc_t const* ntsc, SNES_NTSC_IN_T const* input,
 		rgb_out = (char*) rgb_out + out_pitch;
 	}
 }
+#endif
 
 #endif
 

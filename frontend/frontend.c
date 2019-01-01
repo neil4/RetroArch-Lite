@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../driver.h"
+#include "../configuration.h"
 #include "frontend.h"
 #include "../general.h"
 #include "../retroarch.h"
@@ -36,24 +36,19 @@ void main_exit_save_config(void)
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
 
-   if (settings->config_save_on_exit && *global->config_path)
+   if (settings->config_save_on_exit)
    {
-      /* restore original paths in case per-core organization is enabled */
-      if (settings->sort_savefiles_enable && orig_savefile_dir[0] != '\0')
-	     strlcpy(global->savefile_dir,orig_savefile_dir,sizeof(global->savefile_dir));
-      if (settings->sort_savestates_enable && orig_savestate_dir[0] != '\0')
-	     strlcpy(global->savestate_dir,orig_savestate_dir,sizeof(global->savestate_dir));
-
-      /* Save last core-specific config to the default config location,
-       * needed on consoles for core switching and reusing last good 
-       * config for new cores.
-       */
-      config_save_file(global->config_path);
-
-      /* Flush out the core specific config. */
-      if (*global->core_specific_config_path &&
-            settings->core_specific_config)
-         config_save_file(global->core_specific_config_path);
+      if (settings_touched && *global->config_path)
+         config_save_file(global->config_path);
+      if (game_settings_touched)
+         game_config_file_save();
+      if (global->system.core_options)
+      {
+         if (options_touched)
+            core_option_flush(global->system.core_options);
+         core_option_free(global->system.core_options);
+         global->system.core_options = NULL;
+      }
    }
 
    event_command(EVENT_CMD_AUTOSAVE_STATE);
@@ -131,8 +126,6 @@ static void check_defaults_dirs(void)
       path_mkdir(g_defaults.video_filter_dir);
    if (*g_defaults.assets_dir)
       path_mkdir(g_defaults.assets_dir);
-   if (*g_defaults.playlist_dir)
-      path_mkdir(g_defaults.playlist_dir);
    if (*g_defaults.core_dir)
       path_mkdir(g_defaults.core_dir);
    if (*g_defaults.core_info_dir)
@@ -153,8 +146,6 @@ static void check_defaults_dirs(void)
       path_mkdir(g_defaults.resampler_dir);
    if (*g_defaults.menu_config_dir)
       path_mkdir(g_defaults.menu_config_dir);
-   if (*g_defaults.content_history_dir)
-      path_mkdir(g_defaults.content_history_dir);
    if (*g_defaults.extraction_dir)
       path_mkdir(g_defaults.extraction_dir);
    if (*g_defaults.database_dir)
@@ -163,34 +154,6 @@ static void check_defaults_dirs(void)
       path_mkdir(g_defaults.cursor_dir);
    if (*g_defaults.cheats_dir)
       path_mkdir(g_defaults.cheats_dir);
-}
-
-static void history_playlist_push(content_playlist_t *playlist,
-      const char *path, const char *core_path,
-      struct retro_system_info *info)
-{
-   char tmp[PATH_MAX_LENGTH] = {0};
-   global_t        *global   = global_get_ptr();
-
-   if (!playlist || global->libretro_dummy || !info)
-      return;
-
-   /* Path can be relative here.
-    * Ensure we're pushing absolute path. */
-
-   strlcpy(tmp, path, sizeof(tmp));
-
-   if (*tmp)
-      path_resolve_realpath(tmp, sizeof(tmp));
-
-   if (global->system.no_content || *tmp)
-      content_playlist_push(playlist,
-            *tmp ? tmp : NULL,
-            NULL,
-            core_path,
-            info->library_name,
-            NULL,
-            NULL);
 }
 
 /**
@@ -306,20 +269,7 @@ int rarch_main(int argc, char *argv[], void *data)
          return ret;
    }
 
-   event_command(EVENT_CMD_HISTORY_INIT);
-
    settings = config_get_ptr();
-
-   if (settings->history_list_enable)
-   {
-      global_t *global = global_get_ptr();
-
-      if (global->content_is_init || global->system.no_content)
-         history_playlist_push(g_defaults.history,
-               global->fullpath,
-               settings->libretro,
-               &global->system.info);
-   }
 
    if (driver)
       driver->ui_companion = (ui_companion_driver_t*)ui_companion_init_first();

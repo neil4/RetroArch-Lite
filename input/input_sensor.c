@@ -15,7 +15,7 @@
  */
 
 #include "input_sensor.h"
-#include "../driver.h"
+#include "../configuration.h"
 
 /**
  * input_sensor_set_state:

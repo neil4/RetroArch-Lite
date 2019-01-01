@@ -18,7 +18,7 @@
 * Should be its own file as it has lots of X11 stuff baked into it as well.
 */
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../runloop.h"
 #include "../drivers/gl_common.h"
 #include "../video_monitor.h"

@@ -17,7 +17,7 @@
 #include "config.h"
 #endif
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../general.h"
 #include <stdlib.h>
 

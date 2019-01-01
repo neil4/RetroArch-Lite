@@ -42,7 +42,6 @@ typedef int ssize_t;
 #endif
 
 #define mkdir(dirname, unused) _mkdir(dirname)
-#define snprintf _snprintf
 #define strtoull _strtoui64
 #undef strcasecmp
 #define strcasecmp _stricmp

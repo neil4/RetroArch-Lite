@@ -396,6 +396,11 @@ unsigned rarch_get_cpu_cores(void)
 #endif
 }
 
+/* According to http://en.wikipedia.org/wiki/CPUID */
+#define VENDOR_INTEL_b  0x756e6547
+#define VENDOR_INTEL_c  0x6c65746e
+#define VENDOR_INTEL_d  0x49656e69
+
 /**
  * rarch_get_cpu_features:
  *
@@ -409,7 +414,11 @@ uint64_t rarch_get_cpu_features(void)
    uint64_t cpu = 0;
    const unsigned MAX_FEATURES = \
          sizeof(" MMX MMXEXT SSE SSE2 SSE3 SSSE3 SS4 SSE4.2 AES AVX AVX2 NEON VMX VMX128 VFPU PS");
+#if defined(WIN32)
+   char buf[256U];
+#else
    char buf[MAX_FEATURES];
+#endif
 
    memset(buf, 0, MAX_FEATURES);
    
@@ -422,6 +431,12 @@ uint64_t rarch_get_cpu_features(void)
    const int vendor_shuffle[3] = { flags[1], flags[3], flags[2] };
    memcpy(vendor, vendor_shuffle, sizeof(vendor_shuffle));
    RARCH_LOG("[CPUID]: Vendor: %s\n", vendor);
+   
+   int vendor_is_intel = 0;
+   vendor_is_intel = (
+         flags[1] == VENDOR_INTEL_b &&
+         flags[2] == VENDOR_INTEL_c &&
+         flags[3] == VENDOR_INTEL_d);
 
    unsigned max_flag = flags[0];
    if (max_flag < 1) /* Does CPUID not support func = 1? (unlikely ...) */
@@ -453,6 +468,12 @@ uint64_t rarch_get_cpu_features(void)
 
    if (flags[2] & (1 << 20))
       cpu |= RETRO_SIMD_SSE42;
+   
+   if ((flags[2] & (1 << 23)))
+      cpu |= RETRO_SIMD_POPCNT;
+
+   if (vendor_is_intel && (flags[2] & (1 << 22)))
+      cpu |= RETRO_SIMD_MOVBE;
 
    if (flags[2] & (1 << 25))
       cpu |= RETRO_SIMD_AES;
@@ -551,4 +572,34 @@ void rarch_perf_stop(struct retro_perf_counter *perf)
       return;
 
    perf->total += rarch_get_perf_counter() - perf->start;
+}
+
+void rarch_get_memory_use_megabytes(unsigned int* total, unsigned int* used)
+{
+   *total = 0;
+   *used = 0;
+#if defined(__linux__) || (defined(BSD) && !defined(__MACH__))
+   char line[256];
+   size_t freemem  = 0;
+   size_t buffers  = 0;
+   size_t cached   = 0;
+   FILE* data = fopen("/proc/meminfo", "r");
+   if (!data)
+      return;
+
+   while (fgets(line, sizeof(line), data))
+   {
+      if (sscanf(line, "MemTotal: %u kB", (unsigned int*)total)  == 1)
+         *total   /= 1024;
+      if (sscanf(line, "MemFree: %u kB", (unsigned int*)&freemem) == 1)
+         freemem /= 1024;
+      if (sscanf(line, "Buffers: %u kB", (unsigned int*)&buffers) == 1)
+         buffers /= 1024;
+      if (sscanf(line, "Cached: %u kB", (unsigned int*)&cached)   == 1)
+         cached  /= 1024;
+   }
+
+   fclose(data);
+   *used = *total - freemem - buffers - cached;
+#endif
 }

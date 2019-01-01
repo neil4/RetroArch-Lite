@@ -29,7 +29,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../runloop.h"
 #include "../../configuration.h"
 #include "../video_context_driver.h"

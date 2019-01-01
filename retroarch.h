@@ -117,13 +117,11 @@ void rarch_main_deinit(void);
 bool rarch_replace_config(const char *path);
 
 /**
- * rarch_playlist_load_content:
- * @playlist             : Playlist handle.
- * @idx                  : Index in playlist.
- *
- * Initializes core and loads content based on playlist entry.
- **/
-void rarch_playlist_load_content(void *data, unsigned index);
+ * rarch_update_config
+ * 
+ * Called between unloading/loading cores to save/load core- or game-specific settings.
+ */
+void rarch_update_config();
 
 /**
  * rarch_defer_core:
@@ -168,12 +166,20 @@ void rarch_init_system_av_info(void);
 
 void rarch_set_paths(const char *path);
 
-void set_paths_redirect(const char *path);
+/**
+ * set_paths_redirect:
+ * 
+ * Set default remap, save, and state directories.
+ * Create core-specific savefile and savestate subdirectories.
+ */
+void set_paths_redirect();
 
 int rarch_info_get_capabilities(enum rarch_capabilities type, char *s, size_t len);
 
-char orig_savestate_dir[PATH_MAX_LENGTH];
-char orig_savefile_dir[PATH_MAX_LENGTH];
+/* Savestate path when sort_savestates_enable is true */
+char core_savestate_dir[PATH_MAX_LENGTH];
+/* Savefile path when sort_savefiles_enable is true */
+char core_savefile_dir[PATH_MAX_LENGTH];
 
 #ifdef __cplusplus
 }

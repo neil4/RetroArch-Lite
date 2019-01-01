@@ -14,7 +14,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../general.h"
 #include "../../runloop.h"
 #include "../video_monitor.h"
@@ -147,6 +147,7 @@ static bool android_gfx_ctx_init(void *data)
       EGL_GREEN_SIZE, 8,
       EGL_RED_SIZE, 8,
       EGL_ALPHA_SIZE, 8,
+      EGL_DEPTH_SIZE, 16,
       EGL_NONE
    };
    driver_t *driver = driver_get_ptr();
@@ -165,6 +166,7 @@ static bool android_gfx_ctx_init(void *data)
    RARCH_LOG("Android EGL: GLES version = %d.\n", g_es3 ? 3 : 2);
 
    android->g_egl_dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+   android->g_use_hw_ctx = ((gl_t*)data)->shared_context_use;
 
    if (!android->g_egl_dpy)
    {
@@ -196,6 +198,7 @@ static bool android_gfx_ctx_init(void *data)
 
    android->g_egl_ctx = eglCreateContext(android->g_egl_dpy,
          android->g_egl_config, EGL_NO_CONTEXT, context_attributes);
+   RARCH_LOG("[Android/EGL]: EGL context: %p.\n", (void*)android->g_egl_ctx);
 
    if (android->g_egl_ctx == EGL_NO_CONTEXT)
       goto error;
@@ -435,7 +438,7 @@ static void dpi_get_density(char *s, size_t len)
 }
 
 static bool android_gfx_ctx_get_metrics(void *data,
-	enum display_metric_types type, float *value)
+enum display_metric_types type, float *value)
 {
    int dpi;
    char density[PROP_VALUE_MAX] = {0};

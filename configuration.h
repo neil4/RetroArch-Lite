@@ -31,6 +31,25 @@ extern "C" {
 
 /* All config related settings go here. */
 
+enum setting_scope
+{
+   GLOBAL = 0,
+   CORE_SPECIFIC,
+   THIS_CONTENT_ONLY,
+   NUM_SETTING_SCOPES
+};
+
+struct scope_elem
+{
+   char name[18];
+   float value;
+};
+
+extern struct scope_elem scope_lut[NUM_SETTING_SCOPES];
+
+extern bool settings_touched;
+extern bool game_settings_touched;
+
 typedef struct settings
 {
    struct
@@ -44,11 +63,14 @@ typedef struct settings
       unsigned fullscreen_x;
       unsigned fullscreen_y;
       bool vsync;
+      unsigned vsync_scope;
       bool hard_sync;
+      unsigned hard_sync_scope;
       bool black_frame_insertion;
       unsigned swap_interval;
       unsigned hard_sync_frames;
       unsigned frame_delay;
+      unsigned frame_delay_scope;
 #ifdef GEKKO
       unsigned viwidth;
       bool vfilter;
@@ -60,14 +82,17 @@ typedef struct settings
       bool aspect_ratio_auto;
       bool scale_integer;
       unsigned aspect_ratio_idx;
+      unsigned aspect_ratio_idx_scope;
       unsigned rotation;
+      unsigned rotation_scope;
 
       char shader_path[PATH_MAX_LENGTH];
-      bool shader_enable;
 
       char softfilter_plugin[PATH_MAX_LENGTH];
+      unsigned filter_shader_scope;
       float refresh_rate;
       bool threaded;
+      unsigned threaded_scope;
 
       char filter_dir[PATH_MAX_LENGTH];
       char shader_dir[PATH_MAX_LENGTH];
@@ -89,6 +114,7 @@ typedef struct settings
 
       bool allow_rotate;
       bool shared_context;
+      unsigned shared_context_scope;
       bool force_srgb_disable;
    } video;
 
@@ -130,7 +156,6 @@ typedef struct settings
       {
          struct
          {
-            bool horizontal_enable;
             bool vertical_enable;
          } wraparound;
          struct
@@ -148,17 +173,27 @@ typedef struct settings
          unsigned override_value;
       } dpi;
 
-      bool collapse_subgroups_enable;
       bool show_advanced_settings;
-#ifdef HAVE_THREADS
-      bool threaded_data_runloop_enable;
-#endif
 
       unsigned entry_normal_color;
       unsigned entry_hover_color;
       unsigned title_color;
-   } menu;
+      
+      bool mame_titles;
+#ifdef HAVE_OVERLAY
+      bool show_overlay_menu;
 #endif
+      bool show_frame_throttle_menu;
+      bool show_netplay_menu;
+      bool show_saving_menu;
+      bool show_hotkey_menu;
+      bool show_rewind_menu;
+      bool show_cheat_options;
+#ifndef SINGLE_CORE
+      bool show_core_updater;
+#endif
+   } menu;
+#endif // #ifdef HAVE_MENU
 
    struct
    {
@@ -187,6 +222,7 @@ typedef struct settings
       char device[PATH_MAX_LENGTH];
       unsigned latency;
       bool sync;
+      unsigned sync_scope;
 
       char dsp_plugin[PATH_MAX_LENGTH];
       char filter_dir[PATH_MAX_LENGTH];
@@ -198,7 +234,7 @@ typedef struct settings
       char resampler[32];
    } audio;
 
-   struct
+   struct input_struct
    {
       char driver[32];
       char joypad_driver[32];
@@ -209,6 +245,7 @@ typedef struct settings
       struct retro_keybind autoconf_binds[MAX_USERS][RARCH_BIND_LIST_END];
 
       unsigned max_users;
+      unsigned max_users_scope;
 
       /* Set by autoconfiguration in joypad_autoconfig_dir.
        * Does not override main binds. */
@@ -216,11 +253,11 @@ typedef struct settings
 
       unsigned libretro_device[MAX_USERS];
       unsigned analog_dpad_mode[MAX_USERS];
+      unsigned libretro_device_scope;
 
       bool remap_binds_enable;
       float axis_threshold;
       unsigned joypad_map[MAX_USERS];
-      unsigned device[MAX_USERS];
       char device_names[MAX_USERS][64];
       bool autodetect_enable;
       bool netplay_client_swap_input;
@@ -230,8 +267,24 @@ typedef struct settings
 
       bool overlay_enable;
       char overlay[PATH_MAX_LENGTH];
+      unsigned overlay_scope;
       float overlay_opacity;
+      unsigned overlay_opacity_scope;
       float overlay_scale;
+      bool overlay_adjust_aspect;
+      uint32_t overlay_aspect_ratio_index;
+      float overlay_bisect_aspect_ratio;
+      float overlay_adjust_vertical;
+      bool overlay_adjust_vertical_lock_edges;
+      unsigned overlay_adjust_vert_horiz_scope;
+      
+      float dpad_diagonal_sensitivity;  // diagonal-to-normal ratio (percentage)
+      float abxy_overlap;  // same as dpad_diagonal_sensitivity
+      float abxy_ellipse_magnify;  // hack for inaccurate touch areas
+      float abxy_ellipse_multitouch_boost;  // hack for touch area shrink on multitouch
+      unsigned abxy_method;
+      unsigned dpad_abxy_diag_sens_scope;
+      uint32_t vibrate_time;
 
       char autoconfig_dir[PATH_MAX_LENGTH];
       bool autoconfig_descriptor_label_show;
@@ -267,19 +320,12 @@ typedef struct settings
    } core;
 
    int state_slot;
-
-   char core_options_path[PATH_MAX_LENGTH];
-   char content_history_path[PATH_MAX_LENGTH];
-   char content_history_directory[PATH_MAX_LENGTH];
-   unsigned content_history_size;
-
+   
    char libretro[PATH_MAX_LENGTH];
    char libretro_directory[PATH_MAX_LENGTH];
    unsigned libretro_log_level;
    char libretro_info_path[PATH_MAX_LENGTH];
-   char content_database[PATH_MAX_LENGTH];
    char cheat_database[PATH_MAX_LENGTH];
-   char cursor_directory[PATH_MAX_LENGTH];
    char cheat_settings_path[PATH_MAX_LENGTH];
    char input_remapping_directory[PATH_MAX_LENGTH];
 
@@ -288,9 +334,7 @@ typedef struct settings
    char system_directory[PATH_MAX_LENGTH];
 
    char extraction_directory[PATH_MAX_LENGTH];
-   char playlist_directory[PATH_MAX_LENGTH];
 
-   bool history_list_enable;
    bool rewind_enable;
    size_t rewind_buffer_size;
    unsigned rewind_granularity;
@@ -298,6 +342,8 @@ typedef struct settings
    float slowmotion_ratio;
    float fastforward_ratio;
    bool fastforward_ratio_throttle_enable;
+   unsigned throttle_setting_scope;
+   bool throttle_using_core_fps;
 
    bool pause_nonactive;
    unsigned autosave_interval;
@@ -318,13 +364,12 @@ typedef struct settings
    char menu_config_directory[PATH_MAX_LENGTH];
 #if defined(HAVE_MENU)
    char menu_content_directory[PATH_MAX_LENGTH];
+   char core_content_directory[PATH_MAX_LENGTH];
    bool menu_show_start_screen;
 #endif
    bool fps_show;
    bool load_dummy_on_core_shutdown;
 
-   bool core_specific_config;
-   bool auto_overrides_enable;
    bool auto_remaps_enable;
 
    bool sort_savefiles_enable;
@@ -430,6 +475,13 @@ const char *config_get_default_menu(void);
 const char *config_get_default_record(void);
 
 /**
+ * update_libretro_name
+ * 
+ * Updates global->libretro_name to sanitized lib basename
+ */
+void update_libretro_name(void);
+
+/**
  * config_load:
  *
  * Loads a config file and reads all the values into memory.
@@ -438,36 +490,11 @@ const char *config_get_default_record(void);
 void config_load(void);
 
 /**
- * config_load_override:
- *
- * Tries to append game-specific and core-specific configuration.
- * These settings will always have precedence, thus this feature
- * can be used to enforce overrides.
- *
- * Returns: false if there was an error or no action was performed.
- *
+ * game_config_file_save
+ * @returns 0  
  */
-bool config_load_override(void);
-
-/**
- * config_unload_override:
- *
- * Unloads configuration overrides if overrides are active.
- *
- *
- * Returns: false if there was an error.
- */
-bool config_unload_override(void);
-
-/**
- * config_load_remap:
- *
- * Tries to append game-specific and core-specific remap files.
- *
- * Returns: false if there was an error or no action was performed.
- *
- */
-bool config_load_remap(void);
+int game_config_file_save();
+int game_config_file_load_auto();
 
 /**
  * config_save_keybinds_file:

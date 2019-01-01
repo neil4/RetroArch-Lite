@@ -896,4 +896,5 @@ input_driver_t input_udev = {
    udev_input_get_joypad_driver,
    udev_input_keyboard_mapping_is_blocked,
    udev_input_keyboard_mapping_set_block,
+   NULL // haptic_feedback
 };

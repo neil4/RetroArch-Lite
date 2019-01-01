@@ -23,7 +23,11 @@ extern "C" {
 
 #include <file/config_file.h>
 #include <stdint.h>
-#include "../driver.h"
+#include "../configuration.h"
+#include "../general.h"
+   
+#define DECLARE_BIND(x, bind, desc) { true, 0, #x, desc, bind }
+#define DECLARE_META_BIND(level, x, bind, desc) { true, level, #x, desc, bind }
 
 /* Input config. */
 struct input_bind_map

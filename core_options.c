@@ -15,12 +15,16 @@
  */
 
 #include "core_options.h"
+#include "general.h"
 #include <string.h>
 #include <file/config_file.h>
 #include <file/dir_list.h>
+#include "dir_list_special.h"
 #include <compat/posix_string.h>
 #include <compat/strl.h>
 #include <retro_miscellaneous.h>
+
+bool options_touched = false;
 
 struct core_option
 {
@@ -218,6 +222,9 @@ bool core_option_updated(core_option_manager_t *opt)
  **/
 bool core_option_flush(core_option_manager_t *opt)
 {
+   if ( !options_touched )
+      return true;
+   
    size_t i;
 
    for (i = 0; i < opt->size; i++)
@@ -363,4 +370,58 @@ void core_option_set_default(core_option_manager_t *opt, size_t idx)
 
    opt->opts[idx].index = 0;
    opt->updated         = true;
+}
+
+char* core_option_conf_path(core_option_manager_t *opt)
+{
+   return opt->conf_path;
+}
+
+void core_option_get_core_conf_path(char *path)
+{
+   settings_t *settings            = config_get_ptr();
+   global_t *global                = global_get_ptr();  
+   const char *core_name           = global ? global->libretro_name
+                                              : NULL;
+   char directory[PATH_MAX_LENGTH] = {0};
+   
+   if (!settings || !*core_name)
+      return;
+   
+   fill_pathname_join(directory, settings->menu_config_directory,
+                      core_name, PATH_MAX_LENGTH);
+   fill_pathname_join(path, directory,
+                      core_name, PATH_MAX_LENGTH);
+   strlcat(path, ".opt", PATH_MAX_LENGTH);
+
+   if(!path_file_exists(directory))
+      path_mkdir(directory);
+}
+
+bool core_option_get_game_conf_path(char *path)
+{
+   char directory[PATH_MAX_LENGTH] = {0};
+   char abs_path[PATH_MAX_LENGTH]  = {0};
+   global_t *global                = global_get_ptr();
+   settings_t *settings            = config_get_ptr();
+   const char *core_name           = global ? global->libretro_name
+                                              : NULL;
+   const char *game_name           = global ? path_basename(global->basename)
+                                              : NULL;
+   
+   if (!global || !settings)
+      return false;
+
+   fill_pathname_join(directory, settings->menu_config_directory,
+                      core_name, PATH_MAX_LENGTH);
+   fill_pathname_join(abs_path, directory, game_name, PATH_MAX_LENGTH);
+   strlcat(abs_path, ".opt", PATH_MAX_LENGTH);
+   
+   if (path_file_exists(abs_path))
+   {
+      strlcpy(path, abs_path, PATH_MAX_LENGTH);
+      return true;
+   }
+   
+   return false;
 }

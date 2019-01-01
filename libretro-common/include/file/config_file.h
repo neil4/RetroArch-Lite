@@ -161,6 +161,8 @@ bool config_file_write(config_file_t *conf, const char *path);
  * Does not close the file. */
 void config_file_dump(config_file_t *conf, FILE *file);
 
+void config_remove_entry(config_file_t *conf, const char *entry);
+
 #ifdef __cplusplus
 }
 #endif

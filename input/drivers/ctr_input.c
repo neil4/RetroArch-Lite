@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <boolean.h>
 
-#include "../../driver.h"
+#include "../../configuration.h"
 #include "../../libretro.h"
 #include "../../general.h"
 #include "../input_common.h"
@@ -155,4 +155,5 @@ input_driver_t input_ctr = {
    ctr_input_get_joypad_driver,
    ctr_input_keyboard_mapping_is_blocked,
    ctr_input_keyboard_mapping_set_block,
+   NULL // haptic_feedback
 };

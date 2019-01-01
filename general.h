@@ -24,8 +24,6 @@
 #include <retro_inline.h>
 #include <retro_miscellaneous.h>
 #include "configuration.h"
-#include "driver.h"
-#include "playlist.h"
 #include "runloop.h"
 
 #ifdef HAVE_CONFIG_H
@@ -33,7 +31,7 @@
 #endif
 
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "1.2"
+#define PACKAGE_VERSION "1.0"
 #endif
 
 /* Platform-specific headers */
@@ -89,8 +87,6 @@ struct defaults
    char sram_dir[PATH_MAX_LENGTH];
    char screenshot_dir[PATH_MAX_LENGTH];
    char system_dir[PATH_MAX_LENGTH];
-   char playlist_dir[PATH_MAX_LENGTH];
-   char content_history_dir[PATH_MAX_LENGTH];
    char extraction_dir[PATH_MAX_LENGTH];
    char database_dir[PATH_MAX_LENGTH];
    char cursor_dir[PATH_MAX_LENGTH];
@@ -102,8 +98,6 @@ struct defaults
       float video_refresh_rate;
       bool video_threaded_enable;
    } settings; 
-
-   content_playlist_t *history;
 };
 
 /* Public data structures. */

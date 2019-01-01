@@ -162,7 +162,6 @@ static int action_iterate_help(char *s, size_t len, const char *label)
       RARCH_MENU_TOGGLE,
       RARCH_QUIT_KEY,
       RETRO_DEVICE_ID_JOYPAD_X,
-      RETRO_DEVICE_ID_JOYPAD_Y,
    };
    char desc[ARRAY_SIZE(binds)][64] = {{0}};
    settings_t *settings             = config_get_ptr();
@@ -180,7 +179,7 @@ static int action_iterate_help(char *s, size_t len, const char *label)
    }
 
    snprintf(s, len,
-         "-- Welcome to RetroArch --\n"
+         "-- Welcome to RetroArch Lite --\n"
          " \n" // strtok_r doesn't split empty strings.
 
          "Basic Menu controls:\n"
@@ -191,19 +190,18 @@ static int action_iterate_help(char *s, size_t len, const char *label)
          "           Info: %-20s\n"
          "Enter/Exit Menu: %-20s\n"
          " Exit RetroArch: %-20s\n"
-         "Toggle Keyboard: %-20s\n"
          " \n"
 
          "To run content:\n"
-         "Load a libretro core (Core).\n"
-         "Load a content file (Load Content).     \n"
+         "Load a libretro core (Load Core).\n"
+         "Load a content file (Load ROM).     \n"
          " \n"
          "See Path Settings to set directories \n"
          "for faster access to files.\n"
          " \n"
 
          "Press Accept/OK to continue.",
-      desc[0], desc[1], desc[2], desc[3], desc[4], desc[5], desc[6], desc[7]);
+      desc[0], desc[1], desc[2], desc[3], desc[4], desc[5], desc[6]);
 
    return 0;
 }
@@ -373,11 +371,28 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          }
          break;
 
-      case MENU_ACTION_START:
+      case MENU_ACTION_START:  // reset to default aspect
          if (!settings->video.scale_integer)
          {
             video_viewport_t vp;
             video_driver_viewport_info(&vp);
+            float default_aspect = aspectratio_lut[ASPECT_RATIO_CORE].value;
+
+            custom->width   = vp.full_height * default_aspect;
+            custom->height  = vp.full_height;
+            custom->x       = (vp.full_width - custom->width) / 2;
+            custom->y       = 0;
+            
+            event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
+         }
+         break;
+         
+   case MENU_ACTION_L:  // min left point or default right point
+      if (!settings->video.scale_integer)
+         {
+            video_viewport_t vp;
+            video_driver_viewport_info(&vp);
+            float default_aspect = aspectratio_lut[ASPECT_RATIO_CORE].value;
 
             if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
             {
@@ -385,6 +400,32 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
                custom->height += custom->y;
                custom->x       = 0;
                custom->y       = 0;
+            }
+            else
+            {
+               custom->width   = vp.full_height * default_aspect;
+               custom->height  = vp.full_height;
+            }
+
+            event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
+         }
+         break;
+
+      case MENU_ACTION_R:  // max right point or default left point
+         if (!settings->video.scale_integer)
+         {
+            video_viewport_t vp;
+            video_driver_viewport_info(&vp);
+            float default_aspect = aspectratio_lut[ASPECT_RATIO_CORE].value;
+            int custom_width = vp.full_height * default_aspect;
+            int current_right_x = custom->x + custom->width;
+
+            if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
+            {
+               custom->height  = vp.full_height;
+               custom->x       = (vp.full_width - custom_width) / 2;
+               custom->y       = 0;
+               custom->width   = current_right_x - custom->x;
             }
             else
             {
@@ -518,7 +559,7 @@ static int action_iterate_main(const char *label, unsigned action)
          do_post_iterate = true;
          break;
       case ITERATE_TYPE_BIND:
-         if (menu_input_bind_iterate())
+         if (menu_input_bind_iterate(hash))
             menu_list_pop_stack(menu_list);
          break;
       case ITERATE_TYPE_VIEWPORT:
@@ -542,7 +583,11 @@ static int action_iterate_main(const char *label, unsigned action)
          break;
       case ITERATE_TYPE_DEFAULT:
          selected = menu_navigation_get_current_selection();
-         /* FIXME: selected > selection_buf->list->size, i don't know why. */
+         /* FIXME: Crappy hack, needed for mouse controls
+          * to not be completely broken in case we press back.
+          *
+          * We need to fix this entire mess, mouse controls
+          * should not rely on a hack like this in order to work. */
          selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
 
          menu_entry_get(&entry,    selected, NULL, false);
