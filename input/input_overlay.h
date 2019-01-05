@@ -292,11 +292,13 @@ typedef struct input_overlay_state
 {
    /* This is a bitmask of (1 << key_bind_id). */
    uint64_t buttons;
-   /* Bitmask for lightgun buttons */
-   uint16_t lightgun_buttons;
    /* Left X, Left Y, Right X, Right Y */
    int16_t analog[4]; 
 
+   uint16_t lightgun_buttons;
+   uint16_t lightgun_x, lightgun_y;
+   bool lightgun_autotrigger;
+   
    uint32_t keys[RETROK_LAST / 32 + 1];
 } input_overlay_state_t;
 
@@ -436,31 +438,10 @@ void input_overlay_next(input_overlay_t *ol, float opacity);
  **/
 void populate_8way_vals();
 
+/* Repurpose lightgun id values unusable as state bits */
+#define RARCH_LIGHTGUN_BIT_RELOAD RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN
+
 bool input_overlay_lightgun_active();
-
-/**
- * input_overlay_lightgun_x
- * 
- * Returns current x coordinate for touchscreen lightgun. Range [-0x7fff,0x7fff]
- */
-int16_t input_overlay_lightgun_x();
-void input_overlay_lightgun_set_x(int16_t x);
-
-/**
- * input_overlay_lightgun_y
- * 
- * Returns current y coordinate for touchscreen lightgun. Range [-0x7fff,0x7fff]
- */
-int16_t input_overlay_lightgun_y();
-void input_overlay_lightgun_set_y(int16_t y);
-
-/**
- * input_overlay_lightgun_autotrigger
- * 
- * Returns true if lightgun pointer is pressed
- */
-bool input_overlay_lightgun_autotrigger();
-void input_overlay_lightgun_set_autotrigger(bool trigger);
 
 #ifdef __cplusplus
 }

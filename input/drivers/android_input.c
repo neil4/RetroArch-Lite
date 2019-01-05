@@ -657,7 +657,7 @@ static INLINE void android_input_poll_event_type_key(
 
    if ((keycode == AKEYCODE_VOLUME_UP || keycode == AKEYCODE_VOLUME_DOWN))
       *handled = 0;
-   else if (keycode == AKEYCODE_BACK || keycode == AKEYCODE_MENU)
+   else if (keycode == AKEYCODE_BACK)
    {
       if (action == AKEY_EVENT_ACTION_DOWN)
          global->lifecycle_state |= (1ULL << RARCH_MENU_TOGGLE);
@@ -1046,13 +1046,13 @@ static int16_t android_input_state(void *data,
             case RETRO_DEVICE_ID_LIGHTGUN_X:
                // todo: should be relative! (should also be obsolete)
             case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
-               return input_overlay_lightgun_x();
+               return driver->overlay_state.lightgun_x;
             case RETRO_DEVICE_ID_LIGHTGUN_Y:
             case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
-               return input_overlay_lightgun_y();
+               return driver->overlay_state.lightgun_y;
             case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
-               if (global->overlay_lightgun_autotrigger)
-                  return input_overlay_lightgun_autotrigger();
+               if (global->overlay_lightgun_use_autotrigger)
+                  return (driver->overlay_state.lightgun_autotrigger);
             case RETRO_DEVICE_ID_LIGHTGUN_CURSOR:
             case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
             case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
@@ -1065,7 +1065,7 @@ static int16_t android_input_state(void *data,
                return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
             case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
                return (driver->overlay_state.lightgun_buttons
-                       & (1<<RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN)) != 0;       
+                       & (1<<RARCH_LIGHTGUN_BIT_RELOAD)) != 0;       
             default:
                return 0;
          }

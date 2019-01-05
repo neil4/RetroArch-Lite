@@ -62,16 +62,7 @@ enum
    RARCH_HIGHLEVEL_END_NULL
 };
 
-typedef struct lightgun_data
-{
-   bool     active;
-   int16_t  x;
-   int16_t  y;
-   bool     autotrigger;
-   bool     offscreen;
-} lightgun_data_t;
-
-static lightgun_data_t lightgun;
+static bool lightgun_active;
 
 typedef struct overlay_adjust_data
 {
@@ -1525,7 +1516,7 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
    
    uint64_t mask = desc_ptr->highlevel_mask;
    
-   if ( lightgun.active )
+   if ( lightgun_active )
    {
       switch (mask & lightgun_mask)
       {  // expected cases
@@ -1581,8 +1572,7 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
          out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_TRIGGER);
          break;
       case (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD):
-         // Uh oh... RETRO_DEVICE_ID_LIGHTGUN_RELOAD is one bitshift too many
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN);
+         out->lightgun_buttons |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
          break;
       default:  // overlapping buttons
          if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A) )
@@ -1742,7 +1732,10 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
          translate_highlevel_mask(desc, out, x, y);
 
          if (mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
+         {
             ol->next_index = desc->next_index;
+            ol->blocked = true;
+         }
       }
       else if (desc->type == OVERLAY_TYPE_KEYBOARD)
       {
@@ -1904,11 +1897,11 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    struct retro_controller_info rci;
    
    // disconnect any connected lightgun
-   if (lightgun.active)
+   if (lightgun_active)
    {
       pretro_set_controller_port_device
          (old_port, settings->input.libretro_device[old_port]);
-      lightgun.active = false;
+      lightgun_active = false;
    }
    
    if (ol->active->lightgun_overlay)
@@ -1919,13 +1912,13 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
          if ((RETRO_DEVICE_MASK & settings->input.libretro_device[port])
              == RETRO_DEVICE_LIGHTGUN)
          {
-            lightgun.active = true;
+            lightgun_active = true;
             break;
          }
       }
       
       // If already connected, just get the device name
-      if (lightgun.active)
+      if (lightgun_active)
       {
          rci = global->system.ports[port];
          for (i = 0; i < rci.num_types; i++)
@@ -1940,15 +1933,15 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
             if ((RETRO_DEVICE_MASK & rci.types[i].id) == RETRO_DEVICE_LIGHTGUN)
             {
                pretro_set_controller_port_device(port, rci.types[i].id);
-               lightgun.active = true;
+               lightgun_active = true;
                break;
             }
          }
-         if (lightgun.active) break;
+         if (lightgun_active) break;
       }
    }
    
-   if (lightgun.active)
+   if (lightgun_active)
    {
       old_port = port;
       
@@ -1957,13 +1950,13 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
       rarch_main_msg_queue_push(msg, 2, 180, true);
       
       // Set autotrigger if no trigger descriptor found
-      global->overlay_lightgun_autotrigger = true;
+      global->overlay_lightgun_use_autotrigger = true;
       for (i = 0; i < ol->active->size; i++)
       {
          if (ol->active->descs[i].highlevel_mask
              & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER))
          {
-            global->overlay_lightgun_autotrigger = false;
+            global->overlay_lightgun_use_autotrigger = false;
             break;
          }
       }
@@ -2052,34 +2045,5 @@ void input_overlay_set_alpha_mod(input_overlay_t *ol, float mod)
 
 bool input_overlay_lightgun_active()
 {
-   return lightgun.active;
+   return lightgun_active;
 }
-
-int16_t input_overlay_lightgun_x()
-{
-   return lightgun.x;
-}
-void input_overlay_lightgun_set_x(int16_t x)
-{
-   lightgun.x = x;
-}
-
-int16_t input_overlay_lightgun_y()
-{
-   return lightgun.y;
-}
-void input_overlay_lightgun_set_y(int16_t y)
-{
-   lightgun.y = y;
-}
-
-bool input_overlay_lightgun_autotrigger()
-{
-   return lightgun.autotrigger;
-}
-
-void input_overlay_lightgun_set_autotrigger(bool trigger)
-{
-   lightgun.autotrigger = trigger;
-}
-

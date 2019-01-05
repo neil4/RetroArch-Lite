@@ -349,7 +349,7 @@ public final class InstalledCoresFragment extends ListFragment
    public boolean UpdateCore(int position)
    {
       final String coreFileName = adapter.getItem(position).getUnderlyingFile().getName();
-      final String coreURL = (Build.SUPPORTED_ABIS[0].startsWith("arm") ?
+      final String coreURL = (Build.CPU_ABI.startsWith("arm") ?
                               DownloadableCoresFragment.BUILDBOT_CORE_URL_ARM
                               : DownloadableCoresFragment.BUILDBOT_CORE_URL_INTEL)
                              + coreFileName.concat(".zip");

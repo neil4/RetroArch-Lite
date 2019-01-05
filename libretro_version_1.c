@@ -296,11 +296,14 @@ static INLINE void input_poll_overlay(input_overlay_t *overlay_device, float opa
 
    memcpy(&old_state, &driver->overlay_state, sizeof(old_state));
    memset(&driver->overlay_state, 0, sizeof(driver->overlay_state));
+   if (input_overlay_lightgun_active())
+   {
+      driver->overlay_state.lightgun_x = old_state.lightgun_x;
+      driver->overlay_state.lightgun_y = old_state.lightgun_y;
+   }
 
    device = input_overlay_full_screen(overlay_device) ?
       RARCH_DEVICE_POINTER_SCREEN : RETRO_DEVICE_POINTER;
-
-   input_overlay_lightgun_set_autotrigger(false);
 
    for (i = 0;
          input_driver_state(NULL, 0, device, i, RETRO_DEVICE_ID_POINTER_PRESSED);
@@ -321,15 +324,15 @@ static INLINE void input_poll_overlay(input_overlay_t *overlay_device, float opa
       {
          if (polled_data.lightgun_buttons)
             driver->overlay_state.lightgun_buttons |= polled_data.lightgun_buttons;
-         else
+         else if (!overlay_device->blocked)
          {  // Assume this is the lightgun pointer if all buttons were missed 
-            input_overlay_lightgun_set_x( input_driver_state(NULL, 0,
-                                          RETRO_DEVICE_POINTER, i,
-                                          RETRO_DEVICE_ID_POINTER_X) );
-            input_overlay_lightgun_set_y( input_driver_state(NULL, 0,
-                                          RETRO_DEVICE_POINTER, i,
-                                          RETRO_DEVICE_ID_POINTER_Y) );
-            input_overlay_lightgun_set_autotrigger(true);
+            driver->overlay_state.lightgun_x
+               = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
+                                    RETRO_DEVICE_ID_POINTER_X);
+            driver->overlay_state.lightgun_y
+               = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
+                                    RETRO_DEVICE_ID_POINTER_Y);
+            driver->overlay_state.lightgun_autotrigger = true;
          }
       }
 
@@ -430,9 +433,8 @@ static INLINE void input_poll_overlay(input_overlay_t *overlay_device, float opa
    if ( driver->input->haptic_feedback
         && pointer_count >= prev_pointer_count
         && (old_state.buttons != driver->overlay_state.buttons
-            || old_state.lightgun_buttons
-               != driver->overlay_state.lightgun_buttons)
-        && ! driver->overlay->blocked )
+            || old_state.lightgun_buttons != driver->overlay_state.lightgun_buttons)
+        && !(old_state.buttons & (1ULL << RARCH_OVERLAY_NEXT)) )
    { driver->input->haptic_feedback(); }
    
    prev_pointer_count = pointer_count;

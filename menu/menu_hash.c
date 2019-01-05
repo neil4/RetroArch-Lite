@@ -350,7 +350,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_VALUE_SYSTEM_INFORMATION:
          return "System Information";
       case MENU_LABEL_OPTIONS:
-         return "options";
+         return "core_options";
       case MENU_LABEL_VALUE_OPTIONS:
          return "Core Options";
       case MENU_LABEL_CORE_INFORMATION:

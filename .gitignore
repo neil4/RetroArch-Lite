@@ -72,6 +72,7 @@ apple/RetroArch_iOS.xcodeproj/project.xcworkspace/*
 /android/phoenix/libs/googleplay/local.properties
 /android/phoenix/libs/appcompat/bin
 /android/phoenix/libs/googleplay/bin
+/android/phoenix/private
 /android/phoenix/bin/
 /android/phoenix/gen/
 /android/phoenix/local.properties
@@ -85,6 +86,7 @@ apple/RetroArch_iOS.xcodeproj/project.xcworkspace/*
 /android/phoenix64/libs/googleplay/local.properties
 /android/phoenix64/libs/appcompat/bin
 /android/phoenix64/libs/googleplay/bin
+/android/phoenix64/private
 /android/phoenix64/bin/
 /android/phoenix64/gen/
 /android/phoenix64/local.properties
@@ -101,5 +103,3 @@ apple/iOS/modules/
 
 obj-unix/
 .vagrant/
-/android/phoenix/libs/appcompat/bin/
-/android/phoenix/libs/googleplay/bin/

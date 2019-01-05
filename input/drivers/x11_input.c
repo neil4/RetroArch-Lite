@@ -229,13 +229,13 @@ static int16_t x_lightgun_overlay_state(unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_X:
          // todo: should be relative! (should also be obsolete)
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
-         return input_overlay_lightgun_x();
+         return driver->overlay_state.lightgun_x;
       case RETRO_DEVICE_ID_LIGHTGUN_Y:
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
-         return input_overlay_lightgun_y();
+         return driver->overlay_state.lightgun_y;
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
-         if (global->overlay_lightgun_autotrigger)
-            return input_overlay_lightgun_autotrigger();
+         if (global->overlay_lightgun_use_autotrigger)
+            return (driver->overlay_state.lightgun_autotrigger);
       case RETRO_DEVICE_ID_LIGHTGUN_CURSOR:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
       case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
@@ -248,7 +248,7 @@ static int16_t x_lightgun_overlay_state(unsigned id)
          return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
       case RETRO_DEVICE_ID_LIGHTGUN_RELOAD: // hack
          return (driver->overlay_state.lightgun_buttons
-                 & (1<<RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN)) != 0;
+                 & (1<<RARCH_LIGHTGUN_BIT_RELOAD)) != 0; 
       default:
          return 0;
    }
