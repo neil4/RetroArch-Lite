@@ -151,7 +151,7 @@ static int action_start_shader_preset(unsigned type, const char *label)
       return -1;
 
    settings->video.shader_path[0] = '\0';
-   game_settings_touched = true;
+   scoped_settings_touched = true;
    settings_touched = true;
    event_command(EVENT_CMD_REINIT);
    return 0;
@@ -193,7 +193,7 @@ static int action_start_shader_preset_delete(unsigned type, const char *label)
       if (!strcmp(preset_path, settings->video.shader_path))
       {
          settings->video.shader_path[0] = '\0';
-         game_settings_touched = true;
+         scoped_settings_touched = true;
          settings_touched = true;
          event_command(EVENT_CMD_REINIT);
       }

@@ -425,7 +425,7 @@ void fill_dated_filename(char *out_filename,
 void path_basedir(char *path)
 {
    char *last = NULL;
-   if (strlen(path) < 2)
+   if (!path[0] || !path[1])
       return;
 
 #ifdef HAVE_COMPRESSION
@@ -456,6 +456,38 @@ void path_parent_dir(char *path)
    if (len && path_char_is_slash(path[len - 1]))
       path[len - 1] = '\0';
    path_basedir(path);
+}
+
+/**
+ * path_parent_dir_name
+ * @param buf
+ * @param file_path
+ * 
+ * Writes @file_path's parent directory name to @buf
+ */
+void path_parent_dir_name(char *buf, const char* file_path)
+{
+   char slash_char = path_default_slash()[0];
+   char *slash = strchr(file_path, slash_char);
+   char *start = slash + 1;
+   char *end;
+   
+   if (!slash || !(slash = strchr(slash+1, slash_char)))
+   {
+      *buf = '\0';
+      return;
+   }
+   
+   end = slash;
+
+   while ( (slash = strchr(slash+1, slash_char)) )
+   {
+      start = end + 1;
+      end = slash;
+   }
+   
+   strncpy(buf, start, (end-start)*sizeof(char));
+   buf[end-start] = '\0';
 }
 
 /**

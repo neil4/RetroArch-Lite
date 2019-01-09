@@ -156,6 +156,15 @@ void path_basedir(char *path);
 void path_parent_dir(char *path);
 
 /**
+ * path_parent_dir_name
+ * @param buf
+ * @param file_path
+ * 
+ * Writes name of @file_path's parent directory to @buf
+ */
+void path_parent_dir_name(char *buf, const char* file_path);
+
+/**
  * path_resolve_realpath:
  * @buf                : buffer for path
  * @size               : size of buffer

@@ -63,17 +63,20 @@
 #define CONFIG_GET_STRING_BASE(conf, base, var, key) config_get_array(conf, key, base->var, sizeof(base->var))
 #define CONFIG_GET_PATH_BASE(conf, base, var, key)   config_get_path (conf, key, base->var, sizeof(base->var))
 
+static const char* EXPLICIT_EMPTY = "empty";
+
 static settings_t *g_config = NULL;
 struct defaults g_defaults;
 
 struct scope_elem scope_lut[NUM_SETTING_SCOPES] = {
    { "Global", 0 },
-   { "Core specific", 1 },
-   { "This ROM only", 2}
+   { "This Core", 1 },
+   { "This ROM directory", 2},
+   { "This ROM only", 3}
 };
 
 bool settings_touched = false;
-bool game_settings_touched = false;
+bool scoped_settings_touched = false;
 
 /**
  * config_get_default_audio:
@@ -511,17 +514,12 @@ static void config_set_defaults(void)
    settings->video.fullscreen_y          = fullscreen_y;
    settings->video.disable_composition   = disable_composition;
    settings->video.vsync                 = vsync;
-   settings->video.vsync_scope           = vsync_scope;
    settings->video.hard_sync             = hard_sync;
-   settings->video.hard_sync_scope       = video_hard_sync_scope;
    settings->video.hard_sync_frames      = hard_sync_frames;
    settings->video.frame_delay           = frame_delay;
-   settings->video.frame_delay_scope     = frame_delay_scope;
    settings->video.black_frame_insertion = black_frame_insertion;
    settings->video.swap_interval         = swap_interval;
    settings->video.threaded              = video_threaded;
-   settings->video.threaded_scope        = video_threaded_scope;
-   settings->video.filter_shader_scope   = video_filter_shader_scope;
 
    if (g_defaults.settings.video_threaded_enable != video_threaded)
       settings->video.threaded           = g_defaults.settings.video_threaded_enable;
@@ -539,7 +537,6 @@ static void config_set_defaults(void)
    settings->video.aspect_ratio                = aspect_ratio;
    settings->video.aspect_ratio_auto           = aspect_ratio_auto; /* Let implementation decide if automatic, or 1:1 PAR. */
    settings->video.aspect_ratio_idx            = aspect_ratio_idx;
-   settings->video.aspect_ratio_idx_scope      = CORE_SPECIFIC;
    settings->video.allow_rotate                = allow_rotate;
 
    settings->video.font_enable                 = font_enable;
@@ -575,7 +572,6 @@ static void config_set_defaults(void)
 
    settings->audio.latency                     = g_defaults.settings.out_latency;
    settings->audio.sync                        = audio_sync;
-   settings->audio.sync_scope                  = audio_sync_scope;
    settings->audio.rate_control                = rate_control;
    settings->audio.rate_control_delta          = rate_control_delta;
    settings->audio.max_timing_skew             = max_timing_skew;
@@ -589,7 +585,6 @@ static void config_set_defaults(void)
    settings->slowmotion_ratio                  = slowmotion_ratio;
    settings->fastforward_ratio                 = fastforward_ratio;
    settings->fastforward_ratio_throttle_enable = fastforward_ratio_throttle_enable;
-   settings->throttle_setting_scope            = throttle_setting_scope;
    settings->throttle_using_core_fps           = throttle_using_core_fps;
    settings->pause_nonactive                   = pause_nonactive;
    settings->autosave_interval                 = autosave_interval;
@@ -690,10 +685,8 @@ static void config_set_defaults(void)
    *settings->input.keyboard_layout                = '\0';
    
 #ifdef HAVE_OVERLAY
-   settings->input.overlay_scope                   = CORE_SPECIFIC;
    settings->input.overlay_opacity                 = 0.4f;
    settings->input.dpad_diagonal_sensitivity       = 75.0f;
-   settings->input.dpad_abxy_diag_sens_scope       = GLOBAL;
    settings->input.abxy_overlap                    = 50.0f;
    settings->input.abxy_ellipse_magnify            = 1.0f;
    settings->input.abxy_ellipse_multitouch_boost   = 1.0f;
@@ -703,7 +696,6 @@ static void config_set_defaults(void)
    settings->input.overlay_adjust_aspect           = true;
    settings->input.overlay_aspect_ratio_index      = OVERLAY_ASPECT_RATIO_16_9;
    settings->input.overlay_bisect_aspect_ratio     = 2.0f;
-   settings->input.overlay_adjust_vert_horiz_scope = GLOBAL;
    settings->input.overlay_adjust_vertical_lock_edges = true;
 #endif
 
@@ -1269,17 +1261,9 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_INT_BASE (conf, settings, video.monitor_index, "video_monitor_index");
    CONFIG_GET_BOOL_BASE(conf, settings, video.disable_composition, "video_disable_composition");
    
-   CONFIG_GET_INT_BASE(conf, settings, video.vsync_scope, "vsync_scope");
-   if (settings->video.vsync_scope == GLOBAL
-       || !config_get_bool(conf, core_specific_key("video_vsync"), &settings->video.vsync))
-      config_get_bool(conf, "video_vsync", &settings->video.vsync);
-   CONFIG_GET_INT_BASE(conf, settings, video.hard_sync_scope, "video_hard_sync_scope");
-   if (settings->video.hard_sync_scope == GLOBAL
-       || !config_get_bool(conf, core_specific_key("video_hard_sync"), &settings->video.hard_sync))
-      CONFIG_GET_BOOL_BASE(conf, settings, video.hard_sync, "video_hard_sync");
-   if (settings->video.hard_sync_scope == GLOBAL
-       || !config_get_uint(conf, core_specific_key("video_hard_sync_frames"), &settings->video.hard_sync_frames))
-      CONFIG_GET_INT_BASE(conf, settings, video.hard_sync_frames, "video_hard_sync_frames");
+   CONFIG_GET_BOOL_BASE(conf, settings, video.vsync, "video_vsync");
+   CONFIG_GET_BOOL_BASE(conf, settings, video.hard_sync, "video_hard_sync");
+   CONFIG_GET_INT_BASE(conf, settings, video.hard_sync_frames, "video_hard_sync_frames");
    if (settings->video.hard_sync_frames > 3)
       settings->video.hard_sync_frames = 3;
 
@@ -1320,10 +1304,7 @@ static bool config_load_file(const char *path, bool set_defaults)
       *settings->menu.wallpaper = '\0';
 #endif // #ifdef HAVE_MENU
 
-   CONFIG_GET_INT_BASE(conf, settings, video.frame_delay_scope, "video_frame_delay_scope");
-   if (settings->video.frame_delay_scope == GLOBAL
-       || !config_get_uint(conf, core_specific_key("video_frame_delay"), &settings->video.frame_delay))
-      CONFIG_GET_INT_BASE(conf, settings, video.frame_delay, "video_frame_delay");
+   CONFIG_GET_INT_BASE(conf, settings, video.frame_delay, "video_frame_delay");
    if (settings->video.frame_delay > 15)
       settings->video.frame_delay = 15;
 
@@ -1331,11 +1312,8 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_INT_BASE(conf, settings, video.swap_interval, "video_swap_interval");
    settings->video.swap_interval = max(settings->video.swap_interval, 1);
    settings->video.swap_interval = min(settings->video.swap_interval, 4);    
-   CONFIG_GET_INT_BASE(conf, settings, video.threaded_scope, "video_threaded_scope");
-   if (settings->video.threaded_scope == GLOBAL
-       || !config_get_bool(conf, core_specific_key("video_threaded"), &settings->video.threaded))
-      config_get_bool(conf, "video_threaded", &settings->video.threaded);
-   CONFIG_GET_BOOL_BASE(conf, settings, video.shared_context, core_specific_key("video_shared_context"));
+   CONFIG_GET_BOOL_BASE(conf, settings, video.threaded, "video_threaded");
+   CONFIG_GET_BOOL_BASE(conf, settings, video.shared_context, "video_shared_context");
 #ifdef GEKKO
    CONFIG_GET_INT_BASE(conf, settings, video.viwidth, "video_viwidth");
    CONFIG_GET_BOOL_BASE(conf, settings, video.vfilter, "video_vfilter");
@@ -1346,9 +1324,6 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, video.crop_overscan, "video_crop_overscan");
    CONFIG_GET_FLOAT_BASE(conf, settings, video.aspect_ratio, "video_aspect_ratio");
    
-   CONFIG_GET_INT_BASE(conf, settings, video.aspect_ratio_idx_scope, "aspect_ratio_index_scope");
-   if (settings->video.aspect_ratio_idx_scope == GLOBAL
-       || !config_get_uint(conf, core_specific_key("aspect_ratio_index"), &settings->video.aspect_ratio_idx))
    CONFIG_GET_INT_BASE(conf, settings, video.aspect_ratio_idx, "aspect_ratio_index");
    
    CONFIG_GET_BOOL_BASE(conf,  settings, video.aspect_ratio_auto, "video_aspect_ratio_auto");
@@ -1362,14 +1337,11 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_FLOAT_BASE(conf, settings, video.msg_pos_x, "video_message_pos_x");
    CONFIG_GET_FLOAT_BASE(conf, settings, video.msg_pos_y, "video_message_pos_y");
    
-   CONFIG_GET_INT_BASE(conf, settings, video.rotation_scope, "video_rotation_scope");
-   if (settings->video.rotation_scope == GLOBAL
-       || !config_get_uint(conf, core_specific_key("video_rotation"), &settings->video.rotation))
-      CONFIG_GET_INT_BASE(conf, settings, video.rotation, "video_rotation");
+   CONFIG_GET_INT_BASE(conf, settings, video.rotation, "video_rotation");
 
    CONFIG_GET_BOOL_BASE(conf, settings, video.force_srgb_disable, "video_force_srgb_disable");
 
-   CONFIG_GET_BOOL_BASE(conf, settings, core.set_supports_no_game_enable, core_specific_key("core_set_supports_no_game_enable"));
+   CONFIG_GET_BOOL_BASE(conf, settings, core.set_supports_no_game_enable, "core_set_supports_no_game_enable");
 
 #ifdef RARCH_CONSOLE
    /* TODO - will be refactored later to make it more clean - it's more
@@ -1394,18 +1366,10 @@ static bool config_load_file(const char *path, bool set_defaults)
 #endif
    CONFIG_GET_INT_BASE(conf, settings, state_slot, "state_slot");
    
-   if (settings->video.aspect_ratio_idx_scope == GLOBAL
-       || !config_get_int(conf, core_specific_key("custom_viewport_width"), &vp_width))
-     config_get_int(conf, "custom_viewport_width", &vp_width);
-   if (settings->video.aspect_ratio_idx_scope == GLOBAL
-       || !config_get_int(conf, core_specific_key("custom_viewport_height"), &vp_height))
-     config_get_int(conf, "custom_viewport_height", &vp_height);
-   if (settings->video.aspect_ratio_idx_scope == GLOBAL
-       || !config_get_int(conf, core_specific_key("custom_viewport_x"), &vp_x))
-     config_get_int(conf, "custom_viewport_x", &vp_x);
-   if (settings->video.aspect_ratio_idx_scope == GLOBAL
-       || !config_get_int(conf, core_specific_key("custom_viewport_y"), &vp_y))
-     config_get_int(conf, "custom_viewport_y", &vp_y);
+   config_get_int(conf, "custom_viewport_width",  &vp_width);
+   config_get_int(conf, "custom_viewport_height", &vp_height);
+   config_get_int(conf, "custom_viewport_x",      &vp_x);
+   config_get_int(conf, "custom_viewport_y",      &vp_y);
 
    if (custom_vp)
    {
@@ -1441,10 +1405,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, input.remap_binds_enable, "input_remap_binds_enable");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.axis_threshold, "input_axis_threshold");
    CONFIG_GET_BOOL_BASE(conf, settings, input.netplay_client_swap_input, "netplay_client_swap_input");
-   CONFIG_GET_INT_BASE(conf, settings, input.max_users_scope, "input_max_users_scope");
-   if (settings->input.max_users_scope == GLOBAL
-       || !config_get_uint(conf, core_specific_key("input_max_users"), &settings->input.max_users))
-      CONFIG_GET_INT_BASE(conf, settings, input.max_users, "input_max_users");
+   CONFIG_GET_INT_BASE(conf, settings, input.max_users, "input_max_users");
    CONFIG_GET_BOOL_BASE(conf, settings, input.input_descriptor_label_show, "input_descriptor_label_show");
    CONFIG_GET_BOOL_BASE(conf, settings, input.input_descriptor_hide_unbound, "input_descriptor_hide_unbound");
    CONFIG_GET_BOOL_BASE(conf, settings, input.autoconfig_descriptor_label_show, "autoconfig_descriptor_label_show");
@@ -1457,8 +1418,6 @@ static bool config_load_file(const char *path, bool set_defaults)
          settings->network.buildbot_assets_url, sizeof(settings->network.buildbot_assets_url));
    CONFIG_GET_BOOL_BASE(conf, settings, network.buildbot_auto_extract_archive, "core_updater_auto_extract_archive");
    
-   CONFIG_GET_INT_BASE(conf, settings, input.libretro_device_scope, "input_libretro_device_scope");
-   
    for (i = 0; i < settings->input.max_users; i++)
    {
       char buf[64] = {0};
@@ -1466,16 +1425,12 @@ static bool config_load_file(const char *path, bool set_defaults)
       CONFIG_GET_INT_BASE(conf, settings, input.joypad_map[i], buf);
 
       snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
-      if (settings->input.libretro_device_scope == GLOBAL
-          || !config_get_uint(conf, core_specific_key(buf), &settings->input.analog_dpad_mode[i]))
-         CONFIG_GET_INT_BASE(conf, settings, input.analog_dpad_mode[i], buf);
+      CONFIG_GET_INT_BASE(conf, settings, input.analog_dpad_mode[i], buf);
 
       if (!global->has_set_libretro_device[i])
       {
          snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
-         if (settings->input.libretro_device_scope == GLOBAL
-             || !config_get_uint(conf, core_specific_key(buf), &settings->input.libretro_device[i]))
-            CONFIG_GET_INT_BASE(conf, settings, input.libretro_device[i], buf);
+         CONFIG_GET_INT_BASE(conf, settings, input.libretro_device[i], buf);
       }
    }
 
@@ -1499,10 +1454,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_INT_BASE(conf, settings, audio.block_frames, "audio_block_frames");
    CONFIG_GET_STRING_BASE(conf, settings, audio.device, "audio_device");
    CONFIG_GET_INT_BASE(conf, settings, audio.latency, "audio_latency");
-   CONFIG_GET_INT_BASE(conf, settings, audio.sync_scope, "audio_sync_scope");
-   if (settings->audio.sync_scope == GLOBAL
-       || !config_get_bool(conf, core_specific_key("audio_sync"), &settings->audio.sync))
-      CONFIG_GET_BOOL_BASE(conf, settings, audio.sync, "audio_sync");
+   CONFIG_GET_BOOL_BASE(conf, settings, audio.sync, "audio_sync");
    CONFIG_GET_BOOL_BASE(conf, settings, audio.rate_control, "audio_rate_control");
    CONFIG_GET_FLOAT_BASE(conf, settings, audio.rate_control_delta, "audio_rate_control_delta");
    CONFIG_GET_FLOAT_BASE(conf, settings, audio.max_timing_skew, "audio_max_timing_skew");
@@ -1520,24 +1472,11 @@ static bool config_load_file(const char *path, bool set_defaults)
 #endif
    CONFIG_GET_STRING_BASE(conf, settings, video.context_driver, "video_context_driver");
    CONFIG_GET_STRING_BASE(conf, settings, audio.driver, "audio_driver");
+
+   CONFIG_GET_PATH_BASE(conf, settings, video.softfilter_plugin, "video_filter");
+   CONFIG_GET_PATH_BASE(conf, settings, video.shader_path, "video_shader");
    
-   CONFIG_GET_INT_BASE(conf, settings, video.filter_shader_scope, "video_filter_shader_scope");
-   if (settings->video.filter_shader_scope == GLOBAL)
-   {
-      config_get_path(conf, "video_filter",
-                      settings->video.softfilter_plugin, sizeof(settings->video.softfilter_plugin));
-      config_get_path(conf, "video_shader",
-                      settings->video.shader_path, sizeof(settings->video.shader_path));
-   }
-   else
-   {
-      config_get_path(conf, core_specific_key("video_filter"),
-                      settings->video.softfilter_plugin, sizeof(settings->video.softfilter_plugin));
-      config_get_path(conf, core_specific_key("video_shader"),
-                      settings->video.shader_path, sizeof(settings->video.shader_path));
-   }
-   
-   config_get_path(conf, "audio_dsp_plugin", settings->audio.dsp_plugin, sizeof(settings->audio.dsp_plugin));
+   CONFIG_GET_PATH_BASE(conf, settings, audio.dsp_plugin, "audio_dsp_plugin");
    CONFIG_GET_STRING_BASE(conf, settings, input.driver, "input_driver");
    CONFIG_GET_STRING_BASE(conf, settings, input.joypad_driver, "input_joypad_driver");
    CONFIG_GET_STRING_BASE(conf, settings, input.keyboard_layout, "input_keyboard_layout");
@@ -1620,12 +1559,6 @@ static bool config_load_file(const char *path, bool set_defaults)
                       sizeof(settings->menu_content_directory));
       if (!strcmp(settings->menu_content_directory, "default"))
          *settings->menu_content_directory = '\0';
-      
-      config_get_path(conf, core_specific_key("rgui_browser_directory"),
-                      settings->core_content_directory,
-                      sizeof(settings->core_content_directory));
-      if (!strcmp(settings->core_content_directory, "default"))
-         *settings->core_content_directory = '\0';
    }
    config_get_path(conf, "rgui_config_directory",
                    settings->menu_config_directory,
@@ -1657,50 +1590,22 @@ static bool config_load_file(const char *path, bool set_defaults)
    if (!strcmp(global->overlay_dir, "default") || !*global->overlay_dir)
       strlcpy( global->overlay_dir, g_defaults.overlay_dir, PATH_MAX_LENGTH);
 
-   CONFIG_GET_INT_BASE(conf, settings, input.overlay_scope, "input_overlay_scope");
-   if ( settings->input.overlay_scope == GLOBAL
-        || !config_get_path(conf, core_specific_key("input_overlay"), settings->input.overlay, sizeof(settings->input.overlay)) )
-      config_get_path(conf, "input_overlay", settings->input.overlay, sizeof(settings->input.overlay));
+   CONFIG_GET_PATH_BASE(conf, settings, input.overlay, "input_overlay");
    CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_enable, "input_overlay_enable");
-   
-   CONFIG_GET_INT_BASE(conf, settings, input.overlay_opacity_scope, "input_overlay_opacity_scope");
-   if (settings->input.overlay_opacity_scope == GLOBAL
-       || !config_get_float(conf, core_specific_key("input_overlay_opacity"), &settings->input.overlay_opacity))
    CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_opacity, "input_overlay_opacity");
-   
    CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_scale, "input_overlay_scale");
    
-   CONFIG_GET_INT_BASE(conf, settings, input.dpad_abxy_diag_sens_scope, "input_dpad_abxy_diag_sens_scope");
-   if (settings->input.dpad_abxy_diag_sens_scope == GLOBAL
-       || !config_get_float(conf, core_specific_key("input_dpad_diagonal_sensitivity"), &settings->input.dpad_diagonal_sensitivity))
-      CONFIG_GET_FLOAT_BASE(conf, settings, input.dpad_diagonal_sensitivity, "input_dpad_diagonal_sensitivity");
-   if (settings->input.dpad_abxy_diag_sens_scope == GLOBAL
-       || !config_get_uint(conf, core_specific_key("input_abxy_method"), &settings->input.abxy_method))
-      CONFIG_GET_INT_BASE(conf, settings, input.abxy_method, "input_abxy_method");
-   if (settings->input.dpad_abxy_diag_sens_scope == GLOBAL
-       || !config_get_float(conf, core_specific_key("input_abxy_overlap"), &settings->input.abxy_overlap))
-      CONFIG_GET_FLOAT_BASE(conf, settings, input.abxy_overlap, "input_abxy_overlap");
-   if (settings->input.dpad_abxy_diag_sens_scope == GLOBAL
-       || !config_get_float(conf, core_specific_key("input_abxy_ellipse_magnify"), &settings->input.abxy_ellipse_magnify))
-      CONFIG_GET_FLOAT_BASE(conf, settings, input.abxy_ellipse_magnify, "input_abxy_ellipse_magnify");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.dpad_diagonal_sensitivity, "input_dpad_diagonal_sensitivity");
+   CONFIG_GET_INT_BASE(conf, settings, input.abxy_method, "input_abxy_method");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.abxy_overlap, "input_abxy_overlap");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.abxy_ellipse_magnify, "input_abxy_ellipse_magnify");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.abxy_ellipse_multitouch_boost, "input_abxy_ellipse_multitouch_boost");
    
-   CONFIG_GET_INT_BASE(conf, settings, input.overlay_adjust_vert_horiz_scope, "input_overlay_adjust_vert_horiz_scope");
-   if (settings->input.overlay_adjust_vert_horiz_scope == GLOBAL
-       || !config_get_bool(conf, core_specific_key("input_overlay_adjust_aspect"), &settings->input.overlay_adjust_aspect))
-      CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_adjust_aspect, "input_overlay_adjust_aspect");
-   if (settings->input.overlay_adjust_vert_horiz_scope == GLOBAL
-       || !config_get_float(conf, core_specific_key("input_overlay_bisect_aspect_ratio"), &settings->input.overlay_bisect_aspect_ratio))
-      CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_bisect_aspect_ratio, "input_overlay_bisect_aspect_ratio");
-   if (settings->input.overlay_adjust_vert_horiz_scope == GLOBAL
-       || !config_get_uint(conf, core_specific_key("input_overlay_aspect_ratio_index"), &settings->input.overlay_aspect_ratio_index))
-      CONFIG_GET_INT_BASE(conf, settings, input.overlay_aspect_ratio_index, "input_overlay_aspect_ratio_index");
-   if (settings->input.overlay_adjust_vert_horiz_scope == GLOBAL
-       || !config_get_float(conf, core_specific_key("input_overlay_adjust_vertical"), &settings->input.overlay_adjust_vertical))
-      CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_adjust_vertical, "input_overlay_adjust_vertical");
-   if (settings->input.overlay_adjust_vert_horiz_scope == GLOBAL
-       || !config_get_bool(conf, core_specific_key("input_overlay_adjust_vertical_lock_edges"), &settings->input.overlay_adjust_vertical_lock_edges))
-      CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_adjust_vertical_lock_edges, "input_overlay_adjust_vertical_lock_edges");
+   CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_adjust_aspect, "input_overlay_adjust_aspect");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_bisect_aspect_ratio, "input_overlay_bisect_aspect_ratio");
+   CONFIG_GET_INT_BASE(conf, settings, input.overlay_aspect_ratio_index, "input_overlay_aspect_ratio_index");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_adjust_vertical, "input_overlay_adjust_vertical");
+   CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_adjust_vertical_lock_edges, "input_overlay_adjust_vertical_lock_edges");
 
    CONFIG_GET_INT_BASE(conf, settings, input.vibrate_time, "input_vibrate_time");
 
@@ -1731,13 +1636,8 @@ static bool config_load_file(const char *path, bool set_defaults)
       settings->fastforward_ratio = 1.0f;
 
    CONFIG_GET_BOOL_BASE(conf, settings, fastforward_ratio_throttle_enable, "fastforward_ratio_throttle_enable");
-   CONFIG_GET_INT_BASE(conf, settings, throttle_setting_scope, "throttle_setting_scope");
-   if (settings->throttle_setting_scope == GLOBAL
-       || !config_get_bool(conf, core_specific_key("throttle_using_core_fps"), &settings->throttle_using_core_fps))
-      CONFIG_GET_BOOL_BASE(conf, settings, throttle_using_core_fps, "throttle_using_core_fps");
-   if (settings->throttle_setting_scope == GLOBAL
-       || !config_get_bool(conf, core_specific_key("fastforward_ratio_throttle_enable"), &settings->fastforward_ratio_throttle_enable))
-      CONFIG_GET_BOOL_BASE(conf, settings, fastforward_ratio_throttle_enable, "fastforward_ratio_throttle_enable");
+   CONFIG_GET_BOOL_BASE(conf, settings, throttle_using_core_fps, "throttle_using_core_fps");
+   CONFIG_GET_BOOL_BASE(conf, settings, fastforward_ratio_throttle_enable, "fastforward_ratio_throttle_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, pause_nonactive, "pause_nonactive");
    CONFIG_GET_INT_BASE(conf, settings, autosave_interval, "autosave_interval");
 
@@ -1872,22 +1772,6 @@ static void parse_config_file(void)
    RARCH_ERR("Couldn't find config at path: \"%s\"\n",
          global->config_path);
 }
-
-
-#if 0
-static bool config_read_keybinds(const char *path)
-{
-   config_file_t *conf = (config_file_t*)config_file_new(path);
-
-   if (!conf)
-      return false;
-
-   config_read_keybinds_conf(conf);
-   config_file_free(conf);
-
-   return true;
-}
-#endif
 
 static void save_keybind_key(config_file_t *conf, const char *prefix,
       const char *base, const struct retro_keybind *bind)
@@ -2044,36 +1928,6 @@ void config_load(void)
 }
 
 /**
- * config_save_keybinds_file:
- * @path            : Path that shall be written to.
- *
- * Writes a keybinds config file to disk.
- *
- * Returns: true (1) on success, otherwise returns false (0).
- **/
-bool config_save_keybinds_file(const char *path)
-{
-   unsigned          i = 0;
-   bool            ret = false;
-   config_file_t *conf = config_file_new(path);
-
-   if (!conf)
-      conf = config_file_new(NULL);
-
-   if (!conf)
-      return false;
-
-   RARCH_LOG("Saving keybinds config at path: \"%s\"\n", path);
-
-   for (i = 0; i < MAX_USERS; i++)
-      save_keybinds_user(conf, i);
-
-   ret = config_file_write(conf, path);
-   config_file_free(conf);
-   return ret;
-}
-
-/**
  * config_save_file:
  * @path            : Path that shall be written to.
  *
@@ -2092,26 +1946,16 @@ bool config_save_file(const char *path)
       video_viewport_get_custom();
 
    if (!conf)
-   {
       conf = config_file_new(NULL);
+   
+   if (!conf)
       return false;
-   }
 
    RARCH_LOG("Saving config at path: \"%s\"\n", path);
 
-   /* ROM-specific settings are not written to the main config file */
-   if (settings->input.max_users_scope != THIS_CONTENT_ONLY)
-   {
-      config_set_int(conf, "input_max_users_scope", settings->input.max_users_scope);
-      if (settings->input.max_users_scope == GLOBAL)
-      {
-         config_set_int(conf, "input_max_users", settings->input.max_users);
-         if (global->libretro_name[0] != '\0')
-            config_remove_entry(conf, core_specific_key("input_max_users"));
-      }
-      else
-         config_set_int(conf, core_specific_key("input_max_users"), settings->input.max_users);
-   }
+   /* Scoped settings are not written to the main config file */
+   if (settings->input.max_users_scope == GLOBAL)
+      config_set_int(conf, "input_max_users", settings->input.max_users);
    config_set_float(conf, "input_axis_threshold",
          settings->input.axis_threshold);
    config_set_bool(conf, "ui_companion_start_on_boot", settings->ui.companion_start_on_boot);
@@ -2126,8 +1970,9 @@ bool config_save_file(const char *path)
          settings->input.autoconfig_descriptor_label_show);
    config_set_bool(conf, "input_descriptor_hide_unbound",
          settings->input.input_descriptor_hide_unbound);
-   config_set_bool(conf,  "load_dummy_on_core_shutdown",
-         settings->load_dummy_on_core_shutdown);
+   if (!*global->libretro_name)
+      config_set_bool(conf, "load_dummy_on_core_shutdown",
+                      settings->load_dummy_on_core_shutdown);
    config_set_bool(conf,  "fps_show", settings->fps_show);
    config_set_bool(conf,  "ui_menubar_enable", settings->ui.menubar_enable);
    if ( !*settings->libretro )
@@ -2146,18 +1991,9 @@ bool config_save_file(const char *path)
    config_set_bool(conf,  "rewind_enable", settings->rewind_enable);
    config_set_int(conf,   "audio_latency", settings->audio.latency);
    
-   if (settings->audio.sync_scope != THIS_CONTENT_ONLY)
-   {
-      config_set_int(conf, "audio_sync_scope", settings->audio.sync_scope);
-      if ( settings->audio.sync_scope == GLOBAL )
-      {
-         config_set_bool(conf, "audio_sync", settings->audio.sync);
-         if (global->libretro_name[0] != '\0')
-            config_remove_entry(conf, core_specific_key("audio_sync"));
-      }
-      else
-         config_set_bool(conf, core_specific_key("audio_sync"), settings->audio.sync);
-   }
+   if (settings->audio.sync_scope == GLOBAL)
+      config_set_bool(conf, "audio_sync", settings->audio.sync);
+
    config_set_int(conf,   "audio_block_frames", settings->audio.block_frames);
    config_set_int(conf,   "rewind_granularity", settings->rewind_granularity);
    config_set_float(conf, "video_aspect_ratio", settings->video.aspect_ratio);
@@ -2173,20 +2009,12 @@ bool config_save_file(const char *path)
    config_set_bool(conf,  "video_vfilter", settings->video.vfilter);
 #endif
    config_set_bool(conf, "video_smooth", settings->video.smooth);
-   if (settings->video.threaded_scope != THIS_CONTENT_ONLY)
-   {
-      config_set_int(conf,  "video_threaded_scope", settings->video.threaded_scope);
-      if (settings->video.threaded_scope == GLOBAL)
-      {
-         config_set_bool(conf, "video_threaded", settings->video.threaded);
-         if (global->libretro_name[0] != '\0')
-            config_remove_entry(conf, core_specific_key("video_threaded"));
-      }
-      else
-         config_set_bool(conf, core_specific_key("video_threaded"), settings->video.threaded);
-   }
-   config_set_bool(conf,  core_specific_key("video_shared_context"),
-         settings->video.shared_context);
+   if (settings->video.threaded_scope == GLOBAL)
+      config_set_bool(conf, "video_threaded", settings->video.threaded);
+   
+   if (!*global->libretro_name)
+      config_set_bool(conf,  "video_shared_context", settings->video.shared_context);
+   
    config_set_bool(conf,  "video_force_srgb_disable",
          settings->video.force_srgb_disable);
    config_set_bool(conf,  "video_fullscreen", settings->video.fullscreen);
@@ -2210,52 +2038,18 @@ bool config_save_file(const char *path)
    config_set_path(conf, "menu_wallpaper", settings->menu.wallpaper);
 #endif
    
-   if (settings->video.vsync_scope != THIS_CONTENT_ONLY)
-   {
-      config_set_int(conf,  "vsync_scope", settings->video.vsync_scope);
-      if ( settings->video.vsync_scope == GLOBAL )
-      {
-         config_set_bool(conf,  "video_vsync", settings->video.vsync);
-         if (global->libretro_name[0] != '\0')
-            config_remove_entry(conf, core_specific_key("video_vsync"));
-      }
-      else
-         config_set_bool(conf,  core_specific_key("video_vsync"), settings->video.vsync);
-   }
+   if (settings->video.vsync_scope == GLOBAL)
+      config_set_bool(conf,  "video_vsync", settings->video.vsync);
    
 #ifdef HAVE_GL_SYNC
-   if (settings->video.hard_sync_scope != THIS_CONTENT_ONLY)
+   if (settings->video.hard_sync_scope == GLOBAL)
    {
-      config_set_int(conf, "video_hard_sync_scope", settings->video.hard_sync_scope);
-      if ( settings->video.hard_sync_scope == GLOBAL )
-      {
-         config_set_bool(conf, "video_hard_sync", settings->video.hard_sync);
-         config_set_int(conf, "video_hard_sync_frames", settings->video.hard_sync_frames);
-         if (global->libretro_name[0] != '\0')
-         {
-            config_remove_entry(conf, core_specific_key("video_hard_sync"));
-            config_remove_entry(conf, core_specific_key("video_hard_sync_frames"));
-         }
-      }
-      else
-      {
-         config_set_bool(conf, core_specific_key("video_hard_sync"), settings->video.hard_sync);
-         config_set_int(conf, core_specific_key("video_hard_sync_frames"), settings->video.hard_sync_frames);
-      }
+      config_set_bool(conf, "video_hard_sync", settings->video.hard_sync);
+      config_set_int(conf, "video_hard_sync_frames", settings->video.hard_sync_frames);
    }
 #endif
-   if (settings->video.frame_delay_scope != THIS_CONTENT_ONLY)
-   {
-      config_set_int(conf, "video_frame_delay_scope", settings->video.frame_delay_scope);
-      if (settings->video.frame_delay_scope == GLOBAL)
-      {
-         config_set_int(conf, "video_frame_delay", settings->video.frame_delay);
-         if (global->libretro_name[0] != '\0')
-            config_remove_entry(conf, core_specific_key("video_frame_delay"));
-      }
-      else
-         config_set_int(conf, core_specific_key("video_frame_delay"), settings->video.frame_delay);
-   }
+   if (settings->video.frame_delay_scope == GLOBAL)
+      config_set_int(conf, "video_frame_delay", settings->video.frame_delay);
    config_set_bool(conf,  "video_black_frame_insertion",
          settings->video.black_frame_insertion);
    config_set_bool(conf,  "video_disable_composition",
@@ -2264,54 +2058,20 @@ bool config_save_file(const char *path)
    config_set_int(conf, "video_swap_interval", settings->video.swap_interval);
    config_set_bool(conf, "video_gpu_screenshot", settings->video.gpu_screenshot);
    
-   if (settings->video.rotation_scope != THIS_CONTENT_ONLY)
-   {
-      config_set_int(conf, "video_rotation_scope", settings->video.rotation_scope);
-      if ( settings->video.rotation_scope == GLOBAL )
-      {
-         config_set_int(conf, "video_rotation", settings->video.rotation);
-         if (global->libretro_name[0] != '\0')
-            config_remove_entry(conf, core_specific_key("video_rotation"));
-      }
-      else
-         config_set_int(conf, core_specific_key("video_rotation"), settings->video.rotation);
-   }
+   if (settings->video.rotation_scope == GLOBAL)
+      config_set_int(conf, "video_rotation", settings->video.rotation);
    
    config_set_path(conf, "screenshot_directory",
          *settings->screenshot_directory ?
          settings->screenshot_directory : "default");
    
-   if ( settings->video.aspect_ratio_idx_scope != THIS_CONTENT_ONLY )
-   {
-      config_set_int(conf, "aspect_ratio_index_scope", settings->video.aspect_ratio_idx_scope);
-      if ( settings->video.aspect_ratio_idx_scope == GLOBAL )
-      {
-         config_set_int(conf, "aspect_ratio_index", settings->video.aspect_ratio_idx);
-         if (global->libretro_name[0] != '\0')
-            config_remove_entry(conf, core_specific_key("aspect_ratio_index"));
-      }
-      else
-         config_set_int(conf, core_specific_key("aspect_ratio_index"), settings->video.aspect_ratio_idx);
-   }
+   if ( settings->video.aspect_ratio_idx_scope == GLOBAL )
+      config_set_int(conf, "aspect_ratio_index", settings->video.aspect_ratio_idx);
    
-   if (settings->video.filter_shader_scope != THIS_CONTENT_ONLY)
+   if (settings->video.filter_shader_scope == GLOBAL)
    {
-      config_set_int(conf, "video_filter_shader_scope", settings->video.filter_shader_scope);
-      if ( settings->video.filter_shader_scope == GLOBAL )
-      {
-         config_set_path(conf, "video_filter", settings->video.softfilter_plugin);
-         config_set_path(conf, "video_shader", settings->video.shader_path);
-         if (global->libretro_name[0] != '\0')
-         {
-            config_remove_entry(conf, core_specific_key("video_filter"));
-            config_remove_entry(conf, core_specific_key("video_shader"));
-         }
-      }
-      else
-      {
-         config_set_path(conf, core_specific_key("video_filter"), settings->video.softfilter_plugin);
-         config_set_path(conf,  core_specific_key("video_shader"), settings->video.shader_path);
-      }
+      config_set_path(conf, "video_filter", settings->video.softfilter_plugin);
+      config_set_path(conf, "video_shader", settings->video.shader_path);
    }
    
    config_set_string(conf, "audio_device", settings->audio.device);
@@ -2390,14 +2150,6 @@ bool config_save_file(const char *path)
    config_set_path(conf, "rgui_browser_directory",
          *settings->menu_content_directory ?
          settings->menu_content_directory : "default");
-   if (global->libretro_name[0] != '\0')
-   {
-      if (*settings->core_content_directory)
-         config_set_path(conf, core_specific_key("rgui_browser_directory"),
-                         settings->core_content_directory);
-      else
-         config_remove_entry(conf, core_specific_key("rgui_browser_directory"));
-   }
    config_set_path(conf, "rgui_config_directory",
          *settings->menu_config_directory ?
          settings->menu_config_directory : "default");
@@ -2442,114 +2194,42 @@ bool config_save_file(const char *path)
    config_set_path(conf, "overlay_directory",
          *global->overlay_dir ? global->overlay_dir : "default");
 
-   if ( settings->input.overlay_scope != THIS_CONTENT_ONLY )
-   {
-      config_set_int(conf, "input_overlay_scope", settings->input.overlay_scope);
-      if (settings->input.overlay_scope == GLOBAL)
-      {
-         config_set_path(conf, "input_overlay", settings->input.overlay);
-         if (global->libretro_name[0] != '\0')
-            config_remove_entry(conf, core_specific_key("input_overlay"));
-      }
-      else
-         config_set_path(conf, core_specific_key("input_overlay"), settings->input.overlay);
-   }
+   if ( settings->input.overlay_scope == GLOBAL )
+      config_set_path(conf, "input_overlay", settings->input.overlay);
    config_set_bool(conf, "input_overlay_enable", settings->input.overlay_enable);
    
-   if ( settings->input.overlay_opacity_scope != THIS_CONTENT_ONLY )
-   {
-      config_set_int(conf, "input_overlay_opacity_scope",
-                     settings->input.overlay_opacity_scope);
-      if ( settings->input.overlay_opacity_scope == GLOBAL )
-      {
-         config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
-         if (global->libretro_name[0] != '\0')
-            config_remove_entry(conf, core_specific_key("input_overlay_opacity"));
-      }
-      else
-         config_set_float(conf, core_specific_key("input_overlay_opacity"),
-                          settings->input.overlay_opacity);
-   }
+   if ( settings->input.overlay_opacity_scope == GLOBAL )
+      config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
    
    config_set_float(conf, "input_overlay_scale", settings->input.overlay_scale);
    
-   if ( settings->input.dpad_abxy_diag_sens_scope != THIS_CONTENT_ONLY )
+   if ( settings->input.dpad_abxy_diag_sens_scope == GLOBAL )
    {
-      config_set_int(conf, "input_dpad_abxy_diag_sens_scope",
-                     settings->input.dpad_abxy_diag_sens_scope);
-      if ( settings->input.dpad_abxy_diag_sens_scope == GLOBAL )
-      {
-         config_set_float(conf, "input_abxy_overlap",
-                          settings->input.abxy_overlap);
-         config_set_float(conf, "input_abxy_ellipse_magnify",
-                          settings->input.abxy_ellipse_magnify);
-         config_set_float(conf, "input_dpad_diagonal_sensitivity",
-                          settings->input.dpad_diagonal_sensitivity);
-         config_set_int(conf, "input_abxy_method",
-                        settings->input.abxy_method);
-         
-         if (global->libretro_name[0] != '\0')
-         {
-            config_remove_entry(conf, core_specific_key("input_abxy_overlap"));
-            config_remove_entry(conf, core_specific_key("input_abxy_ellipse_magnify"));
-            config_remove_entry(conf, core_specific_key("input_dpad_diagonal_sensitivity"));
-            config_remove_entry(conf, core_specific_key("input_abxy_method"));
-         }
-      }
-      else
-      {
-         config_set_float(conf, core_specific_key("input_abxy_overlap"),
-                          settings->input.abxy_overlap);
-         config_set_float(conf, core_specific_key("input_abxy_ellipse_magnify"),
-                          settings->input.abxy_ellipse_magnify);
-         config_set_float(conf, core_specific_key("input_dpad_diagonal_sensitivity"),
-                          settings->input.dpad_diagonal_sensitivity);
-         config_set_int(conf, core_specific_key("input_abxy_method"),
-                        settings->input.abxy_method);
-      }
+      config_set_float(conf, "input_abxy_overlap",
+                       settings->input.abxy_overlap);
+      config_set_float(conf, "input_abxy_ellipse_magnify",
+                       settings->input.abxy_ellipse_magnify);
+      config_set_float(conf, "input_dpad_diagonal_sensitivity",
+                       settings->input.dpad_diagonal_sensitivity);
+      config_set_int(conf, "input_abxy_method",
+                     settings->input.abxy_method);
    }
 
    config_set_float(conf, "input_abxy_ellipse_multitouch_boost",
                     settings->input.abxy_ellipse_multitouch_boost);
    
-   if ( settings->input.overlay_adjust_vert_horiz_scope != THIS_CONTENT_ONLY )
+   if ( settings->input.overlay_adjust_vert_horiz_scope == GLOBAL )
    {
-      config_set_int(conf, "input_overlay_adjust_vert_horiz_scope",
-           settings->input.overlay_adjust_vert_horiz_scope);
-      if (settings->input.overlay_adjust_vert_horiz_scope == GLOBAL)
-      {
-         config_set_bool(conf, "input_overlay_adjust_aspect",
-              settings->input.overlay_adjust_aspect);
-         config_set_int(conf, "input_overlay_aspect_ratio_index",
-               settings->input.overlay_aspect_ratio_index);
-         config_set_float(conf, "input_overlay_bisect_aspect_ratio",
-               settings->input.overlay_bisect_aspect_ratio);
-         config_set_float(conf, "input_overlay_adjust_vertical",
-               settings->input.overlay_adjust_vertical);
-         config_set_bool(conf, "input_overlay_adjust_vertical_lock_edges",
-               settings->input.overlay_adjust_vertical_lock_edges);
-         if (global->libretro_name[0] != '\0')
-         {
-            config_remove_entry(conf, core_specific_key("input_overlay_adjust_aspect"));
-            config_remove_entry(conf, core_specific_key("input_overlay_aspect_ratio_index"));
-            config_remove_entry(conf, core_specific_key("input_overlay_bisect_aspect_ratio"));
-            config_remove_entry(conf, core_specific_key("input_overlay_adjust_vertical"));
-            config_remove_entry(conf, core_specific_key("input_overlay_adjust_vertical_lock_edges"));
-         }
-      }
-      else
-      {
-         config_set_bool(conf, core_specific_key("input_overlay_adjust_aspect"),
-              settings->input.overlay_adjust_aspect);
-         config_set_int(conf, core_specific_key("input_overlay_aspect_ratio_index"),
-               settings->input.overlay_aspect_ratio_index);
-         config_set_float(conf, core_specific_key("input_overlay_bisect_aspect_ratio"),
-               settings->input.overlay_bisect_aspect_ratio);
-         config_set_float(conf, core_specific_key("input_overlay_adjust_vertical"),
-               settings->input.overlay_adjust_vertical);
-         config_set_bool(conf, core_specific_key("input_overlay_adjust_vertical_lock_edges"),
-               settings->input.overlay_adjust_vertical_lock_edges);
-      }
+      config_set_bool(conf, "input_overlay_adjust_aspect",
+           settings->input.overlay_adjust_aspect);
+      config_set_int(conf, "input_overlay_aspect_ratio_index",
+            settings->input.overlay_aspect_ratio_index);
+      config_set_float(conf, "input_overlay_bisect_aspect_ratio",
+            settings->input.overlay_bisect_aspect_ratio);
+      config_set_float(conf, "input_overlay_adjust_vertical",
+            settings->input.overlay_adjust_vertical);
+      config_set_bool(conf, "input_overlay_adjust_vertical_lock_edges",
+            settings->input.overlay_adjust_vertical_lock_edges);
    }
    
    if ( settings->input.vibrate_time > 0)
@@ -2582,40 +2262,17 @@ bool config_save_file(const char *path)
    config_set_int(conf, "current_resolution_id",
          global->console.screen.resolutions.current.id);
    
-   if (settings->video.aspect_ratio_idx_scope != THIS_CONTENT_ONLY)
+   if (settings->video.aspect_ratio_idx_scope == GLOBAL)
    {
-      // video.aspect_ratio_idx_scope was saved above
-      if (settings->video.aspect_ratio_idx_scope == GLOBAL)
-      {
-         config_set_int(conf, "custom_viewport_width",
-               custom_vp->width);
-         config_set_int(conf, "custom_viewport_height",
-               custom_vp->height);
-         config_set_int(conf, "custom_viewport_x",
-               custom_vp->x);
-         config_set_int(conf, "custom_viewport_y",
-               custom_vp->y);
-         if (global->libretro_name[0] != '\0')
-         {
-            config_remove_entry(conf, core_specific_key("custom_viewport_width"));
-            config_remove_entry(conf, core_specific_key("custom_viewport_height"));
-            config_remove_entry(conf, core_specific_key("custom_viewport_x"));
-            config_remove_entry(conf, core_specific_key("custom_viewport_y"));
-         }
-      }
-      else
-      {
-         config_set_int(conf, core_specific_key("custom_viewport_width"),
-               custom_vp->width);
-         config_set_int(conf, core_specific_key("custom_viewport_height"),
-               custom_vp->height);
-         config_set_int(conf, core_specific_key("custom_viewport_x"),
-               custom_vp->x);
-         config_set_int(conf, core_specific_key("custom_viewport_y"),
-               custom_vp->y);
-      }
+      config_set_int(conf, "custom_viewport_width",
+            custom_vp->width);
+      config_set_int(conf, "custom_viewport_height",
+            custom_vp->height);
+      config_set_int(conf, "custom_viewport_x",
+            custom_vp->x);
+      config_set_int(conf, "custom_viewport_y",
+            custom_vp->y);
    }
-
 
    config_set_float(conf, "video_font_size", settings->video.font_size);
 
@@ -2630,19 +2287,10 @@ bool config_save_file(const char *path)
 
    config_set_float(conf, "fastforward_ratio", settings->fastforward_ratio);
    
-   if ( settings->throttle_setting_scope != THIS_CONTENT_ONLY )
+   if ( settings->throttle_setting_scope == GLOBAL )
    {
-      config_set_int(conf,  "throttle_setting_scope", settings->throttle_setting_scope);
-      if ( settings->throttle_setting_scope == CORE_SPECIFIC )
-      {
-         config_set_bool(conf,  core_specific_key("fastforward_ratio_throttle_enable"), settings->fastforward_ratio_throttle_enable);
-         config_set_bool(conf,  core_specific_key("throttle_using_core_fps"), settings->throttle_using_core_fps);
-      }
-      else
-      {
-         config_set_bool(conf, "fastforward_ratio_throttle_enable", settings->fastforward_ratio_throttle_enable);
-         config_set_bool(conf,  "throttle_using_core_fps", settings->throttle_using_core_fps);
-      }
+      config_set_bool(conf, "fastforward_ratio_throttle_enable", settings->fastforward_ratio_throttle_enable);
+      config_set_bool(conf, "throttle_using_core_fps", settings->throttle_using_core_fps);
    }
    
    config_set_float(conf, "slowmotion_ratio", settings->slowmotion_ratio);
@@ -2670,7 +2318,7 @@ bool config_save_file(const char *path)
    config_set_string(conf, "input_keyboard_layout",
          settings->input.keyboard_layout);
    
-   if (settings->input.libretro_device_scope != THIS_CONTENT_ONLY)
+   if (settings->input.libretro_device_scope == GLOBAL)
    {
       config_set_int(conf, "input_libretro_device_scope",
                      settings->input.libretro_device_scope);
@@ -2681,30 +2329,10 @@ bool config_save_file(const char *path)
          config_set_int(conf, cfg, settings->input.joypad_map[i]);
          
          snprintf(cfg, sizeof(cfg), "input_libretro_device_p%u", i + 1);
-         if (settings->input.libretro_device_scope == GLOBAL)
-            config_set_int(conf, cfg, settings->input.libretro_device[i]);
-         else
-            config_set_int(conf, core_specific_key(cfg), settings->input.libretro_device[i]);
+         config_set_int(conf, cfg, settings->input.libretro_device[i]);
          
          snprintf(cfg, sizeof(cfg), "input_player%u_analog_dpad_mode", i + 1);
-         if (settings->input.libretro_device_scope == GLOBAL)
-            config_set_int(conf, cfg, settings->input.analog_dpad_mode[i]);
-         else
-            config_set_int(conf, core_specific_key(cfg), settings->input.analog_dpad_mode[i]);
-      }
-      /* Remove obsolete core-specific entries */
-      if ( global->libretro_name[0] != '\0')
-      {
-         if (settings->input.libretro_device_scope == GLOBAL)
-            i = 0;
-         for (; i < MAX_USERS; i++)
-         {
-            char buf[64] = {0};
-            snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
-            config_remove_entry(conf, core_specific_key(buf));
-            snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
-            config_remove_entry(conf, core_specific_key(buf));
-         }
+         config_set_int(conf, cfg, settings->input.analog_dpad_mode[i]);
       }
    }
 
@@ -2721,7 +2349,9 @@ bool config_save_file(const char *path)
    config_set_bool(conf, "log_verbosity", global->verbosity);
    config_set_bool(conf, "perfcnt_enable", global->perfcnt_enable);
 
-   config_set_bool(conf, core_specific_key("core_set_supports_no_game_enable"), settings->core.set_supports_no_game_enable);
+   if (!*global->libretro_name)
+      config_set_bool(conf, "core_set_supports_no_game_enable",
+                      settings->core.set_supports_no_game_enable);
 
    config_set_int(conf, "archive_mode", settings->archive.mode);
 
@@ -2762,8 +2392,510 @@ settings_t *config_init(void)
    return g_config;
 }
 
+// TODO: Don't rely on global->basename?
+// Basename is conveniently updated between saving and loading scoped configs.
+static inline bool get_scoped_filename(char* buf, const unsigned scope)
+{
+   global_t *global = global_get_ptr();
+   
+   if (scope == THIS_CORE)
+   {
+      if (!*global->libretro_name)
+         return false;
+      
+      fill_pathname_noext(buf, global->libretro_name, ".cfg", PATH_MAX_LENGTH);
+   }
+   else if (scope == THIS_CONTENT_DIR)
+   {
+      if (!*global->basename)
+         return false;
+      
+      path_parent_dir_name(buf, global->basename);
+      if (!*buf)
+         strcpy(buf, "root");
+      strlcat(buf, ".cfg", PATH_MAX_LENGTH);
+   }
+   else if (scope == THIS_CONTENT_ONLY)
+   {
+      if (!*global->basename)
+         return false;
 
-int game_config_file_save()
+      fill_pathname_noext(buf, path_basename(global->basename),
+                          ".cfg", PATH_MAX_LENGTH);
+   }
+   else
+      return false;
+   
+   return true;
+}
+
+static void scoped_config_file_save(unsigned scope)
+{
+   char directory[PATH_MAX_LENGTH]  = {0};
+   char buf[PATH_MAX_LENGTH]        = {0};
+   char fullpath[PATH_MAX_LENGTH]   = {0};
+   global_t *global                 = global_get_ptr();
+   settings_t *settings             = config_get_ptr();
+   config_file_t* conf              = NULL;
+   unsigned i;
+   
+   if (!global || !settings || !settings->config_save_on_exit)
+      return;
+   
+   // Set scoped cfg path
+   //
+   if (!get_scoped_filename(buf, scope))
+      return;
+   
+   fill_pathname_join(directory, settings->menu_config_directory,
+                      global->libretro_name, PATH_MAX_LENGTH);
+   fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
+   
+   // Read config if it exists. Unscoped settings will be removed
+   conf = config_file_new(fullpath);
+   if (!conf)
+      conf = config_file_new(NULL);
+   if (!conf)
+      return;
+
+   // Populate config
+   // Higher scopes are more specific and mask lower scopes
+   if (settings->audio.sync_scope == scope)
+      config_set_bool(conf, "audio_sync", settings->audio.sync);
+   else if (settings->audio.sync_scope < scope)
+      config_remove_entry(conf, "audio_sync");
+
+   if (settings->video.threaded_scope == scope)
+      config_set_bool(conf, "video_threaded", settings->video.threaded);
+   else if (settings->video.threaded_scope < scope)
+      config_remove_entry(conf, "video_threaded");
+
+   if (settings->video.vsync_scope == scope)
+      config_set_bool(conf, "video_vsync", settings->video.vsync);
+   else if (settings->video.vsync_scope < scope)
+      config_remove_entry(conf, "video_vsync");
+
+   if (settings->video.hard_sync_scope == scope)
+   {
+      config_set_bool(conf, "video_hard_sync", settings->video.hard_sync);
+      config_set_int(conf, "video_hard_sync_frames", settings->video.hard_sync_frames);
+   }
+   else if (settings->video.hard_sync_scope < scope)
+   {
+      config_remove_entry(conf, "video_hard_sync");
+      config_remove_entry(conf, "video_hard_sync_frames");
+   }
+
+   if (settings->input.overlay_scope == scope)
+      config_set_string(conf, "input_overlay", settings->input.overlay);
+   else if (settings->input.overlay_scope < scope)
+      config_remove_entry(conf, "input_overlay");
+
+   if (settings->input.dpad_abxy_diag_sens_scope == scope)
+   {
+      config_set_float(conf, "input_dpad_diagonal_sensitivity",
+                       settings->input.dpad_diagonal_sensitivity);
+      config_set_float(conf, "input_abxy_overlap",
+                       settings->input.abxy_overlap);
+      config_set_float(conf, "input_abxy_ellipse_magnify",
+                       settings->input.abxy_ellipse_magnify);
+      config_set_int(conf, "input_abxy_method", settings->input.abxy_method);
+   }
+   else if (settings->input.dpad_abxy_diag_sens_scope < scope)
+   {
+      config_remove_entry(conf, "input_dpad_diagonal_sensitivity");
+      config_remove_entry(conf, "input_abxy_overlap");
+      config_remove_entry(conf, "input_abxy_ellipse_magnify");
+      config_remove_entry(conf, "input_abxy_method");
+   }
+
+   if (settings->input.overlay_adjust_vert_horiz_scope == scope)
+   {
+      config_set_bool(conf, "input_overlay_adjust_aspect",
+           settings->input.overlay_adjust_aspect);
+      config_set_int(conf, "input_overlay_aspect_ratio_index",
+            settings->input.overlay_aspect_ratio_index);
+      config_set_float(conf, "input_overlay_bisect_aspect_ratio",
+            settings->input.overlay_bisect_aspect_ratio);
+      config_set_float(conf, "input_overlay_adjust_vertical",
+            settings->input.overlay_adjust_vertical);
+      config_set_bool(conf, "input_overlay_adjust_vertical_lock_edges",
+            settings->input.overlay_adjust_vertical_lock_edges);
+   }
+   else if (settings->input.overlay_adjust_vert_horiz_scope < scope)
+   {
+      config_remove_entry(conf, "input_overlay_adjust_aspect");
+      config_remove_entry(conf, "input_overlay_aspect_ratio_index");
+      config_remove_entry(conf, "input_overlay_bisect_aspect_ratio");
+      config_remove_entry(conf, "input_overlay_adjust_vertical");
+      config_remove_entry(conf, "input_overlay_adjust_vertical_lock_edges");
+   }
+
+   if (settings->throttle_setting_scope == scope)
+   {
+      config_set_bool(conf, "fastforward_ratio_throttle_enable", settings->fastforward_ratio_throttle_enable);
+      config_set_bool(conf, "throttle_using_core_fps", settings->throttle_using_core_fps);
+   }
+   else if (settings->throttle_setting_scope < scope)
+   {
+      config_remove_entry(conf, "fastforward_ratio_throttle_enable");
+      config_remove_entry(conf, "throttle_using_core_fps");
+   }
+
+   if (settings->video.aspect_ratio_idx_scope == scope)
+   {
+      config_set_int(conf, "aspect_ratio_index", settings->video.aspect_ratio_idx);
+      const video_viewport_t *p_custom_vp
+         = (const video_viewport_t*) video_viewport_get_custom();
+      config_set_int(conf, "custom_viewport_width", p_custom_vp->width);
+      config_set_int(conf, "custom_viewport_height", p_custom_vp->height);
+      config_set_int(conf, "custom_viewport_x", p_custom_vp->x);
+      config_set_int(conf, "custom_viewport_y", p_custom_vp->y);
+   }
+   else if (settings->video.aspect_ratio_idx_scope < scope)
+   {
+      config_remove_entry(conf, "aspect_ratio_index");
+      config_remove_entry(conf, "custom_viewport_width");
+      config_remove_entry(conf, "custom_viewport_height");
+      config_remove_entry(conf, "custom_viewport_x");
+      config_remove_entry(conf, "custom_viewport_y");
+   }
+
+   if (settings->video.rotation_scope == scope)
+      config_set_int(conf, "video_rotation", settings->video.rotation);
+   else if (settings->video.rotation_scope < scope)
+      config_remove_entry(conf, "video_rotation");
+
+   if (settings->video.frame_delay_scope == scope)
+      config_set_int(conf, "video_frame_delay", settings->video.frame_delay);
+   else if (settings->video.frame_delay_scope < scope)
+      config_remove_entry(conf, "video_frame_delay");
+
+   if (settings->input.overlay_opacity_scope == scope)
+      config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
+   else if (settings->input.overlay_opacity_scope < scope)
+      config_remove_entry(conf, "input_overlay_opacity");
+
+   if (settings->input.max_users_scope == scope)
+      config_set_int(conf, "input_max_users", settings->input.max_users);
+   else if (settings->input.max_users_scope < scope)
+      config_remove_entry(conf, "input_max_users");
+
+   if (settings->input.libretro_device_scope == scope)
+   {
+      for (i = 0; i < settings->input.max_users; i++)
+      {
+         char buf[64] = {0};
+         snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
+         config_set_int(conf, buf, settings->input.libretro_device[i]);
+
+         snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
+         config_set_int(conf, buf, settings->input.analog_dpad_mode[i]);
+      }
+   }
+   else if (settings->input.libretro_device_scope < scope)
+   {
+      for (i = 0; i < MAX_USERS; i++)
+      {
+         char buf[64] = {0};
+         snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
+         config_remove_entry(conf, buf);
+
+         snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
+         config_remove_entry(conf, buf);
+      }
+   }
+
+   if (settings->video.filter_shader_scope == scope)
+   {
+      if (!*settings->video.softfilter_plugin)
+         strlcpy(settings->video.softfilter_plugin, EXPLICIT_EMPTY, PATH_MAX_LENGTH);
+      config_set_path(conf, "video_filter", settings->video.softfilter_plugin);
+      if (!*settings->video.shader_path)
+         strlcpy(settings->video.shader_path, EXPLICIT_EMPTY, PATH_MAX_LENGTH);
+      config_set_path(conf, "video_shader", settings->video.shader_path);
+   }
+   else if (settings->video.filter_shader_scope < scope)
+   {
+      config_remove_entry(conf, "video_filter");
+      config_remove_entry(conf, "video_shader");
+   }
+      
+   if (scope == THIS_CORE)
+   {
+      config_set_path(conf, "rgui_browser_directory",
+                      settings->core_content_directory); // not written if empty
+      // Always save Core Settings
+      config_set_bool(conf, "video_shared_context",
+                      settings->video.shared_context);
+      config_set_bool(conf, "load_dummy_on_core_shutdown",
+                      settings->load_dummy_on_core_shutdown);
+      config_set_bool(conf, "core_set_supports_no_game_enable",
+                      settings->core.set_supports_no_game_enable);
+   }
+
+   // Create/update or delete config file
+   if (conf->entries)
+   {
+      if(!path_file_exists(directory))
+         path_mkdir(directory);
+      config_file_write(conf, fullpath);
+   }
+   else if (path_file_exists(fullpath))
+      remove(fullpath);
+   
+   // Cleanup
+   config_file_free(conf);
+}
+
+void scoped_config_files_save()
+{
+   scoped_config_file_save(THIS_CORE);
+   scoped_config_file_save(THIS_CONTENT_DIR);
+   scoped_config_file_save(THIS_CONTENT_ONLY);
+}
+
+void restore_update_config_globals()
+{
+   settings_t *settings = config_get_ptr();
+   unsigned i;
+   
+   if (!settings)
+      return;
+   
+   static bool audio_sync;
+   static bool video_threaded;
+   static bool video_vsync;
+   static bool video_hard_sync;
+   static unsigned video_hard_sync_frames;
+   static float input_dpad_diagonal_sensitivity;
+   static float input_abxy_overlap;
+   static float input_abxy_ellipse_magnify;
+   static unsigned input_abxy_method;
+   static bool overlay_adjust_aspect;
+   static unsigned input_overlay_aspect_ratio_index;
+   static float input_overlay_bisect_aspect_ratio;
+   static bool input_overlay_adjust_vertical_lock_edges;
+   static bool throttle_using_core_fps;
+   static bool fastforward_ratio_throttle_enable;
+   static unsigned aspect_ratio_index;
+   static unsigned video_rotation;
+   static unsigned video_frame_delay;
+   static float input_overlay_opacity;
+   static float input_overlay_adjust_vertical;
+   static char input_overlay[PATH_MAX_LENGTH];
+   static video_viewport_t custom_vp;
+   static unsigned input_max_users;
+   static int input_joypad_map[MAX_USERS];
+   static int input_libretro_device[MAX_USERS];
+   static int input_analog_dpad_mode[MAX_USERS];
+   static char video_filter[PATH_MAX_LENGTH];
+   static char video_shader[PATH_MAX_LENGTH];
+   static bool video_shared_context;
+   static bool load_dummy_on_core_shutdown;
+   static bool core_set_supports_no_game_enable;
+   
+   video_viewport_t* p_custom_vp
+      = (video_viewport_t*) video_viewport_get_custom();
+   
+   if (settings->audio.sync_scope != GLOBAL)
+   {  // restore
+      settings->audio.sync_scope = GLOBAL;
+      settings->audio.sync = audio_sync;
+   }
+   else
+   {  // update
+      audio_sync = settings->audio.sync;
+   }
+   
+   if (settings->video.threaded_scope != GLOBAL)
+   {  // restore
+      settings->video.threaded_scope = GLOBAL;
+      settings->video.threaded = video_threaded;
+   }
+   else
+   {  // update
+      video_threaded = settings->video.threaded;
+   }
+   
+   if (settings->video.vsync_scope != GLOBAL)
+   {  // restore
+      settings->video.vsync_scope = GLOBAL;
+      settings->video.vsync = video_vsync;
+   }
+   else
+   {  // update
+      video_vsync = settings->video.vsync;
+   }
+
+   if (settings->video.hard_sync_scope != GLOBAL)
+   {  // restore
+      settings->video.hard_sync_scope = GLOBAL;
+      settings->video.hard_sync = video_hard_sync;
+      settings->video.hard_sync_frames = video_hard_sync_frames;
+   }
+   else
+   {  // update
+      video_hard_sync = settings->video.hard_sync;
+      video_hard_sync_frames = settings->video.hard_sync_frames;
+   }
+   
+   if (settings->input.overlay_scope != GLOBAL)
+   {  // restore
+      settings->input.overlay_scope = GLOBAL;
+      strlcpy(settings->input.overlay, input_overlay, PATH_MAX_LENGTH);
+   }
+   else
+   {  // update
+      strlcpy(input_overlay, settings->input.overlay, PATH_MAX_LENGTH);
+   }
+
+   if (settings->input.dpad_abxy_diag_sens_scope != GLOBAL)
+   {  // restore
+      settings->input.dpad_abxy_diag_sens_scope = GLOBAL;
+      settings->input.dpad_diagonal_sensitivity = input_dpad_diagonal_sensitivity;
+      settings->input.abxy_overlap = input_abxy_overlap;
+      settings->input.abxy_ellipse_magnify = input_abxy_ellipse_magnify;
+      settings->input.abxy_method = input_abxy_method;
+   }
+   else
+   {  // update
+      input_dpad_diagonal_sensitivity = settings->input.dpad_diagonal_sensitivity;
+      input_abxy_overlap = settings->input.abxy_overlap;
+      input_abxy_ellipse_magnify = settings->input.abxy_ellipse_magnify;
+      input_abxy_method = settings->input.abxy_method;
+   }
+
+   if (settings->input.overlay_adjust_vert_horiz_scope != GLOBAL)
+   {  // restore
+      settings->input.overlay_adjust_vert_horiz_scope = GLOBAL;
+      settings->input.overlay_adjust_aspect = overlay_adjust_aspect;
+      settings->input.overlay_aspect_ratio_index = input_overlay_aspect_ratio_index;
+      settings->input.overlay_bisect_aspect_ratio = input_overlay_bisect_aspect_ratio;
+      settings->input.overlay_adjust_vertical = input_overlay_adjust_vertical;
+      settings->input.overlay_adjust_vertical_lock_edges = input_overlay_adjust_vertical_lock_edges;
+   }
+   else
+   {  // update
+      overlay_adjust_aspect = settings->input.overlay_adjust_aspect;
+      input_overlay_aspect_ratio_index = settings->input.overlay_aspect_ratio_index;
+      input_overlay_bisect_aspect_ratio = settings->input.overlay_bisect_aspect_ratio;
+      input_overlay_adjust_vertical = settings->input.overlay_adjust_vertical;
+      input_overlay_adjust_vertical_lock_edges = settings->input.overlay_adjust_vertical_lock_edges;
+   }
+      
+   if (settings->throttle_setting_scope != GLOBAL)
+   {  // restore
+      settings->throttle_setting_scope = GLOBAL;
+      settings->throttle_using_core_fps = throttle_using_core_fps;
+      settings->fastforward_ratio_throttle_enable = fastforward_ratio_throttle_enable;
+   }
+   else
+   {  // update
+      throttle_using_core_fps = settings->throttle_using_core_fps;
+      fastforward_ratio_throttle_enable = settings->fastforward_ratio_throttle_enable;
+   }
+   
+   if (settings->video.aspect_ratio_idx_scope != GLOBAL)
+   {  // restore
+      settings->video.aspect_ratio_idx_scope = GLOBAL;
+      settings->video.aspect_ratio_idx = aspect_ratio_index;
+      *p_custom_vp = custom_vp;
+   }
+   else
+   {  // update
+      aspect_ratio_index = settings->video.aspect_ratio_idx;
+      custom_vp = *p_custom_vp;
+   }
+
+   if (settings->video.rotation_scope != GLOBAL)
+   {  // restore
+      settings->video.rotation_scope = GLOBAL;
+      settings->video.rotation = video_rotation;
+   }
+   else
+   {  // update
+      video_rotation = settings->video.rotation;
+   }
+   
+   if (settings->video.frame_delay_scope != GLOBAL)
+   {  // restore
+      settings->video.frame_delay_scope = GLOBAL;
+      settings->video.frame_delay = video_frame_delay;
+   }
+   else
+   {  // update
+      video_frame_delay = settings->video.frame_delay;
+   }
+      
+   if (settings->input.overlay_opacity_scope != GLOBAL)
+   {  // restore
+      settings->input.overlay_opacity_scope = GLOBAL;
+      settings->input.overlay_opacity = input_overlay_opacity;
+   }
+   else
+   {  // update
+      input_overlay_opacity = settings->input.overlay_opacity;
+   }
+   
+   if (settings->input.max_users_scope != GLOBAL)
+   {  // restore
+      settings->input.max_users_scope = GLOBAL;
+      settings->input.max_users = input_max_users;
+   }
+   else
+   {  // update
+      input_max_users = settings->input.max_users;
+   }
+   
+   if (settings->input.libretro_device_scope != GLOBAL)
+   {  // restore
+      settings->input.libretro_device_scope = GLOBAL;
+      for (i = 0; i < input_max_users; i++)
+      {
+         settings->input.joypad_map[i] = input_joypad_map[i];
+         settings->input.libretro_device[i] = input_libretro_device[i];
+         settings->input.analog_dpad_mode[i] = input_analog_dpad_mode[i];
+      }
+   }
+   else
+   {  // update
+      for (i = 0; i < input_max_users; i++)
+      {
+         input_joypad_map[i] = settings->input.joypad_map[i];
+         input_libretro_device[i] = settings->input.libretro_device[i];
+         input_analog_dpad_mode[i] = settings->input.analog_dpad_mode[i];
+      }
+   }
+   
+   if (settings->video.filter_shader_scope != GLOBAL)
+   {  // restore
+      settings->video.filter_shader_scope = GLOBAL;
+      strlcpy(settings->video.softfilter_plugin, video_filter, PATH_MAX_LENGTH);
+      strlcpy(settings->video.shader_path, video_shader, PATH_MAX_LENGTH);
+   }
+   else
+   {  // update
+      strlcpy(video_filter, settings->video.softfilter_plugin, PATH_MAX_LENGTH);
+      strlcpy(video_shader, settings->video.shader_path, PATH_MAX_LENGTH);
+   }
+   
+   if (!*settings->libretro)
+   {  // restore
+      settings->video.shared_context = video_shared_context;
+      settings->load_dummy_on_core_shutdown = load_dummy_on_core_shutdown;
+      settings->core.set_supports_no_game_enable = core_set_supports_no_game_enable;
+      *settings->core_content_directory = '\0';
+   }
+   else
+   {  // update
+      video_shared_context = settings->video.shared_context;
+      load_dummy_on_core_shutdown = settings->load_dummy_on_core_shutdown;
+      core_set_supports_no_game_enable = settings->core.set_supports_no_game_enable;
+   }
+}
+
+static void scoped_config_file_load(unsigned scope)
 {
    char directory[PATH_MAX_LENGTH]  = {0};
    char buf[PATH_MAX_LENGTH]        = {0};
@@ -2774,478 +2906,133 @@ int game_config_file_save()
    unsigned i;
    
    if (!global || !settings)
-      return 0;
-
-   // Set game cfg path
+      return;
+   
+   // Set scoped cfg path
+   //
+   if (!get_scoped_filename(buf, scope))
+      return;
+   
    fill_pathname_join(directory, settings->menu_config_directory,
                       global->libretro_name, PATH_MAX_LENGTH);
-   fill_pathname_join(buf, directory,
-                      path_basename(global->basename), PATH_MAX_LENGTH);
-   fill_pathname_noext(fullpath, buf, ".cfg", PATH_MAX_LENGTH);
+   fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
    
-   // Create new config in memory
-   conf = config_file_new(NULL);
-   if (!conf)
-      return -1;
-
-   // Populate config
-   {
-      if (settings->audio.sync_scope == THIS_CONTENT_ONLY)
-         config_set_bool(conf, "audio_sync", settings->audio.sync);
-      if (settings->video.threaded_scope == THIS_CONTENT_ONLY)
-         config_set_bool(conf, "video_threaded", settings->video.threaded);
-      if (settings->video.vsync_scope == THIS_CONTENT_ONLY)
-         config_set_bool(conf, "video_vsync", settings->video.vsync);
-      if (settings->video.hard_sync_scope == THIS_CONTENT_ONLY)
-      {
-         config_set_bool(conf, "video_hard_sync", settings->video.hard_sync);
-         config_set_int(conf, "video_hard_sync_frames", settings->video.hard_sync_frames);
-      }
-      if (settings->input.overlay_scope == THIS_CONTENT_ONLY)
-         config_set_string(conf, "input_overlay", settings->input.overlay);
-      if (settings->input.dpad_abxy_diag_sens_scope == THIS_CONTENT_ONLY)
-      {
-         config_set_float(conf, "input_dpad_diagonal_sensitivity",
-                          settings->input.dpad_diagonal_sensitivity);
-         config_set_float(conf, "input_abxy_overlap",
-                          settings->input.abxy_overlap);
-         config_set_float(conf, "input_abxy_ellipse_magnify",
-                          settings->input.abxy_ellipse_magnify);
-         config_set_int(conf, "input_abxy_method", settings->input.abxy_method);
-      }
-      if (settings->input.overlay_adjust_vert_horiz_scope == THIS_CONTENT_ONLY)
-      {
-         config_set_bool(conf, "input_overlay_adjust_aspect",
-              settings->input.overlay_adjust_aspect);
-         config_set_int(conf, "input_overlay_aspect_ratio_index",
-               settings->input.overlay_aspect_ratio_index);
-         config_set_float(conf, "input_overlay_bisect_aspect_ratio",
-               settings->input.overlay_bisect_aspect_ratio);
-         config_set_float(conf, "input_overlay_adjust_vertical",
-               settings->input.overlay_adjust_vertical);
-         config_set_bool(conf, "input_overlay_adjust_vertical_lock_edges",
-               settings->input.overlay_adjust_vertical_lock_edges);
-      }
-      if (settings->throttle_setting_scope == THIS_CONTENT_ONLY)
-      {
-         config_set_bool(conf, "fastforward_ratio_throttle_enable", settings->fastforward_ratio_throttle_enable);
-         config_set_bool(conf, "throttle_using_core_fps", settings->throttle_using_core_fps);
-      }
-      if (settings->video.aspect_ratio_idx_scope == THIS_CONTENT_ONLY)
-      {
-         config_set_int(conf, "aspect_ratio_index", settings->video.aspect_ratio_idx);
-         const video_viewport_t *p_custom_vp
-            = (const video_viewport_t*) video_viewport_get_custom();
-         config_set_int(conf, "custom_viewport_width", p_custom_vp->width);
-         config_set_int(conf, "custom_viewport_height", p_custom_vp->height);
-         config_set_int(conf, "custom_viewport_x", p_custom_vp->x);
-         config_set_int(conf, "custom_viewport_y", p_custom_vp->y);
-      }
-      if (settings->video.rotation_scope == THIS_CONTENT_ONLY)
-         config_set_int(conf, "video_rotation", settings->video.rotation);
-      if (settings->video.frame_delay_scope == THIS_CONTENT_ONLY)
-         config_set_int(conf, "video_frame_delay", settings->video.frame_delay);
-      if (settings->input.overlay_opacity_scope == THIS_CONTENT_ONLY)
-         config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
-      if (settings->input.max_users_scope == THIS_CONTENT_ONLY)
-         config_set_int(conf, "input_max_users", settings->input.max_users);
-      if (settings->input.libretro_device_scope == THIS_CONTENT_ONLY)
-      {
-         for (i = 0; i < settings->input.max_users; i++)
-         {
-            char buf[64] = {0};
-            snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
-            config_set_int(conf, buf, settings->input.libretro_device[i]);
-
-            snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
-            config_set_int(conf, buf, settings->input.analog_dpad_mode[i]);
-         }
-      }
-      if (settings->video.filter_shader_scope == THIS_CONTENT_ONLY)
-      {
-         config_set_path(conf, "video_filter", settings->video.softfilter_plugin);
-         config_set_path(conf, "video_shader", settings->video.shader_path);
-      }
-   }
-
-   // Create/update or delete config file
-   if (conf->entries)
-   {
-      if(!path_file_exists(directory))
-         path_mkdir(directory);
-      if (!config_file_write(conf, fullpath))
-         return -1;
-   }
-   else if (path_file_exists(fullpath))
-      remove(fullpath);
-   
-   // Cleanup
-   config_file_free(conf);
-   
-   return 0;
-}
-
-/* Called between ROM loads.
- * Restores settings overridden by a ROM-specific config. Backs-up others.
- */
-void update_restore_config_placeholders()
-{
-   settings_t *settings = config_get_ptr();
-   unsigned i;
-   
-   static unsigned audio_sync_scope;
-   static bool audio_sync;
-   static unsigned video_threaded_scope;
-   static bool video_threaded;
-   static unsigned video_vsync_scope;
-   static bool video_vsync;
-   static unsigned video_hard_sync_scope;
-   static bool video_hard_sync;
-   static unsigned video_hard_sync_frames;
-   static unsigned input_dpad_abxy_diag_sens_scope;
-   static float input_dpad_diagonal_sensitivity;
-   static float input_abxy_overlap;
-   static float input_abxy_ellipse_magnify;
-   static unsigned input_abxy_method;
-   static bool overlay_adjust_aspect;
-   static unsigned input_overlay_aspect_ratio_index;
-   static float input_overlay_bisect_aspect_ratio;
-   static bool input_overlay_adjust_vertical_lock_edges;
-   static unsigned throttle_setting_scope;
-   static bool throttle_using_core_fps;
-   static bool fastforward_ratio_throttle_enable;
-   static unsigned aspect_ratio_index;
-   static unsigned aspect_ratio_index_scope;
-   static unsigned video_rotation;
-   static unsigned video_rotation_scope;
-   static unsigned video_frame_delay;
-   static unsigned video_frame_delay_scope;
-   static float input_overlay_opacity;
-   static unsigned input_overlay_opacity_scope;
-   static float input_overlay_adjust_vertical;
-   static float input_overlay_adjust_vert_horiz_scope;
-   static unsigned input_overlay_scope;
-   static char input_overlay[PATH_MAX_LENGTH];
-   static video_viewport_t custom_vp;
-   static unsigned input_max_users;
-   static unsigned input_max_users_scope;
-   static int input_joypad_map[MAX_USERS];
-   static int input_libretro_device[MAX_USERS];
-   static int input_analog_dpad_mode[MAX_USERS];
-   static unsigned input_libretro_device_scope;
-   static char video_filter[PATH_MAX_LENGTH];
-   static char video_shader[PATH_MAX_LENGTH];
-   static unsigned video_filter_shader_scope;
-   
-   video_viewport_t* p_custom_vp
-      = (video_viewport_t*) video_viewport_get_custom();
-   
-   /* A "scope" variable should only become THIS_CONTENT_ONLY if the value
-      it scopes is found in a ROM config file. Once the ROM config file
-      is unloaded, the scope variable should return to its previous value. */
-   
-   if (settings->audio.sync_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->audio.sync_scope = audio_sync_scope;
-      settings->audio.sync = audio_sync;
-   }
-   else
-   {  // update
-      audio_sync_scope = settings->audio.sync_scope;
-      audio_sync = settings->audio.sync;
-   }
-   
-   if (settings->video.threaded_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->video.threaded_scope = video_threaded_scope;
-      settings->video.threaded = video_threaded;
-   }
-   else
-   {  // update
-      video_threaded_scope = settings->video.threaded_scope;
-      video_threaded = settings->video.threaded;
-   }
-   
-   if (settings->video.vsync_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->video.vsync_scope = video_vsync_scope;
-      settings->video.vsync = video_vsync;
-   }
-   else
-   {  // update
-      video_vsync_scope = settings->video.vsync_scope;
-      video_vsync = settings->video.vsync;
-   }
-
-   if (settings->video.hard_sync_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->video.hard_sync_scope = video_hard_sync_scope;
-      settings->video.hard_sync = video_hard_sync;
-      settings->video.hard_sync_frames = video_hard_sync_frames;
-   }
-   else
-   {  // update
-      video_hard_sync_scope = settings->video.hard_sync_scope;
-      video_hard_sync = settings->video.hard_sync;
-      video_hard_sync_frames = settings->video.hard_sync_frames;
-   }
-   
-   if (settings->input.overlay_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->input.overlay_scope = input_overlay_scope;
-      strlcpy(settings->input.overlay, input_overlay, PATH_MAX_LENGTH);
-   }
-   else
-   {  // update
-      input_overlay_scope = settings->input.overlay_scope;
-      strlcpy(input_overlay, settings->input.overlay, PATH_MAX_LENGTH);
-   }
-
-   if (settings->input.dpad_abxy_diag_sens_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->input.dpad_abxy_diag_sens_scope = input_dpad_abxy_diag_sens_scope;
-      settings->input.dpad_diagonal_sensitivity = input_dpad_diagonal_sensitivity;
-      settings->input.abxy_overlap = input_abxy_overlap;
-      settings->input.abxy_ellipse_magnify = input_abxy_ellipse_magnify;
-      settings->input.abxy_method = input_abxy_method;
-   }
-   else
-   {  // update
-      input_dpad_abxy_diag_sens_scope = settings->input.dpad_abxy_diag_sens_scope;
-      input_dpad_diagonal_sensitivity = settings->input.dpad_diagonal_sensitivity;
-      input_abxy_overlap = settings->input.abxy_overlap;
-      input_abxy_ellipse_magnify = settings->input.abxy_ellipse_magnify;
-      input_abxy_method = settings->input.abxy_method;
-   }
-
-   if (settings->input.overlay_adjust_vert_horiz_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->input.overlay_adjust_vert_horiz_scope = input_overlay_adjust_vert_horiz_scope;
-      settings->input.overlay_adjust_aspect = overlay_adjust_aspect;
-      settings->input.overlay_aspect_ratio_index = input_overlay_aspect_ratio_index;
-      settings->input.overlay_bisect_aspect_ratio = input_overlay_bisect_aspect_ratio;
-      settings->input.overlay_adjust_vertical = input_overlay_adjust_vertical;
-      settings->input.overlay_adjust_vertical_lock_edges = input_overlay_adjust_vertical_lock_edges;
-   }
-   else
-   {  // update
-      input_overlay_adjust_vert_horiz_scope = settings->input.overlay_adjust_vert_horiz_scope;
-      overlay_adjust_aspect = settings->input.overlay_adjust_aspect;
-      input_overlay_aspect_ratio_index = settings->input.overlay_aspect_ratio_index;
-      input_overlay_bisect_aspect_ratio = settings->input.overlay_bisect_aspect_ratio;
-      input_overlay_adjust_vertical = settings->input.overlay_adjust_vertical;
-      input_overlay_adjust_vertical_lock_edges = settings->input.overlay_adjust_vertical_lock_edges;
-   }
-      
-   if (settings->throttle_setting_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->throttle_setting_scope = throttle_setting_scope;
-      settings->throttle_using_core_fps = throttle_using_core_fps;
-      settings->fastforward_ratio_throttle_enable = fastforward_ratio_throttle_enable;
-   }
-   else
-   {  // update
-      throttle_setting_scope = settings->throttle_setting_scope;
-      throttle_using_core_fps = settings->throttle_using_core_fps;
-      fastforward_ratio_throttle_enable = settings->fastforward_ratio_throttle_enable;
-   }
-   
-   if (settings->video.aspect_ratio_idx_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->video.aspect_ratio_idx_scope = aspect_ratio_index_scope;
-      settings->video.aspect_ratio_idx = aspect_ratio_index;
-      *p_custom_vp = custom_vp;
-   }
-   else
-   {  // update
-      aspect_ratio_index_scope = settings->video.aspect_ratio_idx_scope;
-      aspect_ratio_index = settings->video.aspect_ratio_idx;
-      custom_vp = *p_custom_vp;
-   }
-
-   if (settings->video.rotation_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->video.rotation_scope = video_rotation_scope;
-      settings->video.rotation = video_rotation;
-   }
-   else
-   {  // update
-      video_rotation_scope = settings->video.rotation_scope;
-      video_rotation = settings->video.rotation;
-   }
-   
-   if (settings->video.frame_delay_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->video.frame_delay_scope = video_frame_delay_scope;
-      settings->video.frame_delay = video_frame_delay;
-   }
-   else
-   {  // update
-      video_frame_delay_scope = settings->video.frame_delay_scope;
-      video_frame_delay = settings->video.frame_delay;
-   }
-      
-   if (settings->input.overlay_opacity_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->input.overlay_opacity_scope = input_overlay_opacity_scope;
-      settings->input.overlay_opacity = input_overlay_opacity;
-   }
-   else
-   {  // update
-      input_overlay_opacity_scope = settings->input.overlay_opacity_scope;
-      input_overlay_opacity = settings->input.overlay_opacity;
-   }
-   
-   if (settings->input.max_users_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->input.max_users_scope = input_max_users_scope;
-      settings->input.max_users = input_max_users;
-   }
-   else
-   {  // update
-      input_max_users_scope = settings->input.max_users_scope;
-      input_max_users = settings->input.max_users;
-   }
-   
-   if (settings->input.libretro_device_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->input.libretro_device_scope = input_libretro_device_scope;
-      for (i = 0; i < settings->input.max_users; i++)
-      {
-         settings->input.joypad_map[i] = input_joypad_map[i];
-         settings->input.libretro_device[i] = input_libretro_device[i];
-         settings->input.analog_dpad_mode[i] = input_analog_dpad_mode[i];
-      }
-   }
-   else
-   {  // update
-      input_libretro_device_scope = settings->input.libretro_device_scope;
-      for (i = 0; i < settings->input.max_users; i++)
-      {
-         input_joypad_map[i] = settings->input.joypad_map[i];
-         input_libretro_device[i] = settings->input.libretro_device[i];
-         input_analog_dpad_mode[i] = settings->input.analog_dpad_mode[i];
-      }
-   }
-   
-   if (settings->video.filter_shader_scope == THIS_CONTENT_ONLY)
-   {  // restore
-      settings->video.filter_shader_scope = video_filter_shader_scope;
-      strlcpy(settings->video.softfilter_plugin, video_filter, PATH_MAX_LENGTH);
-      strlcpy(settings->video.shader_path, video_shader, PATH_MAX_LENGTH);
-   }
-   else
-   {  // update
-      video_filter_shader_scope = settings->video.filter_shader_scope;
-      strlcpy(video_filter, settings->video.softfilter_plugin, PATH_MAX_LENGTH);
-      strlcpy(video_shader, settings->video.shader_path, PATH_MAX_LENGTH);
-   }
-}
-
-int game_config_file_load_auto()
-{
-   char directory[PATH_MAX_LENGTH]  = {0};
-   char buf[PATH_MAX_LENGTH]        = {0};
-   char fullpath[PATH_MAX_LENGTH]   = {0};
-   global_t *global                 = global_get_ptr();
-   settings_t *settings             = config_get_ptr();
-   config_file_t* conf              = NULL;
-   const char *core_name            = global ? global->libretro_name : NULL;
-   const char *game_name            = global ? path_basename(global->basename) : NULL;
-   unsigned i = 0;
-   
-   // Save previous ROM config if loading a new ROM
-   if (game_settings_touched)
-      game_config_file_save();
-   
-   // Keep track of retroarch.cfg values and restore as needed
-   update_restore_config_placeholders();
-   
-   // Read game specific config file
-   fill_pathname_join(directory, settings->menu_config_directory,
-                      core_name, PATH_MAX_LENGTH);
-   fill_pathname_join(buf,directory,game_name,PATH_MAX_LENGTH);
-   fill_pathname_noext(fullpath, buf, ".cfg", PATH_MAX_LENGTH);
    conf = config_file_new(fullpath);
+   if (!conf)
+      return;
    
-   /* Override values if found in ROM config,
-    * and update scope to THIS_CONTENT_ONLY in those cases */
-   if (conf)
+   // Override values if found in scoped config, and update scope in those cases
+   if (config_get_bool(conf, "audio_sync", &settings->audio.sync))
+      settings->audio.sync_scope = scope;
+   if (config_get_bool(conf, "video_vsync", &settings->video.vsync))
+      settings->video.vsync_scope = scope;
+   if (config_get_bool(conf, "video_hard_sync", &settings->video.hard_sync))
    {
-      if (config_get_bool(conf, "audio_sync", &settings->audio.sync))
-         settings->audio.sync_scope = THIS_CONTENT_ONLY;
-      if (config_get_bool(conf, "video_vsync", &settings->video.vsync))
-         settings->video.vsync_scope = THIS_CONTENT_ONLY;
-      if (config_get_bool(conf, "video_hard_sync", &settings->video.hard_sync))
-      {
-         settings->video.hard_sync_scope = THIS_CONTENT_ONLY;
-         config_get_uint(conf, "video_hard_sync_frames", &settings->video.hard_sync_frames);
-      }
-      if (config_get_bool(conf, "video_threaded", &settings->video.threaded))
-         settings->video.threaded_scope = THIS_CONTENT_ONLY;
-      if (config_get_path(conf, "input_overlay", settings->input.overlay, sizeof(settings->input.overlay)))
-         settings->input.overlay_scope = THIS_CONTENT_ONLY;
-      if (config_get_float(conf, "input_dpad_diagonal_sensitivity", &settings->input.dpad_diagonal_sensitivity))
-      {
-         settings->input.dpad_abxy_diag_sens_scope = THIS_CONTENT_ONLY;
-         config_get_float(conf, "input_abxy_overlap", &settings->input.abxy_overlap);
-         config_get_float(conf, "input_abxy_ellipse_magnify", &settings->input.abxy_ellipse_magnify);
-         config_get_uint(conf, "input_abxy_method", &settings->input.abxy_method);
-      }
-      if (config_get_bool(conf, "input_overlay_adjust_aspect", &settings->input.overlay_adjust_aspect))
-      {
-         settings->input.overlay_adjust_vert_horiz_scope = THIS_CONTENT_ONLY;
-         config_get_float(conf, "input_overlay_bisect_aspect_ratio", &settings->input.overlay_bisect_aspect_ratio);
-         config_get_uint(conf, "input_overlay_aspect_ratio_index", &settings->input.overlay_aspect_ratio_index);
-         config_get_float(conf, "input_overlay_adjust_vertical", &settings->input.overlay_adjust_vertical);
-         config_get_bool(conf, "input_overlay_adjust_vertical_lock_edges", &settings->input.overlay_adjust_vertical_lock_edges);
-      }
-      if (config_get_bool(conf, "fastforward_ratio_throttle_enable", &settings->fastforward_ratio_throttle_enable))
-      {
-         settings->throttle_setting_scope = THIS_CONTENT_ONLY;
-         config_get_bool(conf, "throttle_using_core_fps", &settings->throttle_using_core_fps);
-      }
-      if (config_get_uint(conf, "aspect_ratio_index", &settings->video.aspect_ratio_idx))
-      {
-         settings->video.aspect_ratio_idx_scope = THIS_CONTENT_ONLY;
-         video_viewport_t *p_custom_vp
-            = (video_viewport_t*) video_viewport_get_custom();
-         config_get_uint(conf, "custom_viewport_width",  &p_custom_vp->width);
-         config_get_uint(conf, "custom_viewport_height", &p_custom_vp->height);
-         config_get_int(conf, "custom_viewport_x", &p_custom_vp->x);
-         config_get_int(conf, "custom_viewport_y", &p_custom_vp->y);
-      }
-      if (config_get_uint(conf, "video_rotation", &settings->video.rotation))
-         settings->video.rotation_scope = THIS_CONTENT_ONLY;
-      if (config_get_uint(conf, "video_frame_delay", &settings->video.frame_delay))
-         settings->video.frame_delay_scope = THIS_CONTENT_ONLY;
-      if (config_get_float(conf, "input_overlay_opacity", &settings->input.overlay_opacity))
-         settings->input.overlay_opacity_scope = THIS_CONTENT_ONLY;
-      if (config_get_uint(conf, "input_max_users", &settings->input.max_users))
-         settings->input.max_users_scope = THIS_CONTENT_ONLY;
-      for (i = 0; i < settings->input.max_users; i++)
-      {
-         char buf[64] = {0};
-         snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
-         if (!config_get_uint(conf, buf, &settings->input.libretro_device[i]))
-            break;
-         
-         snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
-         config_get_uint(conf, buf, &settings->input.analog_dpad_mode[i]);
-      }
-      if (i > 0)
-         settings->input.libretro_device_scope = THIS_CONTENT_ONLY;
-      
-      if (config_get_path(conf, "video_filter", settings->video.softfilter_plugin,
-                          sizeof(settings->video.softfilter_plugin)))
-         settings->video.filter_shader_scope = THIS_CONTENT_ONLY;
-      if (config_get_path(conf, "video_shader", settings->video.shader_path,
-                          sizeof(settings->video.shader_path)))
-         settings->video.filter_shader_scope = THIS_CONTENT_ONLY;
+      settings->video.hard_sync_scope = scope;
+      config_get_uint(conf, "video_hard_sync_frames", &settings->video.hard_sync_frames);
+   }
+   if (config_get_bool(conf, "video_threaded", &settings->video.threaded))
+      settings->video.threaded_scope = scope;
+   if (config_get_path(conf, "input_overlay", settings->input.overlay, sizeof(settings->input.overlay)))
+   {
+      if (!strcmp(settings->input.overlay, EXPLICIT_EMPTY))
+         *settings->input.overlay = '\0';
+      settings->input.overlay_scope = scope;
+   }
+   if (config_get_float(conf, "input_dpad_diagonal_sensitivity", &settings->input.dpad_diagonal_sensitivity))
+   {
+      settings->input.dpad_abxy_diag_sens_scope = scope;
+      config_get_float(conf, "input_abxy_overlap", &settings->input.abxy_overlap);
+      config_get_float(conf, "input_abxy_ellipse_magnify", &settings->input.abxy_ellipse_magnify);
+      config_get_uint(conf, "input_abxy_method", &settings->input.abxy_method);
+   }
+   if (config_get_bool(conf, "input_overlay_adjust_aspect", &settings->input.overlay_adjust_aspect))
+   {
+      settings->input.overlay_adjust_vert_horiz_scope = scope;
+      config_get_float(conf, "input_overlay_bisect_aspect_ratio", &settings->input.overlay_bisect_aspect_ratio);
+      config_get_uint(conf, "input_overlay_aspect_ratio_index", &settings->input.overlay_aspect_ratio_index);
+      config_get_float(conf, "input_overlay_adjust_vertical", &settings->input.overlay_adjust_vertical);
+      config_get_bool(conf, "input_overlay_adjust_vertical_lock_edges", &settings->input.overlay_adjust_vertical_lock_edges);
+   }
+   if (config_get_bool(conf, "fastforward_ratio_throttle_enable", &settings->fastforward_ratio_throttle_enable))
+   {
+      settings->throttle_setting_scope = scope;
+      config_get_bool(conf, "throttle_using_core_fps", &settings->throttle_using_core_fps);
+   }
+   if (config_get_uint(conf, "aspect_ratio_index", &settings->video.aspect_ratio_idx))
+   {
+      settings->video.aspect_ratio_idx_scope = scope;
+      video_viewport_t *p_custom_vp
+         = (video_viewport_t*) video_viewport_get_custom();
+      config_get_uint(conf, "custom_viewport_width",  &p_custom_vp->width);
+      config_get_uint(conf, "custom_viewport_height", &p_custom_vp->height);
+      config_get_int(conf, "custom_viewport_x", &p_custom_vp->x);
+      config_get_int(conf, "custom_viewport_y", &p_custom_vp->y);
+   }
+   if (config_get_uint(conf, "video_rotation", &settings->video.rotation))
+      settings->video.rotation_scope = scope;
+   if (config_get_uint(conf, "video_frame_delay", &settings->video.frame_delay))
+      settings->video.frame_delay_scope = scope;
+   if (config_get_float(conf, "input_overlay_opacity", &settings->input.overlay_opacity))
+      settings->input.overlay_opacity_scope = scope;
+   if (config_get_uint(conf, "input_max_users", &settings->input.max_users))
+      settings->input.max_users_scope = scope;
+   for (i = 0; i < settings->input.max_users; i++)
+   {
+      char buf[64] = {0};
+      snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
+      if (!config_get_uint(conf, buf, &settings->input.libretro_device[i]))
+         break;
+      snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
+      config_get_uint(conf, buf, &settings->input.analog_dpad_mode[i]);
+   }
+   if (i > 0)
+      settings->input.libretro_device_scope = scope;
+
+   if (config_get_path(conf, "video_filter", settings->video.softfilter_plugin,
+                       sizeof(settings->video.softfilter_plugin)))
+   {
+      if (!strcmp(settings->video.softfilter_plugin, EXPLICIT_EMPTY))
+         *settings->video.softfilter_plugin = '\0';
+      settings->video.filter_shader_scope = scope;
+   }
+   if (config_get_path(conf, "video_shader", settings->video.shader_path,
+                       sizeof(settings->video.shader_path)))
+   {
+      if (!strcmp(settings->video.shader_path, EXPLICIT_EMPTY))
+         *settings->video.shader_path = '\0';
+      settings->video.filter_shader_scope = scope;
+   }
+   
+   if (scope == THIS_CORE)
+   {
+      if (config_get_path(conf, "rgui_browser_directory", buf, PATH_MAX_LENGTH))
+         strlcpy(settings->core_content_directory, buf, PATH_MAX_LENGTH);
+      CONFIG_GET_BOOL_BASE(conf, settings, video.shared_context,
+                           "video_shared_context");
+      CONFIG_GET_BOOL_BASE(conf, settings, load_dummy_on_core_shutdown,
+                           "load_dummy_on_core_shutdown");
+      CONFIG_GET_BOOL_BASE(conf, settings, core.set_supports_no_game_enable,
+                           "core_set_supports_no_game_enable");
    }
    
    // cleanup
    config_file_free(conf);
+}
 
-   return 0;
+void scoped_config_files_load_auto()
+{
+   // Back up or unmask global settings
+   restore_update_config_globals();
+   
+   scoped_config_file_load(THIS_CORE);
+   scoped_config_file_load(THIS_CONTENT_DIR);
+   scoped_config_file_load(THIS_CONTENT_ONLY);
+}
+
+
+void core_config_file_load_auto()
+{
+   restore_update_config_globals();
+   scoped_config_file_load(THIS_CORE);
 }

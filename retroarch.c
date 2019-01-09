@@ -1544,21 +1544,18 @@ bool rarch_replace_config(const char *path)
    return true;
 }
 
-void rarch_update_config()
+void rarch_update_configs()
 {
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
-   bool block_config_read_old;
+   
+   if (!settings || !global)
+      return;
 
-   /* save config using old libretro_name for core-specific settings */
    if (settings->config_save_on_exit)
    {
-      if (settings_touched && *global->config_path)
-         config_save_file(global->config_path);
-
-      if (game_settings_touched)
-         game_config_file_save();
-
+      if (scoped_settings_touched)
+         scoped_config_files_save();
       if (global->system.core_options)
       {
          if (options_touched)
@@ -1571,13 +1568,10 @@ void rarch_update_config()
    /* get new core's libretro_name */
    update_libretro_name();
 
-   /* load global or core-specific settings, or defaults if no core loaded */
-   block_config_read_old = global->block_config_read;
-   global->block_config_read = false;
-   config_load();
-   global->block_config_read = block_config_read_old;
-
-   settings_touched = false;
-   game_settings_touched = false;
+   /* restore globals when a core is unloaded */
+   if (!*global->libretro_name)
+      restore_update_config_globals();
+   
+   scoped_settings_touched = false;
    options_touched = false;
 }

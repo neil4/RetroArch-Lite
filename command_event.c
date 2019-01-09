@@ -630,7 +630,7 @@ static bool event_init_content(void)
    if (settings->auto_remaps_enable)
       remap_file_load_auto();
    
-   game_config_file_load_auto();
+   scoped_config_files_load_auto();
 
    if (event_load_save_files())
       RARCH_LOG("Skipping SRAM load.\n");
@@ -856,7 +856,9 @@ bool event_command(enum event_command cmd)
          }
          break;
       case EVENT_CMD_LOAD_CORE:
-         rarch_update_config();
+         rarch_update_configs();
+         if (!*global->fullpath)
+            core_config_file_load_auto();
          event_command(EVENT_CMD_LOAD_CORE_PERSIST);
 #ifndef HAVE_DYNAMIC
          event_command(EVENT_CMD_QUIT);
@@ -934,7 +936,7 @@ bool event_command(enum event_command cmd)
          break;
       case EVENT_CMD_UNLOAD_CORE:
          *settings->libretro = '\0';
-         rarch_update_config();
+         rarch_update_configs();
          event_command(EVENT_CMD_PREPARE_DUMMY);
          event_command(EVENT_CMD_LOAD_CORE_DEINIT);
          

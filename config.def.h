@@ -380,12 +380,10 @@ static const bool disable_composition = false;
 
 /* Video VSYNC (recommended) */
 static const bool vsync = true;
-static const unsigned vsync_scope = GLOBAL;
 
 /* Attempts to hard-synchronize CPU and GPU.
  * Can reduce latency at cost of performance. */
 static const bool hard_sync = true;
-static const unsigned video_hard_sync_scope = GLOBAL;
 
 /* Configures how many frames the GPU can run ahead of CPU.
  * 0: Syncs to GPU immediately.
@@ -398,7 +396,6 @@ static const unsigned hard_sync_frames = 1;
  * Can reduce latency at cost of higher risk of stuttering.
  */
 static const unsigned frame_delay = 0;
-static const unsigned frame_delay_scope = CORE_SPECIFIC;
 
 /* Inserts a black frame inbetween frames.
  * Useful for 120 Hz monitors who want to play 60 Hz material with eliminated 
@@ -416,7 +413,6 @@ static unsigned swap_interval = 1;
  * at the cost of worse synchronization and latency.
  */
 static const bool video_threaded = false;
-static const unsigned video_threaded_scope = GLOBAL;
 
 /* Set to true if HW render cores should get their private context. */
 static const bool video_shared_context = false;
@@ -429,8 +425,6 @@ static const bool video_vfilter = true;
 
 /* Smooths picture. */
 static const bool video_smooth = true;
-
-static const unsigned video_filter_shader_scope = CORE_SPECIFIC;
 
 /* On resize and fullscreen, rendering area will stay 4:3 */
 static const bool force_aspect = true; 
@@ -585,7 +579,6 @@ static const int out_latency = 64;
 
 /* Will sync audio. (recommended) */
 static const bool audio_sync = true;
-static const unsigned audio_sync_scope = CORE_SPECIFIC;
 
 /* Audio rate control. */
 #if defined(GEKKO) || !defined(RARCH_CONSOLE)
@@ -657,7 +650,6 @@ static const float fastforward_ratio = 1.0;
 
 /* Throttle fast forward. */
 static const bool fastforward_ratio_throttle_enable = false;
-static const unsigned throttle_setting_scope = CORE_SPECIFIC;
 static const bool throttle_using_core_fps = true;
 
 /* Enable stdin/network command interface. */

@@ -117,11 +117,11 @@ void rarch_main_deinit(void);
 bool rarch_replace_config(const char *path);
 
 /**
- * rarch_update_config
+ * rarch_update_configs
  * 
- * Called between unloading/loading cores to save/load core- or game-specific settings.
+ * Called on load/unload core to save options and scoped configs.
  */
-void rarch_update_config();
+void rarch_update_configs();
 
 /**
  * rarch_defer_core:

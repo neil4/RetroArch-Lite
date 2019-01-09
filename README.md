@@ -7,7 +7,7 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
 
 ### Notable Updates
 * Scoped Settings
-  * Certain settings (aspect ratio, etc.) can be scoped to a core or ROM.
+  * Certain settings (aspect ratio, etc.) can be scoped to a core, ROM, or ROM directory.
   * Can quickset a core-specific browser directory after a ROM is loaded
 * Overlay Features
   * Dpad area with adjustable diagonal sensitivity

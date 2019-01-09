@@ -31,10 +31,12 @@ extern "C" {
 
 /* All config related settings go here. */
 
+// Higher scopes are more specific and mask lower scopes
 enum setting_scope
 {
    GLOBAL = 0,
-   CORE_SPECIFIC,
+   THIS_CORE,
+   THIS_CONTENT_DIR,
    THIS_CONTENT_ONLY,
    NUM_SETTING_SCOPES
 };
@@ -48,7 +50,7 @@ struct scope_elem
 extern struct scope_elem scope_lut[NUM_SETTING_SCOPES];
 
 extern bool settings_touched;
-extern bool game_settings_touched;
+extern bool scoped_settings_touched;
 
 typedef struct settings
 {
@@ -490,21 +492,33 @@ void update_libretro_name(void);
 void config_load(void);
 
 /**
- * game_config_file_save
- * @returns 0  
+ * scoped_config_files_save()
+ * 
+ * Saves settings scoped to the content or content directory
  */
-int game_config_file_save();
-int game_config_file_load_auto();
+void scoped_config_files_save();
 
 /**
- * config_save_keybinds_file:
- * @path            : Path that shall be written to.
- *
- * Writes a keybinds config file to disk.
- *
- * Returns: true (1) on success, otherwise returns false (0).
- **/
-bool config_save_keybinds_file(const char *path);
+ * scoped_config_files_load_auto
+ * 
+ * Called while loading content. Loads scoped config files.
+ */
+void scoped_config_files_load_auto();
+
+/**
+ * core_config_file_load_auto
+ * 
+ * Called when just loading a core. Loads core's config file
+ */
+void core_config_file_load_auto();
+
+/**
+ * restore_update_config_globals
+ * 
+ * Called between ROM loads. Restores scoped settings to global values, and
+ * updates backups for already-global values.
+ */
+void restore_update_config_globals();
 
 /**
  * config_save_file:

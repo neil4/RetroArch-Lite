@@ -40,8 +40,8 @@ void main_exit_save_config(void)
    {
       if (settings_touched && *global->config_path)
          config_save_file(global->config_path);
-      if (game_settings_touched)
-         game_config_file_save();
+      if (scoped_settings_touched)
+         scoped_config_files_save();
       if (global->system.core_options)
       {
          if (options_touched)

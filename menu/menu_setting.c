@@ -267,7 +267,7 @@ int menu_action_handle_setting(rarch_setting_t *setting,
         && strcmp(setting->group, menu_hash_to_str(MENU_VALUE_MAIN_MENU)) )
    {
       settings_touched = true;
-      game_settings_touched = true;
+      scoped_settings_touched = true;
    }
 
    switch (setting->type)
@@ -1742,6 +1742,16 @@ static void setting_get_string_representation_touch_method(void *data,
       else
          strcpy(s, "8-way + Area");
    }
+}
+
+static void setting_get_string_representation_on_off_core_specific(void *data,
+      char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting && *setting->value.boolean)
+      strcpy(s, "ON (Core specific)");
+   else
+      strcpy(s, "OFF (Core specific)");
 }
 
 static void setting_get_string_representation_uint_libretro_device(void *data,
@@ -4164,7 +4174,7 @@ static bool setting_append_list_core_options(
    CONFIG_BOOL(
          settings->video.shared_context,
          "video_shared_context",
-         "Shared Context (Core specific)",
+         "Shared Context",
          false,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -4173,6 +4183,8 @@ static bool setting_append_list_core_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   (*list)[list_info->index - 1].get_string_representation = 
+   &setting_get_string_representation_on_off_core_specific; 
 
    CONFIG_BOOL(
          settings->load_dummy_on_core_shutdown,
@@ -4186,11 +4198,13 @@ static bool setting_append_list_core_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   (*list)[list_info->index - 1].get_string_representation = 
+   &setting_get_string_representation_on_off_core_specific; 
 
    CONFIG_BOOL(
          settings->core.set_supports_no_game_enable,
          "core_set_supports_no_game_enable",
-         "Supports No Content Enable (Core specific)",
+         "Supports No Content Enable",
          true,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -4199,6 +4213,8 @@ static bool setting_append_list_core_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   (*list)[list_info->index - 1].get_string_representation = 
+   &setting_get_string_representation_on_off_core_specific; 
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -4495,7 +4511,7 @@ static bool setting_append_list_frame_throttling_options(
       settings->throttle_setting_scope,
       "throttle_setting_scope",
       "  Scope",
-      throttle_setting_scope,
+      GLOBAL,
       group_info.name,
       subgroup_info.name,
       parent_group,
@@ -4905,7 +4921,7 @@ static bool setting_append_list_video_options(
       settings->video.aspect_ratio_idx_scope,
       "aspect_ratio_index_scope",
       "  Scope",
-      CORE_SPECIFIC,
+      GLOBAL,
       group_info.name,
       subgroup_info.name,
       parent_group,
@@ -5063,7 +5079,7 @@ static bool setting_append_list_video_options(
       settings->video.vsync_scope,
       "vsync_scope",
       "  Scope",
-      vsync_scope,
+      GLOBAL,
       group_info.name,
       subgroup_info.name,
       parent_group,
@@ -5113,7 +5129,7 @@ static bool setting_append_list_video_options(
       settings->video.threaded_scope,
       "video_threaded_scope",
       "  Scope",
-      video_threaded_scope,
+      GLOBAL,
       group_info.name,
       subgroup_info.name,
       parent_group,
@@ -5306,7 +5322,7 @@ static bool setting_append_list_video_options(
 #else
       "  Scope",
 #endif
-      video_filter_shader_scope,
+      GLOBAL,
       group_info.name,
       subgroup_info.name,
       parent_group,
@@ -5518,7 +5534,7 @@ static bool setting_append_list_audio_options(
       settings->audio.sync_scope,
       "audio_sync_scope",
       "  Scope",
-      audio_sync_scope,
+      GLOBAL,
       group_info.name,
       subgroup_info.name,
       parent_group,
@@ -5702,7 +5718,7 @@ static bool setting_append_list_latency_options(
       settings->video.hard_sync_scope,
       "video_hard_sync_scope",
       "  Scope",
-      video_hard_sync_scope,
+      GLOBAL,
       group_info.name,
       subgroup_info.name,
       parent_group,
@@ -5738,7 +5754,7 @@ static bool setting_append_list_latency_options(
       settings->video.frame_delay_scope,
       "video_frame_delay_scope",
       "  Scope",
-      frame_delay_scope,
+      GLOBAL,
       group_info.name,
       subgroup_info.name,
       parent_group,
@@ -6190,7 +6206,7 @@ static bool setting_append_list_overlay_options(
       settings->input.overlay_scope,
       "input_overlay_scope",
       "  Scope",
-      CORE_SPECIFIC,
+      GLOBAL,
       group_info.name,
       subgroup_info.name,
       parent_group,
@@ -7461,12 +7477,11 @@ static bool setting_append_list_directory_options(
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
-
    CONFIG_DIR(
-         settings->libretro_directory,
-         "libretro_dir_path",
-         "Core Directory",
-         g_defaults.core_dir,
+         settings->libretro_info_path,
+         "libretro_info_path",
+         "Core Info Directory",
+         g_defaults.core_info_dir,
          "<None>",
          group_info.name,
          subgroup_info.name,
@@ -7478,12 +7493,12 @@ static bool setting_append_list_directory_options(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
-
-   CONFIG_DIR(
-         settings->libretro_info_path,
-         "libretro_info_path",
-         "Core Info Directory",
-         g_defaults.core_info_dir,
+   
+CONFIG_DIR(
+         settings->libretro_directory,
+         "libretro_dir_path",
+         "Core Lib Directory",
+         g_defaults.core_dir,
          "<None>",
          group_info.name,
          subgroup_info.name,

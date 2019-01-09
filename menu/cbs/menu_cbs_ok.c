@@ -284,7 +284,7 @@ static int action_ok_shader_preset(const char *path,
    strlcpy(info.path, settings->video.shader_dir, sizeof(info.path));
    strlcpy(info.label, label, sizeof(info.label));
 
-   game_settings_touched = true;
+   scoped_settings_touched = true;
    settings_touched = true;
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
 }
