@@ -957,8 +957,13 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
                menu_action_setting_disp_set_label_menu_file_directory;
             break;
          case MENU_FILE_CARCHIVE:
-            cbs->action_get_value =
-               menu_action_setting_disp_set_label_menu_file_carchive;
+            settings = config_get_ptr();
+            if (settings->menu.mame_titles)
+               cbs->action_get_value =
+                  menu_action_setting_disp_set_alt_label_menu_file_plain;
+            else
+               cbs->action_get_value =
+                  menu_action_setting_disp_set_label_menu_file_carchive;
             break;
          case MENU_FILE_OVERLAY:
             cbs->action_get_value =
