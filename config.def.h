@@ -695,6 +695,8 @@ static const bool input_descriptor_label_show = true;
 
 static const bool input_descriptor_hide_unbound = false;
 
+static const bool input_vibrate_time = 5;
+
 #if defined(ANDROID)
 #if defined(ANDROID_ARM)
 static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/armeabi-v7a/";

@@ -690,7 +690,7 @@ static void config_set_defaults(void)
    settings->input.abxy_overlap                    = 50.0f;
    settings->input.abxy_ellipse_magnify            = 1.0f;
    settings->input.abxy_ellipse_multitouch_boost   = 1.0f;
-   settings->input.vibrate_time                    = 0;
+   settings->input.vibrate_time                    = input_vibrate_time;
    settings->input.overlay_enable                  = true;
    settings->input.overlay_scale                   = 1.0f;
    settings->input.overlay_adjust_aspect           = true;

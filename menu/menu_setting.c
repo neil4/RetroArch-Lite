@@ -6334,7 +6334,7 @@ static bool setting_append_list_overlay_options(
             settings->input.vibrate_time,
             "input_vibrate_time",
             "Vibration",
-            5,
+            input_vibrate_time,
             group_info.name,
             subgroup_info.name,
             parent_group,
