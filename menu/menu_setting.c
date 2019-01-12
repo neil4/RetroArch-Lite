@@ -5848,6 +5848,7 @@ static bool setting_append_list_input_options(
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
+   driver_t   *driver   = driver_get_ptr();
 	
    START_GROUP(group_info, "Input Settings", parent_group);
 
@@ -6102,23 +6103,23 @@ static bool setting_append_list_input_options(
    CONFIG_UINT(
       settings->input.libretro_device_scope,
       "input_libretro_device_scope",
-      "  Scope (Virtual & Analog)",
+      "Virtual Devices Scope",
       GLOBAL,
       group_info.name,
       subgroup_info.name,
       parent_group,
       general_write_handler,
       general_read_handler);
-   menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         NUM_SETTING_SCOPES-1,
-         1,
-         true,
-         true);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index;
+      menu_settings_list_current_add_range(
+            list,
+            list_info,
+            0,
+            NUM_SETTING_SCOPES-1,
+            1,
+            true,
+            true);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_scope_index;
 
    START_SUB_GROUP(
          list,
@@ -6140,6 +6141,22 @@ static bool setting_append_list_input_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0, 1.00, 0.001, true, true);
+   
+   if (driver && driver->input && driver->input->set_rumble)
+   {
+      CONFIG_BOOL(
+            settings->input.rumble_enable,
+            "input_rumble_enable",
+            "Enable Rumble",
+            false,
+            menu_hash_to_str(MENU_VALUE_OFF),
+            menu_hash_to_str(MENU_VALUE_ON),
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+   }
 
    CONFIG_UINT(
          settings->input.turbo_period,
@@ -6349,7 +6366,7 @@ static bool setting_append_list_overlay_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
-   if (driver && driver->input && driver->input->haptic_feedback)
+   if (driver && driver->input && driver->input->overlay_haptic_feedback)
    {
       CONFIG_UINT(
             settings->input.vibrate_time,
@@ -6378,8 +6395,8 @@ static bool setting_append_list_overlay_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_SET_ALPHA_MOD);
    menu_settings_list_current_add_range(list, list_info, 0, 1, 0.01, true, true);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_SET_ALPHA_MOD);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    
    CONFIG_UINT(

@@ -752,5 +752,5 @@ input_driver_t input_dinput = {
    dinput_get_joypad_driver,
    dinput_keyboard_mapping_is_blocked,
    dinput_keyboard_mapping_set_block,
-   NULL // haptic_feedback
+   NULL // overlay_haptic_feedback
 };

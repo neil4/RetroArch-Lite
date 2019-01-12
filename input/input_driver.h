@@ -78,7 +78,7 @@ typedef struct input_driver
    const input_device_driver_t *(*get_joypad_driver)(void *data);
    bool (*keyboard_mapping_is_blocked)(void *data);
    void (*keyboard_mapping_set_block)(void *data, bool value);
-   void (*haptic_feedback) (void);
+   void (*overlay_haptic_feedback) (void);
 } input_driver_t;
 
 extern input_driver_t input_android;

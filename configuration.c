@@ -645,6 +645,7 @@ static void config_set_defaults(void)
    settings->input.input_descriptor_hide_unbound    = input_descriptor_hide_unbound;
    settings->input.remap_binds_enable               = true;
    settings->input.max_users                        = 2;
+   settings->input.rumble_enable                    = true;
 
    rarch_assert(sizeof(settings->input.binds[0]) >= sizeof(retro_keybinds_1));
    rarch_assert(sizeof(settings->input.binds[1]) >= sizeof(retro_keybinds_rest));
@@ -1404,6 +1405,7 @@ static bool config_load_file(const char *path, bool set_defaults)
 
    CONFIG_GET_BOOL_BASE(conf, settings, input.remap_binds_enable, "input_remap_binds_enable");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.axis_threshold, "input_axis_threshold");
+   CONFIG_GET_BOOL_BASE(conf, settings, input.rumble_enable, "input_rumble_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, input.netplay_client_swap_input, "netplay_client_swap_input");
    CONFIG_GET_INT_BASE(conf, settings, input.max_users, "input_max_users");
    CONFIG_GET_BOOL_BASE(conf, settings, input.input_descriptor_label_show, "input_descriptor_label_show");
@@ -1958,6 +1960,8 @@ bool config_save_file(const char *path)
       config_set_int(conf, "input_max_users", settings->input.max_users);
    config_set_float(conf, "input_axis_threshold",
          settings->input.axis_threshold);
+   config_set_bool(conf, "input_rumble_enable",
+         settings->input.rumble_enable);
    config_set_bool(conf, "ui_companion_start_on_boot", settings->ui.companion_start_on_boot);
    config_set_bool(conf, "video_gpu_record", settings->video.gpu_record);
    config_set_bool(conf, "input_remap_binds_enable",
@@ -2196,8 +2200,10 @@ bool config_save_file(const char *path)
          *global->overlay_dir ? global->overlay_dir : "default");
 
    if ( settings->input.overlay_scope == GLOBAL )
+   {
       config_set_path(conf, "input_overlay", settings->input.overlay);
-   config_set_bool(conf, "input_overlay_enable", settings->input.overlay_enable);
+      config_set_bool(conf, "input_overlay_enable", settings->input.overlay_enable);
+   }
    
    if ( settings->input.overlay_opacity_scope == GLOBAL )
       config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
@@ -2319,25 +2325,23 @@ bool config_save_file(const char *path)
    config_set_string(conf, "input_keyboard_layout",
          settings->input.keyboard_layout);
    
-   if (settings->input.libretro_device_scope == GLOBAL)
+   for (i = 0; i < settings->input.max_users; i++)
    {
-      config_set_int(conf, "input_libretro_device_scope",
-                     settings->input.libretro_device_scope);
-      for (i = 0; i < settings->input.max_users; i++)
+      char cfg[64] = {0};
+      snprintf(cfg, sizeof(cfg), "input_player%u_joypad_index", i + 1);
+      config_set_int(conf, cfg, settings->input.joypad_map[i]);
+
+      if (settings->input.libretro_device_scope == GLOBAL)
       {
-         char cfg[64] = {0};
-         snprintf(cfg, sizeof(cfg), "input_player%u_joypad_index", i + 1);
-         config_set_int(conf, cfg, settings->input.joypad_map[i]);
-         
          snprintf(cfg, sizeof(cfg), "input_libretro_device_p%u", i + 1);
          config_set_int(conf, cfg, settings->input.libretro_device[i]);
-         
-         snprintf(cfg, sizeof(cfg), "input_player%u_analog_dpad_mode", i + 1);
-         config_set_int(conf, cfg, settings->input.analog_dpad_mode[i]);
       }
+
+      snprintf(cfg, sizeof(cfg), "input_player%u_analog_dpad_mode", i + 1);
+      config_set_int(conf, cfg, settings->input.analog_dpad_mode[i]);
    }
 
-   for (i = 0; i < MAX_USERS; i++)
+   for (i = 0; i < settings->input.max_users; i++)
       save_keybinds_user(conf, i);
 
    config_set_bool(conf, "auto_remaps_enable",
@@ -2393,9 +2397,7 @@ settings_t *config_init(void)
    return g_config;
 }
 
-// TODO: Don't rely on global->basename?
-// Basename is conveniently updated between saving and loading scoped configs.
-static inline bool get_scoped_filename(char* buf, const unsigned scope)
+static inline bool get_scoped_config_filename(char* buf, const unsigned scope)
 {
    global_t *global = global_get_ptr();
    
@@ -2410,7 +2412,8 @@ static inline bool get_scoped_filename(char* buf, const unsigned scope)
    {
       if (!*global->basename)
          return false;
-      
+
+      // Basename is conveniently updated between saving and loading scoped cfgs
       path_parent_dir_name(buf, global->basename);
       if (!*buf)
          strcpy(buf, "root");
@@ -2445,7 +2448,7 @@ static void scoped_config_file_save(unsigned scope)
    
    // Set scoped cfg path
    //
-   if (!get_scoped_filename(buf, scope))
+   if (!get_scoped_config_filename(buf, scope))
       return;
    
    fill_pathname_join(directory, settings->menu_config_directory,
@@ -2493,9 +2496,15 @@ static void scoped_config_file_save(unsigned scope)
    }
 
    if (settings->input.overlay_scope == scope)
+   {
       config_set_string(conf, "input_overlay", settings->input.overlay);
+      config_set_bool(conf, "input_overlay_enable", settings->input.overlay_enable);
+   }
    else if (settings->input.overlay_scope < scope)
+   {
       config_remove_entry(conf, "input_overlay");
+      config_remove_entry(conf, "input_overlay_enable");
+   }
 
    if (settings->input.dpad_abxy_diag_sens_scope == scope)
    {
@@ -2594,9 +2603,6 @@ static void scoped_config_file_save(unsigned scope)
          char buf[64] = {0};
          snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
          config_set_int(conf, buf, settings->input.libretro_device[i]);
-
-         snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
-         config_set_int(conf, buf, settings->input.analog_dpad_mode[i]);
       }
    }
    else if (settings->input.libretro_device_scope < scope)
@@ -2605,9 +2611,6 @@ static void scoped_config_file_save(unsigned scope)
       {
          char buf[64] = {0};
          snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
-         config_remove_entry(conf, buf);
-
-         snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
          config_remove_entry(conf, buf);
       }
    }
@@ -2691,11 +2694,11 @@ void restore_update_config_globals()
    static float input_overlay_opacity;
    static float input_overlay_adjust_vertical;
    static char input_overlay[PATH_MAX_LENGTH];
+   static bool input_overlay_enable;
    static video_viewport_t custom_vp;
    static unsigned input_max_users;
    static int input_joypad_map[MAX_USERS];
    static int input_libretro_device[MAX_USERS];
-   static int input_analog_dpad_mode[MAX_USERS];
    static char video_filter[PATH_MAX_LENGTH];
    static char video_shader[PATH_MAX_LENGTH];
    static bool video_shared_context;
@@ -2761,10 +2764,12 @@ void restore_update_config_globals()
    {  // restore
       settings->input.overlay_scope = GLOBAL;
       strlcpy(settings->input.overlay, input_overlay, PATH_MAX_LENGTH);
+      settings->input.overlay_enable = input_overlay_enable;
    }
    else
    {  // update
       strlcpy(input_overlay, settings->input.overlay, PATH_MAX_LENGTH);
+      input_overlay_enable = settings->input.overlay_enable;
    }
 
    if (settings->input.dpad_abxy_diag_sens_scope != GLOBAL)
@@ -2872,7 +2877,6 @@ void restore_update_config_globals()
       {
          settings->input.joypad_map[i] = input_joypad_map[i];
          settings->input.libretro_device[i] = input_libretro_device[i];
-         settings->input.analog_dpad_mode[i] = input_analog_dpad_mode[i];
       }
    }
    else
@@ -2881,7 +2885,6 @@ void restore_update_config_globals()
       {
          input_joypad_map[i] = settings->input.joypad_map[i];
          input_libretro_device[i] = settings->input.libretro_device[i];
-         input_analog_dpad_mode[i] = settings->input.analog_dpad_mode[i];
       }
    }
    
@@ -2927,7 +2930,7 @@ static void scoped_config_file_load(unsigned scope)
    
    // Set scoped cfg path
    //
-   if (!get_scoped_filename(buf, scope))
+   if (!get_scoped_config_filename(buf, scope))
       return;
    
    fill_pathname_join(directory, settings->menu_config_directory,
@@ -2956,6 +2959,7 @@ static void scoped_config_file_load(unsigned scope)
    {
       if (!strcmp(settings->input.overlay, EXPLICIT_EMPTY))
          *settings->input.overlay = '\0';
+      config_get_bool(conf, "input_overlay_enable", &settings->input.overlay_enable);
       settings->input.overlay_scope = scope;
    }
    if (config_get_float(conf, "input_dpad_diagonal_sensitivity", &settings->input.dpad_diagonal_sensitivity))
@@ -3002,8 +3006,6 @@ static void scoped_config_file_load(unsigned scope)
       snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
       if (!config_get_uint(conf, buf, &settings->input.libretro_device[i]))
          break;
-      snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
-      config_get_uint(conf, buf, &settings->input.analog_dpad_mode[i]);
    }
    if (i > 0)
       settings->input.libretro_device_scope = scope;

@@ -259,6 +259,7 @@ typedef struct settings
       unsigned libretro_device_scope;
 
       bool remap_binds_enable;
+      bool rumble_enable;
       float axis_threshold;
       unsigned joypad_map[MAX_USERS];
       char device_names[MAX_USERS][64];

@@ -455,5 +455,5 @@ input_driver_t input_cocoa = {
    cocoa_input_get_joypad_driver,
    cocoa_input_keyboard_mapping_is_blocked,
    cocoa_input_keyboard_mapping_set_block,
-   NULL // haptic_feedback
+   NULL // overlay_haptic_feedback
 };

@@ -259,5 +259,5 @@ input_driver_t input_rwebinput = {
    rwebinput_set_rumble,
    rwebinput_keyboard_mapping_is_blocked,
    rwebinput_keyboard_mapping_set_block,
-   NULL // haptic_feedback
+   NULL // overlay_haptic_feedback
 };

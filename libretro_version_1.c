@@ -430,12 +430,12 @@ static INLINE void input_poll_overlay(input_overlay_t *overlay_device, float opa
       input_overlay_poll_clear(overlay_device, opacity);
 
    // haptic feedback on button presses or direction changes
-   if ( driver->input->haptic_feedback
+   if ( driver->input->overlay_haptic_feedback
         && pointer_count >= prev_pointer_count
         && (old_state.buttons != driver->overlay_state.buttons
             || old_state.lightgun_buttons != driver->overlay_state.lightgun_buttons)
         && !(old_state.buttons & (1ULL << RARCH_OVERLAY_NEXT)) )
-   { driver->input->haptic_feedback(); }
+   { driver->input->overlay_haptic_feedback(); }
    
    prev_pointer_count = pointer_count;
 }

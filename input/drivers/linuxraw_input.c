@@ -313,5 +313,5 @@ input_driver_t input_linuxraw = {
    linuxraw_get_joypad_driver,
    linuxraw_keyboard_mapping_is_blocked,
    linuxraw_keyboard_mapping_set_block,
-   NULL // haptic_feedback
+   NULL // overlay_haptic_feedback
 };

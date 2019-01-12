@@ -58,7 +58,7 @@ bool input_joypad_set_rumble(const input_device_driver_t *drv,
    settings_t *settings = config_get_ptr();
    unsigned joy_idx     = settings->input.joypad_map[port];
    
-   if (!drv || !drv->set_rumble)
+   if (!settings->input.rumble_enable || !drv || !drv->set_rumble)
       return false;
 
    if (joy_idx >= MAX_USERS)

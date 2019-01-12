@@ -186,5 +186,5 @@ input_driver_t input_xinput = {
    xdk_input_get_joypad_driver,
    xdk_keyboard_mapping_is_blocked,
    xdk_keyboard_mapping_set_block,
-   NULL // haptic_feedback
+   NULL // overlay_haptic_feedback
 };

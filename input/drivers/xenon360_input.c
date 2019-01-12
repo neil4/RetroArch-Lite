@@ -135,5 +135,5 @@ input_driver_t input_xenon360 = {
    xenon360_input_set_rumble,
    NULL,
    NULL,
-   NULL // haptic_feedback
+   NULL // overlay_haptic_feedback
 };

@@ -259,8 +259,8 @@ enum
 
 #if defined(__CELLOS_LV2__)
 #define JOYPAD_DEFAULT_DRIVER JOYPAD_PS3
-#elif defined(HAVE_DINPUT)
-#define JOYPAD_DEFAULT_DRIVER JOYPAD_DINPUT
+#elif defined(HAVE_XINPUT)
+#define JOYPAD_DEFAULT_DRIVER JOYPAD_XINPUT
 #elif defined(GEKKO)
 #define JOYPAD_DEFAULT_DRIVER JOYPAD_GX
 #elif defined(_XBOX)
@@ -269,8 +269,8 @@ enum
 #define JOYPAD_DEFAULT_DRIVER JOYPAD_PSP
 #elif defined(_3DS)
 #define JOYPAD_DEFAULT_DRIVER JOYPAD_CTR
-#elif defined(HAVE_XINPUT)
-#define JOYPAD_DEFAULT_DRIVER JOYPAD_XINPUT
+#elif defined(HAVE_DINPUT)
+#define JOYPAD_DEFAULT_DRIVER JOYPAD_DINPUT
 #elif defined(HAVE_UDEV)
 #define JOYPAD_DEFAULT_DRIVER JOYPAD_UDEV
 #elif defined(__linux) && !defined(ANDROID)
