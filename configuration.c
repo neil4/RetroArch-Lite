@@ -2086,7 +2086,8 @@ bool config_save_file(const char *path)
          settings->audio.rate_control_delta);
    config_set_float(conf, "audio_max_timing_skew",
          settings->audio.max_timing_skew);
-   config_set_float(conf, "audio_volume", settings->audio.volume);
+   if (settings->audio.volume_scope == GLOBAL)
+      config_set_float(conf, "audio_volume", settings->audio.volume);
    config_set_string(conf, "video_context_driver", settings->video.context_driver);
    config_set_string(conf, "audio_driver", settings->audio.driver);
    config_set_bool(conf, "audio_enable", settings->audio.enable);
@@ -2464,6 +2465,11 @@ static void scoped_config_file_save(unsigned scope)
       config_set_bool(conf, "audio_sync", settings->audio.sync);
    else if (settings->audio.sync_scope < scope)
       config_remove_entry(conf, "audio_sync");
+   
+   if (settings->audio.volume_scope == scope)
+      config_set_float(conf, "audio_volume", settings->audio.volume);
+   else if (settings->audio.volume_scope < scope)
+      config_remove_entry(conf, "audio_volume");
 
    if (settings->video.threaded_scope == scope)
       config_set_bool(conf, "video_threaded", settings->video.threaded);
@@ -2664,6 +2670,7 @@ void restore_update_config_globals()
       return;
    
    static bool audio_sync;
+   static float audio_volume;
    static bool video_threaded;
    static bool video_vsync;
    static bool video_hard_sync;
@@ -2706,6 +2713,16 @@ void restore_update_config_globals()
    else
    {  // update
       audio_sync = settings->audio.sync;
+   }
+   
+   if (settings->audio.volume_scope != GLOBAL)
+   {  // restore
+      settings->audio.volume_scope = GLOBAL;
+      settings->audio.volume = audio_volume;
+   }
+   else
+   {  // update
+      audio_volume = settings->audio.volume;
    }
    
    if (settings->video.threaded_scope != GLOBAL)
@@ -2924,6 +2941,8 @@ static void scoped_config_file_load(unsigned scope)
    // Override values if found in scoped config, and update scope in those cases
    if (config_get_bool(conf, "audio_sync", &settings->audio.sync))
       settings->audio.sync_scope = scope;
+   if (config_get_float(conf, "audio_volume", &settings->audio.volume))
+      settings->audio.volume_scope = scope;
    if (config_get_bool(conf, "video_vsync", &settings->video.vsync))
       settings->video.vsync_scope = scope;
    if (config_get_bool(conf, "video_hard_sync", &settings->video.hard_sync))

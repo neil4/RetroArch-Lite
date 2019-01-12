@@ -233,6 +233,7 @@ typedef struct settings
       float rate_control_delta;
       float max_timing_skew;
       float volume; /* dB scale. */
+      unsigned volume_scope;
       char resampler[32];
    } audio;
 
