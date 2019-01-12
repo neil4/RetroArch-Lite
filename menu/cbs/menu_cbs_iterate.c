@@ -387,54 +387,29 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          }
          break;
          
-   case MENU_ACTION_L:  // min left point or default right point
-      if (!settings->video.scale_integer)
+   case MENU_ACTION_L:  // ten strides at a time
+      if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
          {
-            video_viewport_t vp;
-            video_driver_viewport_info(&vp);
-            float default_aspect = aspectratio_lut[ASPECT_RATIO_CORE].value;
-
-            if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
-            {
-               custom->width  += custom->x;
-               custom->height += custom->y;
-               custom->x       = 0;
-               custom->y       = 0;
-            }
-            else
-            {
-               custom->width   = vp.full_height * default_aspect;
-               custom->height  = vp.full_height;
-            }
-
-            event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
+            custom->x     -= 10*stride_x;
+            custom->width += 10*stride_x;
          }
+         else if (custom->width >= (unsigned)(10*stride_x))
+            custom->width -= 10*stride_x;
+
+         event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
          break;
-
-      case MENU_ACTION_R:  // max right point or default left point
-         if (!settings->video.scale_integer)
+         
+      case MENU_ACTION_R:  // ten strides at a time
+         if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
          {
-            video_viewport_t vp;
-            video_driver_viewport_info(&vp);
-            float default_aspect = aspectratio_lut[ASPECT_RATIO_CORE].value;
-            int custom_width = vp.full_height * default_aspect;
-            int current_right_x = custom->x + custom->width;
-
-            if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
-            {
-               custom->height  = vp.full_height;
-               custom->x       = (vp.full_width - custom_width) / 2;
-               custom->y       = 0;
-               custom->width   = current_right_x - custom->x;
-            }
-            else
-            {
-               custom->width   = vp.full_width - custom->x;
-               custom->height  = vp.full_height - custom->y;
-            }
-
-            event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
+            custom->x += 10*stride_x;
+            if (custom->width >= (unsigned)(10*stride_x))
+               custom->width -= 10*stride_x;
          }
+         else
+            custom->width += 10*stride_x;
+
+         event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
          break;
 
       case MENU_ACTION_MESSAGE:
