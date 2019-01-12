@@ -627,6 +627,9 @@ int menu_input_bind_iterate(uint32_t label_hash)
       hold_ms = rarch_get_time_usec() + MENU_INPUT_BIND_HOLD_USEC;
 
       binds.begin++;
+      
+      if (hotkey_bind)
+         input_keyboard_wait_keys_cancel();
 
       if (binds.begin > binds.last)
          return 1;
