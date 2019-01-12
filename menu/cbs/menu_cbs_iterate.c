@@ -351,8 +351,8 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
             info.list          = menu_list->menu_stack;
             info.type          = MENU_SETTINGS_CUSTOM_VIEWPORT;
             info.directory_ptr = nav->selection_ptr;
-
-            menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
+            strlcpy(info.label, "custom_viewport_1", sizeof(info.label));
+            menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
          }
          break;
 
