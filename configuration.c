@@ -3030,7 +3030,6 @@ void scoped_config_files_load_auto()
    scoped_config_file_load(THIS_CONTENT_ONLY);
 }
 
-
 void core_config_file_load_auto()
 {
    restore_update_config_globals();

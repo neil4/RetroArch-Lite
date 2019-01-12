@@ -236,6 +236,10 @@ static void frontend_win32_get_environment_settings(int *argc, char *argv[],
    strlcpy(g_defaults.savestate_dir, ".\\state", sizeof(g_defaults.savestate_dir));
    strlcpy(g_defaults.sram_dir, ".\\save", sizeof(g_defaults.sram_dir));
    strlcpy(g_defaults.system_dir, ".\\system", sizeof(g_defaults.system_dir));
+   strlcpy(g_defaults.shader_dir, ".\\shaders_glsl", sizeof(g_defaults.shader_dir));
+   strlcpy(g_defaults.video_filter_dir, ".\\video_filters", sizeof(g_defaults.video_filter_dir));
+   strlcpy(g_defaults.overlay_dir, ".\\overlays", sizeof(g_defaults.overlay_dir));
+   strlcpy(g_defaults.osk_overlay_dir, ".\\overlays\\keyboards", sizeof(g_defaults.osk_overlay_dir));
 }
 
 const frontend_ctx_driver_t frontend_ctx_win32 = {

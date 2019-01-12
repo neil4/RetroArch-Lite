@@ -1313,7 +1313,7 @@ static int setting_action_ok_custom_viewport(void *data, bool wraparound)
    info.directory_ptr = nav->selection_ptr;
    strlcpy(info.label, "custom_viewport_1", sizeof(info.label));
 
-   ret = menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
+   ret = menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
 
    video_driver_viewport_info(custom);
 
