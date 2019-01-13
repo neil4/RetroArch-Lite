@@ -6110,16 +6110,16 @@ static bool setting_append_list_input_options(
       parent_group,
       general_write_handler,
       general_read_handler);
-      menu_settings_list_current_add_range(
-            list,
-            list_info,
-            0,
-            NUM_SETTING_SCOPES-1,
-            1,
-            true,
-            true);
-      (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_uint_scope_index;
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         NUM_SETTING_SCOPES-1,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
 
    START_SUB_GROUP(
          list,
