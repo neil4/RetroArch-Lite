@@ -472,7 +472,7 @@ void path_parent_dir_name(char *buf, const char* file_path)
    char *start = slash + 1;
    char *end;
    
-   if (!slash || !(slash = strchr(slash+1, slash_char)))
+   if (!slash || !(slash = strchr(start, slash_char)))
    {
       *buf = '\0';
       return;
