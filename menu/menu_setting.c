@@ -5124,6 +5124,7 @@ static bool setting_append_list_video_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_REINIT);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    
    CONFIG_UINT(
       settings->video.threaded_scope,
@@ -5145,6 +5146,7 @@ static bool setting_append_list_video_options(
          true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 #endif
    
    END_SUB_GROUP(list, list_info, parent_group);
