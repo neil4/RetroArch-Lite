@@ -695,7 +695,7 @@ static const bool input_descriptor_label_show = true;
 
 static const bool input_descriptor_hide_unbound = false;
 
-static const bool input_vibrate_time = 5;
+static const unsigned input_vibrate_time = 5;
 
 #if defined(ANDROID)
 #if defined(ANDROID_ARM)
