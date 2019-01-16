@@ -4471,6 +4471,7 @@ static bool setting_append_list_frame_throttling_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   global_t   *global   = global_get_ptr();
    
    if (!settings->menu.show_frame_throttle_menu)
       return true;
@@ -4521,7 +4522,7 @@ static bool setting_append_list_frame_throttling_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -4931,7 +4932,7 @@ static bool setting_append_list_video_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -5089,7 +5090,7 @@ static bool setting_append_list_video_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -5140,7 +5141,7 @@ static bool setting_append_list_video_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -5179,7 +5180,7 @@ static bool setting_append_list_video_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -5334,7 +5335,7 @@ static bool setting_append_list_video_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -5506,7 +5507,7 @@ static bool setting_append_list_audio_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -5567,7 +5568,7 @@ static bool setting_append_list_audio_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -5706,6 +5707,7 @@ static bool setting_append_list_latency_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   global_t   *global   = global_get_ptr();
 
    START_GROUP(group_info, "Latency Settings", parent_group);
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
@@ -5751,7 +5753,7 @@ static bool setting_append_list_latency_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -5787,7 +5789,7 @@ static bool setting_append_list_latency_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -5886,7 +5888,7 @@ static bool setting_append_list_input_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -6116,7 +6118,7 @@ static bool setting_append_list_input_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -6256,7 +6258,7 @@ static bool setting_append_list_overlay_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -6361,7 +6363,7 @@ static bool setting_append_list_overlay_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -6415,7 +6417,7 @@ static bool setting_append_list_overlay_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);
@@ -6515,7 +6517,7 @@ static bool setting_append_list_overlay_options(
          list,
          list_info,
          0,
-         NUM_SETTING_SCOPES-1,
+         global->max_scope,
          1,
          true,
          true);

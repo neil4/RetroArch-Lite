@@ -326,6 +326,8 @@ typedef struct global
 
    bool libretro_no_content;
    bool libretro_dummy;
+   
+   unsigned max_scope;
 
    retro_keyboard_event_t frontend_key_event;
 } global_t;

@@ -568,6 +568,7 @@ static void frontend_android_get_environment_settings(int *argc,
          if (args)
             args->content_path = path;
          strlcpy(global->fullpath, path, PATH_MAX_LENGTH);
+         global->max_scope = NUM_SETTING_SCOPES-1;
          
          strlcpy(global->content_dir_override, path, PATH_MAX_LENGTH );
          path_basedir(global->content_dir_override);
