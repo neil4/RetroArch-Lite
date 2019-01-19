@@ -688,9 +688,9 @@ static void config_set_defaults(void)
 #ifdef HAVE_OVERLAY
    settings->input.overlay_opacity                 = 0.4f;
    settings->input.dpad_diagonal_sensitivity       = 75.0f;
-   settings->input.abxy_overlap                    = 50.0f;
-   settings->input.abxy_ellipse_magnify            = 1.0f;
-   settings->input.abxy_ellipse_multitouch_boost   = 1.0f;
+   settings->input.abxy_diagonal_sensitivity       = 50.0f;
+   settings->input.touch_ellipse_magnify           = 1.0f;
+   settings->input.touch_ellipse_multitouch_boost  = 1.0f;
    settings->input.vibrate_time                    = input_vibrate_time;
    settings->input.overlay_enable                  = true;
    settings->input.overlay_scale                   = 1.0f;
@@ -1597,11 +1597,12 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_opacity, "input_overlay_opacity");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_scale, "input_overlay_scale");
    
+   CONFIG_GET_INT_BASE(conf, settings, input.dpad_method, "input_dpad_method");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.dpad_diagonal_sensitivity, "input_dpad_diagonal_sensitivity");
    CONFIG_GET_INT_BASE(conf, settings, input.abxy_method, "input_abxy_method");
-   CONFIG_GET_FLOAT_BASE(conf, settings, input.abxy_overlap, "input_abxy_overlap");
-   CONFIG_GET_FLOAT_BASE(conf, settings, input.abxy_ellipse_magnify, "input_abxy_ellipse_magnify");
-   CONFIG_GET_FLOAT_BASE(conf, settings, input.abxy_ellipse_multitouch_boost, "input_abxy_ellipse_multitouch_boost");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.abxy_diagonal_sensitivity, "input_abxy_diagonal_sensitivity");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.touch_ellipse_magnify, "input_touch_ellipse_magnify");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.touch_ellipse_multitouch_boost, "input_touch_ellipse_multitouch_boost");
    
    CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_adjust_aspect, "input_overlay_adjust_aspect");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_bisect_aspect_ratio, "input_overlay_bisect_aspect_ratio");
@@ -2210,20 +2211,22 @@ bool config_save_file(const char *path)
    
    config_set_float(conf, "input_overlay_scale", settings->input.overlay_scale);
    
-   if ( settings->input.dpad_abxy_diag_sens_scope == GLOBAL )
+   if ( settings->input.dpad_abxy_config_scope == GLOBAL )
    {
-      config_set_float(conf, "input_abxy_overlap",
-                       settings->input.abxy_overlap);
-      config_set_float(conf, "input_abxy_ellipse_magnify",
-                       settings->input.abxy_ellipse_magnify);
+      config_set_int(conf, "input_dpad_method",
+                     settings->input.dpad_method);
       config_set_float(conf, "input_dpad_diagonal_sensitivity",
                        settings->input.dpad_diagonal_sensitivity);
       config_set_int(conf, "input_abxy_method",
                      settings->input.abxy_method);
+      config_set_float(conf, "input_abxy_diagonal_sensitivity",
+                       settings->input.abxy_diagonal_sensitivity);
    }
 
-   config_set_float(conf, "input_abxy_ellipse_multitouch_boost",
-                    settings->input.abxy_ellipse_multitouch_boost);
+   config_set_float(conf, "input_touch_ellipse_magnify",
+                    settings->input.touch_ellipse_magnify);
+   config_set_float(conf, "input_touch_ellipse_multitouch_boost",
+                    settings->input.touch_ellipse_multitouch_boost);
    
    if ( settings->input.overlay_adjust_vert_horiz_scope == GLOBAL )
    {
@@ -2506,21 +2509,19 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "input_overlay_enable");
    }
 
-   if (settings->input.dpad_abxy_diag_sens_scope == scope)
+   if (settings->input.dpad_abxy_config_scope == scope)
    {
+      config_set_int(conf, "input_dpad_method", settings->input.dpad_method);
       config_set_float(conf, "input_dpad_diagonal_sensitivity",
                        settings->input.dpad_diagonal_sensitivity);
-      config_set_float(conf, "input_abxy_overlap",
-                       settings->input.abxy_overlap);
-      config_set_float(conf, "input_abxy_ellipse_magnify",
-                       settings->input.abxy_ellipse_magnify);
       config_set_int(conf, "input_abxy_method", settings->input.abxy_method);
+      config_set_float(conf, "input_abxy_diagonal_sensitivity",
+                       settings->input.abxy_diagonal_sensitivity);
    }
-   else if (settings->input.dpad_abxy_diag_sens_scope < scope)
+   else if (settings->input.dpad_abxy_config_scope < scope)
    {
       config_remove_entry(conf, "input_dpad_diagonal_sensitivity");
-      config_remove_entry(conf, "input_abxy_overlap");
-      config_remove_entry(conf, "input_abxy_ellipse_magnify");
+      config_remove_entry(conf, "input_abxy_diagonal_sensitivity");
       config_remove_entry(conf, "input_abxy_method");
    }
 
@@ -2678,10 +2679,10 @@ void restore_update_config_globals()
    static bool video_vsync;
    static bool video_hard_sync;
    static unsigned video_hard_sync_frames;
+   static unsigned input_dpad_method;
    static float input_dpad_diagonal_sensitivity;
-   static float input_abxy_overlap;
-   static float input_abxy_ellipse_magnify;
    static unsigned input_abxy_method;
+   static float input_abxy_diagonal_sensitivity;
    static bool overlay_adjust_aspect;
    static unsigned input_overlay_aspect_ratio_index;
    static float input_overlay_bisect_aspect_ratio;
@@ -2772,20 +2773,20 @@ void restore_update_config_globals()
       input_overlay_enable = settings->input.overlay_enable;
    }
 
-   if (settings->input.dpad_abxy_diag_sens_scope != GLOBAL)
+   if (settings->input.dpad_abxy_config_scope != GLOBAL)
    {  // restore
-      settings->input.dpad_abxy_diag_sens_scope = GLOBAL;
+      settings->input.dpad_abxy_config_scope = GLOBAL;
+      settings->input.dpad_method = input_dpad_method;
       settings->input.dpad_diagonal_sensitivity = input_dpad_diagonal_sensitivity;
-      settings->input.abxy_overlap = input_abxy_overlap;
-      settings->input.abxy_ellipse_magnify = input_abxy_ellipse_magnify;
       settings->input.abxy_method = input_abxy_method;
+      settings->input.abxy_diagonal_sensitivity = input_abxy_diagonal_sensitivity;
    }
    else
    {  // update
+      input_dpad_method = settings->input.dpad_method;
       input_dpad_diagonal_sensitivity = settings->input.dpad_diagonal_sensitivity;
-      input_abxy_overlap = settings->input.abxy_overlap;
-      input_abxy_ellipse_magnify = settings->input.abxy_ellipse_magnify;
       input_abxy_method = settings->input.abxy_method;
+      input_abxy_diagonal_sensitivity = settings->input.abxy_diagonal_sensitivity;
    }
 
    if (settings->input.overlay_adjust_vert_horiz_scope != GLOBAL)
@@ -2964,10 +2965,10 @@ static void scoped_config_file_load(unsigned scope)
    }
    if (config_get_float(conf, "input_dpad_diagonal_sensitivity", &settings->input.dpad_diagonal_sensitivity))
    {
-      settings->input.dpad_abxy_diag_sens_scope = scope;
-      config_get_float(conf, "input_abxy_overlap", &settings->input.abxy_overlap);
-      config_get_float(conf, "input_abxy_ellipse_magnify", &settings->input.abxy_ellipse_magnify);
+      settings->input.dpad_abxy_config_scope = scope;
+      config_get_uint(conf, "input_dpad_method", &settings->input.dpad_method);
       config_get_uint(conf, "input_abxy_method", &settings->input.abxy_method);
+      config_get_float(conf, "input_abxy_diagonal_sensitivity", &settings->input.abxy_diagonal_sensitivity);
    }
    if (config_get_bool(conf, "input_overlay_adjust_aspect", &settings->input.overlay_adjust_aspect))
    {

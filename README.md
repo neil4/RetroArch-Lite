@@ -10,9 +10,8 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
   * Certain settings (aspect ratio, etc.) can be scoped to a core, ROM, or ROM directory.
   * Can quickset a core-specific browser directory after a ROM is loaded
 * Overlay Features
-  * Dpad area with adjustable diagonal sensitivity
-  * ABXY diamond area with choice of input style:
-    * 8-way direction
+  * Dpad and ABXY-diamond areas with choice of input style:
+    * Vector
     * Contact area (Android)
   * Lightgun support (use a SNES_x.cfg overlay)
 * MAME Titles
@@ -23,7 +22,7 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
 
 ### Control Notes
 * Menu
-  * 'Start' deletes an Options file,  Remap, or Shader Preset if "Create...", "Save...", or Preset is highlighted.
+  * 'Start' deletes an Options file, Remap, or Shader Preset if "Create...", "Save...", or Preset is highlighted.
   * 'L'/'R' sets min/max value.
 * Touchscreen
   * On most overlays, tapping the screen center toggles the menu.

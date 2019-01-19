@@ -1052,10 +1052,11 @@ static int setting_action_left_bind_device(void *data, bool wraparound)
       return -1;
 
    p = &settings->input.joypad_map[setting->index_offset];
+   
+   while ((*p) > 0 && !*settings->input.device_names[*p])
+      (*p)--;
 
-   if ((*p) >= settings->input.max_users)
-      *p = settings->input.max_users - 1;
-   else if ((*p) > 0)
+   if ((*p) > 0)
       (*p)--;
 
    return 0;
@@ -1072,7 +1073,7 @@ static int setting_action_right_bind_device(void *data, bool wraparound)
 
    p = &settings->input.joypad_map[setting->index_offset];
 
-   if (*p < settings->input.max_users)
+   if (*p < MAX_USERS && *settings->input.device_names[*p])
       (*p)++;
 
    return 0;
@@ -1715,6 +1716,42 @@ static void setting_get_string_representation_uint_scope_index(void *data,
             len);
 }
 
+static void setting_get_string_representation_abxy_diag_sens(void *data,
+      char *s, size_t len)
+{
+   settings_t     *settings = config_get_ptr();
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting && settings)
+   {
+      if (settings->input.abxy_method != TOUCH_AREA)
+      {
+         sprintf(s, "%.0f%%", *setting->value.fraction);
+      }
+      else
+      {
+         strcpy(s, "N/A");
+      }
+   }
+}
+
+static void setting_get_string_representation_dpad_diag_sens(void *data,
+      char *s, size_t len)
+{
+   settings_t     *settings = config_get_ptr();
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting && settings)
+   {
+      if (settings->input.dpad_method != TOUCH_AREA)
+      {
+         sprintf(s, "%.0f%%", *setting->value.fraction);
+      }
+      else
+      {
+         strcpy(s, "N/A");
+      }
+   }
+}
+
 static void setting_get_string_representation_millisec(void *data,
       char *s, size_t len)
 {
@@ -1735,12 +1772,12 @@ static void setting_get_string_representation_touch_method(void *data,
    if (setting)
    {
       unsigned val = *setting->value.unsigned_integer;
-      if (val == TOUCH_8WAY)
-         strcpy(s, "8-way direction");
+      if (val == VECTOR)
+         strcpy(s, "Vector");
       else if (val == TOUCH_AREA)
          strcpy(s, "Contact Area");
       else
-         strcpy(s, "8-way + Area");
+         strcpy(s, "Vector + Area");
    }
 }
 
@@ -3374,19 +3411,13 @@ static void get_string_representation_bind_device(void * data, char *s,
       return;
 
    map = settings->input.joypad_map[setting->index_offset];
+   const char *device_name = settings->input.device_names[map];
 
-   if (map < settings->input.max_users)
-   {
-      const char *device_name = settings->input.device_names[map];
-
-      if (*device_name)
-         strlcpy(s, device_name, len);
-      else
-         snprintf(s, len,
-               "N/A (port #%u)", map);
-   }
+   if (*device_name)
+      strlcpy(s, device_name, len);
    else
-      strlcpy(s, "Disabled", len);
+      snprintf(s, len,
+            "N/A (port #%u)", setting->index_offset);
 }
 
 
@@ -5321,7 +5352,7 @@ static bool setting_append_list_video_options(
       settings->video.filter_shader_scope,
       "video_filter_shader_scope",
 #ifdef HAVE_SHADER_MANAGER
-      "  Scope (Filter & Shader)",
+      "Scope (Filter & Shader)",
 #else
       "  Scope",
 #endif
@@ -6107,7 +6138,7 @@ static bool setting_append_list_input_options(
    CONFIG_UINT(
       settings->input.libretro_device_scope,
       "input_libretro_device_scope",
-      "Virtual Devices Scope",
+      "Scope (Virtual Devices)",
       GLOBAL,
       group_info.name,
       subgroup_info.name,
@@ -6265,10 +6296,26 @@ static bool setting_append_list_overlay_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
    
+   CONFIG_UINT(
+         settings->input.dpad_method,
+         "input_dpad_method",
+         "Dpad Input Method",
+         VECTOR,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, VECTOR, VECTOR_AND_AREA, 1, true, true);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
+   menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_touch_method; 
+   
    CONFIG_FLOAT(
          settings->input.dpad_diagonal_sensitivity,
          "input_dpad_diagonal_sensitivity",
-         "Dpad Diagonal Sensitivity",
+         "  Diagonal Sensitivity",
          75.0f,
          "%.0f%%",
          group_info.name,
@@ -6277,6 +6324,8 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_dpad_diag_sens;
    menu_settings_list_current_add_cmd(
          list,
          list_info,
@@ -6287,72 +6336,42 @@ static bool setting_append_list_overlay_options(
          settings->input.abxy_method,
          "input_abxy_method",
          "ABXY Input Method",
-         TOUCH_8WAY,
+         VECTOR,
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, TOUCH_8WAY, TOUCH_8WAY_AND_AREA, 1, true, true);
+   menu_settings_list_current_add_range(list, list_info, VECTOR, VECTOR_AND_AREA, 1, true, true);
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
    menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    (*list)[list_info->index - 1].get_string_representation = 
    &setting_get_string_representation_touch_method; 
    
-   if (settings->input.abxy_method != TOUCH_AREA)
-   {
-      CONFIG_FLOAT(
-            settings->input.abxy_overlap,
-            "input_abxy_overlap",
-            "  Diagonal Sensitivity",
-            50.0f,
-            "%.0f%%",
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
-      menu_settings_list_current_add_cmd(
-            list,
-            list_info,
-            EVENT_CMD_OVERLAY_POPULATE_8WAY);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
-   }
-   
-   if (settings->input.abxy_method != TOUCH_8WAY)
-   {
-      CONFIG_FLOAT(
-            settings->input.abxy_ellipse_magnify,
-            "input_abxy_ellipse_magnify",
-            "  Magnify Contact Area",
-            1.0f,
-            "%.1fx",
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.2f, true, true);
-      CONFIG_FLOAT(
-            settings->input.abxy_ellipse_multitouch_boost,
-            "input_abxy_ellipse_multitouch_boost",
-            "  MultiTouch Boost",
-            1.0f,
-            "%.1fx",
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 0.5f, 3.0f, 0.1f, true, true);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   }
+   CONFIG_FLOAT(
+         settings->input.abxy_diagonal_sensitivity,
+         "input_abxy_diagonal_sensitivity",
+         "  Diagonal Sensitivity",
+         50.0f,
+         "%.0f%%",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_abxy_diag_sens;
+   menu_settings_list_current_add_cmd(
+         list,
+         list_info,
+         EVENT_CMD_OVERLAY_POPULATE_8WAY);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    
    CONFIG_UINT(
-      settings->input.dpad_abxy_diag_sens_scope,
+      settings->input.dpad_abxy_config_scope,
       "input_dpad_abxy_diag_sens_scope",
-      "  Scope (Dpad & ABXY)",
+      "Scope (Dpad & ABXY)",
       GLOBAL,
       group_info.name,
       subgroup_info.name,
@@ -6369,6 +6388,36 @@ static bool setting_append_list_overlay_options(
          true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
+   
+   if (settings->input.abxy_method != VECTOR
+       || settings->input.dpad_method != VECTOR)
+   {
+      CONFIG_FLOAT(
+            settings->input.touch_ellipse_magnify,
+            "input_touch_ellipse_magnify",
+            "Magnify Touch Contact Area",
+            1.0f,
+            "%.1fx",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.2f, true, true);
+      CONFIG_FLOAT(
+            settings->input.touch_ellipse_multitouch_boost,
+            "input_touch_ellipse_multitouch_boost",
+            "  MultiTouch Boost",
+            1.0f,
+            "%.1fx",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0.5f, 3.0f, 0.1f, true, true);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   }
 
    if (driver && driver->input && driver->input->overlay_haptic_feedback)
    {
@@ -6471,7 +6520,7 @@ static bool setting_append_list_overlay_options(
          settings->input.overlay_aspect_ratio_index,
          "input_overlay_aspect_ratio_index",
          "  Assumed Overlay Aspect",
-         OVERLAY_ASPECT_RATIO_16_9,
+         OVERLAY_ASPECT_RATIO_AUTO,
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -6481,10 +6530,11 @@ static bool setting_append_list_overlay_options(
          list,
          list_info,
          0,
-         LAST_OVERLAY_ASPECT_RATIO,
+         OVERLAY_ASPECT_RATIO_AUTO,
          1,
          true,
          true);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_overlay_aspect_ratio_index;
@@ -6506,7 +6556,7 @@ static bool setting_append_list_overlay_options(
    CONFIG_UINT(
       settings->input.overlay_adjust_vert_horiz_scope,
       "input_overlay_adjust_vert_horiz_scope",
-      "  Scope (Vert & Aspect)",
+      "Scope (Vertical & Aspect)",
       GLOBAL,
       group_info.name,
       subgroup_info.name,

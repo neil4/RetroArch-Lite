@@ -216,6 +216,7 @@ static void menu_input_poll_bind_joypad_state(struct menu_bind_state *state,
    unsigned i, b, a, h;
    const input_device_driver_t *joypad = input_driver_get_joypad_driver();
    settings_t *settings                = config_get_ptr();
+   const unsigned *map                 = settings->input.joypad_map;
 
    if (!state)
       return;
@@ -234,7 +235,7 @@ static void menu_input_poll_bind_joypad_state(struct menu_bind_state *state,
    if (joypad->poll)
       joypad->poll();
 
-   for (i = 0; i < settings->input.max_users; i++)
+   for (i = 0; i < *settings->input.device_names[map[i]]; i++)
    {
       for (b = 0; b < MENU_MAX_BUTTONS; b++)
          state->state[i].buttons[b] = input_joypad_button_raw(joypad, i, b);
@@ -261,6 +262,7 @@ static void menu_input_poll_bind_get_rested_axes(struct menu_bind_state *state)
    unsigned i, a;
    const input_device_driver_t *joypad = input_driver_get_joypad_driver();
    settings_t *settings                = config_get_ptr();
+   const unsigned *map                 = settings->input.joypad_map;
 
    if (!state)
       return;
@@ -271,7 +273,7 @@ static void menu_input_poll_bind_get_rested_axes(struct menu_bind_state *state)
       return;
    }
 
-   for (i = 0; i < settings->input.max_users; i++)
+   for (i = 0; i < *settings->input.device_names[map[i]]; i++)
       for (a = 0; a < MENU_MAX_AXES; a++)
          state->axis_state[i].rested_axes[a] =
             input_joypad_axis_raw(joypad, i, a);
@@ -353,12 +355,13 @@ static bool menu_input_poll_find_trigger(struct menu_bind_state *state,
       struct menu_bind_state *new_state)
 {
    unsigned i;
-   settings_t *settings = config_get_ptr();
+   settings_t     *settings = config_get_ptr();
+   const unsigned      *map = settings->input.joypad_map;
 
    if (!state || !new_state)
       return false;
 
-   for (i = 0; i < settings->input.max_users; i++)
+   for (i = 0; *settings->input.device_names[map[i]]; i++)
    {
       if (!menu_input_poll_find_trigger_pad(state, new_state, i))
          continue;

@@ -283,11 +283,12 @@ typedef struct settings
       unsigned overlay_adjust_vert_horiz_scope;
       
       float dpad_diagonal_sensitivity;  // diagonal-to-normal ratio (percentage)
-      float abxy_overlap;  // same as dpad_diagonal_sensitivity
-      float abxy_ellipse_magnify;  // hack for inaccurate touch areas
-      float abxy_ellipse_multitouch_boost;  // hack for touch area shrink on multitouch
+      float abxy_diagonal_sensitivity;
+      float touch_ellipse_magnify;  // hack for inaccurate touch areas
+      float touch_ellipse_multitouch_boost;  // hack for touch area shrink on multitouch
+      unsigned dpad_method;
       unsigned abxy_method;
-      unsigned dpad_abxy_diag_sens_scope;
+      unsigned dpad_abxy_config_scope;
       uint32_t vibrate_time;
 
       char autoconfig_dir[PATH_MAX_LENGTH];

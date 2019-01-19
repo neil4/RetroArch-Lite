@@ -80,11 +80,10 @@ enum overlay_aspect_ratio
    OVERLAY_ASPECT_RATIO_2_1,
    OVERLAY_ASPECT_RATIO_18_5_9,
    OVERLAY_ASPECT_RATIO_19_9,
+   OVERLAY_ASPECT_RATIO_AUTO,
    
    OVERLAY_ASPECT_RATIO_END
 };
-
-#define LAST_OVERLAY_ASPECT_RATIO OVERLAY_ASPECT_RATIO_19_9
 
 struct overlay_aspect_ratio_elem
 {
@@ -94,11 +93,11 @@ struct overlay_aspect_ratio_elem
 
 extern struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_END];
 
-enum abxy_touch_method
+enum eight_way_method
 {
-   TOUCH_8WAY = 0,
+   VECTOR = 0,
    TOUCH_AREA,
-   TOUCH_8WAY_AND_AREA
+   VECTOR_AND_AREA
 };
 
 typedef struct video_overlay_interface

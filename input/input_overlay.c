@@ -99,6 +99,7 @@ struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_EN
    { "2:1",           2.0f },
    { "18.5:9",        2.05555556f },
    { "19:9",          2.11111111f },
+   { "Auto",          1.0 },
 };
 
 static struct overlay_eight_way_vals eight_way_vals[NUM_EIGHT_WAY_TYPES];
@@ -206,11 +207,52 @@ static void input_overlay_scale(struct overlay *ol, float scale)
    }
 }
 
+static void input_overlay_update_auto_aspect_index(struct overlay *ol)
+{
+   global_t     *global = global_get_ptr();
+   size_t i, j;
+   float image_aspect, ol_aspect;
+   float avg_delta[OVERLAY_ASPECT_RATIO_END];
+   float best_delta = 1e9;
+   unsigned best_index = 0;
+   
+   if (!ol)
+      return;
+
+   for (i = 0; i < OVERLAY_ASPECT_RATIO_AUTO; i++)
+   {
+      avg_delta[i] = 0.0f;
+      for (j = 0; j < ol->size; j++)
+      {
+         struct overlay_desc *desc = &ol->descs[j];
+         if (!desc->image.width || !desc->image.height)
+            continue;
+         image_aspect = ((float)desc->image.width) / desc->image.height;
+         ol_aspect = desc->range_x_orig / desc->range_y_orig;
+         avg_delta[i] += overlay_aspectratio_lut[i].value * ol_aspect
+                         - image_aspect;
+      }
+      avg_delta[i] /= ol->size;
+   }
+   
+   for (i = 0; i < OVERLAY_ASPECT_RATIO_AUTO; i++)
+   {
+      if (fabs(avg_delta[i]) < best_delta)
+      {
+         best_delta = fabs(avg_delta[i]);
+         best_index = i;
+      }
+      else break; // overlay aspects are sorted
+   }
+   global->overlay_auto_aspect_index = best_index;
+}
+
 /* Get values to adjust the overlay's aspect, re-center it, and then bisect it
  * to a wider display if possible
  */
-static void update_aspect_x_y_globals()
+static void update_aspect_x_y_globals(input_overlay_t *ol)
 {
+   global_t *global = global_get_ptr();
    unsigned screen_width, screen_height;
    float overlay_aspect, bisect_aspect;
    settings_t* settings = config_get_ptr();
@@ -229,8 +271,16 @@ static void update_aspect_x_y_globals()
    video_driver_get_size(&screen_width, &screen_height);
    adj.display_aspect = (float)screen_width / screen_height;
 
-   overlay_aspect = overlay_aspectratio_lut
-                    [settings->input.overlay_aspect_ratio_index].value;
+   if (settings->input.overlay_aspect_ratio_index == OVERLAY_ASPECT_RATIO_AUTO)
+   {
+      input_overlay_update_auto_aspect_index(&ol->overlays[0]);
+      overlay_aspect = overlay_aspectratio_lut
+                       [global->overlay_auto_aspect_index].value;
+   }
+   else
+      overlay_aspect = overlay_aspectratio_lut
+                       [settings->input.overlay_aspect_ratio_index].value;
+   
    bisect_aspect = settings->input.overlay_bisect_aspect_ratio;
    if ( bisect_aspect > adj.display_aspect )
       bisect_aspect = adj.display_aspect;
@@ -394,7 +444,7 @@ void populate_8way_vals()
    
    get_slope_limits(settings->input.dpad_diagonal_sensitivity,
                     &dpad_slope_high, &dpad_slope_low);
-   get_slope_limits(settings->input.abxy_overlap,
+   get_slope_limits(settings->input.abxy_diagonal_sensitivity,
                     &buttons_slope_high, &buttons_slope_low);
    
    eight_way_vals[DPAD_AREA].slope_high = dpad_slope_high;
@@ -480,8 +530,8 @@ void input_overlay_update_aspect_and_vertical(input_overlay_t *ol)
 
    if (!ol || !ol->overlays)
       return;
-   
-   update_aspect_x_y_globals();
+
+   update_aspect_x_y_globals(ol);
 
    for (i = 0; i < ol->size; i++)
    {
@@ -575,7 +625,6 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
 {
    float width_mod, height_mod;
    uint32_t box_hash, key_hash;
-   driver_t *driver                    = driver_get_ptr();
    bool ret                             = true;
    bool by_pixel                        = false;
    char overlay_desc_key[64]            = {0};
@@ -769,8 +818,6 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    desc->reach_down = 1.0f;
    config_get_float(ol->conf, conf_key, &desc->reach_down);
 
-   if (!input_overlay->fullscreen_image && !driver->osk_enable)
-      input_overlay_desc_adjust_aspect_and_vertical(desc);
    input_overlay_desc_update_hitbox(desc);
    
    snprintf(conf_key, sizeof(conf_key),
@@ -956,7 +1003,6 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
          }
          break;
       case OVERLAY_IMAGE_TRANSFER_DESC_ITERATE:
-         update_aspect_x_y_globals();
          for (i = 0; i < overlay->pos_increment; i++)
          {
             if (overlay->pos < overlay->size)
@@ -978,7 +1024,7 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
                ol->loading_status = OVERLAY_IMAGE_TRANSFER_DESC_DONE;
                break;
             }
-         }  
+         }
          break;
       case OVERLAY_IMAGE_TRANSFER_DESC_DONE:
          if (ol->pos == 0)
@@ -1153,7 +1199,8 @@ error:
 
 bool input_overlay_new_done(input_overlay_t *ol)
 {
-   if (!ol)
+   driver_t *driver = driver_get_ptr();
+   if (!ol || !driver)
       return false;
 
    input_overlay_set_alpha_mod(ol, ol->deferred.opacity);
@@ -1165,6 +1212,9 @@ bool input_overlay_new_done(input_overlay_t *ol)
    if (ol->conf)
       config_file_free(ol->conf);
    ol->conf = NULL;
+   
+   if (!driver->overlay->active->fullscreen_image && !driver->osk_enable)
+      input_overlay_update_aspect_and_vertical(ol);
 
    return true;
 }
@@ -1405,10 +1455,10 @@ static inline uint64_t eight_way_ellipse_coverage(struct overlay_eight_way_vals*
    radius_minor = ellipse.minor_px[pointer_index] / (2*screen_height);
    
    // hacks for inaccurate touchscreens
-   boost = settings->input.abxy_ellipse_magnify;
+   boost = settings->input.touch_ellipse_magnify;
    if (input_driver_state(NULL, 0, RARCH_DEVICE_POINTER_SCREEN,
                           1, RETRO_DEVICE_ID_POINTER_PRESSED))
-      boost *= settings->input.abxy_ellipse_multitouch_boost;
+      boost *= settings->input.touch_ellipse_multitouch_boost;
    
    // get axis endpoints
    //
@@ -1455,7 +1505,7 @@ static inline uint64_t eight_way_ellipse_coverage(struct overlay_eight_way_vals*
  * @x                     : X coordinate value.
  * @y                     : Y coordinate value.
  *
- * Returns the low level input state based on @x and @y
+ * Returns the low level input state based on @x, @y, and ellipse_px valuess
  **/
 static inline uint64_t eight_way_state(const struct overlay_desc *desc_ptr,
                                        unsigned area_type,
@@ -1467,11 +1517,13 @@ static inline uint64_t eight_way_state(const struct overlay_desc *desc_ptr,
    
    float x_offset = (x - desc_ptr->x) * adj.display_aspect;
    float y_offset = (desc_ptr->y - y);
+   unsigned method = area_type < ABXY_AREA ?
+                     settings->input.dpad_method : settings->input.abxy_method;
    
-   if (area_type < ABXY_AREA || settings->input.abxy_method != TOUCH_AREA)
+   if (method != TOUCH_AREA)
       state |= eight_way_direction(vals, x_offset, y_offset);
    
-   if (area_type >= ABXY_AREA && settings->input.abxy_method != TOUCH_8WAY)
+   if (method != VECTOR)
       state |= eight_way_ellipse_coverage(vals, x_offset, y_offset);
    
    return state;
