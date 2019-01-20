@@ -123,7 +123,7 @@ public class DirectoryFragment extends DialogFragment
    protected String startDirectory;
    protected String pathSettingKey;
    protected boolean isDirectoryTarget;
-   static protected OnDirectoryFragmentClosedListener onClosedListener = null;
+   protected OnDirectoryFragmentClosedListener onClosedListener;
 
    /**
     * Sets the starting directory for this DirectoryFragment
@@ -169,7 +169,7 @@ public class DirectoryFragment extends DialogFragment
     */
    public void setOnDirectoryFragmentClosedListener(OnDirectoryFragmentClosedListener onClosedListener)
    {
-      DirectoryFragment.onClosedListener = onClosedListener;
+      this.onClosedListener = onClosedListener;
    }
 
    /**
@@ -183,7 +183,6 @@ public class DirectoryFragment extends DialogFragment
     */
    public static DirectoryFragment newInstance(int titleResId)
    {
-      onClosedListener = null;
       final DirectoryFragment dFrag = new DirectoryFragment();
       final Bundle bundle = new Bundle();
       bundle.putInt("titleResId", titleResId);

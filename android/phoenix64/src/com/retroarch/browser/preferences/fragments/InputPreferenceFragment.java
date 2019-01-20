@@ -1,7 +1,6 @@
 package com.retroarch.browser.preferences.fragments;
 
 import com.retroarchlite64.R;
-import java.io.File;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
