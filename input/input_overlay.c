@@ -267,7 +267,6 @@ static void update_aspect_x_y_globals(input_overlay_t *ol)
    if (settings->input.overlay_adjust_aspect == false)
       return;
    
-   // update display aspect
    video_driver_get_size(&screen_width, &screen_height);
    adj.display_aspect = (float)screen_width / screen_height;
 
@@ -337,30 +336,43 @@ static void input_overlay_desc_adjust_aspect_and_vertical(struct overlay_desc *d
    if (!desc)
       return;
    
+   // adjust aspect
    desc->x = desc->x_orig * adj.x_aspect_factor;
    desc->y = desc->y_orig * adj.y_aspect_factor;
    desc->range_x = desc->range_x_orig * adj.x_aspect_factor;
    desc->range_y = desc->range_y_orig * adj.y_aspect_factor;
    
-   // adjust X & Y to user-chosen aspect ratio
+   // re-center and bisect
    desc->x += adj.x_center_shift;
    if ( desc->x > 0.5f )
       desc->x += adj.x_bisect_shift;
    else if ( desc->x < 0.5f )
       desc->x -= adj.x_bisect_shift;
    desc->y += adj.y_center_shift;
-
-   // adjust Y by user-chosen value, unless clamped to edge
-   if ( settings->input.overlay_adjust_vertical_lock_edges
-        && (desc->y + desc->range_y > 0.99
-            || desc->y - desc->range_y < 0.01) );
-   else desc->y -= settings->input.overlay_adjust_vertical;
    
-   // now make sure buttons aren't pushed off screen
+   // adjust vertical
+   desc->y -= settings->input.overlay_adjust_vertical;
+   
+   // make sure the button isn't pushed off screen
    if ( desc->y + desc->range_y > 1.0f )
       desc->y = 1.0f - desc->range_y;
    else if ( desc->y - desc->range_y < 0.0f)
       desc->y = desc->range_y;
+   
+   // optionally clamp to edge
+   if (settings->input.overlay_adjust_vertical_lock_edges)
+   {
+      if (desc->y_orig + desc->range_y_orig > 0.99f)
+      {
+         float dist = adj.y_aspect_factor * (1.0f - desc->y_orig);
+         desc->y = 1.0f - dist;
+      }
+      else if (desc->y_orig - desc->range_y_orig < 0.01f)
+      {
+         float dist = adj.y_aspect_factor * desc->y_orig;
+         desc->y = dist;
+      }
+   }
 }
 
 void get_slope_limits( const float diagonal_sensitivity,
@@ -544,7 +556,8 @@ void input_overlay_update_aspect_and_vertical(input_overlay_t *ol)
       }
    }
 
-   input_overlay_set_vertex_geom(ol);
+   if (ol->active)
+      input_overlay_set_vertex_geom(ol);
 }
 
 static void input_overlay_free_overlay(struct overlay *overlay)
@@ -923,9 +936,9 @@ bool input_overlay_load_overlays_resolve_iterate(input_overlay_t *ol)
    }
 
    if (ol->resolve_pos == 0)
-   {
+   {  
       ol->active = &ol->overlays[0];
-
+      
       input_overlay_load_active(ol, ol->deferred.opacity);
       input_overlay_enable(ol, ol->deferred.enable);
    }
@@ -1028,7 +1041,11 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
          break;
       case OVERLAY_IMAGE_TRANSFER_DESC_DONE:
          if (ol->pos == 0)
+         {
+            if (!driver_get_ptr()->osk_enable)
+               input_overlay_update_aspect_and_vertical(ol);
             input_overlay_load_overlays_resolve_iterate(ol);
+         }
          ol->pos += 1;
          ol->loading_status = OVERLAY_IMAGE_TRANSFER_NONE;
          break;
@@ -1199,8 +1216,7 @@ error:
 
 bool input_overlay_new_done(input_overlay_t *ol)
 {
-   driver_t *driver = driver_get_ptr();
-   if (!ol || !driver)
+   if (!ol)
       return false;
 
    input_overlay_set_alpha_mod(ol, ol->deferred.opacity);
@@ -1212,9 +1228,6 @@ bool input_overlay_new_done(input_overlay_t *ol)
    if (ol->conf)
       config_file_free(ol->conf);
    ol->conf = NULL;
-   
-   if (!driver->overlay->active->fullscreen_image && !driver->osk_enable)
-      input_overlay_update_aspect_and_vertical(ol);
 
    return true;
 }
