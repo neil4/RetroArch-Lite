@@ -414,12 +414,12 @@ void input_overlay_set_alpha_mod(input_overlay_t *ol, float mod);
 void input_overlay_set_scale_factor(input_overlay_t *ol, float scale);
 
 /**
- * input_overlay_update_aspect_and_vertical:
+ * input_overlays_update_aspect_and_vertical:
  * @ol                    : Overlay handle.
  *
- * Updates active overlay to current aspect ratio and vertical offset settings.
+ * Updates loaded overlays to current aspect ratio and vertical offset settings.
  **/
-void input_overlay_update_aspect_and_vertical(input_overlay_t *ol);
+void input_overlays_update_aspect_and_vertical(input_overlay_t *ol);
 
 /**
  * input_overlay_next:

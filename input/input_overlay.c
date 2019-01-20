@@ -250,7 +250,7 @@ static void input_overlay_update_auto_aspect_index(struct overlay *ol)
 /* Get values to adjust the overlay's aspect, re-center it, and then bisect it
  * to a wider display if possible
  */
-static void update_aspect_x_y_globals(input_overlay_t *ol)
+static void update_aspect_x_y_globals(struct overlay *ol)
 {
    global_t *global = global_get_ptr();
    unsigned screen_width, screen_height;
@@ -272,7 +272,7 @@ static void update_aspect_x_y_globals(input_overlay_t *ol)
 
    if (settings->input.overlay_aspect_ratio_index == OVERLAY_ASPECT_RATIO_AUTO)
    {
-      input_overlay_update_auto_aspect_index(&ol->overlays[0]);
+      input_overlay_update_auto_aspect_index(ol);
       overlay_aspect = overlay_aspectratio_lut
                        [global->overlay_auto_aspect_index].value;
    }
@@ -535,26 +535,35 @@ void input_overlay_set_scale_factor(input_overlay_t *ol, float scale)
    input_overlay_set_vertex_geom(ol);
 }
 
-void input_overlay_update_aspect_and_vertical(input_overlay_t *ol)
+static void input_overlay_update_aspect_and_vertical_vals(input_overlay_t *ol,
+                                                          unsigned i)
 {
-   size_t i, j;
+   size_t j;
    struct overlay_desc* desc;
 
    if (!ol || !ol->overlays)
       return;
 
-   update_aspect_x_y_globals(ol);
+   update_aspect_x_y_globals(&ol->overlays[i]);
+
+   for (j = 0; j < ol->overlays[i].size; j++)
+   {
+      desc = &ol->overlays[i].descs[j];
+      if (!ol->overlays[i].fullscreen_image)
+         input_overlay_desc_adjust_aspect_and_vertical(desc);
+      input_overlay_desc_update_hitbox(desc);
+   }
+}
+
+void input_overlays_update_aspect_and_vertical(input_overlay_t *ol)
+{
+   size_t i;
+
+   if (!ol || !ol->overlays)
+      return;
 
    for (i = 0; i < ol->size; i++)
-   {
-      for (j = 0; j < ol->overlays[i].size; j++)
-      {
-         desc = &ol->overlays[i].descs[j];
-         if (!ol->overlays[i].fullscreen_image)
-            input_overlay_desc_adjust_aspect_and_vertical(desc);
-         input_overlay_desc_update_hitbox(desc);
-      }
-   }
+      input_overlay_update_aspect_and_vertical_vals(ol, i);
 
    input_overlay_set_vertex_geom(ol);
 }
@@ -1042,7 +1051,10 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
          if (ol->pos == 0)
             input_overlay_load_overlays_resolve_iterate(ol);
          if (!driver_get_ptr()->osk_enable)
-               input_overlay_update_aspect_and_vertical(ol);
+         {
+            input_overlay_update_aspect_and_vertical_vals(ol, ol->pos);
+            input_overlay_set_vertex_geom(ol);
+         }
          ol->pos += 1;
          ol->loading_status = OVERLAY_IMAGE_TRANSFER_NONE;
          break;
