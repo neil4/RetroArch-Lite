@@ -556,8 +556,7 @@ void input_overlay_update_aspect_and_vertical(input_overlay_t *ol)
       }
    }
 
-   if (ol->active)
-      input_overlay_set_vertex_geom(ol);
+   input_overlay_set_vertex_geom(ol);
 }
 
 static void input_overlay_free_overlay(struct overlay *overlay)
@@ -1041,11 +1040,9 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
          break;
       case OVERLAY_IMAGE_TRANSFER_DESC_DONE:
          if (ol->pos == 0)
-         {
-            if (!driver_get_ptr()->osk_enable)
-               input_overlay_update_aspect_and_vertical(ol);
             input_overlay_load_overlays_resolve_iterate(ol);
-         }
+         if (!driver_get_ptr()->osk_enable)
+               input_overlay_update_aspect_and_vertical(ol);
          ol->pos += 1;
          ol->loading_status = OVERLAY_IMAGE_TRANSFER_NONE;
          break;
