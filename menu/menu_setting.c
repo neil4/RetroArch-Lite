@@ -5352,7 +5352,7 @@ static bool setting_append_list_video_options(
       settings->video.filter_shader_scope,
       "video_filter_shader_scope",
 #ifdef HAVE_SHADER_MANAGER
-      "Scope (Filter & Shader)",
+      "  Scope (Filter & Shader)",
 #else
       "  Scope",
 #endif
@@ -6138,7 +6138,7 @@ static bool setting_append_list_input_options(
    CONFIG_UINT(
       settings->input.libretro_device_scope,
       "input_libretro_device_scope",
-      "Scope (Virtual Devices)",
+      "  Scope (Virtual Devices)",
       GLOBAL,
       group_info.name,
       subgroup_info.name,
@@ -6371,7 +6371,7 @@ static bool setting_append_list_overlay_options(
    CONFIG_UINT(
       settings->input.dpad_abxy_config_scope,
       "input_dpad_abxy_diag_sens_scope",
-      "Scope (Dpad & ABXY)",
+      "  Scope (Dpad & ABXY)",
       GLOBAL,
       group_info.name,
       subgroup_info.name,
@@ -6556,7 +6556,7 @@ static bool setting_append_list_overlay_options(
    CONFIG_UINT(
       settings->input.overlay_adjust_vert_horiz_scope,
       "input_overlay_adjust_vert_horiz_scope",
-      "Scope (Vertical & Aspect)",
+      "  Scope (Vert & Aspect)",
       GLOBAL,
       group_info.name,
       subgroup_info.name,

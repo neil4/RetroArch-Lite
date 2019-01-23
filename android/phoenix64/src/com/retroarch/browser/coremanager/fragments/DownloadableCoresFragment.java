@@ -158,7 +158,7 @@ public final class DownloadableCoresFragment extends ListFragment
       {
          case R.id.go_to_libretrodocs_ctx_item:
          {
-            // It's impossible to guess the URL name, but mostly works.
+            // It's impossible to guess the URL name, but this mostly works.
             // Avoid spaces, dashes, caps, folder categories, and parenthesized info.
             String coreUrlPart = ( (DownloadableCore)getListView()
                                    .getItemAtPosition(info.position))
