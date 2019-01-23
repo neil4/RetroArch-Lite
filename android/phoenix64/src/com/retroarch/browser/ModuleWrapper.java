@@ -49,7 +49,11 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
                                                 : file.getName();
 
       // Now get the directory where all of the info files are kept (dataDir/info)
-      final String infoFileDir  = context.getApplicationInfo().dataDir + "/info";
+      String infoFileDir = context.getApplicationInfo().dataDir + "/info";
+      
+      // Fix info path if core is 32-bit
+      if (file.getPath().contains("retroarchlite/"))
+         infoFileDir = infoFileDir.replaceFirst("retroarchlite64", "retroarchlite");
 
       // Now, based off of the trimmed core name, we can get the core info file.
       // and attempt to read it as a config file (since it has the same key-value layout).
