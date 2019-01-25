@@ -6646,7 +6646,7 @@ static bool setting_append_list_menu_options(
    CONFIG_BOOL(
          settings->menu.show_advanced_settings,
          "menu_show_advanced_settings",
-         "Show advanced settings",
+         "Show Advanced Settings",
          show_advanced_settings,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
