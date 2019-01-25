@@ -203,6 +203,13 @@ static int16_t input_state(unsigned port, unsigned device,
       settings->input.binds[14],
       settings->input.binds[15],
    };
+   
+   // Enforce max_users unless using a lightgun, which could be on another port
+   if (port >= settings->input.max_users
+#ifdef HAVE_OVERLAY
+      && !input_overlay_lightgun_active()
+#endif
+      ) return 0;
 
    device &= RETRO_DEVICE_MASK;
 
@@ -219,7 +226,6 @@ static int16_t input_state(unsigned port, unsigned device,
       input_remapping_state(port, &device, &idx, &id);
 
    if (!driver->block_libretro_input)
-
    {
       if (((id < RARCH_FIRST_META_KEY) || (device == RETRO_DEVICE_KEYBOARD)))
          res = input_driver_state(libretro_input_binds, port, device, idx, id);
