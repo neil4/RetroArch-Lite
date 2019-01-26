@@ -1235,7 +1235,7 @@ int rarch_main_iterate(void)
 #endif
 
 success:
-   if (settings->fastforward_ratio_throttle_enable)
+   if (settings->fastforward_ratio_throttle_enable || menu_driver_alive())
       rarch_limit_frame_time();
 
    return ret;
