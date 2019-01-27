@@ -24,7 +24,6 @@
 #include "../file_ops.h"
 #include "../general.h"
 #include "../runloop_data.h"
-#include "../performance.h"
 #include "tasks.h"
 
 #define CB_CORE_UPDATER_DOWNLOAD 0x7412da7dU
@@ -131,17 +130,19 @@ static int rarch_main_data_http_con_iterate_transfer(http_handle_t *http)
 
 static int rarch_main_data_http_conn_iterate_transfer_parse(http_handle_t *http)
 {
+   int rv = -1;
+   
    if (net_http_connection_done(http->connection.handle))
    {
       if (http->connection.handle && http->connection.cb)
-         http->connection.cb(http, 0);
+         rv = http->connection.cb(http, 0);
    }
    
    net_http_connection_free(http->connection.handle);
 
    http->connection.handle = NULL;
 
-   return 0;
+   return rv;
 }
 
 static int rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
@@ -150,9 +151,7 @@ static int rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
    size_t len = 0;
    char *data = (char*)net_http_data(http->handle, &len, false);
 
-   if (data && http->cb)
-      http->cb(data, len);
-   else
+   if (!http->cb || http->cb(data, len) < 0)
       rv = false;
 
    net_http_delete(http->handle);
@@ -163,6 +162,25 @@ static int rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
    return rv;
 }
 
+/**
+ * rarch_main_data_http_iterate_cancel:
+ *
+ * Cancels HTTP transfer
+ **/
+static void rarch_main_data_http_iterate_cancel(void *data, const char* msg)
+{
+   http_handle_t *http = (http_handle_t*)data;
+   
+   menu_entries_unset_nonblocking_refresh();
+
+   net_http_delete(http->handle);
+   http->handle = NULL;
+   msg_queue_clear(http->msg_queue);
+   http->status = HTTP_STATUS_POLL;
+   
+   if (msg)
+      rarch_main_msg_queue_push(msg, 1, 180, false);
+}
 
 static int cb_http_conn_default(void *data_, size_t len)
 {
@@ -176,6 +194,7 @@ static int cb_http_conn_default(void *data_, size_t len)
    if (!http->handle)
    {
       RARCH_ERR("Could not create new HTTP session handle.\n");
+      rarch_main_data_http_iterate_cancel(data_, "Connection Failed");
       return -1;
    }
 
@@ -260,54 +279,55 @@ static int rarch_main_data_http_iterate_poll(http_handle_t *http)
  **/
 static int rarch_main_data_http_iterate_transfer(void *data)
 {
-    http_handle_t *http = (http_handle_t*)data;
-    size_t pos = 0, tot = 0;
-    int percent = 0;
-    if (!net_http_update(http->handle, &pos, &tot))
-    {
-        if(tot != 0)
-            percent=(unsigned long long)pos*100/(unsigned long long)tot;
-        else
-            percent=0;
-        
-        if (percent > 0)
-        {
-            char tmp[PATH_MAX_LENGTH] = {0};
-            snprintf(tmp, sizeof(tmp), "Download progress: %d%%", percent);
+   http_handle_t *http  = (http_handle_t*)data;
+   settings_t *settings = config_get_ptr();
+   size_t pos = 0, tot = 0;
+   static bool in_progress;
+   int percent = 0;
+   
+   // Allow user to cancel
+   if (menu_driver_alive()
+       && settings && input_driver_key_pressed(settings->menu_cancel_btn))
+   {
+      rarch_main_data_http_iterate_cancel(http, "Action Canceled");
+      return -1;
+   }
+   
+   if (!net_http_update(http->handle, &pos, &tot))
+   {
+      char tmp[PATH_MAX_LENGTH];
+      if(tot != 0)
+         percent=(unsigned long long)pos*100/(unsigned long long)tot;
+      else
+         percent=0;
+         
+      if (tot > 0)
+      {
+         snprintf(tmp, sizeof(tmp), "Download progress: %d%%", percent);
+         data_runloop_osd_msg(tmp, sizeof(tmp)); 
+         in_progress = true;
+         return 1;
+      }
+      else
+      {
+         if (in_progress)
+            rarch_main_data_http_iterate_cancel(http, "Transfer Interrupted");
+         else
+         {
+            snprintf(tmp, sizeof(tmp), "Waiting for Connection...");
             data_runloop_osd_msg(tmp, sizeof(tmp));
-            return 1;
-        }
-        
-        return -1;
-    }
-    
-    return 0;
-}
+         }
+         in_progress = false;
+         return -1;
+      }
+   }
 
-/**
- * rarch_main_data_http_iterate_cancel:
- *
- * Cancels HTTP transfer
- **/
-static void rarch_main_data_http_iterate_cancel(void *data)
-{
-   http_handle_t *http = (http_handle_t*)data;
-    
-   rarch_main_msg_queue_push("Action canceled", 1, 180, false);
-   menu_entries_unset_nonblocking_refresh();
-
-   net_http_delete(http->handle);
-   http->handle = NULL;
-   msg_queue_clear(http->msg_queue);
-
-   http->status = HTTP_STATUS_POLL;
+   in_progress = false;
+   return 0;
 }
 
 void rarch_main_data_http_iterate(void *data)
 {
-   const retro_time_t limit = 10e6;  // 10s ... TODO: adjustable time limit
-   static retro_time_t start;
-   
    data_runloop_t *runloop = (data_runloop_t*)data;
    http_handle_t *http = runloop ? &runloop->http : NULL;
    if (!http)
@@ -316,26 +336,20 @@ void rarch_main_data_http_iterate(void *data)
    switch (http->status)
    {
       case HTTP_STATUS_CONNECTION_TRANSFER_PARSE:
-         rarch_main_data_http_conn_iterate_transfer_parse(http);
-         http->status = HTTP_STATUS_TRANSFER;
-         start = rarch_get_time_usec();
+         if (!rarch_main_data_http_conn_iterate_transfer_parse(http))
+            http->status = HTTP_STATUS_TRANSFER;
          break;
       case HTTP_STATUS_CONNECTION_TRANSFER:
          if (!rarch_main_data_http_con_iterate_transfer(http))
             http->status = HTTP_STATUS_CONNECTION_TRANSFER_PARSE;
          break;
       case HTTP_STATUS_TRANSFER_PARSE:
-         if (!rarch_main_data_http_iterate_transfer_parse(http))
-            core_updater_path[0] = '!';  // hack to signal failure
-         menu_entries_unset_nonblocking_refresh();
+         rarch_main_data_http_iterate_transfer_parse(http);
          http->status = HTTP_STATUS_POLL;
          break;
       case HTTP_STATUS_TRANSFER:
-         if (!rarch_main_data_http_iterate_transfer(http)
-             || rarch_get_time_usec() - start > limit)
+         if (!rarch_main_data_http_iterate_transfer(http))
             http->status = HTTP_STATUS_TRANSFER_PARSE;
-         else if (input_driver_key_pressed(RETRO_DEVICE_ID_JOYPAD_B))
-            rarch_main_data_http_iterate_cancel(http);
          break;
       case HTTP_STATUS_POLL:
       default:

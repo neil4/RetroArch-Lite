@@ -37,7 +37,6 @@
 #ifdef HAVE_NETWORKING
 extern char *core_buf;
 extern size_t core_len;
-extern char core_updater_path[PATH_MAX_LENGTH];
 
 static void print_buf_lines(file_list_t *list, char *buf, int buf_size,
       unsigned type)
@@ -1164,22 +1163,17 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          break;
       case DISPLAYLIST_CORES_UPDATER:
 #ifdef HAVE_NETWORKING
-         if (core_updater_path[0] == '!')
+         menu_list_clear(info->list);
+         print_buf_lines(info->list, core_buf, core_len, MENU_FILE_DOWNLOAD_CORE);
+         
+         if (info->list->size > 0)
          {
-            menu_reset();
-            rarch_main_msg_queue_push("Connection failed", 1, 180, false); 
-            *core_updater_path = '\0';
-         }
-         else
-         {
-            menu_list_clear(info->list);
-            print_buf_lines(info->list, core_buf, core_len, MENU_FILE_DOWNLOAD_CORE);
             menu_displaylist_get_core_updater_displaynames(info->list);
-            
             need_sort    = true;
             need_push    = true;
             need_refresh = true;
          }
+         else menu_reset();
 #endif
          break;
       case DISPLAYLIST_PERFCOUNTER_SELECTION:

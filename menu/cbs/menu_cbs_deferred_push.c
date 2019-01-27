@@ -115,10 +115,9 @@ size_t core_len;
 int cb_core_updater_list(void *data_, size_t len)
 {
    char             *data = (char*)data_;
-   menu_handle_t *menu    = menu_driver_get_ptr();
-   if (!menu)
-      return -1;
 
+   menu_entries_unset_nonblocking_refresh();
+   
    if (!data)
       return -1;
 
