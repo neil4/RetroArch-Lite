@@ -3,11 +3,6 @@
    <PreferenceCategory android:title="@string/audio_options">
       <CheckBoxPreference
           android:defaultValue="true"
-          android:key="audio_rate_control"
-          android:summary="@string/dynamic_rate_control_desc"
-          android:title="@string/dynamic_rate_control" />
-      <CheckBoxPreference
-          android:defaultValue="true"
           android:key="audio_latency_auto"
           android:summary="@string/auto_audio_latency_desc"
           android:title="@string/auto_audio_latency"
@@ -23,11 +18,6 @@
    </PreferenceCategory>
     
    <PreferenceCategory android:title="@string/video_options">
-      <EditTextPreference
-         android:key="video_refresh_rate"
-         android:numeric="decimal"
-         android:summary="@string/forced_refresh_rate_desc"
-         android:title="@string/forced_refresh_rate" />
       <Preference
          android:summary="@string/calibrate_refresh_rate_desc"
          android:title="@string/calibrate_refresh_rate" >
@@ -39,6 +29,11 @@
          android:key="set_os_reported_ref_rate_pref"
          android:summary="@string/set_os_reported_refresh_rate_desc"
          android:title="@string/set_os_reported_refresh_rate" />
+      <EditTextPreference
+         android:key="video_refresh_rate"
+         android:numeric="decimal"
+         android:summary="@string/forced_refresh_rate_desc"
+         android:title="@string/forced_refresh_rate" />
    </PreferenceCategory>
    
     <PreferenceCategory android:title="@string/shader_assets" >

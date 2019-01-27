@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Assets -->
+    <!-- Overlay Assets -->
     <PreferenceCategory android:title="@string/overlay_assets" >
+         <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="input_overlay_enable"
+            android:title="@string/enable_overlay_desc" />
          <Preference
             android:key="install_overlays_pref"
             android:title="@string/install_overlays"
@@ -11,21 +15,6 @@
              android:key="reextract_overlays_pref"
              android:summary="@string/reextract_overlays_desc"
              android:title="@string/reextract_overlays" />
-    </PreferenceCategory>
-
-    <!-- Touchscreen Overlay -->
-    <PreferenceCategory android:title="@string/touchscreen_overlay" >
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="input_overlay_enable"
-            android:summary="@string/touchscreen_overlay_desc"
-            android:title="@string/enable" />
-
-        <com.retroarch.browser.preferences.util.SeekbarPreference
-            android:summary="@string/overlay_opacity_desc"
-            android:title="@string/overlay_opacity"
-            android:key="input_overlay_opacity"
-            android:dependency="input_overlay_enable" />
     </PreferenceCategory>
     
     <!-- Configuration Autodetection -->

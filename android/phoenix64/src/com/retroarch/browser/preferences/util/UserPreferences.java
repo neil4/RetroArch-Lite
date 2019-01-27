@@ -58,14 +58,11 @@ public final class UserPreferences
 		SharedPreferences.Editor edit = prefs.edit();
 
 		// Audio Settings.
-		readbackBool(config, edit, "audio_rate_control");
       readbackString(config, edit, "audio_latency");
       
-
 		// Input Settings
 		readbackString(config, edit, "input_overlay");
 		readbackBool(config, edit, "input_overlay_enable");
-      readbackFloat(config, edit, "input_overlay_opacity");
 		readbackBool(config, edit, "input_autodetect_enable");
 
 		// Video Settings
@@ -92,7 +89,7 @@ public final class UserPreferences
       final String default_base = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RetroArchLite";
       final String default_save = default_base + "/save";
       final String default_sys = default_base + "/system";
-      final String default_config = default_base + "/config";  // content configs and remaps
+      final String default_config = default_base + "/config";  // content configs, core options, and remaps
       final String default_state = default_base + "/state";
       final String dataDir = ctx.getApplicationInfo().dataDir;
       final String coreDir = dataDir + "/cores/";
@@ -106,7 +103,6 @@ public final class UserPreferences
       
       // Audio, Video
       //
-		config.setBoolean("audio_rate_control", prefs.getBoolean("audio_rate_control", false));
 		config.setInt("audio_out_rate", getOptimalSamplingRate(ctx));
       if (Build.VERSION.SDK_INT >= 17 && prefs.getBoolean("audio_latency_auto", true))
          config.setInt("audio_block_frames", getLowLatencyBufferSize(ctx));
@@ -141,7 +137,6 @@ public final class UserPreferences
       //
       if (prefs.contains("input_overlay_enable"))
          config.setBoolean("input_overlay_enable", prefs.getBoolean("input_overlay_enable", true));
-      config.setFloat("input_overlay_opacity", prefs.getFloat("input_overlay_opacity", 0.4f));
       config.setBoolean("input_autodetect_enable", prefs.getBoolean("input_autodetect_enable", true));
       
       // Menu
