@@ -428,6 +428,7 @@ static int action_ok_core_updater_list(const char *path,
 
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
 } 
+
 static int action_ok_remap_file(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {

@@ -1168,6 +1168,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          {
             menu_reset();
             rarch_main_msg_queue_push("Connection failed", 1, 180, false); 
+            *core_updater_path = '\0';
          }
          else
          {

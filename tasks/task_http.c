@@ -305,7 +305,7 @@ static void rarch_main_data_http_iterate_cancel(void *data)
 
 void rarch_main_data_http_iterate(void *data)
 {
-   const retro_time_t limit = 15e6;  // 15s ... TODO: adjustable time limit
+   const retro_time_t limit = 10e6;  // 10s ... TODO: adjustable time limit
    static retro_time_t start;
    
    data_runloop_t *runloop = (data_runloop_t*)data;

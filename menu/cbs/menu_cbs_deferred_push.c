@@ -134,8 +134,6 @@ int cb_core_updater_list(void *data_, size_t len)
    core_buf[len] = '\0';
    core_len = len;
 
-   menu_entries_unset_nonblocking_refresh();
-
    return 0;
 }
 
