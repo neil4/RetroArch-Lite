@@ -28,6 +28,7 @@
 #include "menu/menu_input.h"
 #endif
 
+extern char download_filename[NAME_MAX_LENGTH];
 static char data_runloop_msg[PATH_MAX_LENGTH];
 
 static struct data_runloop *g_data_runloop;
@@ -204,7 +205,8 @@ void rarch_main_data_msg_queue_push(unsigned type,
 #ifdef HAVE_NETWORKING
       case DATA_TYPE_HTTP:
          queue = runloop->http.msg_queue;
-         snprintf(new_msg, sizeof(new_msg), "%s|%s", msg, msg2);
+         snprintf(new_msg, sizeof(new_msg), "%s|%s|%s", msg, msg2,
+                                                        download_filename);
          break;
 #endif
 #ifdef HAVE_OVERLAY

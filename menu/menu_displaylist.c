@@ -33,6 +33,7 @@
 #include "../config.features.h"
 #include "../git_version.h"
 #include "../performance.h"
+#include "../tasks/tasks.h"
 
 #ifdef HAVE_NETWORKING
 extern char *core_buf;
@@ -98,13 +99,16 @@ static void menu_displaylist_push_perfcounter(
 
 static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
 {
-   char* path;
-   char* substr;
-   int i;
    core_info_list_t* core_info = core_info_list_new(true);
    char* buf = calloc(NAME_MAX_LENGTH,sizeof(char));
+   char first_missing[NAME_MAX_LENGTH];
+   size_t num_missing = 0;
+   char* path;
+   char* substr;
+   static bool info_update_attempted;
+   int i;
 
-   for ( i = 0; i < list->size; i += 1)
+   for (i = 0; i < list->size; i += 1)
    {
       path = list->list[i].path;
       if (!path)
@@ -118,9 +122,22 @@ static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
          *substr = '\0';
 
       // put display_name in 'alt'
-      core_info_list_get_display_name(core_info, buf, buf, NAME_MAX_LENGTH);
+      if (!core_info_list_get_display_name(core_info, buf, buf, NAME_MAX_LENGTH)
+          && !num_missing++)
+         strlcpy(first_missing, buf, NAME_MAX_LENGTH);
       menu_list_set_alt_at_offset(list, i, buf);
    }
+   
+   // queue info file download
+   if (!info_update_attempted && num_missing)
+   {
+      if (num_missing == 1)
+         core_info_download(first_missing);
+      else
+         core_info_download(NULL); // download all (info.zip)
+      info_update_attempted = true;
+   }
+   
    
    core_info_list_free(core_info);
    free(buf);
@@ -1085,6 +1102,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
    menu_navigation_t *nav   = menu_navigation_get_ptr();
    global_t       *global   = global_get_ptr();
    settings_t   *settings   = config_get_ptr();
+   char *buf;
 
    switch (type)
    {
@@ -1163,8 +1181,10 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          break;
       case DISPLAYLIST_CORES_UPDATER:
 #ifdef HAVE_NETWORKING
+         buf = strdup(core_buf);
          menu_list_clear(info->list);
-         print_buf_lines(info->list, core_buf, core_len, MENU_FILE_DOWNLOAD_CORE);
+         print_buf_lines(info->list, buf, core_len, MENU_FILE_DOWNLOAD_CORE);
+         free(buf);
          
          if (info->list->size > 0)
          {

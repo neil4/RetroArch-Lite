@@ -33,7 +33,7 @@ char detect_content_path[PATH_MAX_LENGTH];
 unsigned rdb_entry_start_game_selection_ptr;
 size_t hack_shader_pass = 0;
 #ifdef HAVE_NETWORKING
-char core_updater_path[PATH_MAX_LENGTH];
+char download_filename[NAME_MAX_LENGTH];
 #endif
 
 static int menu_action_setting_set_current_string_path(
@@ -415,8 +415,8 @@ static int action_ok_core_updater_list(const char *path,
    fill_pathname_join(url_path, settings->network.buildbot_url,
          ".index", sizeof(url_path));
 
-   rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, url_path, "cb_core_updater_list", 0, 1,
-         true);
+   rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, url_path,
+                                  "cb_core_updater_list", 1, 1, false);
 #endif
 
    info.list          = menu_list->menu_stack;
@@ -1035,7 +1035,7 @@ static int action_ok_core_updater_download(const char *path,
    fill_pathname_join(core_path, settings->network.buildbot_url,
          path, sizeof(core_path));
 
-   strlcpy(core_updater_path, path, sizeof(core_updater_path));
+   strlcpy(download_filename, path, sizeof(download_filename));
    snprintf(msg, sizeof(msg),
          "%s %s.",
          menu_hash_to_str(MENU_LABEL_VALUE_STARTING_DOWNLOAD),
@@ -1044,7 +1044,7 @@ static int action_ok_core_updater_download(const char *path,
    rarch_main_msg_queue_push(msg, 1, 90, true);
 
    rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, core_path,
-         "cb_core_updater_download", 0, 1, true);
+         "cb_core_updater_download", 0, 1, false);
 #endif
    return 0;
 }

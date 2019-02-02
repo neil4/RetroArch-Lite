@@ -60,6 +60,7 @@ typedef struct http_handle
       struct http_connection_t *handle;
       transfer_cb_t  cb;
       char elem1[PATH_MAX_LENGTH];
+      char filename[NAME_MAX_LENGTH];
    } connection;
    msg_queue_t *msg_queue;
    struct http_t *handle;
