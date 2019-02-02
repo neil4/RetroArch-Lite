@@ -135,12 +135,6 @@ static int cb_core_info_download(void *data, size_t len)
    char buf[PATH_MAX_LENGTH]         = {0};
    settings_t *settings              = config_get_ptr();
    global_t *global                  = global_get_ptr();
-   menu_list_t *menu_list            = menu_list_get_ptr();
-   menu_navigation_t *nav            = menu_navigation_get_ptr();
-   menu_displaylist_info_t info      = {0};
-   const char *menu_label            = NULL;
-   const char *menu_path             = NULL;
-   static bool core_list_updated;
 
    if (!data)
       return -1;
@@ -172,23 +166,9 @@ static int cb_core_info_download(void *data, size_t len)
    // Refresh installed core info
    core_info_list_free(global->core_info);
    global->core_info = core_info_list_new(false);
-   
-   // Refresh Core Updater list if shown
-   if (!core_list_updated)
-   {
-      menu_list_get_last(menu_list->menu_stack, &menu_path,
-                         &menu_label, &info.type, NULL);
-      if (!strcmp(menu_hash_to_str(MENU_LABEL_DEFERRED_CORE_UPDATER_LIST),
-                  menu_label))
-      {
-         info.list           = menu_list->selection_buf;
-         info.directory_ptr  = nav->selection_ptr;
-         strlcpy(info.path, menu_path, PATH_MAX_LENGTH);
-         strlcpy(info.label, menu_label, PATH_MAX_LENGTH);
-         menu_displaylist_push_list(&info, DISPLAYLIST_CORES_UPDATER);
-      }
-      core_list_updated = true;
-   }
+
+   // Refresh core updater menu
+   event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
 
    return 0;
 }
