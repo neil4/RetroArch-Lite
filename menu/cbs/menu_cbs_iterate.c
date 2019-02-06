@@ -30,6 +30,7 @@
 #include "../../retroarch.h"
 #include "../../input/input_common.h"
 #include "../../input/input_autodetect.h"
+#include "../../performance.h"
 
 extern char detect_content_path[PATH_MAX_LENGTH];
 
@@ -467,6 +468,69 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
    return 0;
 }
 
+static void delete_core_file(menu_list_t *menu_list)
+{
+   char core_path[PATH_MAX_LENGTH] = {0};
+   const char *menu_dir            = NULL;
+   const char *menu_label          = NULL;
+   menu_entry_t entry;
+   size_t selected;
+   
+   menu_list_pop_stack(menu_list);
+   
+   // get dir
+   menu_list_get_last_stack(menu_list, &menu_dir, &menu_label, NULL, NULL);
+   
+   // get filename
+   selected = menu_navigation_get_current_selection();
+   selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
+   menu_entry_get(&entry, selected, NULL, false);
+   
+   fill_pathname_join(core_path, menu_dir, entry.path, PATH_MAX_LENGTH);
+   
+   // delete core
+   if (remove(core_path))
+      rarch_main_msg_queue_push("Error deleting core", 1, 100, true);
+   else
+   {
+      rarch_main_msg_queue_push("Deleted core", 1, 100, true);
+      menu_entries_set_refresh();
+   }
+}
+
+static bool menu_input_core_delete_hold(char *s, size_t len, menu_list_t *menu_list)
+{
+   settings_t *settings = config_get_ptr();
+   char fmt[64]         = {0};
+   int timeout          = 0;
+   static int64_t end_time;
+   
+   if (!end_time)
+      end_time = rarch_get_time_usec() + 4000000;
+   timeout = (end_time - rarch_get_time_usec()) / 1000000;
+   
+   if (input_driver_key_pressed(settings->menu_default_btn))
+   {
+      if (timeout > 0)
+      {
+         strlcpy(fmt, "Hold %d seconds\nto DELETE this core.", 64);
+         snprintf(s, len, fmt, timeout);
+         menu_driver_render_messagebox(s);
+         return false;
+      }
+      else
+      {
+         end_time = 0;
+         return true;  // trigger deletion
+      }
+   }
+
+   // button released
+   menu_list_pop_stack(menu_list);
+   end_time = 0;
+   return false;
+}
+
 enum action_iterate_type
 {
    ITERATE_TYPE_DEFAULT = 0,
@@ -476,6 +540,7 @@ enum action_iterate_type
    ITERATE_TYPE_MESSAGE,
    ITERATE_TYPE_VIEWPORT,
    ITERATE_TYPE_BIND,
+   ITERATE_TYPE_CONFIRM_CORE_DELETE,
 };
 
 static enum action_iterate_type action_iterate_type(uint32_t hash)
@@ -497,6 +562,8 @@ static enum action_iterate_type action_iterate_type(uint32_t hash)
       case MENU_LABEL_CUSTOM_BIND_ALL:
       case MENU_LABEL_CUSTOM_BIND_DEFAULTS:
          return ITERATE_TYPE_BIND;
+      case MENU_LABEL_CORE_DELETE_CONFIRM:
+         return ITERATE_TYPE_CONFIRM_CORE_DELETE;
    }
 
    return ITERATE_TYPE_DEFAULT;
@@ -555,6 +622,10 @@ static int action_iterate_main(const char *label, unsigned action)
          pop_selected    = &nav->selection_ptr;
          do_messagebox   = true;
          do_pop_stack    = true;
+         break;
+      case ITERATE_TYPE_CONFIRM_CORE_DELETE:
+         if (menu_input_core_delete_hold(msg, sizeof(msg), menu_list))
+            delete_core_file(menu_list);
          break;
       case ITERATE_TYPE_DEFAULT:
          selected = menu_navigation_get_current_selection();

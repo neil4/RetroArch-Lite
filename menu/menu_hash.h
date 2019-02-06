@@ -290,6 +290,7 @@ extern "C" {
 #define MENU_LABEL_CUSTOM_VIEWPORT_2                                           0x76c30170U
 #define MENU_LABEL_CUSTOM_RATIO                                                0xf038731eU
 #define MENU_LABEL_VALUE_CUSTOM_RATIO                                          0x3c94b73fU
+#define MENU_LABEL_CORE_DELETE_CONFIRM                                         0xa0f767adU
 #define MENU_LABEL_HELP                                                        0x7c97d2eeU
 #define MENU_LABEL_VALUE_HELP                                                  0x7c8646ceU
 #define MENU_LABEL_INPUT_OVERLAY                                               0x24e24796U

@@ -415,6 +415,25 @@ static int action_start_core_setting(unsigned type,
    return 0;
 }
 
+static int action_start_core_delete(unsigned type, const char *label)
+{
+   menu_displaylist_info_t info = {0};
+   int ret                  = 0;
+   menu_list_t   *menu_list = menu_list_get_ptr();
+   menu_navigation_t *nav   = menu_navigation_get_ptr();
+
+   if (!menu_list)
+      return -1;
+   
+   info.list          = menu_list->menu_stack;
+   info.directory_ptr = nav->selection_ptr;
+   strlcpy(info.label, "core_delete_confirm", sizeof(info.label));
+
+   ret = menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
+
+   return ret;
+}
+
 static int action_start_lookup_setting(unsigned type, const char *label)
 {
    return menu_setting_set(type, label, MENU_ACTION_START, false);
@@ -465,7 +484,9 @@ int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
 static int menu_cbs_init_bind_start_compare_type(menu_file_list_cbs_t *cbs,
       unsigned type)
 {
-   if (type == MENU_FILE_SHADER_PRESET)
+   if (type == MENU_FILE_CORE)
+      cbs->action_start = action_start_core_delete;
+   else if (type == MENU_FILE_SHADER_PRESET)
          cbs->action_start = action_start_shader_preset_delete;
    else if (type >= MENU_SETTINGS_SHADER_PARAMETER_0
          && type <= MENU_SETTINGS_SHADER_PARAMETER_LAST)
