@@ -63,8 +63,6 @@
 #define CONFIG_GET_STRING_BASE(conf, base, var, key) config_get_array(conf, key, base->var, sizeof(base->var))
 #define CONFIG_GET_PATH_BASE(conf, base, var, key)   config_get_path (conf, key, base->var, sizeof(base->var))
 
-static const char* EXPLICIT_EMPTY = "empty";
-
 static settings_t *g_config = NULL;
 struct defaults g_defaults;
 
@@ -1784,6 +1782,12 @@ static void save_keybind_key(config_file_t *conf, const char *prefix,
 
    snprintf(key, sizeof(key), "%s_%s", prefix, base);
    input_keymaps_translate_rk_to_str(bind->key, btn, sizeof(btn));
+   
+   /* Avoid saving null binds so that menu-essential defaults are restored on
+    * next launch. Hotkeys can be null, but not menu toggle. */
+   if ( bind->key == RETROK_UNKNOWN
+        && (strcmp(prefix,"input") || !strcmp(base,"menu_toggle")) )
+      strcpy(btn, "");
    config_set_string(conf, key, btn);
 }
 
@@ -1828,7 +1832,7 @@ static void save_keybind_joykey(config_file_t *conf, const char *prefix,
    snprintf(key, sizeof(key), "%s_%s_btn", prefix, base);
 
    if (bind->joykey == NO_BTN)
-      config_set_string(conf, key, "nul");
+      config_set_string(conf, key, "");
    else if (GET_HAT_DIR(bind->joykey))
       save_keybind_hat(conf, key, bind);
    else
@@ -1846,7 +1850,7 @@ static void save_keybind_axis(config_file_t *conf, const char *prefix,
    snprintf(key, sizeof(key), "%s_%s_axis", prefix, base);
 
    if (bind->joyaxis == AXIS_NONE)
-      config_set_string(conf, key, "nul");
+      config_set_string(conf, key, "");
    else if (AXIS_NEG_GET(bind->joyaxis) != AXIS_DIR_NONE)
    {
       dir = '-';
@@ -2619,10 +2623,10 @@ static void scoped_config_file_save(unsigned scope)
    if (settings->video.filter_shader_scope == scope)
    {
       if (!*settings->video.softfilter_plugin)
-         strlcpy(settings->video.softfilter_plugin, EXPLICIT_EMPTY, PATH_MAX_LENGTH);
+         strlcpy(settings->video.softfilter_plugin, EXPLICIT_NULL, PATH_MAX_LENGTH);
       config_set_path(conf, "video_filter", settings->video.softfilter_plugin);
       if (!*settings->video.shader_path)
-         strlcpy(settings->video.shader_path, EXPLICIT_EMPTY, PATH_MAX_LENGTH);
+         strlcpy(settings->video.shader_path, EXPLICIT_NULL, PATH_MAX_LENGTH);
       config_set_path(conf, "video_shader", settings->video.shader_path);
    }
    else if (settings->video.filter_shader_scope < scope)
@@ -2958,7 +2962,7 @@ static void scoped_config_file_load(unsigned scope)
       settings->video.threaded_scope = scope;
    if (config_get_path(conf, "input_overlay", settings->input.overlay, sizeof(settings->input.overlay)))
    {
-      if (!strcmp(settings->input.overlay, EXPLICIT_EMPTY))
+      if (!strcmp(settings->input.overlay, EXPLICIT_NULL))
          *settings->input.overlay = '\0';
       config_get_bool(conf, "input_overlay_enable", &settings->input.overlay_enable);
       settings->input.overlay_scope = scope;
@@ -3014,14 +3018,14 @@ static void scoped_config_file_load(unsigned scope)
    if (config_get_path(conf, "video_filter", settings->video.softfilter_plugin,
                        sizeof(settings->video.softfilter_plugin)))
    {
-      if (!strcmp(settings->video.softfilter_plugin, EXPLICIT_EMPTY))
+      if (!strcmp(settings->video.softfilter_plugin, EXPLICIT_NULL))
          *settings->video.softfilter_plugin = '\0';
       settings->video.filter_shader_scope = scope;
    }
    if (config_get_path(conf, "video_shader", settings->video.shader_path,
                        sizeof(settings->video.shader_path)))
    {
-      if (!strcmp(settings->video.shader_path, EXPLICIT_EMPTY))
+      if (!strcmp(settings->video.shader_path, EXPLICIT_NULL))
          *settings->video.shader_path = '\0';
       settings->video.filter_shader_scope = scope;
    }

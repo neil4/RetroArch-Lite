@@ -836,8 +836,8 @@ void config_file_dump(config_file_t *conf, FILE *file)
    list = (struct config_entry_list*)conf->entries;
    while (list)
    {
-      // Don't write null or empty values
-      if (!list->readonly && strncmp(list->value,"nul", 3) && strcmp(list->value,""))
+      // Don't write empty values
+      if (!list->readonly && strcmp(list->value,""))
          fprintf(file, "%s = \"%s\"\n", list->key, list->value);
       list = list->next;
    }

@@ -73,6 +73,7 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
       DECLARE_BIND(r_y_minus, RARCH_ANALOG_RIGHT_Y_MINUS, "Right analog Y- (up)"),
 
       DECLARE_BIND(turbo, RARCH_TURBO_ENABLE, "Turbo enable"),
+      DECLARE_META_BIND(2, toggle_hotkeys,        RARCH_TOGGLE_HOTKEYS, "Enable hotkeys toggle"),
 
       DECLARE_META_BIND(1, toggle_fast_forward,   RARCH_FAST_FORWARD_KEY, "Fast forward toggle"),
       DECLARE_META_BIND(2, hold_fast_forward,     RARCH_FAST_FORWARD_HOLD_KEY, "Fast forward hold"),
@@ -175,7 +176,7 @@ void input_config_parse_key(config_file_t *conf,
 
    if (config_get_array(conf, key, tmp, sizeof(tmp)))
       bind->key = input_translate_str_to_rk(tmp);
-}
+   }
 
 const char *input_config_get_prefix(unsigned user, bool meta)
 {
@@ -282,7 +283,7 @@ void input_config_parse_joy_button(config_file_t *conf, const char *prefix,
    if (config_get_array(conf, key, tmp, sizeof(tmp)))
    {
       btn = tmp;
-      if (!strcmp(btn, "nul"))
+      if (!strcmp(btn, EXPLICIT_NULL))
          bind->joykey = NO_BTN;
       else
       {
@@ -311,7 +312,7 @@ void input_config_parse_joy_axis(config_file_t *conf, const char *prefix,
 
    if (config_get_array(conf, key, tmp, sizeof(tmp)))
    {
-      if (!strcmp(tmp, "nul"))
+      if (!strcmp(tmp, EXPLICIT_NULL))
          bind->joyaxis = AXIS_NONE;
       else if (strlen(tmp) >= 2 && (*tmp == '+' || *tmp == '-'))
       {
@@ -419,7 +420,7 @@ void input_get_bind_string(char *buf, const struct retro_keybind *bind,
 
 #ifndef RARCH_CONSOLE
    input_keymaps_translate_rk_to_str(bind->key, key, sizeof(key));
-   if (!strcmp(key, "nul"))
+   if (!strcmp(key, EXPLICIT_NULL))
       *key = '\0';
 
    snprintf(keybuf, sizeof(keybuf), "(Key: %s)", key);

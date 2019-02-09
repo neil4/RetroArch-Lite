@@ -465,6 +465,9 @@ static int do_pre_state_checks(event_cmd_state_t *cmd)
    if (cmd->menu_pressed || (global->libretro_dummy))
       do_state_check_menu_toggle();
 #endif
+   
+   if (cmd->hotkeys_toggle_pressed)
+      event_command(EVENT_CMD_HOTKEYS_TOGGLE);
 
    return 0;
 }
@@ -711,11 +714,12 @@ static bool check_block_hotkey(bool enable_hotkey)
    bool use_hotkey_enable;
    settings_t *settings             = config_get_ptr();
    driver_t *driver                 = driver_get_ptr();
+   global_t *global                 = global_get_ptr();
    const struct retro_keybind *bind = 
       &settings->input.binds[0][RARCH_ENABLE_HOTKEY];
    const struct retro_keybind *autoconf_bind = 
       &settings->input.autoconf_binds[0][RARCH_ENABLE_HOTKEY];
-
+   
    /* Don't block the check to RARCH_ENABLE_HOTKEY
     * unless we're really supposed to. */
    driver->block_hotkey             = 
@@ -732,8 +736,9 @@ static bool check_block_hotkey(bool enable_hotkey)
       autoconf_bind->joyaxis != AXIS_NONE;
 
    driver->block_hotkey             = 
-      input_driver_keyboard_mapping_is_blocked() ||
-      (use_hotkey_enable && !enable_hotkey);
+      input_driver_keyboard_mapping_is_blocked()
+      || global->hotkeys_disabled
+      || (use_hotkey_enable && !enable_hotkey);
 
    /* If we hold ENABLE_HOTKEY button, block all libretro input to allow 
     * hotkeys to be bound to same keys as RetroPad. */
@@ -1101,13 +1106,10 @@ static void rarch_main_cmd_get_state(event_cmd_state_t *cmd,
    cmd->frameadvance_pressed        = BIT64_GET(trigger_input, RARCH_FRAMEADVANCE);
    cmd->rewind_pressed              = BIT64_GET(input,         RARCH_REWIND);
    cmd->netplay_flip_pressed        = BIT64_GET(trigger_input, RARCH_NETPLAY_FLIP);
-   cmd->fullscreen_toggle           = BIT64_GET(trigger_input, RARCH_FULLSCREEN_TOGGLE_KEY);
-   cmd->cheat_index_plus_pressed    = BIT64_GET(trigger_input,
-         RARCH_CHEAT_INDEX_PLUS);
-   cmd->cheat_index_minus_pressed   = BIT64_GET(trigger_input,
-         RARCH_CHEAT_INDEX_MINUS);
-   cmd->cheat_toggle_pressed        = BIT64_GET(trigger_input,
-         RARCH_CHEAT_TOGGLE);
+   cmd->cheat_index_plus_pressed    = BIT64_GET(trigger_input, RARCH_CHEAT_INDEX_PLUS);
+   cmd->cheat_index_minus_pressed   = BIT64_GET(trigger_input,  RARCH_CHEAT_INDEX_MINUS);
+   cmd->cheat_toggle_pressed        = BIT64_GET(trigger_input, RARCH_CHEAT_TOGGLE);
+   cmd->hotkeys_toggle_pressed      = BIT64_GET(trigger_input, RARCH_TOGGLE_HOTKEYS);
 }
 
 /**

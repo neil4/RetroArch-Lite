@@ -71,6 +71,7 @@
 #define RETRO_LBL_OSK "Enable On-Screen Keyboard"
 #define RETRO_LBL_NETPLAY_FLIP "Netplay Flip Users"
 #define RETRO_LBL_SLOWMOTION "Slowmotion"
+#define RETRO_LBL_TOGGLE_HOTKEYS "Toggle Hotkeys"
 #define RETRO_LBL_ENABLE_HOTKEY "Enable Hotkey"
 #define RETRO_LBL_VOLUME_UP "Volume Up"
 #define RETRO_LBL_VOLUME_DOWN "Volume Down"

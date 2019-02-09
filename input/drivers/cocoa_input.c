@@ -122,7 +122,7 @@ const struct apple_key_name_map_entry apple_key_name_map[] =
    { "y", KEY_Y },
    { "z", KEY_Z },
 
-   { "nul", 0x00},
+   { EXPLICIT_NULL, 0x00},
 };
 
 void cocoa_input_enable_small_keyboard(bool on)

@@ -25,6 +25,8 @@
 #define MAX_USERS 16
 #endif
 
+#define EXPLICIT_NULL "nul"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -381,10 +381,10 @@ static int action_get_title_menu(const char *path, const char *label,
    return 0;
 }
 
-static int action_get_title_input_settings(const char *path, const char *label, 
+static int action_get_title_waiting_for_input(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
-   strlcpy(s, "INPUT SETTINGS", len);
+   strlcpy(s, "-- WAITING FOR INPUT --", len);
    return 0;
 }
 
@@ -553,7 +553,7 @@ static int menu_cbs_init_bind_title_compare_type(menu_file_list_cbs_t *cbs,
          break;
       case MENU_SETTINGS_CUSTOM_BIND:
       case MENU_SETTINGS_CUSTOM_BIND_KEYBOARD:
-         cbs->action_get_title = action_get_title_input_settings;
+         cbs->action_get_title = action_get_title_waiting_for_input;
          break;
       case MENU_SETTING_ACTION_CORE_DISK_OPTIONS:
          cbs->action_get_title = action_get_title_action_generic;

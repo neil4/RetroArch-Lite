@@ -169,7 +169,7 @@ const struct input_key_map input_config_key_map[] = {
    { "undo", RETROK_UNDO },
    { "clear", RETROK_CLEAR },
 
-   { "nul", RETROK_UNKNOWN },
+   { EXPLICIT_NULL, RETROK_UNKNOWN },
    { NULL, RETROK_UNKNOWN },
 };
 
