@@ -22,7 +22,7 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
 
 ### Control Notes
 * Menu
-  * 'Start' deletes an Options file, Remap, or Shader Preset if "Create...", "Save...", or Preset is highlighted.
+  * 'Start' deletes a Core, Options file or Shader Preset; and deletes a Remap if "Save..." highlighted.
   * 'L'/'R' sets min/max value.
 * Touchscreen
   * On most overlays, tapping the screen center toggles the menu.
