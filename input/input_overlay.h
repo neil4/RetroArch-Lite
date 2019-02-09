@@ -49,6 +49,7 @@ enum overlay_eight_way_type
    ABXY_AREA,
    ABRL_AREA,
    ABRL2_AREA,
+   AB_AREA,
    NUM_EIGHT_WAY_TYPES
 };
 

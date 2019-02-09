@@ -57,6 +57,7 @@ enum
    RARCH_JOYPAD_ABXY_AREA,
    RARCH_JOYPAD_ABRL_AREA,
    RARCH_JOYPAD_ABRL2_AREA,
+   RARCH_JOYPAD_AB_AREA,
    
    RARCH_HIGHLEVEL_END,
    RARCH_HIGHLEVEL_END_NULL
@@ -124,7 +125,8 @@ const struct input_bind_map input_highlevel_config_bind_map[RARCH_HIGHLEVEL_END_
       DECLARE_BIND(analog_dpad_area, RARCH_ANALOG_DPAD_AREA, "Analog D-pad area"),
       DECLARE_BIND(abxy_area,        RARCH_JOYPAD_ABXY_AREA, "ABXY area"),
       DECLARE_BIND(abrl_area,        RARCH_JOYPAD_ABRL_AREA, "ABRL area"),
-      DECLARE_BIND(abrl2_area,       RARCH_JOYPAD_ABRL2_AREA, "ABRL2 area")
+      DECLARE_BIND(abrl2_area,       RARCH_JOYPAD_ABRL2_AREA, "ABRL2 area"),
+      DECLARE_BIND(ab_area,          RARCH_JOYPAD_AB_AREA, "AB area")
 };
 
 
@@ -290,9 +292,9 @@ static void update_aspect_x_y_globals(struct overlay *ol)
       adj.x_center_shift = (1.0f - adj.x_aspect_factor) / 2.0f;
       if ( bisect_aspect > overlay_aspect * 1.01 )
       {
-         adj.x_bisect_shift = ( bisect_aspect/adj.display_aspect
-                                + ( (1.0f - bisect_aspect/adj.display_aspect)
-                                    / 2.0f ) )
+         adj.x_bisect_shift = (bisect_aspect/adj.display_aspect
+                               + ( (1.0f - bisect_aspect/adj.display_aspect)
+                                    / 2.0f ))
                               - (adj.x_aspect_factor + adj.x_center_shift);
       }
    }
@@ -435,6 +437,11 @@ void populate_8way_vals()
       eight_way_vals[ABRL2_AREA].left = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_B;
       eight_way_vals[ABRL2_AREA].right = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_R;
 
+      eight_way_vals[AB_AREA].up = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_B;
+      eight_way_vals[AB_AREA].down = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_A;
+      eight_way_vals[AB_AREA].left = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_B;
+      eight_way_vals[AB_AREA].right = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_A;
+      
       int i;
       for ( i = 0; i < NUM_EIGHT_WAY_TYPES; i++ )
       {
@@ -469,6 +476,8 @@ void populate_8way_vals()
    eight_way_vals[ABRL_AREA].slope_low = buttons_slope_low;
    eight_way_vals[ABRL2_AREA].slope_high = buttons_slope_high;
    eight_way_vals[ABRL2_AREA].slope_low = buttons_slope_low;
+   eight_way_vals[AB_AREA].slope_high = buttons_slope_high;
+   eight_way_vals[AB_AREA].slope_low = buttons_slope_low;
 }
 
 /**
@@ -1586,7 +1595,8 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
       | (UINT64_C(1) << RARCH_ANALOG_DPAD_AREA)
       | (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA)
       | (UINT64_C(1) << RARCH_JOYPAD_ABRL_AREA)
-      | (UINT64_C(1) << RARCH_JOYPAD_ABRL2_AREA);
+      | (UINT64_C(1) << RARCH_JOYPAD_ABRL2_AREA)
+      | (UINT64_C(1) << RARCH_JOYPAD_AB_AREA);
    
    uint64_t mask = desc_ptr->highlevel_mask;
    
@@ -1699,6 +1709,9 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
    case (UINT64_C(1) << RARCH_JOYPAD_ABRL2_AREA):
       out->buttons |= eight_way_state(desc_ptr, ABRL2_AREA, x, y);
       break;
+   case (UINT64_C(1) << RARCH_JOYPAD_AB_AREA):
+      out->buttons |= eight_way_state(desc_ptr, AB_AREA, x, y);
+      break;
    default:  // overlapping buttons
       if ( mask & ( UINT64_C(1) << RARCH_ANALOG_DPAD_AREA ) )
          out->buttons |= eight_way_state(desc_ptr, ANALOG_DPAD_AREA, x, y);
@@ -1710,6 +1723,8 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
          out->buttons |= eight_way_state(desc_ptr, ABRL_AREA, x, y);
       if ( mask & ( UINT64_C(1) << RARCH_JOYPAD_ABRL2_AREA ) )
          out->buttons |= eight_way_state(desc_ptr, ABRL2_AREA, x, y);
+      if ( mask & (UINT64_C(1) << RARCH_JOYPAD_AB_AREA ) )
+         out->buttons |= eight_way_state(desc_ptr, AB_AREA, x, y);
    }
 }
 
