@@ -38,36 +38,15 @@ void menu_shader_manager_init(menu_handle_t *menu)
    const char *ext             = NULL;
    struct video_shader *shader = NULL;
    config_file_t *conf         = NULL;
-   const char *config_path     = NULL;
    settings_t *settings        = config_get_ptr();
-   global_t   *global          = global_get_ptr();
 
    if (!menu)
       return;
 
    shader = (struct video_shader*)menu->shader;
 
-   if (*global->config_path)
-      config_path = global->config_path;
-
-   /* In a multi-config setting, we can't have
-    * conflicts on menu.cgp/menu.glslp. */
-   if (config_path)
-   {
-      fill_pathname_base(menu->default_glslp, config_path,
-            sizeof(menu->default_glslp));
-      path_remove_extension(menu->default_glslp);
-      strlcat(menu->default_glslp, ".glslp", sizeof(menu->default_glslp));
-      fill_pathname_base(menu->default_cgp, config_path,
-            sizeof(menu->default_cgp));
-      path_remove_extension(menu->default_cgp);
-      strlcat(menu->default_cgp, ".cgp", sizeof(menu->default_cgp));
-   }
-   else
-   {
-      strlcpy(menu->default_glslp, "menu.glslp", sizeof(menu->default_glslp));
-      strlcpy(menu->default_cgp, "menu.cgp", sizeof(menu->default_cgp));
-   }
+   strlcpy(menu->default_glslp, "temporary.glslp", sizeof(menu->default_glslp));
+   strlcpy(menu->default_cgp, "temporary.cgp", sizeof(menu->default_cgp));
 
    ext = path_get_extension(settings->video.shader_path);
    ext_hash = menu_hash_calculate(ext);
@@ -98,12 +77,12 @@ void menu_shader_manager_init(menu_handle_t *menu)
             const char *shader_dir = *settings->video.shader_dir ?
                settings->video.shader_dir : settings->system_directory;
 
-            fill_pathname_join(preset_path, shader_dir, "menu.glslp", sizeof(preset_path));
+            fill_pathname_join(preset_path, shader_dir, "temporary.glslp", sizeof(preset_path));
             conf = config_file_new(preset_path);
 
             if (!conf)
             {
-               fill_pathname_join(preset_path, shader_dir, "menu.cgp", sizeof(preset_path));
+               fill_pathname_join(preset_path, shader_dir, "temporary.cgp", sizeof(preset_path));
                conf = config_file_new(preset_path);
             }
 
