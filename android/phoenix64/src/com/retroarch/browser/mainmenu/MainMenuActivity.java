@@ -183,6 +183,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       libretroName = InstalledCoresFragment.sanitizedLibretroName(libretroPath);
       
       // Show Content Directory
+      //
       final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
       if (!new File(libretroPath).isDirectory())

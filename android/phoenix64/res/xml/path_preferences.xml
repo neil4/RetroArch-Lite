@@ -61,7 +61,7 @@
             android:dependency="config_directory_enable"/>
     </PreferenceCategory>
     
-    <!-- Local Installable Cores -->
+    <!-- Local/Backup Installable Cores -->
     <PreferenceCategory android:title="@string/backup_cores_paths">
         <Preference
             android:key="localCoresDirPref"

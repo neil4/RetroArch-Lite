@@ -227,8 +227,7 @@ public final class DownloadableCoresFragment extends ListFragment
       {
          try
          {
-            final Connection core_connection = Build.SUPPORTED_ABIS[0]
-                                               .startsWith("arm") ?
+            final Connection core_connection = Build.SUPPORTED_ABIS[0].startsWith("arm") ?
                                                 Jsoup.connect(BUILDBOT_CORE_URL_ARM)
                                                 : Jsoup.connect(BUILDBOT_CORE_URL_INTEL);
             final Elements coreElements = core_connection.get().body().getElementsByClass("fb-n").select("a");
@@ -326,8 +325,7 @@ public final class DownloadableCoresFragment extends ListFragment
                   systemName = line.split("=")[1].trim().replace("\"", "");
                   break;
                }
-            }
-               
+            }   
          } // end try
          catch (FileNotFoundException fnfe)
          {

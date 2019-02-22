@@ -73,7 +73,7 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
       DECLARE_BIND(r_y_minus, RARCH_ANALOG_RIGHT_Y_MINUS, "Right analog Y- (up)"),
 
       DECLARE_BIND(turbo, RARCH_TURBO_ENABLE, "Turbo enable"),
-      DECLARE_META_BIND(2, toggle_hotkeys,        RARCH_TOGGLE_HOTKEYS, "Enable hotkeys toggle"),
+      DECLARE_META_BIND(2, toggle_hotkeys,        RARCH_TOGGLE_HOTKEYS, "Hotkeys toggle"),
 
       DECLARE_META_BIND(1, toggle_fast_forward,   RARCH_FAST_FORWARD_KEY, "Fast forward toggle"),
       DECLARE_META_BIND(2, hold_fast_forward,     RARCH_FAST_FORWARD_HOLD_KEY, "Fast forward hold"),
@@ -98,7 +98,7 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
       DECLARE_META_BIND(2, osk_toggle,            RARCH_OSK, "On-screen keyboard toggle"),
       DECLARE_META_BIND(2, netplay_flip_players,  RARCH_NETPLAY_FLIP, "Netplay flip users"),
       DECLARE_META_BIND(2, slowmotion,            RARCH_SLOWMOTION, "Slow motion"),
-      DECLARE_META_BIND(2, enable_hotkey,         RARCH_ENABLE_HOTKEY, "Enable hotkeys"),
+      DECLARE_META_BIND(2, enable_hotkey,         RARCH_ENABLE_HOTKEY, "Enable hotkeys hold"),
       DECLARE_META_BIND(2, volume_up,             RARCH_VOLUME_UP, "Volume +"),
       DECLARE_META_BIND(2, volume_down,           RARCH_VOLUME_DOWN, "Volume -"),
       DECLARE_META_BIND(2, overlay_next,          RARCH_OVERLAY_NEXT, "Overlay next"),

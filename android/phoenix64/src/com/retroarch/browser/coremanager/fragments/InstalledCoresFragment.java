@@ -207,7 +207,7 @@ public final class InstalledCoresFragment extends ListFragment
    
    /**
     * Removes all retroarch.cfg entries specific to this core.
-    * Try to remove retroarch-core-options.cfg entries too, but unfortunately there is no naming convention for core options.
+    * Also deletes core's config folder, which holds core-provided options, ROM specific configs, and input remapping files.
     * @param position list position of current core 
     * @return true
     */
@@ -501,7 +501,7 @@ public final class InstalledCoresFragment extends ListFragment
                   connection = (URLConnection) url.openConnection();
                   final File outInfoFile
                   = new File( settings.getString("backup_cores_directory", LocalCoresFragment.defaultLocalCoresDir),
-                                                 File.separator+params[1].replace("_android.so",".info") );
+                              File.separator+params[1].replace("_android.so",".info") );
                   connection.connect();
                   input = new BufferedInputStream(connection.getInputStream(), 8192);
                   output = new FileOutputStream(outInfoFile); 
