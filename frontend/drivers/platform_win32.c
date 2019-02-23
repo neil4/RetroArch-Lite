@@ -22,6 +22,7 @@
 #include <retro_miscellaneous.h>
 #include <dynamic/dylib.h>
 #include <file/file_list.h>
+#include <file/file_path.h>
 
 #include "../frontend_driver.h"
 #include "../../general.h"
@@ -230,17 +231,36 @@ static int frontend_win32_parse_drive_list(void *data)
 static void frontend_win32_get_environment_settings(int *argc, char *argv[],
       void *args, void *params_data)
 {
-   strlcpy(g_defaults.core_info_dir, ".\\info", sizeof(g_defaults.core_info_dir));
-   strlcpy(g_defaults.core_dir, ".\\cores", sizeof(g_defaults.core_dir));
-   strlcpy(g_defaults.menu_config_dir, ".\\config", sizeof(g_defaults.menu_config_dir));
-   strlcpy(g_defaults.savestate_dir, ".\\state", sizeof(g_defaults.savestate_dir));
-   strlcpy(g_defaults.sram_dir, ".\\save", sizeof(g_defaults.sram_dir));
-   strlcpy(g_defaults.system_dir, ".\\system", sizeof(g_defaults.system_dir));
-   strlcpy(g_defaults.shader_dir, ".\\shaders_glsl", sizeof(g_defaults.shader_dir));
-   strlcpy(g_defaults.video_filter_dir, ".\\video_filters", sizeof(g_defaults.video_filter_dir));
-   strlcpy(g_defaults.overlay_dir, ".\\overlays", sizeof(g_defaults.overlay_dir));
-   strlcpy(g_defaults.osk_overlay_dir, ".\\overlays\\keyboards", sizeof(g_defaults.osk_overlay_dir));
-   strlcpy(g_defaults.menu_theme_dir, ".\\themes_rgui", sizeof(g_defaults.menu_theme_dir));
+   HMODULE hModule = GetModuleHandleW(NULL);
+   WCHAR exe_path[PATH_MAX_LENGTH];
+   char exe_dir[PATH_MAX_LENGTH];
+   
+   GetModuleFileNameW(hModule, exe_path, PATH_MAX_LENGTH);
+   wcstombs(exe_dir, exe_path, PATH_MAX_LENGTH);
+   path_parent_dir(exe_dir);
+   
+   fill_pathname_join(g_defaults.core_info_dir, exe_dir, "info",
+                      sizeof(g_defaults.core_info_dir));
+   fill_pathname_join(g_defaults.core_dir, exe_dir, "cores",
+                      sizeof(g_defaults.core_dir));
+   fill_pathname_join(g_defaults.menu_config_dir, exe_dir, "config",
+                      sizeof(g_defaults.menu_config_dir));
+   fill_pathname_join(g_defaults.savestate_dir, exe_dir, "state",
+                      sizeof(g_defaults.savestate_dir));
+   fill_pathname_join(g_defaults.sram_dir, exe_dir, "save",
+                      sizeof(g_defaults.sram_dir));
+   fill_pathname_join(g_defaults.system_dir, exe_dir, "system",
+                      sizeof(g_defaults.system_dir));
+   fill_pathname_join(g_defaults.shader_dir, exe_dir, "shaders_glsl",
+                      sizeof(g_defaults.shader_dir));
+   fill_pathname_join(g_defaults.video_filter_dir, exe_dir, "video_filters",
+                      sizeof(g_defaults.video_filter_dir));
+   fill_pathname_join(g_defaults.overlay_dir, exe_dir, "overlays",
+                      sizeof(g_defaults.overlay_dir));
+   fill_pathname_join(g_defaults.osk_overlay_dir, exe_dir, "overlays\\keyboards",
+                      sizeof(g_defaults.osk_overlay_dir));
+   fill_pathname_join(g_defaults.menu_theme_dir, exe_dir, "themes_rgui",
+                      sizeof(g_defaults.menu_theme_dir));
 }
 
 const frontend_ctx_driver_t frontend_ctx_win32 = {
