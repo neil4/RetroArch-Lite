@@ -623,6 +623,10 @@ static void config_set_defaults(void)
    settings->menu.show_frame_throttle_menu     = show_frame_throttle_menu;
    settings->menu.show_netplay_menu            = show_netplay_menu;
    settings->menu.show_saving_menu             = show_saving_menu;
+   settings->menu.show_core_menu               = show_core_menu;
+   settings->menu.show_core_menu               = show_driver_menu;
+   settings->menu.show_core_menu               = show_ui_menu;
+   settings->menu.show_core_menu               = show_logging_menu;
    settings->menu.show_hotkey_menu             = show_hotkey_menu;
    settings->menu.show_rewind_menu             = show_rewind_menu;
 #ifndef SINGLE_CORE
@@ -1293,6 +1297,10 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_netplay_menu,  "show_netplay_menu");
 #endif
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_saving_menu,  "show_saving_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_menu,  "show_core_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_menu,  "show_driver_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_menu,  "show_ui_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_menu,  "show_logging_menu");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_hotkey_menu,  "show_hotkey_menu");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_rewind_menu,  "show_rewind_menu");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_cheat_options,  "show_cheat_options");
@@ -2195,6 +2203,10 @@ bool config_save_file(const char *path)
                    settings->menu.show_frame_throttle_menu);
    config_set_bool(conf, "show_netplay_menu", settings->menu.show_netplay_menu);
    config_set_bool(conf, "show_saving_menu", settings->menu.show_saving_menu);
+   config_set_bool(conf, "show_core_menu", settings->menu.show_core_menu);
+   config_set_bool(conf, "show_driver_menu", settings->menu.show_driver_menu);
+   config_set_bool(conf, "show_ui_menu", settings->menu.show_ui_menu);
+   config_set_bool(conf, "show_logging_menu", settings->menu.show_logging_menu);
    config_set_bool(conf, "show_hotkey_menu", settings->menu.show_hotkey_menu);
    config_set_bool(conf, "show_rewind_menu", settings->menu.show_rewind_menu);
    config_set_bool(conf, "show_cheat_options", settings->menu.show_cheat_options);

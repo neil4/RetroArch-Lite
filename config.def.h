@@ -477,6 +477,10 @@ static bool show_frame_throttle_menu = false;
 static bool show_netplay_menu = true;
 #endif
 static bool show_saving_menu = false;
+static bool show_core_menu = false;
+static bool show_driver_menu = false;
+static bool show_ui_menu = false;
+static bool show_logging_menu = false;
 static bool show_cheat_options = false;
 #ifndef ANDROID
 static bool show_hotkey_menu = true;

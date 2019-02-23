@@ -706,7 +706,7 @@ static int menu_displaylist_parse_shader_options(menu_displaylist_info_t *info)
          MENU_SETTING_ACTION, 0, 0);
    if (settings->menu.show_advanced_settings)
       menu_list_push(info->list,
-            "Temp Shader Parameters",
+            "Shader Parameters test",
             menu_hash_to_str(MENU_LABEL_VIDEO_SHADER_PARAMETERS),
             MENU_SETTING_ACTION, 0, 0);
    menu_list_push(info->list,

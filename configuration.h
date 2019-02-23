@@ -192,7 +192,11 @@ typedef struct settings
       bool show_saving_menu;
       bool show_hotkey_menu;
       bool show_rewind_menu;
+      bool show_core_menu;
       bool show_cheat_options;
+      bool show_driver_menu;
+      bool show_ui_menu;
+      bool show_logging_menu;
 #ifndef SINGLE_CORE
       bool show_core_updater;
 #endif
