@@ -92,11 +92,16 @@
     <string name="back_behavior">Back behavior</string>
     <string name="back_behavior_desc">Select how you want the Back button to behave.</string>
     <string name="overlay_assets">Overlay Management</string>
+    <string name="theme_assets">Theme Management</string>
     <string name="enable_overlay_desc">Enable Touchscreen Overlays</string>
     <string name="reextract_overlays">Update/Restore Overlays</string>
     <string name="reextract_overlays_desc">Extracts touchscreen overlays from currently installed APK, and removes all user-installed overlays.</string>
+    <string name="reextract_themes">Update/Restore RGUI Themes</string>
+    <string name="reextract_themes_desc">Extracts RGUI themes from currently installed APK, and removes all user-installed themes.</string>
     <string name="install_overlays">Install Overlays</string>
     <string name="install_overlays_desc">Add/Update input overlays from a zip file.\nZipfile contents are installed as-is, keeping relative paths.</string>
+    <string name="install_themes">Install RGUI Themes</string>
+    <string name="install_themes_desc">Add/Update RGUI themes from a zip file.\nZipfile contents are installed as-is, keeping relative paths.</string>
     <string name="config_autodetect">Configuration Autodetection</string>
     <string name="config_autodetect_desc">This will attempt to preconfigure various gamepads and/or IME apps that you connect.</string>
     <string name="list_autodetected">List of autodetected devices</string>

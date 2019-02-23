@@ -91,6 +91,7 @@ struct defaults
    char database_dir[PATH_MAX_LENGTH];
    char cursor_dir[PATH_MAX_LENGTH];
    char cheats_dir[PATH_MAX_LENGTH];
+   char menu_theme_dir[PATH_MAX_LENGTH];
 
    struct
    {

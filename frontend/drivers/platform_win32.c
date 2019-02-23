@@ -240,6 +240,7 @@ static void frontend_win32_get_environment_settings(int *argc, char *argv[],
    strlcpy(g_defaults.video_filter_dir, ".\\video_filters", sizeof(g_defaults.video_filter_dir));
    strlcpy(g_defaults.overlay_dir, ".\\overlays", sizeof(g_defaults.overlay_dir));
    strlcpy(g_defaults.osk_overlay_dir, ".\\overlays\\keyboards", sizeof(g_defaults.osk_overlay_dir));
+   strlcpy(g_defaults.menu_theme_dir, ".\\themes_rgui", sizeof(g_defaults.menu_theme_dir));
 }
 
 const frontend_ctx_driver_t frontend_ctx_win32 = {

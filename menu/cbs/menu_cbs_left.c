@@ -554,6 +554,7 @@ static int menu_cbs_init_bind_left_compare_type(menu_file_list_cbs_t *cbs,
          case MENU_FILE_SHADER:
          case MENU_FILE_SHADER_PRESET:
          case MENU_FILE_IMAGE:
+         case MENU_FILE_THEME:
          case MENU_FILE_OVERLAY:
          case MENU_FILE_VIDEOFILTER:
          case MENU_FILE_AUDIOFILTER:

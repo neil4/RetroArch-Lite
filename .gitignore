@@ -64,6 +64,7 @@ apple/RetroArch_iOS.xcodeproj/project.xcworkspace/*
 # Android
 /android/phoenix/obj/
 /android/phoenix/assets/shaders_glsl/*
+/android/phoenix/assets/themes_rgui/*
 /android/phoenix/assets/cores/*
 /android/phoenix/assets/info/*.info
 /android/phoenix/libs/appcompat/gen
@@ -78,6 +79,7 @@ apple/RetroArch_iOS.xcodeproj/project.xcworkspace/*
 /android/phoenix/local.properties
 /android/phoenix64/obj/
 /android/phoenix64/assets/shaders_glsl/*
+/android/phoenix64/assets/themes_rgui/*
 /android/phoenix64/assets/cores/*
 /android/phoenix64/assets/info/*.info
 /android/phoenix64/libs/appcompat/gen

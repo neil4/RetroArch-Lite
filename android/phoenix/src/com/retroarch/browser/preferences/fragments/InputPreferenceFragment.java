@@ -37,7 +37,7 @@ public final class InputPreferenceFragment extends PreferenceListFragment implem
       if (prefKey.equals("install_overlays_pref"))
       {
          final DirectoryFragment overlayFileBrowser
-                 = DirectoryFragment.newInstance("");         
+                 = DirectoryFragment.newInstance("");
          overlayFileBrowser.setPathSettingKey("overlay_zip");
          overlayFileBrowser.addAllowedExts("zip");
          overlayFileBrowser.setIsDirectoryTarget(false);

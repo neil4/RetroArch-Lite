@@ -105,6 +105,8 @@ extern "C" {
 #define MENU_LABEL_OVERLAY_OPACITY                                             0xc466fbaeU
 #define MENU_LABEL_VALUE_OVERLAY_OPACITY                                       0x98605740U
 
+#define MENU_LABEL_MENU_THEME                                                  0x7bf56e4cU
+#define MENU_LABEL_VALUE_MENU_THEME                                            0x656b3a6dU
 #define MENU_LABEL_MENU_WALLPAPER                                              0x3b84de01U
 #define MENU_LABEL_VALUE_MENU_WALLPAPER                                        0x4555d2a2U
 #define MENU_LABEL_DYNAMIC_WALLPAPER                                           0xf011ccabU
@@ -302,7 +304,6 @@ extern "C" {
 #define MENU_LABEL_VIDEO_FONT_PATH                                             0xd0de729eU
 #define MENU_LABEL_VIDEO_FILTER                                                0x1c0eb741U
 #define MENU_LABEL_VALUE_VIDEO_FILTER                                          0xc1690382U
-#define MENU_LABEL_MENU_WALLPAPER                                              0x3b84de01U
 #define MENU_LABEL_AUDIO_DSP_PLUGIN                                            0x4a69572bU
 #define MENU_LABEL_VALUE_AUDIO_DSP_PLUGIN                                      0x1c9f180dU
 #define MENU_LABEL_RGUI_BROWSER_DIRECTORY                                      0xa86cba73U

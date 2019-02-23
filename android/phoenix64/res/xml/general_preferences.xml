@@ -20,4 +20,16 @@
             android:summary="@string/mame_titles_desc"
             android:title="@string/enable" />
     </PreferenceCategory>
+    
+    <!-- Theme Assets -->
+    <PreferenceCategory android:title="@string/theme_assets" >
+        <Preference
+           android:key="install_themes_pref"
+           android:title="@string/install_themes"
+           android:summary="@string/install_themes_desc"/>
+        <Preference
+            android:key="reextract_themes_pref"
+            android:summary="@string/reextract_themes_desc"
+            android:title="@string/reextract_themes" />
+    </PreferenceCategory>
 </PreferenceScreen>

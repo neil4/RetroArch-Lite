@@ -914,6 +914,31 @@ static int action_ok_config_load(const char *path,
    return 0;
 }
 
+static int action_ok_theme_load(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   global_t   *global       = global_get_ptr();
+   settings_t *settings     = config_get_ptr();
+   const char *menu_path    = NULL;
+   menu_handle_t *menu      = menu_driver_get_ptr();
+   menu_list_t *menu_list   = menu_list_get_ptr();
+
+   if (!menu || !menu_list)
+      return -1;
+   
+   global->menu.theme_update_flag = true;
+
+   menu_list_get_last_stack(menu_list, &menu_path, NULL, NULL, NULL);
+   if (!menu_list)
+      return -1;
+   
+   fill_pathname_join(settings->menu.theme, menu_path, path, PATH_MAX_LENGTH);
+   
+   menu_list_flush_stack(menu_list, "Menu Settings", 0);
+
+   return 0;
+}
+
 static int action_ok_disk_image_append(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -1345,6 +1370,9 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
             break;
          case MENU_FILE_CONFIG:
             cbs->action_ok = action_ok_config_load;
+            break;
+         case MENU_FILE_THEME:
+            cbs->action_ok = action_ok_theme_load;
             break;
          case MENU_FILE_DIRECTORY:
             cbs->action_ok = action_ok_directory_push;

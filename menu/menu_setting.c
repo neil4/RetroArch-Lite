@@ -41,6 +41,10 @@
 
 #endif
 
+#ifdef HAVE_RGUI
+#include "drivers/rgui.h"
+#endif
+
 static void menu_settings_info_list_free(rarch_setting_info_t *list_info)
 {
    if (list_info)
@@ -410,6 +414,7 @@ void menu_setting_apply_deferred(void)
                setting->deferred_handler(setting);
             }
             break;
+         case ST_HEX:
          case ST_UINT:
             if (*setting->value.unsigned_integer != setting->original_value.unsigned_integer)
             {
@@ -482,6 +487,7 @@ static void setting_reset_setting(rarch_setting_t* setting)
       case ST_ACTION:
          break;
       case ST_HEX:
+         *setting->value.unsigned_integer = setting->default_value.unsigned_integer;
          break;
       case ST_GROUP:
          break;
@@ -1372,6 +1378,33 @@ static int setting_action_start_video_filter(void *data)
 
    settings->video.softfilter_plugin[0] = '\0';
    event_command(EVENT_CMD_REINIT);
+   return 0;
+}
+
+static int setting_action_start_wallpaper(void *data)
+{
+   settings_t *settings = config_get_ptr();
+   global_t *global = global_get_ptr();
+   if (!global || !settings)
+      return -1;
+
+   settings->menu.wallpaper[0] = '\0';
+   global->menu.theme_update_flag = true;
+
+   return 0;
+}
+
+static int setting_action_start_theme(void *data)
+{
+   settings_t *settings = config_get_ptr();
+   global_t *global = global_get_ptr();
+   if (!global || !settings)
+      return -1;
+
+   settings->menu.theme[0] = '\0';
+   settings->menu.wallpaper[0] = '\0';
+   global->menu.theme_update_flag = true;
+
    return 0;
 }
 
@@ -3801,6 +3834,17 @@ static void overlay_enable_toggle_change_handler(void *data)
       event_command(EVENT_CMD_OVERLAY_INIT);
    else
       event_command(EVENT_CMD_OVERLAY_DEINIT);
+}
+#endif
+
+#ifdef HAVE_MENU
+static void gui_update_change_handler(void *data)
+{
+   global_t *global = global_get_ptr();
+   if (!global)
+      return;
+
+   global->menu.theme_update_flag = true;
 }
 #endif
 
@@ -6441,7 +6485,7 @@ static bool setting_append_list_overlay_options(
          settings->input.overlay_opacity,
          menu_hash_to_str(MENU_LABEL_OVERLAY_OPACITY),
          menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_OPACITY),
-         0.4f,
+         overlay_opacity,
          "%.2f",
          group_info.name,
          subgroup_info.name,
@@ -6636,6 +6680,7 @@ static bool setting_append_list_menu_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   global_t   *global   = global_get_ptr();
 
    START_GROUP(group_info, "Menu Settings", parent_group);
    
@@ -6758,20 +6803,7 @@ static bool setting_append_list_menu_options(
          general_read_handler);
 #endif
 
-   CONFIG_PATH(
-         settings->menu.wallpaper,
-         menu_hash_to_str(MENU_LABEL_MENU_WALLPAPER),
-         menu_hash_to_str(MENU_LABEL_VALUE_MENU_WALLPAPER),
-         "",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_values(list, list_info, "png");
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
+#if 0
    CONFIG_BOOL(
          settings->menu.dynamic_wallpaper_enable,
          menu_hash_to_str(MENU_LABEL_DYNAMIC_WALLPAPER),
@@ -6799,7 +6831,8 @@ static bool setting_append_list_menu_options(
          general_write_handler,
          general_read_handler);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
+#endif
+   
    CONFIG_BOOL(
          settings->menu.pause_libretro,
          "menu_pause_libretro",
@@ -6862,45 +6895,174 @@ static bool setting_append_list_menu_options(
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
 
-   /* These colors are hints. The menu driver is not required to use them. */
-   CONFIG_HEX(
-         settings->menu.entry_normal_color,
-         "menu_entry_normal_color",
-         "Menu entry normal color",
-         menu_entry_normal_color,
+   CONFIG_PATH(
+         settings->menu.theme,
+         menu_hash_to_str(MENU_LABEL_MENU_THEME),
+         menu_hash_to_str(MENU_LABEL_VALUE_MENU_THEME),
+         settings->menu.theme_dir,
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   menu_settings_list_current_add_values(list, list_info, "cfg");
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
+   (*list)[list_info->index - 1].action_start = &setting_action_start_theme;
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_st_path;
 
-   CONFIG_HEX(
-         settings->menu.entry_hover_color,
-         "menu_entry_hover_color",
-         "Menu entry hover color",
-         menu_entry_hover_color,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   CONFIG_FLOAT(
+      settings->menu.wallpaper_opacity,
+      "menu_wallpaper_opacity",
+      "  Wallpaper Opacity",
+      wallpaper_opacity,
+      "%.1f",
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 1, 0.1, true, true);
+   (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
 
-   CONFIG_HEX(
-         settings->menu.title_color,
-         "menu_title_color",
-         "Menu title color",
-         menu_title_color,
+   CONFIG_UINT(
+      settings->menu.theme_scope,
+      "menu_theme_scope",
+      "  Scope",
+      GLOBAL,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         global->max_scope,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+
+   CONFIG_PATH(
+         settings->menu.wallpaper,
+         menu_hash_to_str(MENU_LABEL_MENU_WALLPAPER),
+         menu_hash_to_str(MENU_LABEL_VALUE_MENU_WALLPAPER),
+         settings->menu.theme_dir,
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
+   //menu_settings_list_current_add_values(list, list_info, "png");
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   (*list)[list_info->index - 1].action_start  = &setting_action_start_wallpaper;
+
+#ifdef HAVE_RGUI
+   if (!strcmp(settings->menu.driver, "rgui"))
+   {
+      CONFIG_HEX(
+            rgui_title_color,
+            "rgui_title_color",
+            "Temp Title Color (argb)",
+            rgui_title_color_default,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+      CONFIG_HEX(
+            rgui_normal_color,
+            "rgui_entry_normal_color",
+            "Temp Text Color (argb)",
+            rgui_normal_color_default,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+      CONFIG_HEX(
+            rgui_hover_color,
+            "rgui_entry_hover_color",
+            "Temp Hover Color (argb)",
+            rgui_hover_color_default,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+      CONFIG_HEX(
+            rgui_bg_dark_color,
+            "rgui_background_dark_color",
+            "Temp BG Dark Color (argb)",
+            rgui_bg_dark_color_default,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+      CONFIG_HEX(
+            rgui_bg_light_color,
+            "rgui_background_light_color",
+            "Temp BG Light Color (argb)",
+            rgui_bg_light_color_default,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+      CONFIG_HEX(
+            rgui_border_dark_color,
+            "rgui_border_dark_color",
+            "Temp Border Dark Color (argb)",
+            rgui_border_dark_color_default,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+      CONFIG_HEX(
+            rgui_border_light_color,
+            "rgui_border_light_color",
+            "Temp Border Light Color (argb)",
+            rgui_border_light_color_default,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   }
+#endif
 
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Browser", group_info.name, subgroup_info, parent_group);
@@ -7518,6 +7680,7 @@ static bool setting_append_list_directory_options(
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
+#if 0
    CONFIG_DIR(
          settings->dynamic_wallpapers_directory,
          "dynamic_wallpapers_directory",
@@ -7551,6 +7714,7 @@ static bool setting_append_list_directory_options(
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+#endif
 
    CONFIG_DIR(
          settings->menu_config_directory,
@@ -7841,6 +8005,23 @@ CONFIG_DIR(
          settings->extraction_directory,
          "extraction_directory",
          "Extraction Directory",
+         "",
+         "<None>",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(
+         list,
+         list_info,
+         SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   
+   CONFIG_DIR(
+         settings->menu.theme_dir,
+         "menu_theme_directory",
+         "Menu Themes Directory",
          "",
          "<None>",
          group_info.name,

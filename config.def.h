@@ -463,12 +463,14 @@ static bool default_block_config_read = true;
 
 static bool show_advanced_settings    = false;
 static bool mame_titles = true;
+static float wallpaper_opacity = 1.0f;
 #ifdef HAVE_OVERLAY
 #ifndef ANDROID
 static bool show_overlay_menu = false;
 #else
 static bool show_overlay_menu = true;
 #endif
+static float overlay_opacity = 0.8f;
 #endif
 static bool show_frame_throttle_menu = false;
 #ifdef HAVE_NETPLAY
@@ -485,9 +487,6 @@ static bool show_hotkey_menu = false;
 static bool show_core_updater = true;
 #endif
 static bool show_rewind_menu = false;
-static const uint32_t menu_entry_normal_color = 0xffffffff;
-static const uint32_t menu_entry_hover_color  = 0xff64ff64;
-static const uint32_t menu_title_color        = 0xff64ff64;
 #else
 static bool default_block_config_read = false;
 #endif

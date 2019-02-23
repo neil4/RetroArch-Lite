@@ -191,6 +191,14 @@ static int deferred_push_video_filter(menu_displaylist_info_t *info)
    return menu_displaylist_push_list(info, DISPLAYLIST_VIDEO_FILTERS);
 }
 
+static int deferred_push_themes(menu_displaylist_info_t *info)
+{
+   info->type_default = MENU_FILE_THEME;
+   strlcpy(info->exts, "cfg", sizeof(info->exts));
+
+   return menu_displaylist_push_list(info, DISPLAYLIST_THEMES);
+}
+
 static int deferred_push_images(menu_displaylist_info_t *info)
 {
    info->type_default = MENU_FILE_IMAGE;
@@ -368,6 +376,9 @@ static int menu_cbs_init_bind_deferred_push_compare_label(menu_file_list_cbs_t *
          break;
       case MENU_LABEL_VIDEO_FILTER:
          cbs->action_deferred_push = deferred_push_video_filter;
+         break;
+      case MENU_LABEL_MENU_THEME:
+         cbs->action_deferred_push = deferred_push_themes;
          break;
       case MENU_LABEL_MENU_WALLPAPER:
          cbs->action_deferred_push = deferred_push_images;

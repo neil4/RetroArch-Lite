@@ -289,7 +289,8 @@ public class DirectoryFragment extends DialogFragment
             Environment.getExternalStorageDirectory().getPath() : startDirectory;
          
          if (pathSettingKey != null && (pathSettingKey.equals("overlay_zip")
-                                        || pathSettingKey.equals("shader_zip")))
+                                        || pathSettingKey.equals("shader_zip")
+                                        || pathSettingKey.equals("themes_zip")))
             startPath = UserPreferences.getPreferences(getActivity())
                         .getString( "user_zip_directory", startPath);
          
@@ -359,6 +360,10 @@ public class DirectoryFragment extends DialogFragment
             ExtractZipWithPrompt(path,
                     getContext().getApplicationInfo().dataDir + "/overlays",
                     "overlays");
+         else if ( pathSettingKey.equals("themes_zip"))
+            ExtractZipWithPrompt(path,
+                    getContext().getApplicationInfo().dataDir + "/themes_rgui",
+                    "themes");
          else
          {
             SharedPreferences settings = UserPreferences.getPreferences(getActivity());

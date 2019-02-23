@@ -33,24 +33,37 @@
 
 #include "../../configuration.h"
 #include "../../runloop.h"
+#include "../../runloop_data.h"
 #include "../../gfx/drivers_font_renderer/bitmap.h"
 
 #include "shared.h"
+#include "rgui.h"
 
 #define RGUI_TERM_START_X        (frame_buf->width / 21)
 #define RGUI_TERM_START_Y        (frame_buf->height / 9)
 #define RGUI_TERM_WIDTH          (((frame_buf->width - RGUI_TERM_START_X - RGUI_TERM_START_X) / (FONT_WIDTH_STRIDE)))
 #define RGUI_TERM_HEIGHT         (((frame_buf->height - RGUI_TERM_START_Y - RGUI_TERM_START_X) / (FONT_HEIGHT_STRIDE)) - 1)
 
-#if defined(GEKKO)|| defined(PSP)
-#define HOVER_COLOR(settings)    ((3 << 0) | (10 << 4) | (3 << 8) | (7 << 12))
-#define NORMAL_COLOR(settings)   0x7FFF
-#define TITLE_COLOR(settings)    HOVER_COLOR(settings)
-#else
-#define HOVER_COLOR(settings)    (argb32_to_rgba4444(settings->menu.entry_hover_color))
-#define NORMAL_COLOR(settings)   (argb32_to_rgba4444(settings->menu.entry_normal_color))
-#define TITLE_COLOR(settings)    (argb32_to_rgba4444(settings->menu.title_color))
-#endif
+#define WALLPAPER_WIDTH 320
+#define WALLPAPER_HEIGHT 240
+
+typedef struct
+{
+   char *path;
+   uint16_t data[WALLPAPER_WIDTH * WALLPAPER_HEIGHT];
+} wallpaper_t;
+
+static wallpaper_t wallpaper = {NULL, {0}};
+static char loaded_theme[PATH_MAX_LENGTH];
+
+/* in-use colors */
+static uint16_t hover_color;
+static uint16_t normal_color;
+static uint16_t title_color;
+static uint16_t bg_dark_color;
+static uint16_t bg_light_color;
+static uint16_t border_dark_color;
+static uint16_t border_light_color;
 
 static INLINE uint16_t argb32_to_rgba4444(uint32_t col)
 {
@@ -59,6 +72,144 @@ static INLINE uint16_t argb32_to_rgba4444(uint32_t col)
    unsigned g = ((col >> 8) & 0xff)  >> 4;
    unsigned b =  (col & 0xff)        >> 4;
    return (r << 12) | (g << 8) | (b << 4) | a;
+}
+
+static void rgui_update_colors()
+{
+   hover_color = argb32_to_rgba4444(rgui_hover_color);
+   normal_color = argb32_to_rgba4444(rgui_normal_color);
+   title_color = argb32_to_rgba4444(rgui_title_color);
+   bg_dark_color = argb32_to_rgba4444(rgui_bg_dark_color);
+   bg_light_color = argb32_to_rgba4444(rgui_bg_light_color);
+   border_dark_color = argb32_to_rgba4444(rgui_border_dark_color);
+   border_light_color = argb32_to_rgba4444(rgui_border_light_color);
+}
+
+static void rgui_set_default_colors()
+{
+   rgui_hover_color = rgui_hover_color_default;
+   rgui_normal_color = rgui_normal_color_default;
+   rgui_title_color = rgui_title_color_default;
+   rgui_bg_dark_color = rgui_bg_dark_color_default;
+   rgui_bg_light_color = rgui_bg_light_color_default;
+   rgui_border_dark_color = rgui_border_dark_color_default;
+   rgui_border_light_color = rgui_border_light_color_default;
+   
+   rgui_update_colors();
+}
+
+static void fill_rect(menu_framebuf_t *frame_buf,
+      unsigned x, unsigned y,
+      unsigned width, unsigned height,
+      uint16_t (*col)(unsigned x, unsigned y))
+{
+   unsigned i, j;
+    
+   if (!frame_buf->data || !col)
+      return;
+    
+   for (j = y; j < y + height; j++)
+      for (i = x; i < x + width; i++)
+         frame_buf->data[j * (frame_buf->pitch >> 1) + i] = col(i, j);
+}
+
+static uint16_t rgui_bg_filler(unsigned x, unsigned y)
+{
+   unsigned select = ((x >> 1) + (y >> 1)) & 1;
+   return (select == 0) ? bg_dark_color : bg_light_color;
+}
+
+static uint16_t rgui_border_filler(unsigned x, unsigned y)
+{
+   unsigned select = ((x >> 1) + (y >> 1)) & 1;
+   return (select == 0) ? border_dark_color : border_light_color;
+}
+
+static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
+{
+   config_file_t *conf        = NULL;
+   char wallpaper_file[PATH_MAX_LENGTH];
+   
+   settings->menu.wallpaper[0] = '\0';
+   rgui_wallpaper_valid = false;
+   rgui_set_default_colors();
+   
+   /* Open config file */
+   conf = config_file_new(settings->menu.theme);
+   if (!conf)
+      return;
+
+   /* Parse config file. */
+   config_get_hex(conf, "rgui_entry_normal_color", &rgui_normal_color);
+   config_get_hex(conf, "rgui_entry_hover_color", &rgui_hover_color);
+   config_get_hex(conf, "rgui_title_color", &rgui_title_color);
+   config_get_hex(conf, "rgui_bg_dark_color", &rgui_bg_dark_color);
+   config_get_hex(conf, "rgui_bg_light_color", &rgui_bg_light_color);
+   config_get_hex(conf, "rgui_border_dark_color", &rgui_border_dark_color);
+   config_get_hex(conf, "rgui_border_light_color", &rgui_border_light_color);
+   config_get_array(conf, "rgui_wallpaper", wallpaper_file, PATH_MAX_LENGTH);
+
+   rgui_update_colors();
+
+   /* Load wallpaper if present */
+   if (wallpaper_file[0] != '\0')
+   {
+      fill_pathname_resolve_relative(settings->menu.wallpaper,
+                                     settings->menu.theme, wallpaper_file,
+                                     PATH_MAX_LENGTH);
+      rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, settings->menu.wallpaper,
+                                     "cb_menu_wallpaper", 0, 1,true);
+   }
+   else
+      fill_rect(frame_buf, 0, frame_buf->height, frame_buf->width, 4,
+                rgui_bg_filler);
+
+   strlcpy(loaded_theme, settings->menu.theme, PATH_MAX_LENGTH);
+   
+   if (conf)
+      config_file_free(conf);
+   conf = NULL;
+}
+
+static void rgui_adjust_wallpaper_alpha()
+{
+   settings_t *settings = config_get_ptr();
+   uint16_t alpha;
+   unsigned i;
+   
+   alpha = (uint16_t)(settings->menu.wallpaper_opacity * 0xf);
+   
+   for (i = 0; i < WALLPAPER_WIDTH * WALLPAPER_HEIGHT; i++)
+      wallpaper.data[i] = (wallpaper.data[i] & 0xfff0) | alpha;
+}
+
+static inline void rgui_check_update(settings_t *settings,
+                                     menu_framebuf_t *frame_buf)
+{
+   global_t* global = global_get_ptr();
+   
+   if (global->menu.theme_update_flag)
+   {
+      if (strncmp(loaded_theme, settings->menu.theme, PATH_MAX_LENGTH))
+      {
+         rgui_load_theme(settings, frame_buf);
+         strlcpy(loaded_theme, settings->menu.theme, PATH_MAX_LENGTH);
+      }
+      else
+      {
+         if (settings->menu.wallpaper[0] == '\0')
+            rgui_wallpaper_valid = false;
+         
+         if (rgui_wallpaper_valid)
+            rgui_adjust_wallpaper_alpha();
+         
+         rgui_update_colors();
+         fill_rect(frame_buf, 0, frame_buf->height, frame_buf->width, 4,
+                   rgui_bg_filler);
+      }
+      
+      global->menu.theme_update_flag = false;
+   }
 }
 
 static void rgui_copy_glyph(uint8_t *glyph, const uint8_t *buf)
@@ -84,50 +235,6 @@ static void rgui_copy_glyph(uint8_t *glyph, const uint8_t *buf)
             glyph[offset] |= rem;
       }
    }
-}
-
-static uint16_t gray_filler(unsigned x, unsigned y)
-{
-   unsigned col;
-
-   x >>= 1;
-   y >>= 1;
-   col = ((x + y) & 1) + 1;
-
-#if defined(GEKKO) || defined(PSP)
-   return (6 << 12) | (col << 8) | (col << 4) | (col << 0);
-#else
-   return (col << 13) | (col << 9) | (col << 5) | (12 << 0);
-#endif
-}
-
-static uint16_t green_filler(unsigned x, unsigned y)
-{
-   unsigned col;
-
-   x >>= 1;
-   y >>= 1;
-   col = ((x + y) & 1) + 1;
-#if defined(GEKKO) || defined(PSP)
-   return (6 << 12) | (col << 8) | (col << 5) | (col << 0);
-#else
-   return (col << 13) | (col << 10) | (col << 5) | (12 << 0);
-#endif
-}
-
-static void fill_rect(menu_framebuf_t *frame_buf,
-      unsigned x, unsigned y,
-      unsigned width, unsigned height,
-      uint16_t (*col)(unsigned x, unsigned y))
-{
-   unsigned i, j;
-    
-   if (!frame_buf->data || !col)
-      return;
-    
-   for (j = y; j < y + height; j++)
-      for (i = x; i < x + width; i++)
-         frame_buf->data[j * (frame_buf->pitch >> 1) + i] = col(i, j);
 }
 
 static void color_rect(menu_handle_t *menu,
@@ -242,15 +349,15 @@ static void rgui_render_background(void)
       dst += pitch_in_pixels * 4;
    }
 
-   fill_rect(frame_buf, 5, 5, frame_buf->width - 10, 5, green_filler);
+   fill_rect(frame_buf, 5, 5, frame_buf->width - 10, 5, rgui_border_filler);
    fill_rect(frame_buf, 5, frame_buf->height - 10,
          frame_buf->width - 10, 5,
-         green_filler);
+         rgui_border_filler);
 
-   fill_rect(frame_buf, 5, 5, 5, frame_buf->height - 10, green_filler);
+   fill_rect(frame_buf, 5, 5, 5, frame_buf->height - 10, rgui_border_filler);
    fill_rect(frame_buf, frame_buf->width - 10, 5, 5,
          frame_buf->height - 10,
-         green_filler);
+         rgui_border_filler);
 }
 
 static void rgui_render_messagebox(const char *message)
@@ -258,7 +365,6 @@ static void rgui_render_messagebox(const char *message)
    size_t i;
    int x, y;
    unsigned width, glyphs_width, height;
-   uint16_t color;
    struct string_list *list   = NULL;
    menu_handle_t *menu        = menu_driver_get_ptr();
    menu_framebuf_t *frame_buf = menu_display_fb_get_ptr();
@@ -305,23 +411,22 @@ static void rgui_render_messagebox(const char *message)
    y      = (frame_buf->height - height) / 2;
 
    fill_rect(frame_buf, x + 5, y + 5, width - 10,
-         height - 10, gray_filler);
-   fill_rect(frame_buf, x, y, width - 5, 5, green_filler);
+         height - 10, rgui_bg_filler);
+   fill_rect(frame_buf, x, y, width - 5, 5, rgui_border_filler);
    fill_rect(frame_buf, x + width - 5, y, 5,
-         height - 5, green_filler);
+         height - 5, rgui_border_filler);
    fill_rect(frame_buf, x + 5, y + height - 5,
-         width - 5, 5, green_filler);
+         width - 5, 5, rgui_border_filler);
    fill_rect(frame_buf, x, y + 5, 5,
-         height - 5, green_filler);
-
-   color = NORMAL_COLOR(settings);
+         height - 5, rgui_border_filler);
 
    for (i = 0; i < list->size; i++)
    {
       const char *msg = list->elems[i].data;
       int offset_x    = FONT_WIDTH_STRIDE * (glyphs_width - strlen(msg)) / 2;
       int offset_y    = FONT_HEIGHT_STRIDE * i;
-      blit_line(menu, x + 8 + offset_x, y + 8 + offset_y, msg, color);
+      blit_line(menu, x + 8 + offset_x, y + 8 + offset_y, msg,
+                normal_color);
    }
 
 end:
@@ -339,10 +444,34 @@ static void rgui_blit_cursor(menu_handle_t *menu)
    color_rect(menu, x - 5, y, 11, 1, 0xFFFF);
 }
 
+static bool rgui_render_wallpaper(void)
+{
+   menu_framebuf_t *frame_buf     = menu_display_fb_get_ptr();
+
+   if (frame_buf)
+   {
+      /* Sanity check */
+      if ((frame_buf->width != WALLPAPER_WIDTH)
+          || (frame_buf->height != WALLPAPER_HEIGHT)
+          || (frame_buf->pitch != WALLPAPER_WIDTH << 1) )
+      {
+         rgui_wallpaper_valid = false;
+         return false;
+      }
+
+      /* Copy wallpaper to framebuffer */
+      memcpy(frame_buf->data, wallpaper.data, WALLPAPER_WIDTH * WALLPAPER_HEIGHT * sizeof(uint16_t));
+
+      return true;
+   }
+
+   rgui_wallpaper_valid = false;
+   return false;
+}
+
 static void rgui_render(void)
 {
    unsigned x, y;
-   uint16_t hover_color, normal_color;
    size_t i, end;
    int bottom;
    char title[256];
@@ -411,7 +540,7 @@ static void rgui_render(void)
 
    /* Do not scroll if all items are visible. */
    if (menu_entries_get_end() <= RGUI_TERM_HEIGHT)
-      menu_entries_set_start(0);;
+      menu_entries_set_start(0);
 
    bottom = menu_entries_get_end() - RGUI_TERM_HEIGHT;
    if (menu_entries_get_start() > bottom)
@@ -420,7 +549,8 @@ static void rgui_render(void)
    end = ((menu_entries_get_start() + RGUI_TERM_HEIGHT) <= (menu_entries_get_end())) ?
       menu_entries_get_start() + RGUI_TERM_HEIGHT : menu_entries_get_end();
 
-   rgui_render_background();
+   if (!rgui_wallpaper_valid || !rgui_render_wallpaper())
+      rgui_render_background();
 
 #if 0
    RARCH_LOG("Dir is: %s\n", label);
@@ -431,17 +561,14 @@ static void rgui_render(void)
    menu_animation_ticker_line(title_buf, RGUI_TERM_WIDTH - 10,
          frame_count / RGUI_TERM_START_X, title, true);
 
-   hover_color  = HOVER_COLOR(settings);
-   normal_color = NORMAL_COLOR(settings);
-
    if (menu_entries_show_back())
       blit_line(menu,
             RGUI_TERM_START_X, RGUI_TERM_START_X,
-            "BACK", TITLE_COLOR(settings));
+            "BACK", title_color);
 
    blit_line(menu,
          RGUI_TERM_START_X + (RGUI_TERM_WIDTH - strlen(title_buf)) * FONT_WIDTH_STRIDE / 2,
-         RGUI_TERM_START_X, title_buf, TITLE_COLOR(settings));
+         RGUI_TERM_START_X, title_buf, title_color);
 
    if (settings->menu.core_enable)
    {
@@ -502,7 +629,8 @@ static void rgui_render(void)
             entry_spacing,
             type_str_buf);
 
-      blit_line(menu, x, y, message, entry_selected ? hover_color : normal_color);
+      blit_line(menu, x, y, message,
+                entry_selected ? hover_color : normal_color);
    }
 
 #ifdef GEKKO
@@ -529,7 +657,9 @@ static void rgui_render(void)
       snprintf(msg, sizeof(msg), "%s\n%s", menu_input->keyboard.label, str);
       rgui_render_messagebox(msg);
    }
-
+   else // Temp colors are updated through a message box, so defer until closed
+      rgui_check_update(settings, frame_buf);
+  
    if (settings->menu.mouse.enable)
       rgui_blit_cursor(menu);
 }
@@ -537,10 +667,11 @@ static void rgui_render(void)
 static void *rgui_init(void)
 {
    bool                   ret = false;
+   settings_t       *settings = config_get_ptr();
    menu_framebuf_t *frame_buf = NULL;
    menu_handle_t        *menu = (menu_handle_t*)calloc(1, sizeof(*menu));
-
-   if (!menu)
+   
+   if (!menu || !settings)
       return NULL;
 
    frame_buf                  = &menu->display.frame_buf;
@@ -565,9 +696,17 @@ static void *rgui_init(void)
       RARCH_ERR("No font bitmap or binary, abort");
       goto error;
    }
-
+   
+   rgui_set_default_colors();
+   
    fill_rect(frame_buf, 0, frame_buf->height,
-         frame_buf->width, 4, gray_filler);
+         frame_buf->width, 4, rgui_bg_filler);
+   
+   if (*settings->menu.theme)
+      rgui_load_theme(settings, frame_buf);
+   else if (settings->menu.wallpaper[0])
+     rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, settings->menu.wallpaper,
+                                    "cb_menu_wallpaper", 0, 1,true);
 
    return menu;
 
@@ -682,6 +821,47 @@ static void rgui_populate_entries(const char *path,
       rgui_navigation_set(true);
 }
 
+static void process_wallpaper(struct texture_image *image)
+{
+   unsigned x, y;
+   /* Sanity check */
+   if (!image->pixels || (image->width != WALLPAPER_WIDTH) || (image->height != WALLPAPER_HEIGHT))
+      return;
+
+   /* Copy image to wallpaper buffer, performing pixel format conversion */
+   for (x = 0; x < WALLPAPER_WIDTH; x++)
+   {
+      for (y = 0; y < WALLPAPER_HEIGHT; y++)
+      {
+         wallpaper.data[x + (y * WALLPAPER_WIDTH)] =
+            argb32_to_rgba4444(image->pixels[x + (y * WALLPAPER_WIDTH)]);
+      }
+   }
+   
+   rgui_adjust_wallpaper_alpha();
+   rgui_wallpaper_valid = true;
+}
+
+static bool rgui_load_image(void *data, menu_image_type_t type)
+{
+   if (!data)
+      return false;
+
+   switch (type)
+   {
+      case MENU_IMAGE_WALLPAPER:
+         {
+            struct texture_image *image = (struct texture_image*)data;
+            process_wallpaper(image);
+         }
+         break;
+      default:
+         break;
+   }
+
+   return true;
+}
+
 menu_ctx_driver_t menu_ctx_rgui = {
    rgui_set_texture,
    rgui_render_messagebox,
@@ -709,7 +889,7 @@ menu_ctx_driver_t menu_ctx_rgui = {
    NULL,
    NULL,
    NULL,
-   NULL,
+   rgui_load_image,
    "rgui",
    NULL,
 };

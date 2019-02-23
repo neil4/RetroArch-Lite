@@ -57,7 +57,7 @@ public final class AudioVideoPreferenceFragment extends PreferenceListFragment i
       else if (prefKey.equals("install_shaders_pref"))
       {
          final DirectoryFragment shaderFileBrowser
-                 = DirectoryFragment.newInstance("");         
+                 = DirectoryFragment.newInstance("");    
          shaderFileBrowser.setPathSettingKey("shader_zip");
          shaderFileBrowser.addAllowedExts("zip");
          shaderFileBrowser.setIsDirectoryTarget(false);

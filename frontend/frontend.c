@@ -154,6 +154,8 @@ static void check_defaults_dirs(void)
       path_mkdir(g_defaults.cursor_dir);
    if (*g_defaults.cheats_dir)
       path_mkdir(g_defaults.cheats_dir);
+   if (*g_defaults.menu_theme_dir)
+      path_mkdir(g_defaults.menu_theme_dir);
 }
 
 /**

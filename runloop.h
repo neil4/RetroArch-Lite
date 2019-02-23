@@ -194,6 +194,7 @@ typedef struct global
    {
       struct retro_system_info info;
       bool bind_mode_keyboard;
+      bool theme_update_flag;
    } menu;
 #endif
 
