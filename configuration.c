@@ -2488,22 +2488,22 @@ static void scoped_config_file_save(unsigned scope)
    // Higher scopes are more specific and mask lower scopes
    if (settings->audio.sync_scope == scope)
       config_set_bool(conf, "audio_sync", settings->audio.sync);
-   else
+   else if (settings->audio.sync_scope < scope)
       config_remove_entry(conf, "audio_sync");
    
    if (settings->audio.volume_scope == scope)
       config_set_float(conf, "audio_volume", settings->audio.volume);
-   else
+   else if (settings->audio.volume_scope < scope)
       config_remove_entry(conf, "audio_volume");
 
    if (settings->video.threaded_scope == scope)
       config_set_bool(conf, "video_threaded", settings->video.threaded);
-   else
+   else if (settings->video.threaded_scope < scope)
       config_remove_entry(conf, "video_threaded");
 
    if (settings->video.vsync_scope == scope)
       config_set_bool(conf, "video_vsync", settings->video.vsync);
-   else
+   else if (settings->video.vsync_scope < scope)
       config_remove_entry(conf, "video_vsync");
 
    if (settings->video.hard_sync_scope == scope)
@@ -2511,7 +2511,7 @@ static void scoped_config_file_save(unsigned scope)
       config_set_bool(conf, "video_hard_sync", settings->video.hard_sync);
       config_set_int(conf, "video_hard_sync_frames", settings->video.hard_sync_frames);
    }
-   else
+   else if (settings->video.hard_sync_scope < scope)
    {
       config_remove_entry(conf, "video_hard_sync");
       config_remove_entry(conf, "video_hard_sync_frames");
@@ -2522,7 +2522,7 @@ static void scoped_config_file_save(unsigned scope)
       config_set_string(conf, "input_overlay", settings->input.overlay);
       config_set_bool(conf, "input_overlay_enable", settings->input.overlay_enable);
    }
-   else
+   else if (settings->input.overlay_scope < scope)
    {
       config_remove_entry(conf, "input_overlay");
       config_remove_entry(conf, "input_overlay_enable");
@@ -2537,7 +2537,7 @@ static void scoped_config_file_save(unsigned scope)
       config_set_float(conf, "input_abxy_diagonal_sensitivity",
                        settings->input.abxy_diagonal_sensitivity);
    }
-   else
+   else if (settings->input.dpad_abxy_config_scope < scope)
    {
       config_remove_entry(conf, "input_dpad_diagonal_sensitivity");
       config_remove_entry(conf, "input_abxy_diagonal_sensitivity");
@@ -2557,7 +2557,7 @@ static void scoped_config_file_save(unsigned scope)
       config_set_bool(conf, "input_overlay_adjust_vertical_lock_edges",
             settings->input.overlay_adjust_vertical_lock_edges);
    }
-   else
+   else if (settings->input.overlay_adjust_vert_horiz_scope < scope)
    {
       config_remove_entry(conf, "input_overlay_adjust_aspect");
       config_remove_entry(conf, "input_overlay_aspect_ratio_index");
@@ -2571,7 +2571,7 @@ static void scoped_config_file_save(unsigned scope)
       config_set_bool(conf, "fastforward_ratio_throttle_enable", settings->fastforward_ratio_throttle_enable);
       config_set_bool(conf, "throttle_using_core_fps", settings->throttle_using_core_fps);
    }
-   else
+   else if (settings->throttle_setting_scope < scope)
    {
       config_remove_entry(conf, "fastforward_ratio_throttle_enable");
       config_remove_entry(conf, "throttle_using_core_fps");
@@ -2587,7 +2587,7 @@ static void scoped_config_file_save(unsigned scope)
       config_set_int(conf, "custom_viewport_x", p_custom_vp->x);
       config_set_int(conf, "custom_viewport_y", p_custom_vp->y);
    }
-   else
+   else if (settings->video.aspect_ratio_idx_scope < scope)
    {
       config_remove_entry(conf, "aspect_ratio_index");
       config_remove_entry(conf, "custom_viewport_width");
@@ -2598,22 +2598,22 @@ static void scoped_config_file_save(unsigned scope)
 
    if (settings->video.rotation_scope == scope)
       config_set_int(conf, "video_rotation", settings->video.rotation);
-   else
+   else if (settings->video.rotation_scope < scope)
       config_remove_entry(conf, "video_rotation");
 
    if (settings->video.frame_delay_scope == scope)
       config_set_int(conf, "video_frame_delay", settings->video.frame_delay);
-   else
+   else if (settings->video.frame_delay_scope < scope)
       config_remove_entry(conf, "video_frame_delay");
 
    if (settings->input.overlay_opacity_scope == scope)
       config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
-   else
+   else if (settings->input.overlay_opacity_scope < scope)
       config_remove_entry(conf, "input_overlay_opacity");
 
    if (settings->input.max_users_scope == scope)
       config_set_int(conf, "input_max_users", settings->input.max_users);
-   else
+   else if (settings->input.max_users_scope < scope)
       config_remove_entry(conf, "input_max_users");
 
    if (settings->input.libretro_device_scope == scope)
@@ -2625,7 +2625,7 @@ static void scoped_config_file_save(unsigned scope)
          config_set_int(conf, buf, settings->input.libretro_device[i]);
       }
    }
-   else
+   else if (settings->input.libretro_device_scope < scope)
    {
       for (i = 0; i < MAX_USERS; i++)
       {
@@ -2644,7 +2644,7 @@ static void scoped_config_file_save(unsigned scope)
          strlcpy(settings->video.shader_path, EXPLICIT_NULL, PATH_MAX_LENGTH);
       config_set_path(conf, "video_shader", settings->video.shader_path);
    }
-   else
+   else if (settings->video.filter_shader_scope < scope)
    {
       config_remove_entry(conf, "video_filter");
       config_remove_entry(conf, "video_shader");
@@ -2657,7 +2657,7 @@ static void scoped_config_file_save(unsigned scope)
       config_set_path(conf, "menu_theme", settings->menu.theme);
       config_set_float(conf, "menu_wallpaper_opacity", settings->menu.wallpaper_opacity);
    }
-   else
+   else if (settings->menu.theme_scope < scope)
    {
       config_remove_entry(conf, "menu_theme");
       config_remove_entry(conf, "menu_wallpaper_opacity");
@@ -2961,6 +2961,7 @@ void restore_update_config_globals()
       video_shared_context = settings->video.shared_context;
       load_dummy_on_core_shutdown = settings->load_dummy_on_core_shutdown;
       core_set_supports_no_game_enable = settings->core.set_supports_no_game_enable;
+      settings->input.libretro_device_scope = THIS_CORE;
    }
 }
 

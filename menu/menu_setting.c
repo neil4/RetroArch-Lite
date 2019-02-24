@@ -3876,13 +3876,13 @@ static bool setting_append_list_main_menu_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    global_t *global      = global_get_ptr();
+   settings_t *settings  = config_get_ptr();
    const char *main_menu = menu_hash_to_str(MENU_VALUE_MAIN_MENU);
 
    START_GROUP(group_info,main_menu, parent_group);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
    
 #ifndef SINGLE_CORE
-   settings_t *settings = config_get_ptr();
 #if defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT)
    if (!*settings->libretro)  // no core loaded
    {
@@ -3966,7 +3966,6 @@ static bool setting_append_list_main_menu_options(
             subgroup_info.name,
             parent_group);
    
-#ifndef SINGLE_CORE
 #if defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT)
    if (*settings->libretro)  // core loaded
    {
@@ -3978,8 +3977,6 @@ static bool setting_append_list_main_menu_options(
             parent_group);
    }
 #endif
-#endif
-
 
    if (mask & SL_FLAG_MAIN_MENU_SETTINGS)
    {
@@ -5951,6 +5948,7 @@ static bool setting_append_list_input_options(
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
    driver_t   *driver   = driver_get_ptr();
+   bool core_loaded = *settings->libretro ? true : false;
 	
    START_GROUP(group_info, "Input Settings", parent_group);
 
@@ -6206,7 +6204,7 @@ static bool setting_append_list_input_options(
       settings->input.libretro_device_scope,
       "input_libretro_device_scope",
       "  Scope (Virtual Devices)",
-      GLOBAL,
+      (core_loaded ? THIS_CORE : GLOBAL),
       group_info.name,
       subgroup_info.name,
       parent_group,
@@ -6215,7 +6213,7 @@ static bool setting_append_list_input_options(
    menu_settings_list_current_add_range(
          list,
          list_info,
-         0,
+         (core_loaded ? THIS_CORE : GLOBAL),
          global->max_scope,
          1,
          true,
