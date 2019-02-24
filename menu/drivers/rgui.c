@@ -127,10 +127,11 @@ static uint16_t rgui_border_filler(unsigned x, unsigned y)
 
 static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
 {
+   global_t *global           = global_get_ptr();
    config_file_t *conf        = NULL;
    char wallpaper_file[PATH_MAX_LENGTH];
    
-   settings->menu.wallpaper[0] = '\0';
+   global->menu.wallpaper[0] = '\0';
    rgui_wallpaper_valid = false;
    rgui_set_default_colors();
    
@@ -154,10 +155,10 @@ static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
    /* Load wallpaper if present */
    if (wallpaper_file[0] != '\0')
    {
-      fill_pathname_resolve_relative(settings->menu.wallpaper,
+      fill_pathname_resolve_relative(global->menu.wallpaper,
                                      settings->menu.theme, wallpaper_file,
                                      PATH_MAX_LENGTH);
-      rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, settings->menu.wallpaper,
+      rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, global->menu.wallpaper,
                                      "cb_menu_wallpaper", 0, 1,true);
    }
    else
@@ -197,7 +198,7 @@ static inline void rgui_check_update(settings_t *settings,
       }
       else
       {
-         if (settings->menu.wallpaper[0] == '\0')
+         if (global->menu.wallpaper[0] == '\0')
             rgui_wallpaper_valid = false;
          
          if (rgui_wallpaper_valid)
@@ -668,6 +669,7 @@ static void *rgui_init(void)
 {
    bool                   ret = false;
    settings_t       *settings = config_get_ptr();
+   global_t           *global = global_get_ptr();
    menu_framebuf_t *frame_buf = NULL;
    menu_handle_t        *menu = (menu_handle_t*)calloc(1, sizeof(*menu));
    
@@ -704,8 +706,8 @@ static void *rgui_init(void)
    
    if (*settings->menu.theme)
       rgui_load_theme(settings, frame_buf);
-   else if (settings->menu.wallpaper[0])
-     rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, settings->menu.wallpaper,
+   else if (global->menu.wallpaper[0])
+     rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, global->menu.wallpaper,
                                     "cb_menu_wallpaper", 0, 1,true);
 
    return menu;

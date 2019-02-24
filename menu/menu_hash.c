@@ -128,7 +128,7 @@ static const char *menu_hash_to_str_french(uint32_t hash)
       case MENU_LABEL_VALUE_OVERLAY_OPACITY:
          return "Transparence de l'Overlay";
       case MENU_LABEL_VALUE_MENU_WALLPAPER:
-         return "Fond d'ecran";
+         return "Fond d'ecran test";
       case MENU_LABEL_VALUE_DYNAMIC_WALLPAPER:
          return "Fond d'ecran dynamique";
       case MENU_LABEL_VALUE_BOXART:
@@ -424,7 +424,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_MENU_WALLPAPER:
          return "menu_wallpaper";
       case MENU_LABEL_VALUE_MENU_WALLPAPER:
-         return "Menu Wallpaper";
+         return "Menu Wallpaper test";
       case MENU_LABEL_DYNAMIC_WALLPAPER:
          return "menu_dynamic_wallpaper_enable";
       case MENU_LABEL_VALUE_DYNAMIC_WALLPAPER:

@@ -592,7 +592,7 @@ static int action_ok_menu_wallpaper_load(const char *path,
    const char *menu_path                = NULL;
    rarch_setting_t *setting             = NULL;
    menu_list_t       *menu_list         = menu_list_get_ptr();
-   settings_t *settings                 = config_get_ptr();
+   global_t *global                     = global_get_ptr();
 
    if (!menu_list)
       return -1;
@@ -609,7 +609,7 @@ static int action_ok_menu_wallpaper_load(const char *path,
 
    if (path_file_exists(wallpaper_path))
    {
-      strlcpy(settings->menu.wallpaper, wallpaper_path, sizeof(settings->menu.wallpaper));
+      strlcpy(global->menu.wallpaper, wallpaper_path, sizeof(global->menu.wallpaper));
 
       rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, wallpaper_path, "cb_menu_wallpaper", 0, 1,
             true);

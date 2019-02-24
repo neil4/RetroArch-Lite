@@ -145,7 +145,6 @@ typedef struct settings
       bool boxart_enable;
       bool throttle;
       char theme_dir[PATH_MAX_LENGTH];
-      char wallpaper[PATH_MAX_LENGTH];
       float wallpaper_opacity;
       char theme[PATH_MAX_LENGTH];
       unsigned theme_scope;

@@ -1388,7 +1388,7 @@ static int setting_action_start_wallpaper(void *data)
    if (!global || !settings)
       return -1;
 
-   settings->menu.wallpaper[0] = '\0';
+   global->menu.wallpaper[0] = '\0';
    global->menu.theme_update_flag = true;
 
    return 0;
@@ -1402,7 +1402,7 @@ static int setting_action_start_theme(void *data)
       return -1;
 
    settings->menu.theme[0] = '\0';
-   settings->menu.wallpaper[0] = '\0';
+   global->menu.wallpaper[0] = '\0';
    global->menu.theme_update_flag = true;
 
    return 0;
@@ -6783,7 +6783,7 @@ static bool setting_append_list_menu_options(
    START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
 
    CONFIG_PATH(
-         settings->menu.wallpaper,
+         global->menu.wallpaper,
          menu_hash_to_str(MENU_LABEL_MENU_WALLPAPER),
          menu_hash_to_str(MENU_LABEL_VALUE_MENU_WALLPAPER),
          settings->menu.theme_dir,

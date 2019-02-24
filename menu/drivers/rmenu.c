@@ -274,8 +274,8 @@ static void rmenu_context_reset(void)
    if (!menu)
       return;
 
-   if (*settings->menu.wallpaper)
-      strlcpy(menu_bg, settings->menu.wallpaper, sizeof(menu_bg));
+   if (*global->menu.wallpaper)
+      strlcpy(menu_bg, global->menu.wallpaper, sizeof(menu_bg));
    else
       rmenu_wallpaper_set_defaults(menu_bg, sizeof(menu_bg));
 

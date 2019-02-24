@@ -605,7 +605,6 @@ static void config_set_defaults(void)
    settings->menu.core_enable                  = true;
    settings->menu.dynamic_wallpaper_enable     = false;
    settings->menu.boxart_enable                = false;
-   *settings->menu.wallpaper                   = '\0';
    *settings->menu.theme_dir                   = '\0';
    *settings->menu.theme                       = '\0';
    settings->menu.wallpaper_opacity            = wallpaper_opacity;
@@ -1310,9 +1309,6 @@ static bool config_load_file(const char *path, bool set_defaults)
    config_get_path(conf, "menu_theme_dir", settings->menu.theme_dir, sizeof(settings->menu.theme_dir));
    if (!strcmp(settings->menu.theme_dir, "default"))
       *settings->menu.theme_dir = '\0';
-   config_get_path(conf, "menu_wallpaper", settings->menu.wallpaper, sizeof(settings->menu.wallpaper));
-   if (!strcmp(settings->menu.wallpaper, "default"))
-      *settings->menu.wallpaper = '\0';
    CONFIG_GET_FLOAT_BASE(conf, settings, menu.wallpaper_opacity, "menu_wallpaper_opacity");
    config_get_path(conf, "menu_theme", settings->menu.theme, sizeof(settings->menu.theme));
    if (!strcmp(settings->menu.theme, "default"))
@@ -2060,7 +2056,6 @@ bool config_save_file(const char *path)
    config_set_bool(conf,"menu_core_enable", settings->menu.core_enable);
    config_set_bool(conf,"menu_dynamic_wallpaper_enable", settings->menu.dynamic_wallpaper_enable);
    config_set_bool(conf,"menu_boxart_enable", settings->menu.boxart_enable);
-   config_set_path(conf, "menu_wallpaper", settings->menu.wallpaper);
    config_set_path(conf, "menu_theme_dir", settings->menu.theme_dir);
    if (settings->menu.theme_scope == GLOBAL)
    {
