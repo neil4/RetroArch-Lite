@@ -3876,13 +3876,13 @@ static bool setting_append_list_main_menu_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    global_t *global      = global_get_ptr();
-   settings_t *settings  = config_get_ptr();
    const char *main_menu = menu_hash_to_str(MENU_VALUE_MAIN_MENU);
 
    START_GROUP(group_info,main_menu, parent_group);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
    
 #ifndef SINGLE_CORE
+   settings_t *settings = config_get_ptr();
 #if defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT)
    if (!*settings->libretro)  // no core loaded
    {
@@ -3966,6 +3966,7 @@ static bool setting_append_list_main_menu_options(
             subgroup_info.name,
             parent_group);
    
+#ifndef SINGLE_CORE
 #if defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT)
    if (*settings->libretro)  // core loaded
    {
@@ -3976,6 +3977,7 @@ static bool setting_append_list_main_menu_options(
             subgroup_info.name,
             parent_group);
    }
+#endif
 #endif
 
    if (mask & SL_FLAG_MAIN_MENU_SETTINGS)
