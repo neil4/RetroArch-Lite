@@ -6709,23 +6709,6 @@ static bool setting_append_list_menu_options(
    
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
-   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-   
-   CONFIG_BOOL(
-         settings->menu.show_advanced_settings,
-         "menu_show_advanced_settings",
-         "Hide Obscure Settings",
-         show_advanced_settings,
-         menu_hash_to_str(MENU_VALUE_ON),
-         menu_hash_to_str(MENU_VALUE_OFF),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);  
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
-   
-   END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
 
    CONFIG_PATH(
@@ -6778,6 +6761,26 @@ static bool setting_append_list_menu_options(
          true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
+   
+   END_SUB_GROUP(list, list_info, parent_group);
+   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
+   
+   CONFIG_BOOL(
+         settings->menu.show_advanced_settings,
+         "menu_show_advanced_settings",
+         "Show obscure settings",
+         show_advanced_settings,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);  
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
+   
+   END_SUB_GROUP(list, list_info, parent_group);
+   START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
 
    CONFIG_PATH(
          settings->menu.wallpaper,
