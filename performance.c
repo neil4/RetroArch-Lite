@@ -413,7 +413,7 @@ uint64_t rarch_get_cpu_features(void)
    int flags[4];
    uint64_t cpu = 0;
    const unsigned MAX_FEATURES = \
-         sizeof(" MMX MMXEXT SSE SSE2 SSE3 SSSE3 SS4 SSE4.2 AES AVX AVX2 NEON VMX VMX128 VFPU PS");
+         sizeof(" MMX MMXEXT SSE SSE2 SSE3 SSSE3 SS4 SSE4.2 AES AVX AVX2 ASIMD NEON vfpv4 vfpv3 VMX VMX128 VFPU PS");
 #if defined(WIN32)
    char buf[256U];
 #else
@@ -504,7 +504,7 @@ uint64_t rarch_get_cpu_features(void)
          cpu |= RETRO_SIMD_MMXEXT;
    }
 
-#elif defined(ANDROID) && defined(ANDROID_ARM)
+#elif defined(ANDROID) && (defined(ANDROID_ARM) || defined(ANDROID_AARCH64))
    uint64_t cpu_flags = android_getCpuFeatures();
 
 #ifdef __ARM_NEON__
@@ -514,7 +514,11 @@ uint64_t rarch_get_cpu_features(void)
       arm_enable_runfast_mode();
    }
 #endif
-   if (cpu_flags & ANDROID_CPU_ARM_FEATURE_VFPv3)
+   if (cpu_flags & ANDROID_CPU_ARM_FEATURE_ASIMD)
+      cpu |= RETRO_SIMD_ASIMD;
+   if (cpu_flags & ANDROID_CPU_ARM_FEATURE_VFPv4)
+      cpu |= RETRO_SIMD_VFPV4;
+   else if (cpu_flags & ANDROID_CPU_ARM_FEATURE_VFPv3)
       cpu |= RETRO_SIMD_VFPV3;
 
 #elif defined(__ARM_NEON__)
@@ -541,6 +545,7 @@ uint64_t rarch_get_cpu_features(void)
    if (cpu & RETRO_SIMD_AES)    strlcat(buf, " AES", sizeof(buf));
    if (cpu & RETRO_SIMD_AVX)    strlcat(buf, " AVX", sizeof(buf));
    if (cpu & RETRO_SIMD_AVX2)   strlcat(buf, " AVX2", sizeof(buf));
+   if (cpu & RETRO_SIMD_ASIMD)  strlcat(buf, " ASIMD", sizeof(buf));
    if (cpu & RETRO_SIMD_NEON)   strlcat(buf, " NEON", sizeof(buf));
    if (cpu & RETRO_SIMD_VFPV3)  strlcat(buf, " VFPv3", sizeof(buf));
    if (cpu & RETRO_SIMD_VFPV4)  strlcat(buf, " VFPv4", sizeof(buf));

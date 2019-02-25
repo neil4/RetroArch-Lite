@@ -50,6 +50,8 @@ enum {
     ANDROID_CPU_ARM_FEATURE_VFPv3       = (1 << 1),
     ANDROID_CPU_ARM_FEATURE_NEON        = (1 << 2),
     ANDROID_CPU_ARM_FEATURE_LDREX_STREX = (1 << 3),
+    ANDROID_CPU_ARM_FEATURE_VFPv4       = (1 << 4),
+    ANDROID_CPU_ARM_FEATURE_ASIMD       = (1 << 5),
 };
 
 enum {

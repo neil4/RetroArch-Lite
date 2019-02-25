@@ -370,7 +370,7 @@ static void android_cpuInit(void)
 
    RARCH_LOG("found cpuCount = %d\n", g_cpuCount);
 
-#ifdef ANDROID_ARM
+#if defined(ANDROID_ARM) || defined(ANDROID_AARCH64)
    /* Extract architecture from the "CPU Architecture" field.
     * The list is well-known, unlike the the output of
     * the 'Processor' field which can vary greatly.
@@ -442,22 +442,19 @@ static void android_cpuInit(void)
    {
       RARCH_LOG("found cpuFeatures = '%s'\n", cpuFeatures);
 
-      if (has_list_item(cpuFeatures, "vfpv3"))
+      if (has_list_item(cpuFeatures, "asimd"))
+         g_cpuFeatures |= ANDROID_CPU_ARM_FEATURE_ASIMD;
+      else if (has_list_item(cpuFeatures, "neon"))
+         g_cpuFeatures |= ANDROID_CPU_ARM_FEATURE_NEON
+                          | ANDROID_CPU_ARM_FEATURE_VFPv3;
+      
+      if (has_list_item(cpuFeatures, "vfpv4"))
+         g_cpuFeatures |= ANDROID_CPU_ARM_FEATURE_VFPv4;
+      else if (has_list_item(cpuFeatures, "vfpv3"))
          g_cpuFeatures |= ANDROID_CPU_ARM_FEATURE_VFPv3;
-
       else if (has_list_item(cpuFeatures, "vfpv3d16"))
          g_cpuFeatures |= ANDROID_CPU_ARM_FEATURE_VFPv3;
-
-      if (has_list_item(cpuFeatures, "neon"))
-      {
-         /* Note: Certain kernels only report neon but not vfpv3
-          *       in their features list. However, ARM mandates
-          *       that if Neon is implemented, so must be VFPv3
-          *       so always set the flag.
-          */
-         g_cpuFeatures |= ANDROID_CPU_ARM_FEATURE_NEON |
-            ANDROID_CPU_ARM_FEATURE_VFPv3;
-      }
+      
       free(cpuFeatures);
    }
 #endif /* ANDROID_ARM */
