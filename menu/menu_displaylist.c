@@ -1181,7 +1181,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          break;
       case DISPLAYLIST_CORES_UPDATER:
 #ifdef HAVE_NETWORKING
-         buf = strdup(core_buf);
+         buf = core_buf ? strdup(core_buf) : calloc(1,1);
          menu_list_clear(info->list);
          print_buf_lines(info->list, buf, core_len, MENU_FILE_DOWNLOAD_CORE);
          free(buf);
