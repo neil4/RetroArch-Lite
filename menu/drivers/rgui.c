@@ -445,10 +445,8 @@ static void rgui_blit_cursor(menu_handle_t *menu)
    color_rect(menu, x - 5, y, 11, 1, 0xFFFF);
 }
 
-static bool rgui_render_wallpaper(void)
+static bool rgui_render_wallpaper(menu_framebuf_t *frame_buf)
 {
-   menu_framebuf_t *frame_buf     = menu_display_fb_get_ptr();
-
    if (frame_buf)
    {
       /* Sanity check */
@@ -550,7 +548,7 @@ static void rgui_render(void)
    end = ((menu_entries_get_start() + RGUI_TERM_HEIGHT) <= (menu_entries_get_end())) ?
       menu_entries_get_start() + RGUI_TERM_HEIGHT : menu_entries_get_end();
 
-   if (!rgui_wallpaper_valid || !rgui_render_wallpaper())
+   if (!rgui_wallpaper_valid || !rgui_render_wallpaper(frame_buf))
       rgui_render_background();
 
 #if 0
@@ -842,6 +840,7 @@ static void process_wallpaper(struct texture_image *image)
    
    rgui_adjust_wallpaper_alpha();
    rgui_wallpaper_valid = true;
+   menu_display_fb_set_dirty();
 }
 
 static bool rgui_load_image(void *data, menu_image_type_t type)
