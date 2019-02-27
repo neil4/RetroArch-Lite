@@ -470,7 +470,7 @@ static bool show_overlay_menu = false;
 #else
 static bool show_overlay_menu = true;
 #endif
-static float overlay_opacity = 0.8f;
+static float overlay_opacity = 0.4f;
 #endif
 static bool show_frame_throttle_menu = false;
 #ifdef HAVE_NETPLAY
