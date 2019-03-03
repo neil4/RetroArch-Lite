@@ -61,6 +61,7 @@ public final class InstalledCoreInfoFragment extends DialogFragment
       adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_licenseTitle),      core.getCoreLicense()));
       adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_permissions),       core.getPermissions()));
       adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_extensions),        core.getCoreSupportedExtensions()));
+      adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_firmwares),         core.getCoreFirmwares()));
       adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_notes),             core.getCoreNotes()));
 
       // Add title

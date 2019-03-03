@@ -10,6 +10,7 @@ import java.util.List;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import com.retroarch.browser.preferences.util.UserPreferences;
 
 /**
@@ -28,6 +29,8 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    private final List<String> authors;
    private final List<String> supportedExtensions;
    private final List<String> permissions;
+   private int firmware_count = 0;
+   private String firmwares;
 
    /**
     * Constructor
@@ -38,25 +41,22 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    public ModuleWrapper(Context context, File file)
    {
       this.file = file;
+      SharedPreferences prefs = UserPreferences.getPreferences(context.getApplicationContext());
 
-      // Attempt to get the core's info file.
-      // Basically this is dataDir/info/[core name].info
+      // Attempt to get the core's info file: dataDir/info/[core name].info
 
-      // So first, since the core name will have a platform-specific identifier at the end of its name, we trim this.
-      // If it turns out we have an invalid core name, simply assign the core name as the full name of the file.
+      // Trim platform suffix and extension
       final boolean isValidCoreName = (file.getName().lastIndexOf("_android.so") != -1); 
       final String coreName = (isValidCoreName) ? file.getName().substring(0, file.getName().lastIndexOf("_android.so"))
                                                 : file.getName();
 
-      // Now get the directory where all of the info files are kept (dataDir/info)
       String infoFileDir = context.getApplicationInfo().dataDir + "/info";
       
       // Fix info path if core is 64-bit
       if (file.getPath().contains("retroarchlite64"))
          infoFileDir = infoFileDir.replaceFirst("retroarchlite", "retroarchlite64");
 
-      // Now, based off of the trimmed core name, we can get the core info file.
-      // and attempt to read it as a config file (since it has the same key-value layout).
+      // Based on the trimmed core name, get the core info file. Read as config file
       final String infoFilePath = infoFileDir + File.separator + coreName + ".info";
       if (new File(infoFilePath).exists())
       {
@@ -71,14 +71,9 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          this.notes        = (infoFile.keyExists("notes"))
                              ? infoFile.getString("notes").replace("|", "\n")
                              : "N/A";
+         this.firmware_count = (infoFile.keyExists("firmware_count") ? infoFile.getInt("firmware_count") : 0);
    
-         // Getting supported extensions and authors is a little different.
-         // We need to split at every '|' character, since it is
-         // the delimiter for a new extension that the core supports.
-         //
-         // Cores that don't have multiple extensions supported
-         // don't contain the '|' delimiter, so we just create a String list
-         // and just directly assign the retrieved extensions to it.
+         // For extensions and authors, use '|' delimiter
          final String supportedExts = infoFile.getString("supported_extensions");
          if (supportedExts != null && supportedExts.contains("|"))
          {
@@ -111,6 +106,40 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
             this.permissions = new ArrayList<String>();
             this.permissions.add(permissions);
          }
+         
+         // Firmware list
+         //
+         if (this.firmware_count == 0)
+            this.firmwares = "N/A";
+         else
+         {
+            final String default_base = Environment.getExternalStorageDirectory()
+                                                    .getAbsolutePath() + "/RetroArchLite";
+            final String default_sys = default_base + "/system";
+            String sys_dir = prefs.getBoolean("system_directory_enable", false) ?
+                             prefs.getString("system_directory", default_sys) : default_sys;         
+            this.firmwares = "";
+            for (int i = 0; i < this.firmware_count; i++)
+            {
+               String key = "firmware" + Integer.toString(i) + "_desc";
+               this.firmwares += ((infoFile.keyExists(key)) ? infoFile.getString(key) : "N/A");
+
+               key = "firmware" + Integer.toString(i) + "_path";
+               String rel_path = ((infoFile.keyExists(key)) ? infoFile.getString(key) : "?");
+               this.firmwares += "\n   path:  system/" + (rel_path.equals("?") ? "N/A" : rel_path);
+
+               key = "firmware" + Integer.toString(i) + "_opt";
+               this.firmwares += "\n   status:  "
+                              + (new File(sys_dir + "/" + rel_path).exists() ?
+                                 "present" : "missing")
+                              + ", "
+                              + ((infoFile.keyExists(key)) ?
+                                 (infoFile.getBoolean(key) ? "required" : "optional")
+                                 : "");
+               
+               this.firmwares += "\n";
+            }
+         }
       }
       else // No info file.
       {
@@ -122,11 +151,11 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          this.authors = new ArrayList<String>();
          this.supportedExtensions = new ArrayList<String>();
          this.coreName = coreName;
+         this.firmwares = "N/A";
          this.permissions = new ArrayList<String>();
       }
       
       // TODO: less stilted
-      SharedPreferences prefs = UserPreferences.getPreferences(context.getApplicationContext());
       if (prefs.getBoolean("append_abi_to_corenames", false))  // not exactly ABI
       {
          String path = file.getAbsolutePath();
@@ -197,6 +226,15 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    public String getCoreLicense()
    {
       return license;
+   }
+   
+   /**
+    * Gets list of required firmware files with status
+    * @return firmware list
+    */
+   public String getCoreFirmwares()
+   {
+      return firmwares;
    }
    
    /**

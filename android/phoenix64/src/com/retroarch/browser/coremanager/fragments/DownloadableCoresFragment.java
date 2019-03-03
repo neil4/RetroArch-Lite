@@ -82,7 +82,7 @@ public final class DownloadableCoresFragment extends ListFragment
    public static final String BUILDBOT_INFO_URL = BUILDBOT_BASE_URL + "/assets/frontend/info/";
    
    protected OnCoreDownloadedListener coreDownloadedListener = null;
-   protected DownloadableCoresAdapter sAdapter = null;
+   protected static DownloadableCoresAdapter sAdapter = null;
    
    @Override
    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)

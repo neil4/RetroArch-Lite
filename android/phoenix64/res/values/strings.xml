@@ -29,6 +29,7 @@
     <string name="core_info_manufacturer">Manufacturer</string>
     <string name="core_info_permissions">Permissions</string>
     <string name="core_info_extensions">Supported File Extensions</string>
+    <string name="core_info_firmwares">Firmware(s)</string>
     <string name="core_info_notes">Notes</string>
 
     <!-- Core Downloader Fragment -->
@@ -68,7 +69,7 @@
     
     <!-- Refresh Rate Set OS Class -->
     <string name="using_os_reported_refresh_rate">Using OS-reported refresh rate of: %1$s Hz.</string>
-    
+
     <!-- Back Options -->
     <string name="quit">Quit</string>
     <string name="gui_toggle">GUI toggle</string>
