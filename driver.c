@@ -417,13 +417,13 @@ void init_drivers(int flags)
       init_location();
 
 #ifdef HAVE_MENU
-   menu_update_libretro_info();
-
    if (flags & DRIVER_MENU)
    {
       init_menu();
       menu_driver_context_reset();
    }
+   
+   menu_update_libretro_info();
 #endif
 
    if (flags & (DRIVER_VIDEO | DRIVER_AUDIO))

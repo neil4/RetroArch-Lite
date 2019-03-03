@@ -696,7 +696,7 @@ static void config_set_defaults(void)
    settings->input.overlay_enable                  = true;
    settings->input.overlay_scale                   = 1.0f;
    settings->input.overlay_adjust_aspect           = true;
-   settings->input.overlay_aspect_ratio_index      = OVERLAY_ASPECT_RATIO_16_9;
+   settings->input.overlay_aspect_ratio_index      = OVERLAY_ASPECT_RATIO_AUTO;
    settings->input.overlay_bisect_aspect_ratio     = 2.0f;
    settings->input.overlay_adjust_vertical_lock_edges = true;
 #endif
@@ -798,10 +798,13 @@ static void config_set_defaults(void)
    if (*g_defaults.assets_dir)
       strlcpy(settings->assets_directory,
             g_defaults.assets_dir, sizeof(settings->assets_directory));
-   if (!*settings->libretro_directory && *g_defaults.core_dir)
+   if (*g_defaults.core_dir)
+   {
       fill_pathname_expand_special(settings->libretro_directory,
             g_defaults.core_dir, sizeof(settings->libretro_directory));
-   if (!*settings->libretro && *g_defaults.core_path)
+      global->has_set_libretro_directory = true;
+   }
+   if (*g_defaults.core_path)
       strlcpy(settings->libretro, g_defaults.core_path,
             sizeof(settings->libretro));
    if (*g_defaults.cheats_dir)
@@ -868,13 +871,14 @@ static void config_set_defaults(void)
             g_defaults.system_dir, sizeof(settings->system_directory));
    if (*g_defaults.screenshot_dir)
       strlcpy(settings->screenshot_directory,
-            g_defaults.screenshot_dir,
-            sizeof(settings->screenshot_directory));
+            g_defaults.screenshot_dir, sizeof(settings->screenshot_directory));
    if (*g_defaults.resampler_dir)
       strlcpy(settings->resampler_directory,
-            g_defaults.resampler_dir,
-            sizeof(settings->resampler_directory));
-   
+            g_defaults.resampler_dir, sizeof(settings->resampler_directory));
+   if (*g_defaults.content_dir)
+      strlcpy(settings->menu_content_directory,
+              g_defaults.content_dir, sizeof(settings->menu_content_directory));
+
 #ifdef HAVE_NETPLAY
    global->netplay_sync_frames = 2;
 #endif
@@ -1493,9 +1497,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_STRING_BASE(conf, settings, input.joypad_driver, "input_joypad_driver");
    CONFIG_GET_STRING_BASE(conf, settings, input.keyboard_layout, "input_keyboard_layout");
 
-   if (!global->has_set_libretro)
-      config_get_path(conf, "libretro_path", settings->libretro, sizeof(settings->libretro));
-   if (!global->has_set_libretro_directory)
+   if (!global->core_dir_override && !global->has_set_libretro_directory)
       config_get_path(conf, "libretro_directory", settings->libretro_directory, sizeof(settings->libretro_directory));
    if (!*settings->libretro_directory)
    {
@@ -1522,7 +1524,9 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, fps_show, "fps_show");
    CONFIG_GET_BOOL_BASE(conf, settings, load_dummy_on_core_shutdown, "load_dummy_on_core_shutdown");
 
-   config_get_path(conf, "libretro_info_path", settings->libretro_info_path, sizeof(settings->libretro_info_path));
+   if (!global->info_dir_override)
+      config_get_path(conf, "libretro_info_path", settings->libretro_info_path,
+                      sizeof(settings->libretro_info_path));
    if (!*settings->libretro_info_path)
    {
       strlcpy(settings->libretro_info_path, path_default_dotslash(),
@@ -1559,12 +1563,10 @@ static bool config_load_file(const char *path, bool set_defaults)
    if (!strcmp(settings->boxarts_directory, "default"))
       *settings->boxarts_directory = '\0';
 #ifdef HAVE_MENU
-#ifdef SINGLE_CORE
    // override content directory if specified
-   if (*global->content_dir_override)
-      strlcpy( settings->menu_content_directory, global->content_dir_override, PATH_MAX_LENGTH );
+   if (global->content_dir_override)
+      strlcpy(settings->menu_content_directory, g_defaults.content_dir, PATH_MAX_LENGTH);
    else
-#endif
    {
       config_get_path(conf, "rgui_browser_directory",
                       settings->menu_content_directory,
@@ -1617,6 +1619,8 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_adjust_aspect, "input_overlay_adjust_aspect");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_bisect_aspect_ratio, "input_overlay_bisect_aspect_ratio");
    CONFIG_GET_INT_BASE(conf, settings, input.overlay_aspect_ratio_index, "input_overlay_aspect_ratio_index");
+   if (settings->input.overlay_aspect_ratio_index >= OVERLAY_ASPECT_RATIO_END)
+         settings->input.overlay_aspect_ratio_index = OVERLAY_ASPECT_RATIO_END-1;
    CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_adjust_vertical, "input_overlay_adjust_vertical");
    CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_adjust_vertical_lock_edges, "input_overlay_adjust_vertical_lock_edges");
 
@@ -1996,17 +2000,16 @@ bool config_save_file(const char *path)
                       settings->load_dummy_on_core_shutdown);
    config_set_bool(conf,  "fps_show", settings->fps_show);
    config_set_bool(conf,  "ui_menubar_enable", settings->ui.menubar_enable);
-   if ( !*settings->libretro )
-      config_set_path(conf,  "libretro_path", settings->libretro);
 
    config_set_path(conf,  "recording_output_directory", global->record.output_dir);
    config_set_path(conf,  "recording_config_directory", global->record.config_dir);
 
    config_set_bool(conf,  "suspend_screensaver_enable", settings->ui.suspend_screensaver_enable);
 
-   if ( !*settings->libretro_directory )
+   if (!global->core_dir_override)
       config_set_path(conf,  "libretro_directory", settings->libretro_directory);
 
+   if (!global->info_dir_override)
    config_set_path(conf,  "libretro_info_path", settings->libretro_info_path);
    config_set_path(conf,  "cheat_database_path", settings->cheat_database);
    config_set_bool(conf,  "rewind_enable", settings->rewind_enable);
@@ -2169,14 +2172,10 @@ bool config_save_file(const char *path)
          *settings->boxarts_directory ?
          settings->boxarts_directory : "default");
 #ifdef HAVE_MENU
-#ifdef SINGLE_CORE
-   if (!*global->content_dir_override
-       || (*global->content_dir_override
-           && strcmp(global->content_dir_override, settings->menu_content_directory)))
-#endif
-   config_set_path(conf, "rgui_browser_directory",
-         *settings->menu_content_directory ?
-         settings->menu_content_directory : "default");
+   if (!global->content_dir_override)
+      config_set_path(conf, "rgui_browser_directory",
+            *settings->menu_content_directory ?
+            settings->menu_content_directory : "default");
    config_set_path(conf, "rgui_config_directory",
          *settings->menu_config_directory ?
          settings->menu_config_directory : "default");
@@ -3024,6 +3023,8 @@ static void scoped_config_file_load(unsigned scope)
       settings->input.overlay_adjust_vert_horiz_scope = scope;
       config_get_float(conf, "input_overlay_bisect_aspect_ratio", &settings->input.overlay_bisect_aspect_ratio);
       config_get_uint(conf, "input_overlay_aspect_ratio_index", &settings->input.overlay_aspect_ratio_index);
+      if (settings->input.overlay_aspect_ratio_index >= OVERLAY_ASPECT_RATIO_END)
+         settings->input.overlay_aspect_ratio_index = OVERLAY_ASPECT_RATIO_END-1;
       config_get_float(conf, "input_overlay_adjust_vertical", &settings->input.overlay_adjust_vertical);
       config_get_bool(conf, "input_overlay_adjust_vertical_lock_edges", &settings->input.overlay_adjust_vertical_lock_edges);
    }

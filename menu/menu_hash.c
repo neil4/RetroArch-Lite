@@ -330,7 +330,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_QUIT_RETROARCH:
          return "quit_retroarch";
       case MENU_LABEL_VALUE_QUIT_RETROARCH:
-         return "Quit RetroArch";
+         return "Quit RetroArch Lite";
       case MENU_LABEL_VALUE_HELP:
          return "Help";
       case MENU_LABEL_HELP:

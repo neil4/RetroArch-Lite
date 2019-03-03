@@ -102,83 +102,17 @@ static void core_info_list_resolve_all_firmware(
    }
 }
 
-void core_info_get_name(const char *path, char *s, size_t len)
+core_info_list_t *core_info_list_new(enum info_list_target target)
 {
    size_t i;
    core_info_t *core_info = NULL;
    core_info_list_t *core_info_list = NULL;
    settings_t *settings = config_get_ptr();
-   struct string_list *contents = dir_list_new_special(NULL, DIR_LIST_CORES);
-
-   if (!contents)
-      return;
-
-   core_info_list = (core_info_list_t*)calloc(1, sizeof(*core_info_list));
-   if (!core_info_list)
-      goto error;
-
-   core_info = (core_info_t*)calloc(contents->size, sizeof(*core_info));
-   if (!core_info)
-      goto error;
-
-   core_info_list->list = core_info;
-   core_info_list->count = contents->size;
-
-   for (i = 0; i < contents->size; i++)
-   {
-      char info_path_base[PATH_MAX_LENGTH] = {0};
-      char info_path[PATH_MAX_LENGTH]      = {0};
-
-      core_info[i].path = strdup(contents->elems[i].data);
-
-      if (!core_info[i].path)
-         break;
-
-      if (strcmp(core_info[i].path, path) != 0)
-            continue;
-
-      fill_pathname_base(info_path_base, contents->elems[i].data,
-            sizeof(info_path_base));
-      path_remove_extension(info_path_base);
-
-#if defined(RARCH_MOBILE) || (defined(RARCH_CONSOLE) && !defined(PSP))
-      char *substr = strrchr(info_path_base, '_');
-      if (substr)
-         *substr = '\0';
-#endif
-
-      strlcat(info_path_base, ".info", sizeof(info_path_base));
-
-      fill_pathname_join(info_path, (*settings->libretro_info_path) ?
-            settings->libretro_info_path : settings->libretro_directory,
-            info_path_base, sizeof(info_path));
-
-      core_info[i].data = config_file_new(info_path);
-
-      if (core_info[i].data)
-         config_get_string(core_info[i].data, "corename",
-               &core_info[i].core_name);
-
-      strlcpy(s, core_info[i].core_name, len);
-   }
-
-error:
-   if (contents)
-      dir_list_free(contents);
-   contents = NULL;
-   core_info_list_free(core_info_list);
-}
-
-core_info_list_t *core_info_list_new(bool downloadable_cores)
-{
-   size_t i;
-   core_info_t *core_info = NULL;
-   core_info_list_t *core_info_list = NULL;
-   settings_t *settings = config_get_ptr();
+   global_t *global     = global_get_ptr();
    struct string_list *contents;
    char *substr;
    
-   if (downloadable_cores)
+   if (target == DOWNLOADABLE_CORES)
       contents = dir_list_new(settings->libretro_info_path, "info", false);
    else
       contents = dir_list_new_special(NULL, DIR_LIST_CORES);
@@ -199,35 +133,28 @@ core_info_list_t *core_info_list_new(bool downloadable_cores)
 
    for (i = 0; i < contents->size; i++)
    {
-      char info_path_base[PATH_MAX_LENGTH] = {0};
+      char info_path_base[NAME_MAX_LENGTH] = {0};
       char info_path[PATH_MAX_LENGTH]      = {0};
-      core_info[i].path = strdup(contents->elems[i].data);
-      
-      if (downloadable_cores)
-      {  // for simplicity, get a platform-free name
-         substr = strstr(core_info[i].path, "_libretro");
-         if (substr)
-            *substr = '\0';
-      }
 
-      if (!core_info[i].path)
-         break;
-
+      // get platform-free name
       fill_pathname_base(info_path_base, contents->elems[i].data,
-            sizeof(info_path_base));
-      path_remove_extension(info_path_base);
+                         sizeof(info_path_base));
+      substr = strstr(info_path_base, "_libretro");
+      if (substr)
+         *substr = '\0';
+      
+      // set path (search key)
+      if (target == DOWNLOADABLE_CORES)
+         core_info[i].path = strdup(info_path_base); // key on libretro name
+      else
+         core_info[i].path = strdup(contents->elems[i].data); // key on lib path
 
-#if defined(RARCH_MOBILE) || (defined(RARCH_CONSOLE) && !defined(PSP))
-      if (!downloadable_cores)
-      {
-         substr = strrchr(info_path_base, '_');
-         if (substr)
-            *substr = '\0';
-      }
-#endif
-
-      strlcat(info_path_base, ".info", sizeof(info_path_base));
-
+      if (target == LAUNCHED_CORE
+          && strncmp(info_path_base, global->libretro_name, NAME_MAX_LENGTH))
+         continue;
+      
+      // get info file path
+      strlcat(info_path_base, "_libretro.info", sizeof(info_path_base));
       fill_pathname_join(info_path, (*settings->libretro_info_path) ?
             settings->libretro_info_path : settings->libretro_directory,
             info_path_base, sizeof(info_path));

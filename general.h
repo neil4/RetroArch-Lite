@@ -92,6 +92,7 @@ struct defaults
    char cursor_dir[PATH_MAX_LENGTH];
    char cheats_dir[PATH_MAX_LENGTH];
    char menu_theme_dir[PATH_MAX_LENGTH];
+   char content_dir[PATH_MAX_LENGTH];
 
    struct
    {

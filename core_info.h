@@ -71,7 +71,14 @@ typedef struct
    char *all_ext;
 } core_info_list_t;
 
-core_info_list_t *core_info_list_new(bool downloadable_cores);
+enum info_list_target
+{
+   INSTALLED_CORES,
+   DOWNLOADABLE_CORES,
+   LAUNCHED_CORE
+};
+
+core_info_list_t *core_info_list_new(enum info_list_target target);
 void core_info_list_free(core_info_list_t *list);
 
 size_t core_info_list_num_info_files(core_info_list_t *list);
@@ -104,7 +111,6 @@ const char *core_info_list_get_all_extensions(core_info_list_t *list);
 bool core_info_list_get_display_name(core_info_list_t *list,
       const char *path, char *buf, size_t size);
 
-void core_info_get_name(const char *path, char *s, size_t len);
 
 #ifdef __cplusplus
 }

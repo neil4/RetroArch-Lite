@@ -50,7 +50,7 @@ void file_list_push(file_list_t *list,
       list->capacity *= 2;
 
       list->list = (struct item_file*)realloc(list->list,
-            list->capacity * sizeof(struct item_file));
+                    list->capacity * sizeof(struct item_file));
 
       if (!list->list)
          return;

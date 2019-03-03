@@ -116,9 +116,11 @@ typedef struct global
    char basename[PATH_MAX_LENGTH];
    char fullpath[PATH_MAX_LENGTH];
    char libretro_name[NAME_MAX_LENGTH];  // sanitized library name
-#ifdef SINGLE_CORE
-   char content_dir_override[PATH_MAX_LENGTH];
-#endif
+
+   bool content_dir_override;
+   bool info_dir_override;
+   bool core_dir_override;
+
 
    /* A list of save types and associated paths for all content. */
    struct string_list *savefiles;

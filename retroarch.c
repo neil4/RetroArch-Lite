@@ -1300,6 +1300,9 @@ void rarch_main_init_wrap(const struct rarch_main_wrap *args,
    {
       argv[(*argc)++] = strdup("-L");
       argv[(*argc)++] = strdup(args->libretro_path);
+      rarch_environment_cb(RETRO_ENVIRONMENT_SET_LIBRETRO_PATH,
+                           (void*)args->libretro_path);
+      update_libretro_name();
    }
 #endif
 

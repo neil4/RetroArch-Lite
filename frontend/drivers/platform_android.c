@@ -440,7 +440,6 @@ static void frontend_android_get_environment_settings(int *argc,
    jstring                      jstr = NULL;
    struct android_app   *android_app = (struct android_app*)data;
    global_t                  *global = global_get_ptr();
-   settings_t              *settings = config_get_ptr();
 
    if (!android_app)
       return;
@@ -535,14 +534,16 @@ static void frontend_android_get_environment_settings(int *argc,
       if (args && *core_path)
       {
          args->libretro_path = core_path;
+
+         strlcpy(g_defaults.core_dir, core_path, PATH_MAX_LENGTH);
+         path_basedir(g_defaults.core_dir);
+         global->core_dir_override = true;
          
-         strlcpy(settings->libretro, core_path, sizeof(settings->libretro));
-
-         strlcpy(settings->libretro_directory, core_path, PATH_MAX_LENGTH );
-         path_basedir(settings->libretro_directory);
-         global->has_set_libretro_directory = true;
-
-         update_libretro_name();
+         strlcpy(g_defaults.core_info_dir,
+                 g_defaults.core_dir, PATH_MAX_LENGTH);
+         path_parent_dir(g_defaults.core_info_dir);
+         strlcat(g_defaults.core_info_dir, "info", PATH_MAX_LENGTH);
+         global->info_dir_override = true;
       }
    }
 
@@ -570,8 +571,9 @@ static void frontend_android_get_environment_settings(int *argc,
          strlcpy(global->fullpath, path, PATH_MAX_LENGTH);
          global->max_scope = NUM_SETTING_SCOPES-1;
          
-         strlcpy(global->content_dir_override, path, PATH_MAX_LENGTH );
-         path_basedir(global->content_dir_override);
+         strlcpy(g_defaults.content_dir, path, PATH_MAX_LENGTH );
+         path_basedir(g_defaults.content_dir);
+         global->content_dir_override = true;
       }
    }
    else
@@ -614,10 +616,6 @@ static void frontend_android_get_environment_settings(int *argc,
                   "overlays", sizeof(g_defaults.overlay_dir));
             fill_pathname_join(g_defaults.osk_overlay_dir, path,
                   "overlays/keyboards", sizeof(g_defaults.osk_overlay_dir));
-            fill_pathname_join(g_defaults.core_dir, path,
-                  "cores", sizeof(g_defaults.core_dir));
-            fill_pathname_join(g_defaults.core_info_dir,
-                  path, "info", sizeof(g_defaults.core_info_dir));
             fill_pathname_join(g_defaults.autoconfig_dir,
                   path, "autoconfig/android", sizeof(g_defaults.autoconfig_dir));
             fill_pathname_join(g_defaults.audio_filter_dir,

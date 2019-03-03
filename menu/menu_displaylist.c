@@ -99,7 +99,7 @@ static void menu_displaylist_push_perfcounter(
 
 static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
 {
-   core_info_list_t* core_info = core_info_list_new(true);
+   core_info_list_t* core_info = core_info_list_new(DOWNLOADABLE_CORES);
    char* buf = calloc(NAME_MAX_LENGTH,sizeof(char));
    char first_missing[NAME_MAX_LENGTH];
    size_t num_missing = 0;
@@ -939,7 +939,7 @@ static int menu_displaylist_parse_generic(menu_displaylist_info_t *info, bool *n
 
    path_is_compressed = path_is_compressed_file(info->path);
    push_dir           = (info->setting
-         && info->setting->browser_selection_type == ST_DIR);
+                         && info->setting->browser_selection_type == ST_DIR);
 
    if (path_is_compressed)
       str_list = compressed_file_list_new(info->path, info->exts);

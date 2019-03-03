@@ -293,7 +293,7 @@ static int action_ok_push_content_list(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    menu_displaylist_info_t info = {0};
-   settings_t *settings         = config_get_ptr();
+   settings_t         *settings = config_get_ptr();
    menu_list_t       *menu_list = menu_list_get_ptr();
 
    if (!menu_list)
@@ -1054,19 +1054,33 @@ static int action_ok_core_updater_download(const char *path,
 {
 #ifdef HAVE_NETWORKING
    char core_path[PATH_MAX_LENGTH] = {0};
-   char msg[PATH_MAX_LENGTH]       = {0};
+   char buf[PATH_MAX_LENGTH]       = {0};
+   char *pch;
    settings_t *settings            = config_get_ptr();
+   global_t *global                = global_get_ptr();
+   
+   strlcpy(buf, path, PATH_MAX_LENGTH);
+   pch = strstr(buf, "_libretro");
+   if (pch)
+      *pch = '\0';
+   
+   if (!strcmp(buf, global->libretro_name))
+   {
+      rarch_main_msg_queue_push("Unload core before updating.",
+                                1, 180, true);
+      return 0;
+   }
 
    fill_pathname_join(core_path, settings->network.buildbot_url,
          path, sizeof(core_path));
 
    strlcpy(download_filename, path, sizeof(download_filename));
-   snprintf(msg, sizeof(msg),
+   snprintf(buf, sizeof(buf),
          "%s %s.",
          menu_hash_to_str(MENU_LABEL_VALUE_STARTING_DOWNLOAD),
             path);
 
-   rarch_main_msg_queue_push(msg, 1, 90, true);
+   rarch_main_msg_queue_push(buf, 1, 90, true);
 
    rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, core_path,
          "cb_core_updater_download", 0, 1, false);

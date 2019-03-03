@@ -1133,7 +1133,11 @@ bool event_command(enum event_command cmd)
          event_command(EVENT_CMD_CORE_INFO_DEINIT);
 
          if (*settings->libretro_directory)
-            global->core_info = core_info_list_new(false);
+#ifdef SINGLE_CORE
+            global->core_info = core_info_list_new(LAUNCHED_CORE);
+#else
+            global->core_info = core_info_list_new(INSTALLED_CORES);
+#endif
          break;
       case EVENT_CMD_CORE_DEINIT:
          video_driver_free_hw_context();

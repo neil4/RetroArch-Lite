@@ -89,7 +89,6 @@ static uint8_t pointer_index;
 
 struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_END] = {
    { "9:19",          0.47368421f },
-   { "9:18.5",        0.48648649f },
    { "1:2",           0.5f },
    { "9:16",          0.5625f },
    { "10:16",         0.625f },
@@ -98,7 +97,6 @@ struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_EN
    { "16:10",         1.6f },
    { "16:9",          1.77777778f },
    { "2:1",           2.0f },
-   { "18.5:9",        2.05555556f },
    { "19:9",          2.11111111f },
    { "Auto",          1.0 },
 };
