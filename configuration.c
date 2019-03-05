@@ -631,6 +631,8 @@ static void config_set_defaults(void)
 #ifndef SINGLE_CORE
    settings->menu.show_core_updater            = show_core_updater;
 #endif
+   settings->menu.show_core_info               = menu_show_core_info;
+   settings->menu.show_system_info             = menu_show_system_info;
    settings->menu.show_cheat_options           = show_cheat_options;
 #endif // #ifdef HAVE_MENU
 
@@ -1310,6 +1312,8 @@ static bool config_load_file(const char *path, bool set_defaults)
 #ifndef SINGLE_CORE
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_updater,  "show_core_updater");
 #endif
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_info,  "menu_show_core_info");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_system_info,  "menu_show_system_info");
    config_get_path(conf, "menu_theme_dir", settings->menu.theme_dir, sizeof(settings->menu.theme_dir));
    if (!strcmp(settings->menu.theme_dir, "default"))
       *settings->menu.theme_dir = '\0';
@@ -2207,6 +2211,8 @@ bool config_save_file(const char *path)
 #ifndef SINGLE_CORE
    config_set_bool(conf, "show_core_updater", settings->menu.show_core_updater);
 #endif
+   config_set_bool(conf, "menu_show_core_info", settings->menu.show_core_info);
+   config_set_bool(conf, "menu_show_system_info", settings->menu.show_system_info);
 #endif // HAVE_MENU
 
    config_set_path(conf, "joypad_autoconfig_dir",

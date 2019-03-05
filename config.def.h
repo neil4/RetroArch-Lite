@@ -482,6 +482,8 @@ static bool show_driver_menu = false;
 static bool show_ui_menu = false;
 static bool show_logging_menu = false;
 static bool show_cheat_options = false;
+static bool menu_show_core_info = true;
+static bool menu_show_system_info = true;
 #ifndef ANDROID
 static bool show_hotkey_menu = true;
 #else

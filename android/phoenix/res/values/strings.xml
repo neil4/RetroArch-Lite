@@ -25,7 +25,7 @@
     <string name="core_info_internalNameTitle">Internal Name</string>
     <string name="core_info_systemNameTitle">Description</string>
     <string name="core_info_author">Author(s)</string>
-    <string name="core_info_licenseTitle">Core License</string>
+    <string name="core_info_licenseTitle">Core License(s)</string>
     <string name="core_info_manufacturer">Manufacturer</string>
     <string name="core_info_permissions">Permissions</string>
     <string name="core_info_extensions">Supported File Extensions</string>

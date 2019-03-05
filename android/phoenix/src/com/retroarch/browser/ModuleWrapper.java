@@ -24,7 +24,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    private String coreName;
    private final String manufacturer;
    private final String systemName;
-   private final String license;
+   private final List<String> license;
    private final String notes;
    private final List<String> authors;
    private final List<String> supportedExtensions;
@@ -67,13 +67,23 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          this.coreName     = (infoFile.keyExists("corename"))     ? infoFile.getString("corename")     : "N/A";
          this.systemName   = (infoFile.keyExists("systemname"))   ? infoFile.getString("systemname")   : "N/A";
          this.manufacturer = (infoFile.keyExists("manufacturer")) ? infoFile.getString("manufacturer") : "N/A";
-         this.license      = (infoFile.keyExists("license"))      ? infoFile.getString("license")      : "N/A";
          this.notes        = (infoFile.keyExists("notes"))
                              ? infoFile.getString("notes").replace("|", "\n")
                              : "N/A";
          this.firmware_count = (infoFile.keyExists("firmware_count") ? infoFile.getInt("firmware_count") : 0);
-   
-         // For extensions and authors, use '|' delimiter
+         
+         // For licenses, extensions and authors, use '|' delimiter
+         final String licenses = infoFile.getString("license");
+         if (licenses != null && licenses.contains("|"))
+         {
+            this.license = new ArrayList<String>(Arrays.asList(licenses.split("\\|")));
+         }
+         else
+         {
+            this.license = new ArrayList<String>();
+            this.license.add(licenses);
+         }
+         
          final String supportedExts = infoFile.getString("supported_extensions");
          if (supportedExts != null && supportedExts.contains("|"))
          {
@@ -146,13 +156,17 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          this.displayName = "N/A";
          this.systemName = "N/A";
          this.manufacturer = "N/A";
-         this.license = "N/A";
+         this.license = new ArrayList<String>();
+         this.license.add("N/A");
          this.notes = "N/A";
          this.authors = new ArrayList<String>();
+         this.authors.add("N/A");
          this.supportedExtensions = new ArrayList<String>();
+         this.supportedExtensions.add("N/A");
          this.coreName = coreName;
          this.firmwares = "N/A";
          this.permissions = new ArrayList<String>();
+         this.permissions.add("N/A");
       }
       
       // TODO: less stilted
@@ -219,11 +233,11 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    }
 
    /**
-    * Gets the license that this core is protected under.
+    * Gets the licenses this core is protected under.
     * 
-    * @return the license that this core is protected under.
+    * @return the licenses this core is protected under.
     */
-   public String getCoreLicense()
+   public List<String> getCoreLicense()
    {
       return license;
    }
@@ -283,7 +297,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    /**
     * Gets the list of permissions of this core.
     * 
-    * @return the list of authors of this core.
+    * @return the list of permissions of this core.
     */
    public List<String> getPermissions()
    {

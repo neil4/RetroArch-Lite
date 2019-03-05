@@ -196,6 +196,8 @@ typedef struct settings
       bool show_driver_menu;
       bool show_ui_menu;
       bool show_logging_menu;
+      bool show_core_info;
+      bool show_system_info;
 #ifndef SINGLE_CORE
       bool show_core_updater;
 #endif

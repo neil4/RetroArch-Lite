@@ -3967,7 +3967,7 @@ static bool setting_append_list_main_menu_options(
             parent_group);
    
 #if defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT)
-   if (*settings->libretro)  // core loaded
+   if (*settings->libretro && settings->menu.show_core_info)
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_CORE_INFORMATION),
@@ -3988,12 +3988,15 @@ static bool setting_append_list_main_menu_options(
             parent_group);
    }
    
-   CONFIG_ACTION(
-         menu_hash_to_str(MENU_LABEL_SYSTEM_INFORMATION),
-         menu_hash_to_str(MENU_LABEL_VALUE_SYSTEM_INFORMATION),
-         group_info.name,
-         subgroup_info.name,
-         parent_group);
+   if (settings->menu.show_system_info)
+   {
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_SYSTEM_INFORMATION),
+            menu_hash_to_str(MENU_LABEL_VALUE_SYSTEM_INFORMATION),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+   }
 
 #ifdef HAVE_NETWORKING
 #ifndef SINGLE_CORE
@@ -7013,6 +7016,30 @@ static bool setting_append_list_menu_options(
          general_write_handler,
          general_read_handler);
 #endif
+   CONFIG_BOOL(
+         settings->menu.show_core_info,
+         "menu_show_core_info",
+         "Show Core Information",
+         menu_show_core_info,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_system_info,
+         "menu_show_system_info",
+         "Show System Information",
+         menu_show_system_info,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    CONFIG_BOOL(
          settings->menu.show_driver_menu,
          "show_driver_menu",
