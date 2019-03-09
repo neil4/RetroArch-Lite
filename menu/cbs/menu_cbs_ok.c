@@ -758,7 +758,10 @@ static int action_ok_options_file_save_game(const char *path,
    
    strlcpy(opt_path, abs_path, sizeof(abs_path));
    
-   if (core_option_flush(global->system.core_options))
+   if (path_file_exists(abs_path))
+      rarch_main_msg_queue_push("Already using ROM Options file."
+                                "\nUpdates are automatic.", 1, 100, true);
+   else if (core_option_flush(global->system.core_options))
       rarch_main_msg_queue_push("ROM Options file created successfully", 1, 100, true);
    else
    {
