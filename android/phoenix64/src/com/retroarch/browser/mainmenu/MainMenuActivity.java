@@ -122,7 +122,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
    @Override
    public boolean onCreateOptionsMenu(Menu aMenu) {
       super.onCreateOptionsMenu(aMenu);
-      getMenuInflater().inflate(R.menu.directory_list, aMenu);
+      getMenuInflater().inflate(R.menu.options_menu, aMenu);
       return true;
    }
    

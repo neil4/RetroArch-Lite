@@ -6,9 +6,11 @@ import com.retroarchlite64.R;
 import com.retroarch.browser.ModuleWrapper;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -76,6 +78,21 @@ public final class InstalledCoreInfoFragment extends DialogFragment
       infoView.setAdapter(adapter);
 
       return infoView;
+   }
+   
+   @Override
+   public void onResume()
+   {
+      super.onResume();
+      final Display display = getActivity().getWindowManager().getDefaultDisplay();
+      Point size = new Point();
+      display.getSize(size);
+
+      ViewGroup.LayoutParams params = getDialog().getWindow().getAttributes();
+      if (size.x > size.y)
+         params.width = (50 * size.x) / 100;
+
+      getDialog().getWindow().setAttributes((android.view.WindowManager.LayoutParams) params);
    }
 
    /**

@@ -4,11 +4,13 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.app.DialogFragment;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -296,9 +298,26 @@ public class DirectoryFragment extends DialogFragment
          
          backStack.add(new BackStackItem(startPath, false));
       }
-      
+
       wrapFiles();
       return rootView;
+   }
+   
+   @Override
+   public void onResume()
+   {
+      super.onResume();
+      final Display display = getActivity().getWindowManager().getDefaultDisplay();
+      Point size = new Point();
+      display.getSize(size);
+
+      ViewGroup.LayoutParams params = getDialog().getWindow().getAttributes();
+      if (size.x > size.y)
+         params.width = (65 * size.x) / 100;
+      else
+         params.width = (85 * size.x) / 100;
+
+      getDialog().getWindow().setAttributes((android.view.WindowManager.LayoutParams) params);
    }
 
    private final OnItemClickListener onItemClickListener = new OnItemClickListener()
@@ -536,7 +555,7 @@ public class DirectoryFragment extends DialogFragment
          }
       }
    }
-   
+    
    public boolean ExtractZipWithPrompt(final String zipPath,
                                        final String destDir,
                                        final String quickDesc)

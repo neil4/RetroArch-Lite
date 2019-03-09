@@ -122,7 +122,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
    @Override
    public boolean onCreateOptionsMenu(Menu aMenu) {
       super.onCreateOptionsMenu(aMenu);
-      getMenuInflater().inflate(R.menu.directory_list, aMenu);
+      getMenuInflater().inflate(R.menu.options_menu, aMenu);
       return true;
    }
    
@@ -185,6 +185,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       // Show Content Directory
       //
       final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
       if (!new File(libretroPath).isDirectory())
       {
          contentBrowser = null;  // rebuild contentBrowser here
@@ -347,7 +348,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       }
       else
          retro = new Intent(this, RetroActivity.class);
-      
+
       if (!path.isEmpty())
          retro.putExtra("ROM", path);
       retro.putExtra("LIBRETRO", libretroPath);

@@ -3,5 +3,5 @@
     <item android:id="@+id/settings"
         android:title="Options"
         android:icon="@drawable/ic_settings"
-        android:showAsAction="ifRoom" />
+        android:showAsAction="always" />
 </menu>
