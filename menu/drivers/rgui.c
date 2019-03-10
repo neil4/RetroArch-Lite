@@ -132,6 +132,7 @@ static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
    char wallpaper_file[PATH_MAX_LENGTH];
    
    global->menu.wallpaper[0] = '\0';
+   wallpaper_file[0] = '\0';
    rgui_wallpaper_valid = false;
    rgui_set_default_colors();
    

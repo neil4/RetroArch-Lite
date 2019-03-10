@@ -8,7 +8,6 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
 ### Notable Updates
 * Scoped Settings
   * Certain settings (aspect ratio, etc.) can be scoped to a core, ROM, or directory.
-  * Can quickset a core-specific browser directory after a ROM is loaded
 * Overlay Features
   * Dpad and ABXY-diamond areas with choice of input style:
     * Vector
@@ -22,7 +21,8 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
 
 ### Control Notes
 * Menu
-  * 'Start' deletes a Core, Options file or Shader Preset; and deletes a Remap if "Save..." highlighted.
-  * 'L'/'R' sets min/max value.
+  * 'Start' deletes a Core, Options file or Shader Preset, and deletes a Remap if "Save..." highlighted.
+  * 'L'/'R' sets min/max value; in a few cases, jumps left/right by 10.
+  * Quickset a core-specific browser directory in Directory Settings after loading a ROM.
 * Touchscreen
   * On most overlays, tapping the screen center toggles the menu.
