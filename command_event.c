@@ -1340,6 +1340,18 @@ bool event_command(enum event_command cmd)
          event_command(EVENT_CMD_BSV_MOVIE_DEINIT);
          event_init_movie();
          break;
+      case EVENT_CMD_NETPLAY_TOGGLE:
+#ifdef HAVE_NETPLAY
+         if (driver->netplay_data && !global->netplay_enable)
+         {
+            event_command(EVENT_CMD_NETPLAY_DEINIT);
+            rarch_main_msg_queue_push("Netplay has disconnected."
+                                      " Will continue without connection.",
+                                      0, 480, false);
+         }  // else, init on next launch
+#endif
+         break;  
+            
       case EVENT_CMD_NETPLAY_DEINIT:
 #ifdef HAVE_NETPLAY
          deinit_netplay();

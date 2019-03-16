@@ -5835,6 +5835,7 @@ static bool setting_append_list_latency_options(
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
+   driver_t   *driver   = driver_get_ptr();
 
    START_GROUP(group_info, "Latency Settings", parent_group);
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
@@ -5888,40 +5889,43 @@ static bool setting_append_list_latency_options(
       &setting_get_string_representation_uint_scope_index;   
 #endif
 
-   CONFIG_UINT(
-         settings->video.frame_delay,
-         "video_frame_delay",
-         "Frame Delay",
-         frame_delay,
+   if (!driver->netplay_data)
+   {
+      CONFIG_UINT(
+            settings->video.frame_delay,
+            "video_frame_delay",
+            "Frame Delay",
+            frame_delay,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0, 15, 1, true, true);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_millisec;
+
+      CONFIG_UINT(
+         settings->video.frame_delay_scope,
+         "video_frame_delay_scope",
+         "  Scope",
+         GLOBAL,
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 15, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_millisec;
-
-   CONFIG_UINT(
-      settings->video.frame_delay_scope,
-      "video_frame_delay_scope",
-      "  Scope",
-      GLOBAL,
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
-   menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index; 
+      menu_settings_list_current_add_range(
+            list,
+            list_info,
+            0,
+            global->max_scope,
+            1,
+            true,
+            true);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_scope_index;
+   }
    
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -6734,6 +6738,7 @@ static bool setting_append_list_menu_options(
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
+   driver_t   *driver   = driver_get_ptr();
 
    START_GROUP(group_info, "Menu Settings", parent_group);
    
@@ -7141,20 +7146,23 @@ static bool setting_append_list_menu_options(
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 #endif
    
-   CONFIG_BOOL(
-         settings->menu.pause_libretro,
-         "menu_pause_libretro",
-         "Pause when menu activated",
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_PAUSE_LIBRETRO);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+   if (!driver->netplay_data)
+   {
+      CONFIG_BOOL(
+            settings->menu.pause_libretro,
+            "menu_pause_libretro",
+            "Pause when menu activated",
+            true,
+            menu_hash_to_str(MENU_VALUE_OFF),
+            menu_hash_to_str(MENU_VALUE_ON),
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_PAUSE_LIBRETRO);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+   }
 
    CONFIG_BOOL(
          settings->menu.mouse.enable,
@@ -7506,6 +7514,7 @@ static bool setting_append_list_netplay_options(
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
+   driver_t *driver     = driver_get_ptr();
    
    if (!settings->menu.show_netplay_menu)
       return true;
@@ -7519,7 +7528,7 @@ static bool setting_append_list_netplay_options(
    CONFIG_BOOL(
          global->netplay_enable,
          "netplay_enable",
-         "Launch on next ROM Load",
+         (driver->netplay_data ? "Netplay Enable" : "Launch on next ROM Load"),
          false,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -7528,6 +7537,7 @@ static bool setting_append_list_netplay_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_NETPLAY_TOGGLE);
    
    CONFIG_BOOL(
          global->netplay_is_client,

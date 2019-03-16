@@ -166,7 +166,7 @@ static bool send_chunk(netplay_t *netplay)
       {
          warn_hangup();
          netplay->has_connection = false;
-         netplay_unmask_config();
+         deinit_netplay();
          return false;
       }
    }
@@ -212,7 +212,7 @@ static bool get_self_input_state(netplay_t *netplay)
    {
       warn_hangup();
       netplay->has_connection = false;
-      netplay_unmask_config();
+      deinit_netplay();
       return false;
    }
 
@@ -336,7 +336,7 @@ static int poll_input(netplay_t *netplay, bool block)
       {
          warn_hangup();
          netplay->has_connection = false;
-         netplay_unmask_config();
+         deinit_netplay();
          return -1;
       }
 
@@ -438,7 +438,7 @@ static bool netplay_poll(netplay_t *netplay)
    {
       netplay->has_connection = false;
       warn_hangup();
-      netplay_unmask_config();
+      deinit_netplay();
       return false;
    }
 
@@ -452,7 +452,7 @@ static bool netplay_poll(netplay_t *netplay)
          {
             warn_hangup();
             netplay->has_connection = false;
-            netplay_unmask_config();
+            deinit_netplay();
             return false;
          }
          parse_packet(netplay, buffer, UDP_FRAME_PACKETS);
@@ -1679,6 +1679,7 @@ void deinit_netplay(void)
       netplay_unmask_config();
    }
    driver->netplay_data = NULL;
+   retro_init_libretro_cbs(&driver->retro_ctx);
 }
 
 #define RARCH_DEFAULT_PORT 55435

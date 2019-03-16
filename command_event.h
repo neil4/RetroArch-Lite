@@ -154,6 +154,7 @@ enum event_command
    EVENT_CMD_NETPLAY_INIT,
    /* Deinitializes netplay system. */
    EVENT_CMD_NETPLAY_DEINIT,
+   EVENT_CMD_NETPLAY_TOGGLE,
    /* Flip netplay players. */
    EVENT_CMD_NETPLAY_FLIP_PLAYERS,
    /* Initializes BSV movie. */
