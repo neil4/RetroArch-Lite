@@ -111,5 +111,13 @@ bool init_netplay(void);
 
 void deinit_netplay(void);
 
+/**
+ * netplay_mask_config
+ * 
+ * Mask certain settings for Netplay.
+ */
+void netplay_mask_config();
+void netplay_unmask_config();
+
 #endif
 

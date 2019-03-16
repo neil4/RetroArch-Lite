@@ -21,6 +21,9 @@
 #include "../retroarch.h"
 #include "../runloop.h"
 #include "../runloop_data.h"
+#ifdef HAVE_NETPLAY
+#include "../netplay.h"
+#endif
 #include <file/file_path.h>
 
 #define MAX_ARGS 32
@@ -35,6 +38,10 @@ void main_exit_save_config(void)
 {
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
+   
+#ifdef HAVE_NETPLAY
+   netplay_unmask_config();
+#endif
 
    if (settings->config_save_on_exit)
    {

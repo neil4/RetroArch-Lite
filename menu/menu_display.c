@@ -24,6 +24,9 @@
 #include "../gfx/video_context_driver.h"
 #include "../gfx/video_thread_wrapper.h"
 #include "menu_list.h"
+#ifdef HAVE_NETPLAY
+#include "../netplay.h"
+#endif
 
 menu_display_t *menu_display_get_ptr(void)
 {
@@ -64,6 +67,19 @@ void menu_display_fb_unset_dirty(void)
    frame_buf->dirty = false;
 }
 
+static inline void menu_display_retro_run(driver_t *driver)
+{
+#ifdef HAVE_NETPLAY
+         if (driver->netplay_data)
+            netplay_pre_frame((netplay_t*)driver->netplay_data);
+#endif
+         pretro_run();
+#ifdef HAVE_NETPLAY
+         if (driver->netplay_data)
+            netplay_post_frame((netplay_t*)driver->netplay_data);
+#endif
+}
+
 /**
  ** menu_display_fb:
  *
@@ -83,7 +99,7 @@ void menu_display_fb(void)
       {
          bool block_libretro_input = driver->block_libretro_input;
          driver->block_libretro_input = true;
-         pretro_run();
+         menu_display_retro_run(driver);
          driver->block_libretro_input = block_libretro_input;
          return;
       }

@@ -166,6 +166,7 @@ static bool send_chunk(netplay_t *netplay)
       {
          warn_hangup();
          netplay->has_connection = false;
+         netplay_unmask_config();
          return false;
       }
    }
@@ -211,6 +212,7 @@ static bool get_self_input_state(netplay_t *netplay)
    {
       warn_hangup();
       netplay->has_connection = false;
+      netplay_unmask_config();
       return false;
    }
 
@@ -334,6 +336,7 @@ static int poll_input(netplay_t *netplay, bool block)
       {
          warn_hangup();
          netplay->has_connection = false;
+         netplay_unmask_config();
          return -1;
       }
 
@@ -435,6 +438,7 @@ static bool netplay_poll(netplay_t *netplay)
    {
       netplay->has_connection = false;
       warn_hangup();
+      netplay_unmask_config();
       return false;
    }
 
@@ -448,6 +452,7 @@ static bool netplay_poll(netplay_t *netplay)
          {
             warn_hangup();
             netplay->has_connection = false;
+            netplay_unmask_config();
             return false;
          }
          parse_packet(netplay, buffer, UDP_FRAME_PACKETS);
@@ -922,7 +927,8 @@ static bool send_info(netplay_t *netplay)
       return false;
    }
 
-   snprintf(msg, sizeof(msg), "Connected to: \"%s\"", netplay->other_nick);
+   snprintf(msg, sizeof(msg), "Connected to: \"%s (%s)\"",
+            netplay->other_nick, global->netplay_server);
    RARCH_LOG("%s\n", msg);
    rarch_main_msg_queue_push(msg, 1, 180, false);
 
@@ -1627,12 +1633,51 @@ void netplay_post_frame(netplay_t *netplay)
       netplay_post_frame_net(netplay);
 }
 
+static void netplay_mask_unmask_config(bool starting)
+{
+   settings_t *settings = config_get_ptr();
+   
+   static bool has_started;
+   static unsigned video_frame_delay;
+   static bool menu_pause_libretro;
+   
+   if (starting && !has_started)
+   {  // mask
+      video_frame_delay = settings->video.frame_delay;
+      settings->video.frame_delay = 0;
+      
+      menu_pause_libretro = settings->menu.pause_libretro;
+      settings->menu.pause_libretro = false;
+      
+      has_started = true;
+   }
+   else if (has_started)
+   {  // unmask
+      settings->video.frame_delay = video_frame_delay;
+      settings->menu.pause_libretro = menu_pause_libretro;
+      has_started = false;
+   }
+}
+
+void netplay_mask_config()
+{
+   netplay_mask_unmask_config(true);
+}
+
+void netplay_unmask_config()
+{
+   netplay_mask_unmask_config(false);
+}
+
 void deinit_netplay(void)
 {
    driver_t *driver     = driver_get_ptr();
    netplay_t *netplay = (netplay_t*)driver->netplay_data;
    if (netplay)
+   {
       netplay_free(netplay);
+      netplay_unmask_config();
+   }
    driver->netplay_data = NULL;
 }
 
@@ -1669,7 +1714,7 @@ bool init_netplay(void)
    if (global->netplay_is_client)
       RARCH_LOG("Connecting to netplay host...\n");
    else
-      RARCH_LOG("Waiting for client...\n");
+      RARCH_LOG_FORCE("Waiting for client...\n");
 
    driver->netplay_data = (netplay_t*)netplay_new(
          global->netplay_is_client ? global->netplay_server : NULL,
@@ -1678,7 +1723,10 @@ bool init_netplay(void)
          settings->username);
 
    if (driver->netplay_data)
+   {
+      netplay_mask_config();
       return true;
+   }
 
    global->netplay_is_client = false;
    RARCH_WARN(RETRO_LOG_INIT_NETPLAY_FAILED);
