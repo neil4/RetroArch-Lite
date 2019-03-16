@@ -2674,7 +2674,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                " -- Load Shader Preset. \n"
                " \n"
-               " Load a "
+               " Load and run a "
 #ifdef HAVE_CG
                "Cg"
 #endif
@@ -2690,13 +2690,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
 #endif
                "HLSL"
 #endif
-               " preset directly. \n"
-               "The menu shader menu is updated accordingly. \n"
-               " \n"
-               "If the CGP uses scaling methods which are not \n"
-               "simple, (i.e. source scaling, same scaling \n"
-               "factor for X/Y), the scaling factor displayed \n"
-               "in the menu might not be correct."
+               " preset."
                );
          break;
       case MENU_LABEL_VIDEO_SHADER_SCALE_PASS:
@@ -2738,13 +2732,15 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "-- Shader Parameters. \n"
                " \n"
                "Modifies current shader directly. Will not be \n"
-               "saved to CGP/GLSLP preset file.");
+               "saved to a preset file.");
          break;
       case MENU_LABEL_VIDEO_SHADER_PRESET_PARAMETERS:
          snprintf(s, len,
                "-- Shader Preset Parameters. \n"
                " \n"
-               "Modifies shader preset currently in menu."
+               "Modifies shader preset. Changes take effect \n"
+               "only after 'Apply Shader Changes' or \n"
+               "'Shader Preset Save As'."
                );
          break;
       case MENU_LABEL_VIDEO_SHADER_PASS:
@@ -2847,11 +2843,12 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "expensive operation so it has to be \n"
                "done explicitly. \n"
                " \n"
-               "When you apply shaders, the menu shader \n"
-               "settings are saved to a temporary file (either \n"
-               "menu.cgp or menu.glslp) and loaded. The file \n"
-               "persists after RetroArch exits. The file is \n"
-               "saved to Shader Directory."
+               "When you apply shaders, a placeholder preset is \n"
+               "saved (temporary.cgp or temporary.glslp) and \n"
+               "loaded. The file persists after RetroArch exits.\n"
+               "\n"
+               "Use 'Shader Preset Save As' when you are \n"
+               "finished making changes.\n"
                );
          break;
       case MENU_LABEL_INPUT_BIND_DEVICE_ID:
@@ -3418,6 +3415,40 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "Positive X axis is right. \n"
                "Positive Y axis is down.");
          break;
+      case MENU_LABEL_SHARED_CONTEXT:
+         snprintf(s, len,
+                  "Set to true if this is a hardware-rendered core \n"
+                  "that should have a private context. Avoids \n"
+                  "having to assume hardware state changes \n"
+                  "between frames.");
+         break;
+      case MENU_LABEL_DUMMY_ON_CORE_SHUTDOWN:
+         snprintf(s, len,
+                  "Some cores might have \n"
+                  "a shutdown feature. \n"
+                  " \n"
+                  "If this option is left disabled, \n"
+                  "selecting the shutdown procedure \n"
+                  "would trigger RetroArch being shut \n"
+                  "down. \n"
+                  " \n"
+                  "Enabling this option will load a \n"
+                  "dummy core instead so that we remain \n"
+                  "inside the menu and RetroArch won't \n"
+                  "shutdown.");
+         break;
+      case MENU_LABEL_NETPLAY_DELAY_FRAMES:
+         snprintf(s, len,
+                     "The number of frames of input latency for \n"
+                     "netplay to use to hide network latency. \n"
+                     " \n"
+                     "When in netplay, this option delays local \n"
+                     "input, so that the frame being run is \n"
+                     "closer to the frames being received from \n"
+                     "the network. This reduces jitter and makes \n"
+                     "netplay less CPU-intensive, but at the \n"
+                     "price of noticeable input lag. \n");
+            break;
       default:
          return -1;
    }
@@ -3856,7 +3887,6 @@ static void overlay_enable_toggle_change_handler(void *data)
 }
 #endif
 
-#ifdef HAVE_MENU
 static void gui_update_change_handler(void *data)
 {
    global_t *global = global_get_ptr();
@@ -3865,7 +3895,6 @@ static void gui_update_change_handler(void *data)
 
    global->menu.theme_update_flag = true;
 }
-#endif
 
 static bool setting_append_list_main_menu_options(
       rarch_setting_t **list,
@@ -4271,7 +4300,7 @@ static bool setting_append_list_core_options(
 
    CONFIG_BOOL(
          settings->video.shared_context,
-         "video_shared_context",
+         menu_hash_to_str(MENU_LABEL_SHARED_CONTEXT),
          "Shared Context",
          false,
          menu_hash_to_str(MENU_VALUE_OFF),
@@ -4286,7 +4315,7 @@ static bool setting_append_list_core_options(
 
    CONFIG_BOOL(
          settings->load_dummy_on_core_shutdown,
-         "dummy_on_core_shutdown",
+         menu_hash_to_str(MENU_LABEL_DUMMY_ON_CORE_SHUTDOWN),
          "Dummy On Core Shutdown",
          load_dummy_on_core_shutdown,
          menu_hash_to_str(MENU_VALUE_OFF),
@@ -7542,7 +7571,7 @@ static bool setting_append_list_netplay_options(
    CONFIG_UINT(
          global->netplay_port,
          "netplay_tcp_udp_port",
-         "UDP Port",
+         "Port",
          RARCH_DEFAULT_PORT,
          group_info.name,
          subgroup_info.name,
@@ -7555,7 +7584,7 @@ static bool setting_append_list_netplay_options(
    CONFIG_UINT(
          global->netplay_sync_frames,
          "netplay_delay_frames",
-         "Allowed Latency (Frames)",
+         "Input Delay Frames",
          2,
          group_info.name,
          subgroup_info.name,

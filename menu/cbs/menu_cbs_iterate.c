@@ -501,20 +501,18 @@ static void delete_core_file(menu_list_t *menu_list)
 static bool menu_input_core_delete_hold(char *s, size_t len, menu_list_t *menu_list)
 {
    settings_t *settings = config_get_ptr();
-   char fmt[64]         = {0};
    int timeout          = 0;
    static int64_t end_time;
    
    if (!end_time)
-      end_time = rarch_get_time_usec() + 4000000;
+      end_time = rarch_get_time_usec() + 3000000;
    timeout = (end_time - rarch_get_time_usec()) / 1000000;
    
    if (input_driver_key_pressed(settings->menu_default_btn))
    {
       if (timeout > 0)
       {
-         strlcpy(fmt, "Hold %d seconds\nto DELETE this core.", 64);
-         snprintf(s, len, fmt, timeout);
+         snprintf(s, len, "Hold %d seconds\nto DELETE this core.", timeout);
          menu_driver_render_messagebox(s);
          return false;
       }

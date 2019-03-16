@@ -623,9 +623,9 @@ static void config_set_defaults(void)
    settings->menu.show_netplay_menu            = show_netplay_menu;
    settings->menu.show_saving_menu             = show_saving_menu;
    settings->menu.show_core_menu               = show_core_menu;
-   settings->menu.show_core_menu               = show_driver_menu;
-   settings->menu.show_core_menu               = show_ui_menu;
-   settings->menu.show_core_menu               = show_logging_menu;
+   settings->menu.show_driver_menu             = show_driver_menu;
+   settings->menu.show_ui_menu                 = show_ui_menu;
+   settings->menu.show_logging_menu            = show_logging_menu;
    settings->menu.show_hotkey_menu             = show_hotkey_menu;
    settings->menu.show_rewind_menu             = show_rewind_menu;
 #ifndef SINGLE_CORE
@@ -877,9 +877,11 @@ static void config_set_defaults(void)
    if (*g_defaults.resampler_dir)
       strlcpy(settings->resampler_directory,
             g_defaults.resampler_dir, sizeof(settings->resampler_directory));
+#ifdef HAVE_MENU
    if (*g_defaults.content_dir)
       strlcpy(settings->menu_content_directory,
               g_defaults.content_dir, sizeof(settings->menu_content_directory));
+#endif
 
 #ifdef HAVE_NETPLAY
    global->netplay_sync_frames = 2;
@@ -1303,9 +1305,9 @@ static bool config_load_file(const char *path, bool set_defaults)
 #endif
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_saving_menu,  "show_saving_menu");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_menu,  "show_core_menu");
-   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_menu,  "show_driver_menu");
-   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_menu,  "show_ui_menu");
-   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_menu,  "show_logging_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_driver_menu,  "show_driver_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_ui_menu,  "show_ui_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_logging_menu,  "show_logging_menu");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_hotkey_menu,  "show_hotkey_menu");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_rewind_menu,  "show_rewind_menu");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_cheat_options,  "show_cheat_options");
@@ -2522,6 +2524,7 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "video_hard_sync_frames");
    }
 
+#ifdef HAVE_OVERLAY
    if (settings->input.overlay_scope == scope)
    {
       config_set_string(conf, "input_overlay", settings->input.overlay);
@@ -2570,6 +2573,12 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "input_overlay_adjust_vertical");
       config_remove_entry(conf, "input_overlay_adjust_vertical_lock_edges");
    }
+   
+   if (settings->input.overlay_opacity_scope == scope)
+      config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
+   else if (settings->input.overlay_opacity_scope < scope)
+      config_remove_entry(conf, "input_overlay_opacity");
+#endif // HAVE_OVERLAY
 
    if (settings->throttle_setting_scope == scope)
    {
@@ -2611,11 +2620,6 @@ static void scoped_config_file_save(unsigned scope)
    else if (settings->video.frame_delay_scope < scope)
       config_remove_entry(conf, "video_frame_delay");
 
-   if (settings->input.overlay_opacity_scope == scope)
-      config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
-   else if (settings->input.overlay_opacity_scope < scope)
-      config_remove_entry(conf, "input_overlay_opacity");
-
    if (settings->input.max_users_scope == scope)
       config_set_int(conf, "input_max_users", settings->input.max_users);
    else if (settings->input.max_users_scope < scope)
@@ -2655,6 +2659,7 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "video_shader");
    }
    
+#ifdef HAVE_MENU
    if (settings->menu.theme_scope == scope)
    {
       if (!*settings->menu.theme)
@@ -2667,6 +2672,7 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "menu_theme");
       config_remove_entry(conf, "menu_wallpaper_opacity");
    }
+#endif
       
    if (scope == THIS_CORE)
    {
@@ -2717,6 +2723,16 @@ void restore_update_config_globals()
    static bool video_vsync;
    static bool video_hard_sync;
    static unsigned video_hard_sync_frames;
+   static bool throttle_using_core_fps;
+   static bool fastforward_ratio_throttle_enable;
+   static unsigned aspect_ratio_index;
+   static unsigned video_rotation;
+   static unsigned video_frame_delay;
+#ifdef HAVE_OVERLAY
+   static float input_overlay_opacity;
+   static float input_overlay_adjust_vertical;
+   static char input_overlay[PATH_MAX_LENGTH];
+   static bool input_overlay_enable;
    static unsigned input_dpad_method;
    static float input_dpad_diagonal_sensitivity;
    static unsigned input_abxy_method;
@@ -2725,15 +2741,7 @@ void restore_update_config_globals()
    static unsigned input_overlay_aspect_ratio_index;
    static float input_overlay_bisect_aspect_ratio;
    static bool input_overlay_adjust_vertical_lock_edges;
-   static bool throttle_using_core_fps;
-   static bool fastforward_ratio_throttle_enable;
-   static unsigned aspect_ratio_index;
-   static unsigned video_rotation;
-   static unsigned video_frame_delay;
-   static float input_overlay_opacity;
-   static float input_overlay_adjust_vertical;
-   static char input_overlay[PATH_MAX_LENGTH];
-   static bool input_overlay_enable;
+#endif
    static video_viewport_t custom_vp;
    static unsigned input_max_users;
    static int input_joypad_map[MAX_USERS];
@@ -2743,8 +2751,10 @@ void restore_update_config_globals()
    static bool video_shared_context;
    static bool load_dummy_on_core_shutdown;
    static bool core_set_supports_no_game_enable;
+#ifdef HAVE_MENU
    static char menu_theme[PATH_MAX_LENGTH];
    static float wallpaper_opacity;
+#endif
    
    video_viewport_t* p_custom_vp
       = (video_viewport_t*) video_viewport_get_custom();
@@ -2801,6 +2811,7 @@ void restore_update_config_globals()
       video_hard_sync_frames = settings->video.hard_sync_frames;
    }
    
+#ifdef HAVE_OVERLAY   
    if (settings->input.overlay_scope != GLOBAL)
    {  // restore
       settings->input.overlay_scope = GLOBAL;
@@ -2846,6 +2857,17 @@ void restore_update_config_globals()
       input_overlay_adjust_vertical = settings->input.overlay_adjust_vertical;
       input_overlay_adjust_vertical_lock_edges = settings->input.overlay_adjust_vertical_lock_edges;
    }
+   
+   if (settings->input.overlay_opacity_scope != GLOBAL)
+   {  // restore
+      settings->input.overlay_opacity_scope = GLOBAL;
+      settings->input.overlay_opacity = input_overlay_opacity;
+   }
+   else
+   {  // update
+      input_overlay_opacity = settings->input.overlay_opacity;
+   }
+#endif // HAVE_OVERLAY
       
    if (settings->throttle_setting_scope != GLOBAL)
    {  // restore
@@ -2890,16 +2912,6 @@ void restore_update_config_globals()
    {  // update
       video_frame_delay = settings->video.frame_delay;
    }
-      
-   if (settings->input.overlay_opacity_scope != GLOBAL)
-   {  // restore
-      settings->input.overlay_opacity_scope = GLOBAL;
-      settings->input.overlay_opacity = input_overlay_opacity;
-   }
-   else
-   {  // update
-      input_overlay_opacity = settings->input.overlay_opacity;
-   }
    
    if (settings->input.max_users_scope != GLOBAL)
    {  // restore
@@ -2941,6 +2953,7 @@ void restore_update_config_globals()
       strlcpy(video_shader, settings->video.shader_path, PATH_MAX_LENGTH);
    }
    
+#ifdef HAVE_MENU
    if (settings->menu.theme_scope != GLOBAL)
    {  // restore
       settings->menu.theme_scope = GLOBAL;
@@ -2953,6 +2966,7 @@ void restore_update_config_globals()
       strlcpy(menu_theme, settings->menu.theme, PATH_MAX_LENGTH);
       wallpaper_opacity = settings->menu.wallpaper_opacity;
    }
+#endif
    
    if (!*settings->libretro)
    {  // restore
@@ -2987,7 +3001,7 @@ static void scoped_config_file_load(unsigned scope)
    //
    if (!get_scoped_config_filename(buf, scope))
       return;
-   
+
    fill_pathname_join(directory, settings->menu_config_directory,
                       global->libretro_name, PATH_MAX_LENGTH);
    fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
@@ -3010,6 +3024,8 @@ static void scoped_config_file_load(unsigned scope)
    }
    if (config_get_bool(conf, "video_threaded", &settings->video.threaded))
       settings->video.threaded_scope = scope;
+
+#ifdef HAVE_OVERLAY
    if (config_get_path(conf, "input_overlay", settings->input.overlay, sizeof(settings->input.overlay)))
    {
       if (!strcmp(settings->input.overlay, EXPLICIT_NULL))
@@ -3034,6 +3050,10 @@ static void scoped_config_file_load(unsigned scope)
       config_get_float(conf, "input_overlay_adjust_vertical", &settings->input.overlay_adjust_vertical);
       config_get_bool(conf, "input_overlay_adjust_vertical_lock_edges", &settings->input.overlay_adjust_vertical_lock_edges);
    }
+   if (config_get_float(conf, "input_overlay_opacity", &settings->input.overlay_opacity))
+      settings->input.overlay_opacity_scope = scope;
+#endif // HAVE_OVERLAY
+
    if (config_get_bool(conf, "fastforward_ratio_throttle_enable", &settings->fastforward_ratio_throttle_enable))
    {
       settings->throttle_setting_scope = scope;
@@ -3053,8 +3073,6 @@ static void scoped_config_file_load(unsigned scope)
       settings->video.rotation_scope = scope;
    if (config_get_uint(conf, "video_frame_delay", &settings->video.frame_delay))
       settings->video.frame_delay_scope = scope;
-   if (config_get_float(conf, "input_overlay_opacity", &settings->input.overlay_opacity))
-      settings->input.overlay_opacity_scope = scope;
    if (config_get_uint(conf, "input_max_users", &settings->input.max_users))
       settings->input.max_users_scope = scope;
    for (i = 0; i < settings->input.max_users; i++)
@@ -3082,6 +3100,7 @@ static void scoped_config_file_load(unsigned scope)
       settings->video.filter_shader_scope = scope;
    }
    
+#ifdef HAVE_MENU
    if (config_get_path(conf, "menu_theme", settings->menu.theme,
                        sizeof(settings->menu.theme)))
    {
@@ -3092,6 +3111,7 @@ static void scoped_config_file_load(unsigned scope)
       settings->menu.theme_scope = scope;
       global->menu.theme_update_flag = true;
    }
+#endif
    
    if (scope == THIS_CORE)
    {

@@ -399,6 +399,8 @@ extern "C" {
 #define MENU_LABEL_AUDIO_MUTE                                                  0xe0ca1151U
 #define MENU_LABEL_VALUE_AUDIO_MUTE                                            0x5af25952U
 #define MENU_LABEL_EXIT_EMULATOR                                               0x86d5d467U
+#define MENU_LABEL_SHARED_CONTEXT                                              0x7d7dad16U
+#define MENU_LABEL_DUMMY_ON_CORE_SHUTDOWN                                      0x78579f70U
 
 #define MENU_VALUE_SECONDS                                                     0x8b0028d4U
 

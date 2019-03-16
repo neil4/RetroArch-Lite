@@ -471,6 +471,10 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Audio DSP Plugin";
       case MENU_LABEL_VALUE_STARTING_DOWNLOAD:
          return "Starting download: ";
+      case MENU_LABEL_SHARED_CONTEXT:
+         return "video_shared_context";
+      case MENU_LABEL_DUMMY_ON_CORE_SHUTDOWN:
+         return "dummy_on_core_shutdown";
       case MENU_VALUE_SECONDS:
          return "seconds";
       case MENU_VALUE_OFF:
