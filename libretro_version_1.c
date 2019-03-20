@@ -204,7 +204,7 @@ static int16_t input_state(unsigned port, unsigned device,
       settings->input.binds[15],
    };
    
-   // Enforce max_users unless using a lightgun, which could be on another port
+   /* Enforce max_users unless using a lightgun, which could be on another port */
    if (port >= settings->input.max_users
 #ifdef HAVE_OVERLAY
       && !input_overlay_lightgun_active()
@@ -331,7 +331,7 @@ static INLINE void input_poll_overlay(input_overlay_t *overlay_device, float opa
          if (polled_data.lightgun_buttons)
             driver->overlay_state.lightgun_buttons |= polled_data.lightgun_buttons;
          else if (!overlay_device->blocked)
-         {  // Assume this is the lightgun pointer if all buttons were missed 
+         {  /* Assume this is the lightgun pointer if all buttons were missed */
             driver->overlay_state.lightgun_x
                = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
                                     RETRO_DEVICE_ID_POINTER_X);
@@ -435,7 +435,7 @@ static INLINE void input_poll_overlay(input_overlay_t *overlay_device, float opa
    else
       input_overlay_poll_clear(overlay_device, opacity);
 
-   // haptic feedback on button presses or direction changes
+   /* haptic feedback on button presses or direction changes */
    if ( driver->input->overlay_haptic_feedback
         && pointer_count >= prev_pointer_count
         && (old_state.buttons != driver->overlay_state.buttons

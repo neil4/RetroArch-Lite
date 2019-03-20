@@ -102,7 +102,7 @@ typedef struct android_input
 
 typedef struct android_input_poll_scratchpad
 {
-   int32_t id[MAX_TOUCH];
+   int32_t down_id[MAX_TOUCH];
    int32_t last_known_action;  // of any poll
    uint8_t downs;  // num downs or pointer downs
    uint8_t taps;  // quick down+up between polls
@@ -131,10 +131,10 @@ static typeof(AMotionEvent_getAxisValue) *p_AMotionEvent_getAxisValue;
 static void engine_handle_dpad_default(android_input_t *android,
       AInputEvent *event, int port, int source)
 {
-   size_t motion_pointer = AMotionEvent_getAction(event) >>
+   size_t motion_ptr = AMotionEvent_getAction(event) >>
       AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-   float x = AMotionEvent_getX(event, motion_pointer);
-   float y = AMotionEvent_getY(event, motion_pointer);
+   float x = AMotionEvent_getX(event, motion_ptr);
+   float y = AMotionEvent_getY(event, motion_ptr);
 
    android->analog_state[port][0] = (int16_t)(x * 32767.0f);
    android->analog_state[port][1] = (int16_t)(y * 32767.0f);
@@ -143,18 +143,18 @@ static void engine_handle_dpad_default(android_input_t *android,
 static void engine_handle_dpad_getaxisvalue(android_input_t *android,
       AInputEvent *event, int port, int source)
 {
-   size_t motion_pointer = AMotionEvent_getAction(event) >>
+   size_t motion_ptr = AMotionEvent_getAction(event) >>
       AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-   float x = AMotionEvent_getAxisValue(event, AXIS_X, motion_pointer);
-   float y = AMotionEvent_getAxisValue(event, AXIS_Y, motion_pointer);
-   float z = AMotionEvent_getAxisValue(event, AXIS_Z, motion_pointer);
-   float rz = AMotionEvent_getAxisValue(event, AXIS_RZ, motion_pointer);
-   float hatx = AMotionEvent_getAxisValue(event, AXIS_HAT_X, motion_pointer);
-   float haty = AMotionEvent_getAxisValue(event, AXIS_HAT_Y, motion_pointer);
-   float ltrig = AMotionEvent_getAxisValue(event, AXIS_LTRIGGER, motion_pointer);
-   float rtrig = AMotionEvent_getAxisValue(event, AXIS_RTRIGGER, motion_pointer);
-   float brake = AMotionEvent_getAxisValue(event, AXIS_BRAKE, motion_pointer);
-   float gas = AMotionEvent_getAxisValue(event, AXIS_GAS, motion_pointer);
+   float x = AMotionEvent_getAxisValue(event, AXIS_X, motion_ptr);
+   float y = AMotionEvent_getAxisValue(event, AXIS_Y, motion_ptr);
+   float z = AMotionEvent_getAxisValue(event, AXIS_Z, motion_ptr);
+   float rz = AMotionEvent_getAxisValue(event, AXIS_RZ, motion_ptr);
+   float hatx = AMotionEvent_getAxisValue(event, AXIS_HAT_X, motion_ptr);
+   float haty = AMotionEvent_getAxisValue(event, AXIS_HAT_Y, motion_ptr);
+   float ltrig = AMotionEvent_getAxisValue(event, AXIS_LTRIGGER, motion_ptr);
+   float rtrig = AMotionEvent_getAxisValue(event, AXIS_RTRIGGER, motion_ptr);
+   float brake = AMotionEvent_getAxisValue(event, AXIS_BRAKE, motion_ptr);
+   float gas = AMotionEvent_getAxisValue(event, AXIS_GAS, motion_ptr);
 
    android->hat_state[port][0] = (int)hatx;
    android->hat_state[port][1] = (int)haty;
@@ -549,18 +549,17 @@ static void *android_input_init(void)
    return android;
 }
 
-static int zeus_id = -1;
-static int zeus_second_id = -1;
-
 static INLINE int android_input_poll_event_type_motion(
       android_input_t *android, AInputEvent *event, int source)
 {
    int getaction, action;
-   size_t motion_pointer;
-   size_t up_pointer = MAX_TOUCH;
-   size_t event_pointer_count;
+   size_t motion_ptr;
+   size_t ignore_ptr = MAX_TOUCH;
+   size_t event_ptr_count;
    bool keyup, keydown;
+   uint8_t idx;
    float x, y;
+   struct input_pointer* p;
 
    if (source & ~(AINPUT_SOURCE_TOUCHSCREEN | AINPUT_SOURCE_MOUSE | AINPUT_SOURCE_STYLUS))
       return 1;
@@ -568,67 +567,84 @@ static INLINE int android_input_poll_event_type_motion(
    frame.any_events = true;
    getaction = AMotionEvent_getAction(event);
    action = getaction & AMOTION_EVENT_ACTION_MASK;
-   motion_pointer = getaction >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+   motion_ptr = getaction >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
    
-   keyup = ( action == AMOTION_EVENT_ACTION_UP
-             || action == AMOTION_EVENT_ACTION_CANCEL
-             || action == AMOTION_EVENT_ACTION_POINTER_UP
-             || (source == AINPUT_SOURCE_MOUSE
-                 && (action != AMOTION_EVENT_ACTION_DOWN)) );
-   keydown = ( action == AMOTION_EVENT_ACTION_DOWN
-               || action == AMOTION_EVENT_ACTION_POINTER_DOWN );
-
-   if ( keydown && frame.downs < MAX_TOUCH )
+   frame.any_events = true;
+   frame.last_known_action = action;
+   
+   if (action == AMOTION_EVENT_ACTION_MOVE)
    {
-      // record all action-downs and action-pointer-downs since last poll
-      frame.id[frame.downs++]
-         = AMotionEvent_getPointerId(event,motion_pointer);
+      keydown = false;
+      keyup = false;
    }
-   else if (keyup && motion_pointer < MAX_TOUCH)
+   else
    {
-      up_pointer = motion_pointer;
+      keydown = ( action == AMOTION_EVENT_ACTION_DOWN
+                  || action == AMOTION_EVENT_ACTION_POINTER_DOWN );
+      keyup = ( action == AMOTION_EVENT_ACTION_UP
+                || action == AMOTION_EVENT_ACTION_POINTER_UP
+                || action == AMOTION_EVENT_ACTION_CANCEL
+                || (source == AINPUT_SOURCE_MOUSE
+                    && (action != AMOTION_EVENT_ACTION_DOWN)) );
       
-      // capture action-ups of quick taps
-      uint8_t i;
-      for ( i = 0; i < frame.downs; i++ )
+      if ( action == AMOTION_EVENT_ACTION_HOVER_MOVE
+           || action == AMOTION_EVENT_ACTION_HOVER_ENTER
+           || action == AMOTION_EVENT_ACTION_HOVER_EXIT )
+         ignore_ptr = motion_ptr;
+   }
+
+   if (keydown && frame.downs < MAX_TOUCH)
+   {
+      // record all downs since last poll
+      frame.down_id[frame.downs++] = AMotionEvent_getPointerId(event, motion_ptr);
+   }
+   else if (keyup)
+   {
+      ignore_ptr = motion_ptr;
+      int32_t keyup_id = AMotionEvent_getPointerId(event, motion_ptr);
+      
+      // capture quick taps
+      for (idx = 0; idx < frame.downs; idx++)
       {
-         if ( AMotionEvent_getPointerId(event,motion_pointer)
-                 == frame.id[i] )
+         if (frame.down_id[idx] == keyup_id)
          {
-            x = AMotionEvent_getX(event, motion_pointer);
-            y = AMotionEvent_getY(event, motion_pointer);
+            x = AMotionEvent_getX(event, motion_ptr);
+            y = AMotionEvent_getY(event, motion_ptr);
             
-            int16_t* p = &android->pointer[frame.taps].x;
-            input_translate_coord_viewport(x, y, p, p+1, p+2, p+3 );
+            p = &android->pointer[frame.taps];
+            input_translate_coord_viewport(x, y, &p->x, &p->y,
+                                                 &p->full_x, &p->full_y);
             
             // Ignore ellipse data for quick taps.
             reset_ellipse(frame.taps);
             
             frame.taps++;
-            frame.id[i] = -1;
+            frame.down_id[idx] = -1;
+            break;
          }
       }
    }
    
    frame.last_known_action = action;
    android->pointer_count = frame.taps;
-
-   event_pointer_count = min(AMotionEvent_getPointerCount(event), MAX_TOUCH);
-   for (motion_pointer = 0; motion_pointer < event_pointer_count; motion_pointer++)
+   
+   event_ptr_count = min(AMotionEvent_getPointerCount(event), MAX_TOUCH);
+   for (motion_ptr = 0; motion_ptr < event_ptr_count; motion_ptr++)
    {
-      if ( motion_pointer == up_pointer )
+      if ( motion_ptr == ignore_ptr )
          continue;
-      uint8_t idx = android->pointer_count;
+      idx = android->pointer_count;
       
-      x = AMotionEvent_getX(event, motion_pointer);
-      y = AMotionEvent_getY(event, motion_pointer);
+      x = AMotionEvent_getX(event, motion_ptr);
+      y = AMotionEvent_getY(event, motion_ptr);
       
-      int16_t* p = &android->pointer[idx].x;
-      input_translate_coord_viewport(x, y, p, p+1, p+2, p+3);
+      p = &android->pointer[idx];
+      input_translate_coord_viewport(x, y, &p->x, &p->y,
+                                           &p->full_x, &p->full_y);
       
-      set_ellipse(idx, AMotionEvent_getOrientation(event, motion_pointer),
-                       AMotionEvent_getTouchMajor(event, motion_pointer),
-                       AMotionEvent_getTouchMinor(event, motion_pointer));
+      set_ellipse(idx, AMotionEvent_getOrientation(event, motion_ptr),
+                       AMotionEvent_getTouchMajor(event, motion_ptr),
+                       AMotionEvent_getTouchMinor(event, motion_ptr));
       
       android->pointer_count++;
    }
@@ -696,6 +712,9 @@ static int android_input_get_id_index_from_name(android_input_t *android,
 
    return -1;
 }
+
+static int zeus_id = -1;
+static int zeus_second_id = -1;
 
 static void handle_hotplug(android_input_t *android,
       struct android_app *android_app, unsigned *port, unsigned id,
@@ -898,7 +917,7 @@ static void android_input_handle_input(void *data)
    AInputEvent *event = NULL;
    android_input_t    *android     = (android_input_t*)data;
    struct android_app *android_app = (struct android_app*)g_android;
-
+   
    /* Read all pending events. */
    while (AInputQueue_hasEvents(android_app->inputQueue))
    {
@@ -963,11 +982,13 @@ static void android_input_poll(void *data)
 {
    int ident;
    android_input_t *android = (android_input_t*)data;
+   runloop_t *runloop = rarch_main_get_ptr();
    frame.taps = 0;
    frame.downs = 0;
    frame.any_events = false;
    
-   while ((ident = ALooper_pollAll( 0, NULL, NULL, NULL)) >= 0)
+   while ((ident = ALooper_pollAll( runloop->is_paused ? -1 : 0,
+                                    NULL, NULL, NULL )) >= 0)
    {
       switch (ident)
       {
@@ -983,7 +1004,7 @@ static void android_input_poll(void *data)
       }
    }
    
-   // need to reset pointer_count since between-poll taps are added artificially
+   // reset pointer_count if no active pointers
    if (!frame.any_events && frame.last_known_action == AMOTION_EVENT_ACTION_UP)
       android->pointer_count = 0;
 }

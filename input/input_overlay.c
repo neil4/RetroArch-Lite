@@ -1474,7 +1474,7 @@ static inline uint64_t eight_way_ellipse_coverage(struct overlay_eight_way_vals*
    float boost;
    uint64_t state = UINT64_C(0);
    
-   // fallback for pointer tools or quick taps
+   // for pointer tools
    if (ellipse.major_px[pointer_index] == 0)
       return four_way_direction(vals, x_ellipse_offset, y_ellipse_offset);
    
