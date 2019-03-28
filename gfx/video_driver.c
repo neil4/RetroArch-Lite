@@ -623,7 +623,6 @@ void init_video(void)
    if (!driver->input)
       init_video_input(tmp);
 
-   event_command(EVENT_CMD_OVERLAY_DEINIT);
    event_command(EVENT_CMD_OVERLAY_INIT);
 
    video_driver_cached_frame_set(&dummy_pixels, 4, 4, 8);

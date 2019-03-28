@@ -3,6 +3,7 @@
  *  Copyright (C) 2011-2015 - Daniel De Matteis
  *  Copyright (C) 2012-2015 - Michael Lelli
  *  Copyright (C) 2013-2014 - Steven Crowe
+ *                2019 - Neil Fore
  * 
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU General Public License as published by the Free Software Found-
@@ -105,7 +106,7 @@ typedef struct android_input_poll_scratchpad
    int32_t down_id[MAX_TOUCH];
    int32_t last_known_action;  // of any poll
    uint8_t downs;  // num downs or pointer downs
-   uint8_t taps;  // quick down+up between polls
+   uint8_t taps;  // quick down+up between frames
    bool any_events;
 } android_input_poll_scratchpad_t;
 
@@ -543,8 +544,8 @@ static void *android_input_init(void)
 
    // Start the JNI thread if it isn't running.
    static pthread_t jni_thread_id = 0;
-   if ( !jni_thread_id )
-      pthread_create( &jni_thread_id, NULL, jni_thread_func, NULL );
+   if (!jni_thread_id)
+      pthread_create(&jni_thread_id, NULL, jni_thread_func, NULL);
 	  
    return android;
 }

@@ -1,6 +1,7 @@
 /*  RetroArch - A frontend for libretro.
  *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
  *  Copyright (C) 2011-2015 - Daniel De Matteis
+ *                2019 - Neil Fore
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU General Public License as published by the Free Software Found-
@@ -4302,7 +4303,7 @@ static bool setting_append_list_core_options(
          settings->video.shared_context,
          menu_hash_to_str(MENU_LABEL_SHARED_CONTEXT),
          "Shared Context",
-         false,
+         video_shared_context,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,
@@ -6989,18 +6990,6 @@ static bool setting_append_list_menu_options(
          general_write_handler,
          general_read_handler);
    CONFIG_BOOL(
-         settings->menu.show_core_menu,
-         "show_core_menu",
-         "Show Core Settings menu",
-         show_core_menu,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   CONFIG_BOOL(
          settings->menu.show_hotkey_menu,
          "show_hotkey_menu",
          "Show Input Hotkey menu",
@@ -7025,10 +7014,10 @@ static bool setting_append_list_menu_options(
          general_write_handler,
          general_read_handler);
    CONFIG_BOOL(
-         settings->menu.show_cheat_options,
-         "show_cheat_options",
-         "Show Cheat Options",
-         show_cheat_options,
+         settings->menu.show_core_menu,
+         "show_core_menu",
+         "Show Core Settings menu",
+         show_core_menu,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,
@@ -7086,7 +7075,6 @@ static bool setting_append_list_menu_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   
    CONFIG_BOOL(
          settings->menu.show_ui_menu,
          "show_ui_menu",
@@ -7102,7 +7090,18 @@ static bool setting_append_list_menu_options(
 #ifdef ANDROID
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 #endif
-   
+CONFIG_BOOL(
+         settings->menu.show_cheat_options,
+         "show_cheat_options",
+         "Show Cheat Options",
+         show_cheat_options,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    CONFIG_BOOL(
          settings->menu.show_logging_menu,
          "show_logging_menu",
@@ -7601,8 +7600,8 @@ static bool setting_append_list_netplay_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 16, 1, true, false);
-
+   menu_settings_list_current_add_range(list, list_info, 0, 16, 1, true, true);
+   
    CONFIG_BOOL(
          global->netplay_is_spectate,
          "netplay_spectator_mode_enable",

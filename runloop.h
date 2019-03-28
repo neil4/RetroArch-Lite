@@ -141,7 +141,6 @@ typedef struct global
    char overlay_dir[PATH_MAX_LENGTH];
    char osk_overlay_dir[PATH_MAX_LENGTH];
    bool overlay_lightgun_use_autotrigger;  // trigger on x,y input
-   unsigned overlay_auto_aspect_index;
 #endif
 
    bool block_patch;

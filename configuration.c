@@ -1,6 +1,7 @@
 /*  RetroArch - A frontend for libretro.
  *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
  *  Copyright (C) 2011-2015 - Daniel De Matteis
+ *                2019 - Neil Fore
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU General Public License as published by the Free Software Found-
@@ -2267,12 +2268,8 @@ bool config_save_file(const char *path)
       config_set_bool(conf, "input_overlay_adjust_vertical_lock_edges",
             settings->input.overlay_adjust_vertical_lock_edges);
    }
-   
-   if ( settings->input.vibrate_time > 0)
-      config_set_float(conf, "input_vibrate_time", settings->input.vibrate_time);
-   else
-      config_remove_entry(conf, "input_vibrate_time");
-   
+
+   config_set_float(conf, "input_vibrate_time", settings->input.vibrate_time);
 
    config_set_path(conf, "osk_overlay_directory",
          *global->osk_overlay_dir ? global->osk_overlay_dir : "default");

@@ -1,6 +1,7 @@
 /*  RetroArch - A frontend for libretro.
  *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
  *  Copyright (C) 2011-2015 - Daniel De Matteis
+ *                2019 - Neil Fore
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU General Public License as published by the Free Software Found-
@@ -207,9 +208,8 @@ static void input_overlay_scale(struct overlay *ol, float scale)
    }
 }
 
-static void input_overlay_update_auto_aspect_index(struct overlay *ol)
+static unsigned input_overlay_auto_aspect_index(struct overlay *ol)
 {
-   global_t     *global = global_get_ptr();
    size_t i, j;
    float image_aspect, ol_aspect;
    float avg_delta[OVERLAY_ASPECT_RATIO_END];
@@ -217,7 +217,7 @@ static void input_overlay_update_auto_aspect_index(struct overlay *ol)
    unsigned best_index = 0;
    
    if (!ol)
-      return;
+      return 0;
 
    for (i = 0; i < OVERLAY_ASPECT_RATIO_AUTO; i++)
    {
@@ -244,7 +244,7 @@ static void input_overlay_update_auto_aspect_index(struct overlay *ol)
       }
       else break; // overlay aspects are sorted
    }
-   global->overlay_auto_aspect_index = best_index;
+   return best_index;
 }
 
 /* Get values to adjust the overlay's aspect, re-center it, and then bisect it
@@ -252,7 +252,6 @@ static void input_overlay_update_auto_aspect_index(struct overlay *ol)
  */
 static void update_aspect_x_y_globals(struct overlay *ol)
 {
-   global_t *global = global_get_ptr();
    unsigned screen_width, screen_height;
    float overlay_aspect, bisect_aspect;
    settings_t* settings = config_get_ptr();
@@ -271,24 +270,21 @@ static void update_aspect_x_y_globals(struct overlay *ol)
    adj.display_aspect = (float)screen_width / screen_height;
 
    if (settings->input.overlay_aspect_ratio_index == OVERLAY_ASPECT_RATIO_AUTO)
-   {
-      input_overlay_update_auto_aspect_index(ol);
       overlay_aspect = overlay_aspectratio_lut
-                       [global->overlay_auto_aspect_index].value;
-   }
+                       [input_overlay_auto_aspect_index(ol)].value;
    else
       overlay_aspect = overlay_aspectratio_lut
                        [settings->input.overlay_aspect_ratio_index].value;
    
    bisect_aspect = settings->input.overlay_bisect_aspect_ratio;
-   if ( bisect_aspect > adj.display_aspect )
+   if (bisect_aspect > adj.display_aspect)
       bisect_aspect = adj.display_aspect;
 
-   if ( adj.display_aspect > overlay_aspect * 1.01 )
+   if (adj.display_aspect > overlay_aspect * 1.01)
    {  // get values to adjust overlay aspect, re-center x, and then bisect
       adj.x_aspect_factor = overlay_aspect / adj.display_aspect;
       adj.x_center_shift = (1.0f - adj.x_aspect_factor) / 2.0f;
-      if ( bisect_aspect > overlay_aspect * 1.01 )
+      if (bisect_aspect > overlay_aspect * 1.01)
       {
          adj.x_bisect_shift = (bisect_aspect/adj.display_aspect
                                + ( (1.0f - bisect_aspect/adj.display_aspect)
@@ -296,7 +292,7 @@ static void update_aspect_x_y_globals(struct overlay *ol)
                               - (adj.x_aspect_factor + adj.x_center_shift);
       }
    }
-   else if ( overlay_aspect > adj.display_aspect * 1.01 )
+   else if (overlay_aspect > adj.display_aspect * 1.01)
    {  // overlay too wide; adjust its aspect and re-center y
       adj.y_aspect_factor = adj.display_aspect / overlay_aspect;
       adj.y_center_shift = (1.0f - adj.y_aspect_factor) / 2.0f;
@@ -1086,7 +1082,7 @@ bool input_overlay_load_overlays(input_overlay_t *ol)
    {
       char conf_key[64]                  = {0};
       char overlay_full_screen_key[64]   = {0};
-      char overlay_lightgun_key[64] = {0};
+      char overlay_lightgun_key[64]      = {0};
       struct overlay            *overlay = NULL;
       bool                       to_cont = ol->pos < ol->size;
       
@@ -1289,8 +1285,8 @@ error:
 input_overlay_t *input_overlay_new(const char *path, bool enable,
       float opacity, float scale_factor)
 {
-   input_overlay_t *ol  = (input_overlay_t*)calloc(1, sizeof(*ol));
-   driver_t *driver     = driver_get_ptr();
+   input_overlay_t *ol = (input_overlay_t*)calloc(1, sizeof(*ol));
+   driver_t *driver    = driver_get_ptr();
 
    if (!ol)
       goto error;

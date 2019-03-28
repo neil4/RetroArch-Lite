@@ -52,7 +52,7 @@ sthread_t *sthread_create(void (*thread_func)(void*), void *userdata);
  * @thread                  : pointer to thread object 
  *
  * Detach a thread. When a detached thread terminates, its
- * resource sare automatically released back to the system
+ * resources are automatically released back to the system
  * without the need for another thread to join with the 
  * terminated thread.
  *

@@ -187,16 +187,16 @@ enum
 #define AUDIO_DEFAULT_DRIVER AUDIO_AL
 #elif defined(HAVE_SL)
 #define AUDIO_DEFAULT_DRIVER AUDIO_SL
-#elif defined(HAVE_DSOUND)
-#define AUDIO_DEFAULT_DRIVER AUDIO_DSOUND
+#elif defined(HAVE_XAUDIO)
+#define AUDIO_DEFAULT_DRIVER AUDIO_XAUDIO
 #elif defined(EMSCRIPTEN)
 #define AUDIO_DEFAULT_DRIVER AUDIO_RWEBAUDIO
 #elif defined(HAVE_SDL)
 #define AUDIO_DEFAULT_DRIVER AUDIO_SDL
 #elif defined(HAVE_SDL2)
 #define AUDIO_DEFAULT_DRIVER AUDIO_SDL2
-#elif defined(HAVE_XAUDIO)
-#define AUDIO_DEFAULT_DRIVER AUDIO_XAUDIO
+#elif defined(HAVE_DSOUND)
+#define AUDIO_DEFAULT_DRIVER AUDIO_DSOUND
 #elif defined(HAVE_RSOUND)
 #define AUDIO_DEFAULT_DRIVER AUDIO_RSOUND
 #elif defined(HAVE_ROAR)
@@ -415,7 +415,7 @@ static unsigned swap_interval = 1;
 static const bool video_threaded = false;
 
 /* Set to true if HW render cores should get their private context. */
-static const bool video_shared_context = false;
+static const bool video_shared_context = true;
 
 /* Sets GC/Wii screen width. */
 static const unsigned video_viwidth = 640;
