@@ -26,6 +26,7 @@
 #include "autosave.h"
 #include "dynamic.h"
 #include "intl/intl.h"
+#include "tasks/tasks.h"
 
 struct delta_frame
 {
@@ -39,6 +40,7 @@ struct delta_frame
    bool used_real;
 };
 
+#define RARCH_DEFAULT_PORT 55435
 #define UDP_FRAME_PACKETS 16
 #define MAX_SPECTATORS 16
 
@@ -48,6 +50,8 @@ struct delta_frame
 
 #define PREV_PTR(x) ((x) == 0 ? netplay->buffer_size - 1 : (x) - 1)
 #define NEXT_PTR(x) ((x + 1) % netplay->buffer_size)
+
+#define RETRY_MS 500
 
 struct netplay
 {
@@ -202,6 +206,14 @@ static bool get_self_input_state(netplay_t *netplay)
          state |= tmp ? 1 << i : 0;
       }
    }
+   else if (netplay->frame_count == 0)
+   {
+      if (!netplay_connect(netplay))
+      {
+         deinit_netplay();
+         return false;
+      }
+   }
 
    memmove(netplay->packet_buffer, netplay->packet_buffer + 2,
          sizeof (netplay->packet_buffer) - 2 * sizeof(uint32_t));
@@ -294,8 +306,44 @@ static bool netplay_get_cmd(netplay_t *netplay)
    return netplay_cmd_nak(netplay);
 }
 
-#define MAX_RETRIES 16
-#define RETRY_MS 500
+static bool hold_B_to_cancel_iterate(const unsigned hold_limit)
+{
+   settings_t *settings       = config_get_ptr();
+   driver_t *driver           = driver_get_ptr();
+   netplay_t *netplay         = (netplay_t*)driver->netplay_data;
+   char msg[64]               = {0};
+   static unsigned hold_count;
+   
+#ifdef HAVE_OVERLAY
+   accelerate_overlay_load();
+#endif
+   
+   netplay->cbs.poll_cb();
+   if (input_driver_key_pressed(settings->menu_cancel_btn))
+      hold_count--;
+   else
+      hold_count = hold_limit;
+
+   if (hold_count == hold_limit)
+      strlcpy(msg, "Waiting for peer...\n"
+                   "Hold Back key to disconnect", sizeof(msg));
+   else if (hold_count > 0)
+      snprintf(msg, sizeof(msg), "Waiting for peer...\n"
+                                 "Hold for %u", hold_count);
+   else
+      strlcpy(msg, "Disconnecting...", sizeof(msg));
+
+   rarch_main_msg_queue_push(msg, 1, 50, true);
+   video_driver_cached_frame();
+   
+   if (hold_count == 0)
+   {
+      hold_count = hold_limit;
+      return true;
+   }
+   else
+      return false;
+}
 
 static int poll_input(netplay_t *netplay, bool block)
 {
@@ -339,10 +387,13 @@ static int poll_input(netplay_t *netplay, bool block)
          deinit_netplay();
          return -1;
       }
+      
+      if (hold_B_to_cancel_iterate(6))
+         return -1;
 
-      RARCH_LOG("Network is stalling, resending packet... Count %u of %d ...\n",
-            netplay->timeout_cnt, MAX_RETRIES);
-   } while ((netplay->timeout_cnt < MAX_RETRIES) && block);
+      RARCH_LOG("Network is stalling, resending packet... Attempt # %u\n",
+                netplay->timeout_cnt);
+   } while (block);
 
    if (block)
       return -1;
@@ -410,9 +461,6 @@ static void simulate_input(netplay_t *netplay)
 static bool netplay_poll(netplay_t *netplay)
 {
    int res;
-
-   if (!netplay->has_connection)
-      return false;
 
    netplay->can_poll = false;
 
@@ -625,6 +673,45 @@ static void log_connection(const struct sockaddr_storage *their_addr,
 }
 #endif
 
+static void set_tcp_nodelay(int fd)
+{
+#if defined(IPPROTO_TCP) && defined(TCP_NODELAY)
+   int flag = 1;
+   if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
+#ifdef _WIN32
+      (const char*)
+#else
+      (const void*)
+#endif
+      &flag,
+      sizeof(int)) < 0)
+#endif
+      RARCH_WARN("Could not set netplay TCP socket to nodelay. Expect jitter.\n");
+}
+
+/* Wait until host cancels. Return true if connected. */
+static bool wait_for_client(int *fd, struct sockaddr *other_addr,
+                                            socklen_t *addr_size)
+{
+   fd_set fds;
+   struct timeval tmp_tv   = {0};
+   
+   while(true)
+   {
+      FD_ZERO(&fds);
+      FD_SET(*fd, &fds);
+      if ( socket_select(*fd + 1, &fds, NULL, NULL, &tmp_tv) > 0
+           && FD_ISSET(*fd, &fds) )
+         return true;
+      else if (hold_B_to_cancel_iterate(4))
+         return false;
+      
+      rarch_sleep(RETRY_MS);
+   }
+   
+   return false;
+}
+
 static int init_tcp_connection(const struct addrinfo *res,
       bool server, bool spectate,
       struct sockaddr *other_addr, socklen_t addr_size)
@@ -640,6 +727,11 @@ static int init_tcp_connection(const struct addrinfo *res,
 
    if (server)
    {
+      struct timeval timeout;
+      timeout.tv_sec  = 4;
+      timeout.tv_usec = 0;
+      setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof timeout);
+      set_tcp_nodelay(fd);
       if (connect(fd, res->ai_addr, res->ai_addrlen) < 0)
       {
          ret = false;
@@ -660,15 +752,19 @@ static int init_tcp_connection(const struct addrinfo *res,
 
       if (!spectate)
       {
-         int new_fd = accept(fd, other_addr, &addr_size);
-         if (new_fd < 0)
+         if (wait_for_client(&fd, other_addr, &addr_size))
          {
-            ret = false;
-            goto end;
-         }
+            int new_fd = accept(fd, other_addr, &addr_size);
+            if (new_fd < 0)
+            {
+               ret = false;
+               goto end;
+            }
 
-         socket_close(fd);
-         fd = new_fd;
+            socket_close(fd);
+            fd = new_fd;
+            set_tcp_nodelay(fd);
+         }
       }
    }
 
@@ -789,7 +885,7 @@ static bool init_udp_socket(netplay_t *netplay, const char *server,
       freeaddrinfo_rarch(netplay->addr);
       netplay->addr = NULL;
    }
-
+   
    return true;
 }
 
@@ -1151,27 +1247,22 @@ static bool init_buffers(netplay_t *netplay)
 /**
  * netplay_new:
  * @server               : IP address of server.
- * @port                 : Port of server.
- * @frames               : Amount of lag frames.
  * @cb                   : Libretro callbacks.
  * @spectate             : If true, enable spectator mode.
  * @nick                 : Nickname of user.
+ * @cb                   : set by retro_set_default_callbacks
  *
  * Creates a new netplay handle. A NULL host means we're 
  * hosting (user 1).
  *
  * Returns: new netplay handle.
  **/
-netplay_t *netplay_new(const char *server, uint16_t port,
-      unsigned frames, const struct retro_callbacks *cb,
-      bool spectate,
-      const char *nick)
+netplay_t *netplay_new(const char *server, bool spectate, const char *nick,
+                       const struct retro_callbacks *cb)
 {
-   unsigned i;
+   global_t *global   = global_get_ptr();
    netplay_t *netplay = NULL;
-
-   if (frames > UDP_FRAME_PACKETS)
-      frames = UDP_FRAME_PACKETS;
+   unsigned frames = global->netplay_sync_frames;
 
    netplay = (netplay_t*)calloc(1, sizeof(*netplay));
    if (!netplay)
@@ -1184,14 +1275,34 @@ netplay_t *netplay_new(const char *server, uint16_t port,
    netplay->spectate        = spectate;
    netplay->spectate_client = server != NULL;
    strlcpy(netplay->nick, nick, sizeof(netplay->nick));
+   
+   if (frames > UDP_FRAME_PACKETS)
+      frames = UDP_FRAME_PACKETS;
+   netplay->buffer_size = frames + 1;
 
-   if (!init_socket(netplay, server, port))
+   if (!init_buffers(netplay))
    {
-      free(netplay);
-      return NULL;
+      netplay_free(netplay);
+      netplay = NULL;
    }
 
-   if (spectate)
+   return netplay;
+}
+
+bool netplay_connect(netplay_t *netplay)
+{
+   global_t *global = global_get_ptr();
+   unsigned i;
+   char* server = global->netplay_is_client ? global->netplay_server : NULL;
+   uint16_t port = global->netplay_port ? global->netplay_port : RARCH_DEFAULT_PORT;
+
+   if (!netplay)
+      return false;
+
+   if (!init_socket(netplay, server, port))
+      goto error;
+
+   if (netplay->spectate)
    {
       if (server)
       {
@@ -1215,15 +1326,10 @@ netplay_t *netplay_new(const char *server, uint16_t port,
             goto error;
       }
 
-      netplay->buffer_size = frames + 1;
-
-      if (!init_buffers(netplay))
-         goto error;
-
       netplay->has_connection = true;
    }
 
-   return netplay;
+   return true;
 
 error:
    if (netplay->fd >= 0)
@@ -1231,8 +1337,12 @@ error:
    if (netplay->udp_fd >= 0)
       socket_close(netplay->udp_fd);
 
-   free(netplay);
-   return NULL;
+   RARCH_WARN(RETRO_LOG_INIT_NETPLAY_FAILED);
+   rarch_main_msg_queue_push(
+         RETRO_MSG_INIT_NETPLAY_FAILED,
+         0, 180, false);
+
+   return false;
 }
 
 static bool netplay_send_cmd(netplay_t *netplay, uint32_t cmd,
@@ -1642,7 +1752,7 @@ static void netplay_mask_unmask_config(bool starting)
    static bool menu_pause_libretro;
    
    if (starting && !has_started)
-   {  // mask
+   {  /* mask */
       video_frame_delay = settings->video.frame_delay;
       settings->video.frame_delay = 0;
       
@@ -1652,7 +1762,7 @@ static void netplay_mask_unmask_config(bool starting)
       has_started = true;
    }
    else if (has_started)
-   {  // unmask
+   {  /* unmask */
       settings->video.frame_delay = video_frame_delay;
       settings->menu.pause_libretro = menu_pause_libretro;
       has_started = false;
@@ -1682,8 +1792,6 @@ void deinit_netplay(void)
    retro_init_libretro_cbs(&driver->retro_ctx);
 }
 
-#define RARCH_DEFAULT_PORT 55435
-
 /**
  * init_netplay:
  *
@@ -1693,7 +1801,6 @@ void deinit_netplay(void)
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
-
 bool init_netplay(void)
 {
    struct retro_callbacks cbs = {0};
@@ -1713,15 +1820,13 @@ bool init_netplay(void)
    retro_set_default_callbacks(&cbs);
 
    if (global->netplay_is_client)
-      RARCH_LOG("Connecting to netplay host...\n");
+      RARCH_LOG_FORCE("Connecting to netplay host...\n");
    else
       RARCH_LOG_FORCE("Waiting for client...\n");
 
    driver->netplay_data = (netplay_t*)netplay_new(
          global->netplay_is_client ? global->netplay_server : NULL,
-         global->netplay_port ? global->netplay_port : RARCH_DEFAULT_PORT,
-         global->netplay_sync_frames, &cbs, global->netplay_is_spectate,
-         settings->username);
+         global->netplay_is_spectate, settings->username, &cbs);
 
    if (driver->netplay_data)
    {
@@ -1729,7 +1834,6 @@ bool init_netplay(void)
       return true;
    }
 
-   global->netplay_is_client = false;
    RARCH_WARN(RETRO_LOG_INIT_NETPLAY_FAILED);
 
    rarch_main_msg_queue_push(

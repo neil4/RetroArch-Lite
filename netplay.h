@@ -47,21 +47,26 @@ int16_t input_state_spectate_client(unsigned port, unsigned device,
 /**
  * netplay_new:
  * @server               : IP address of server.
- * @port                 : Port of server.
- * @frames               : Amount of lag frames.
  * @cb                   : Libretro callbacks.
  * @spectate             : If true, enable spectator mode.
  * @nick                 : Nickname of user.
+ * @cb                   : set by retro_set_default_callbacks
  *
  * Creates a new netplay handle. A NULL host means we're 
  * hosting (user 1).
  *
  * Returns: new netplay handle.
  **/
-netplay_t *netplay_new(const char *server,
-      uint16_t port, unsigned frames,
-      const struct retro_callbacks *cb, bool spectate,
-      const char *nick);
+netplay_t *netplay_new(const char *server, bool spectate, const char *nick,
+                       const struct retro_callbacks *cb);
+
+/**
+ * netplay_connect
+ * @param netplay        : handle created by netplay_new
+ * 
+ * @return true if successful
+ */
+bool netplay_connect(netplay_t *netplay);
 
 /**
  * netplay_free:

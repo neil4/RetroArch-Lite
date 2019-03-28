@@ -77,4 +77,20 @@ void rarch_main_data_overlay_iterate(void *data)
 end: ;
 }
 
+void accelerate_overlay_load()
+{
+   driver_t *driver        = driver_get_ptr();
+   data_runloop_t *runloop = rarch_main_data_get_ptr();
+   unsigned watchdog       = 1024;
+
+   while ( driver->overlay->state != OVERLAY_STATUS_ALIVE
+           && driver->overlay->state != OVERLAY_STATUS_DEFERRED_ERROR
+           && driver->overlay->state != OVERLAY_STATUS_NONE
+           && --watchdog != 0 )
+   {
+      rarch_main_data_overlay_iterate(runloop);
+      rarch_main_data_overlay_image_upload_iterate(runloop);
+   }
+}
+
 #endif  // HAVE_OVERLAY
