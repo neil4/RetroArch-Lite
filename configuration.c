@@ -649,7 +649,7 @@ static void config_set_defaults(void)
    settings->input.input_descriptor_hide_unbound    = input_descriptor_hide_unbound;
    settings->input.remap_binds_enable               = true;
    settings->input.max_users                        = 2;
-   settings->input.rumble_enable                    = true;
+   settings->input.rumble_enable                    = false;
 
    rarch_assert(sizeof(settings->input.binds[0]) >= sizeof(retro_keybinds_1));
    rarch_assert(sizeof(settings->input.binds[1]) >= sizeof(retro_keybinds_rest));
@@ -885,7 +885,7 @@ static void config_set_defaults(void)
 #endif
 
 #ifdef HAVE_NETPLAY
-   global->netplay_sync_frames = 2;
+   global->netplay_sync_frames = netplay_sync_frames;
 #endif
 
    if (*g_defaults.config_path)

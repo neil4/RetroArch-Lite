@@ -471,10 +471,12 @@ static bool show_overlay_menu = false;
 static bool show_overlay_menu = true;
 #endif
 static float overlay_opacity = 0.4f;
+static const unsigned input_vibrate_time = 5;
 #endif
 static bool show_frame_throttle_menu = false;
 #ifdef HAVE_NETPLAY
 static bool show_netplay_menu = true;
+static unsigned netplay_sync_frames = 1;
 #endif
 static bool show_saving_menu = false;
 static bool show_core_menu = false;
@@ -700,8 +702,6 @@ static const bool input_descriptor_label_show = true;
 
 static const bool input_descriptor_hide_unbound = false;
 
-static const unsigned input_vibrate_time = 5;
-
 #if defined(ANDROID)
 #if defined(ANDROID_ARM)
 static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/armeabi-v7a/";
@@ -775,6 +775,7 @@ static const struct retro_keybind retro_keybinds_1[] = {
    { true, RARCH_TURBO_ENABLE,            RETRO_LBL_TURBO_ENABLE,          RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_TOGGLE_HOTKEYS,          RETRO_LBL_TOGGLE_HOTKEYS,        RETROK_SCROLLOCK, NO_BTN, 0, AXIS_NONE },
    
+   { true, RARCH_ENABLE_HOTKEY,           RETRO_LBL_ENABLE_HOTKEY,         RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_FAST_FORWARD_KEY,        RETRO_LBL_FAST_FORWARD_KEY,      RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_FAST_FORWARD_HOLD_KEY,   RETRO_LBL_FAST_FORWARD_HOLD_KEY, RETROK_SPACE,   NO_BTN, 0, AXIS_NONE },
    { true, RARCH_LOAD_STATE_KEY,          RETRO_LBL_LOAD_STATE_KEY,        RETROK_F4,      NO_BTN, 0, AXIS_NONE },
@@ -798,7 +799,6 @@ static const struct retro_keybind retro_keybinds_1[] = {
    { true, RARCH_OSK,                     RETRO_LBL_OSK,                   RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_NETPLAY_FLIP,            RETRO_LBL_NETPLAY_FLIP,          RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_SLOWMOTION,              RETRO_LBL_SLOWMOTION,            RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
-   { true, RARCH_ENABLE_HOTKEY,           RETRO_LBL_ENABLE_HOTKEY,         RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_VOLUME_UP,               RETRO_LBL_VOLUME_UP,             RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_VOLUME_DOWN,             RETRO_LBL_VOLUME_DOWN,           RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_OVERLAY_NEXT,            RETRO_LBL_OVERLAY_NEXT,          RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },

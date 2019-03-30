@@ -195,9 +195,9 @@ static int action_iterate_help(char *s, size_t len, const char *label)
 
          "To run content:\n"
          "Load a libretro core (Load Core).\n"
-         "Load a content file (Load ROM).     \n"
+         "Load a content file (Load ROM).\n"
          " \n"
-         "See Path Settings to set directories \n"
+         "See Path Settings to set directories\n"
          "for faster access to files.\n"
          " \n"
 

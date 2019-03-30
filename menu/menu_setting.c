@@ -7594,7 +7594,7 @@ static bool setting_append_list_netplay_options(
          global->netplay_sync_frames,
          "netplay_delay_frames",
          "Input Delay Frames",
-         2,
+         netplay_sync_frames,
          group_info.name,
          subgroup_info.name,
          parent_group,
