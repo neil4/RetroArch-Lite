@@ -12,7 +12,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBar.TabListener;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 
 import com.retroarchlite64.R;
 import com.retroarch.browser.preferences.fragments.AudioVideoPreferenceFragment;
@@ -23,12 +23,12 @@ import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
 import com.retroarch.browser.preferences.util.UserPreferences;
 
 /**
- * {@link ActionBarActivity} responsible for handling all of the {@link PreferenceListFragment}s.
+ * {@link AppCompatActivity} responsible for handling all of the {@link PreferenceListFragment}s.
  * <p>
  * This class can be considered the central activity for the settings, as this class
  * provides the backbone for the {@link ViewPager} that handles all of the fragments being used.
  */
-public final class PreferenceActivity extends ActionBarActivity implements TabListener, OnSharedPreferenceChangeListener
+public final class PreferenceActivity extends AppCompatActivity implements TabListener, OnSharedPreferenceChangeListener
 {
    // ViewPager for the fragments.
    private ViewPager viewPager;

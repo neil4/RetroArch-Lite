@@ -16,14 +16,14 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBar.TabListener;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import java.io.File;
 
 /**
  * Activity which provides the base for viewing installed cores,
  * as well as the ability to download other cores.
  */
-public final class CoreManagerActivity extends ActionBarActivity implements DownloadableCoresFragment.OnCoreDownloadedListener, LocalCoresFragment.OnCoreDownloadedListener, TabListener
+public final class CoreManagerActivity extends AppCompatActivity implements DownloadableCoresFragment.OnCoreDownloadedListener, LocalCoresFragment.OnCoreDownloadedListener, TabListener
 {
    // ViewPager for the fragments
    private ViewPager viewPager;

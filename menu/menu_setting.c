@@ -1787,6 +1787,25 @@ static void setting_get_string_representation_abxy_diag_sens(void *data,
    }
 }
 
+static void setting_get_string_representation_magnify_contact_area(void *data,
+      char *s, size_t len)
+{
+   settings_t     *settings = config_get_ptr();
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting && settings)
+   {
+      if (settings->input.abxy_method != VECTOR
+          || settings->input.dpad_method != VECTOR)
+      {
+         sprintf(s, "%.1fx", *setting->value.fraction);
+      }
+      else
+      {
+         strcpy(s, "N/A");
+      }
+   }
+}
+
 static void setting_get_string_representation_dpad_diag_sens(void *data,
       char *s, size_t len)
 {
@@ -6491,35 +6510,34 @@ static bool setting_append_list_overlay_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
    
-   if (settings->input.abxy_method != VECTOR
-       || settings->input.dpad_method != VECTOR)
-   {
-      CONFIG_FLOAT(
-            settings->input.touch_ellipse_magnify,
-            "input_touch_ellipse_magnify",
-            "Magnify Touch Contact Area",
-            1.0f,
-            "%.1fx",
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.2f, true, true);
-      CONFIG_FLOAT(
-            settings->input.touch_ellipse_multitouch_boost,
-            "input_touch_ellipse_multitouch_boost",
-            "  MultiTouch Boost",
-            1.0f,
-            "%.1fx",
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 0.5f, 3.0f, 0.1f, true, true);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   }
+   CONFIG_FLOAT(
+         settings->input.touch_ellipse_magnify,
+         "input_touch_ellipse_magnify",
+         "Magnify Touch Contact Area",
+         1.0f,
+         "%.1fx",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.2f, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_magnify_contact_area;
+
+   CONFIG_FLOAT(
+         settings->input.touch_ellipse_multitouch_boost,
+         "input_touch_ellipse_multitouch_boost",
+         "  MultiTouch Boost",
+         1.0f,
+         "%.1fx",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0.5f, 3.0f, 0.1f, true, true);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    if (driver && driver->input && driver->input->overlay_haptic_feedback)
    {
