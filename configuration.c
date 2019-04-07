@@ -835,9 +835,9 @@ static void config_set_defaults(void)
       fill_pathname_expand_special(global->osk_overlay_dir,
             g_defaults.osk_overlay_dir, sizeof(global->osk_overlay_dir));
 #ifdef RARCH_MOBILE
-      if (!*settings->input.overlay)
+      if (!*settings->osk.overlay)
             fill_pathname_join(settings->osk.overlay,
-                  global->overlay_dir, "",
+                  global->osk_overlay_dir, "/modular-keyboard/big.cfg",
                   sizeof(settings->osk.overlay));
 #endif
    }

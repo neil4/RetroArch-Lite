@@ -1,0 +1,79 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
+
+    defaultConfig {
+        applicationId "com.retroarchlite"
+        minSdkVersion 18
+        targetSdkVersion 28
+
+        ndk {
+            moduleName "retroarch-jni"
+        }
+
+        externalNativeBuild {
+            ndkBuild {
+                arguments "-j${Runtime.runtime.availableProcessors()}"
+            }
+        }
+    }
+
+    flavorDimensions "abi"
+    productFlavors {
+        ral32 {
+            dimension "abi"
+            ndk {
+                abiFilters 'armeabi-v7a'
+            }
+            resValue "string", "app_name", "RetroArch Lite"
+            resValue "string", "app_id", "com.retroarchlite"
+            resValue "string", "shared_app_id", "com.retroarchlite64"
+        }
+        ral64 {
+            dimension "abi"
+            ndk {
+                abiFilters 'arm64-v8a'
+            }
+            setApplicationId("com.retroarchlite64")
+            resValue "string", "app_name", "RetroArch Lite (64-bit)"
+            resValue "string", "app_id", "com.retroarchlite64"
+            resValue "string", "shared_app_id", "com.retroarchlite"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+    externalNativeBuild {
+        ndkBuild {
+            path file('src/main/jni/Android.mk')
+        }
+    }
+
+    sourceSets {
+        ral32 {
+            res.srcDirs = ['res', 'libs/googleplay/res']
+        }
+        ral64 {
+            res.srcDirs = ['res', 'libs/googleplay/res']
+        }
+    }
+
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+    dependencies {
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation files('libs/googleplay/libs/google-play-services.jar')
+    implementation files('libs/jsoup-1.8.1.jar')
+}
+}

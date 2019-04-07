@@ -1,8 +1,0 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/go_to_libretrodocs_ctx_item"
-          android:title="@string/downloadable_cores_ctx_goto_libretrodocs"/>
-    <item android:id="@+id/sort_by_name"
-          android:title="@string/downloadable_cores_ctx_sort_by_name"/>
-    <item android:id="@+id/sort_by_system"
-          android:title="@string/downloadable_cores_ctx_sort_by_system"/>
-</menu>
