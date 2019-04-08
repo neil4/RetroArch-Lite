@@ -90,9 +90,9 @@ public final class DownloadableCoresFragment extends ListFragment
       super.onCreateView(inflater, container, savedInstanceState);
       final ListView coreList = (ListView) inflater.inflate(R.layout.coremanager_listview, container, false);
       registerForContextMenu(coreList);
-      
-      final String sharedId = getString(R.string.app_id);
-      if (sharedId.endsWith("64"))
+
+      final String appId = getString(R.string.app_id);
+      if (appId.endsWith("64"))
       {
          BUILDBOT_CORE_URL_ARM += "arm64-v8a/";
          BUILDBOT_CORE_URL_INTEL += "x86_64/";

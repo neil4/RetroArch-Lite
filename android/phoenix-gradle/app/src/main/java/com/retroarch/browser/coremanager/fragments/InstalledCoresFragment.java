@@ -54,6 +54,10 @@ import java.net.URLConnection;
  */
 public final class InstalledCoresFragment extends ListFragment
 {
+   public final String BUILDBOT_BASE_URL = "http://buildbot.libretro.com";
+   public String BUILDBOT_CORE_URL_ARM = BUILDBOT_BASE_URL + "/nightly/android/latest/";
+   public String BUILDBOT_CORE_URL_INTEL = BUILDBOT_BASE_URL + "/nightly/android/latest/";
+
    // Callback for the interface.
    private OnCoreItemClickedListener callback;
 
@@ -94,6 +98,18 @@ public final class InstalledCoresFragment extends ListFragment
       super.onViewCreated(view, savedInstanceState);
 
       registerForContextMenu(getListView());
+
+      final String appId = getString(R.string.app_id);
+      if (appId.endsWith("64"))
+      {
+         BUILDBOT_CORE_URL_ARM += "arm64-v8a/";
+         BUILDBOT_CORE_URL_INTEL += "x86_64/";
+      }
+      else
+      {
+         BUILDBOT_CORE_URL_ARM += "armeabi-v7a/";
+         BUILDBOT_CORE_URL_INTEL += "x86/";
+      }
    }
    
    @Override
@@ -330,8 +346,7 @@ public final class InstalledCoresFragment extends ListFragment
    {
       final String coreFileName = adapter.getItem(position).getUnderlyingFile().getName();
       final String coreURL = (Build.CPU_ABI.startsWith("arm") ?
-                              DownloadableCoresFragment.BUILDBOT_CORE_URL_ARM
-                              : DownloadableCoresFragment.BUILDBOT_CORE_URL_INTEL)
+                              BUILDBOT_CORE_URL_ARM : BUILDBOT_CORE_URL_INTEL)
                              + coreFileName.concat(".zip");
 
       final DownloadableCore core = new DownloadableCore(adapter.getItem(position).getText(), "", coreURL);
