@@ -634,11 +634,8 @@ bool audio_driver_flush(const int16_t *data, size_t samples)
    if (!driver->audio_active || !audio_data.data)
       return false;
 
-   RARCH_PERFORMANCE_INIT(audio_convert_s16);
-   RARCH_PERFORMANCE_START(audio_convert_s16);
    audio_convert_s16_to_float(audio_data.data, data, samples,
          audio_data.volume_gain);
-   RARCH_PERFORMANCE_STOP(audio_convert_s16);
 
    src_data.data_in               = audio_data.data;
    src_data.input_frames          = samples >> 1;
@@ -648,10 +645,7 @@ bool audio_driver_flush(const int16_t *data, size_t samples)
 
    if (audio_data.dsp)
    {
-      RARCH_PERFORMANCE_INIT(audio_dsp);
-      RARCH_PERFORMANCE_START(audio_dsp);
       rarch_dsp_filter_process(audio_data.dsp, &dsp_data);
-      RARCH_PERFORMANCE_STOP(audio_dsp);
 
       if (dsp_data.output)
       {
@@ -669,22 +663,16 @@ bool audio_driver_flush(const int16_t *data, size_t samples)
    if (runloop->is_slowmotion)
       src_data.ratio *= settings->slowmotion_ratio;
 
-   RARCH_PERFORMANCE_INIT(resampler_proc);
-   RARCH_PERFORMANCE_START(resampler_proc);
    rarch_resampler_process(driver->resampler,
          driver->resampler_data, &src_data);
-   RARCH_PERFORMANCE_STOP(resampler_proc);
 
    output_data   = audio_data.outsamples;
    output_frames = src_data.output_frames;
 
    if (!audio_data.use_float)
    {
-      RARCH_PERFORMANCE_INIT(audio_convert_float);
-      RARCH_PERFORMANCE_START(audio_convert_float);
       audio_convert_float_to_s16(audio_data.conv_outsamples,
             (const float*)output_data, output_frames * 2);
-      RARCH_PERFORMANCE_STOP(audio_convert_float);
 
       output_data = audio_data.conv_outsamples;
       output_size = sizeof(int16_t);

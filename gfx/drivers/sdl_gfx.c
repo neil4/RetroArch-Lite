@@ -359,10 +359,7 @@ static bool sdl_gfx_frame(void *data, const void *frame, unsigned width,
    if (SDL_MUSTLOCK(vid->screen))
       SDL_LockSurface(vid->screen);
 
-   RARCH_PERFORMANCE_INIT(sdl_scale);
-   RARCH_PERFORMANCE_START(sdl_scale);
    scaler_ctx_scale(&vid->scaler, vid->screen->pixels, frame);
-   RARCH_PERFORMANCE_STOP(sdl_scale);
 
    if (vid->menu.active)
       SDL_BlitSurface(vid->menu.frame, NULL, vid->screen, NULL);

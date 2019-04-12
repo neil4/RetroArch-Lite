@@ -57,7 +57,7 @@ public final class LocalCoresFragment extends ListFragment
    }
 
    private String localCoresDir;
-   public static String defaultLocalCoresDir = Environment.getExternalStorageDirectory().getPath() + "/RetroArchLite/";
+   public static String defaultLocalCoresDir = Environment.getExternalStorageDirectory().getPath() + "/RetroArchLite/cores32";
    
    private ListView coreList = null;
    private OnCoreDownloadedListener coreDownloadedListener = null;
@@ -73,7 +73,8 @@ public final class LocalCoresFragment extends ListFragment
    {
       super.onCreateView(inflater, container, savedInstanceState);
       final String sharedId = getString(R.string.app_id);
-      defaultLocalCoresDir += sharedId.contains("64") ? "cores64" : "cores32";
+      if (sharedId.contains("64"))
+         defaultLocalCoresDir = defaultLocalCoresDir.replace("cores32", "cores64");
       sharedSettings = UserPreferences.getPreferences(getActivity());
       localCoresDir = sharedSettings.getString("backup_cores_directory",
                                                defaultLocalCoresDir);

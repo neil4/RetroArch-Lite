@@ -316,9 +316,6 @@ static bool vg_frame(void *data, const void *frame,
    unsigned width, height;
    vg_t                    *vg = (vg_t*)data;
 
-   RARCH_PERFORMANCE_INIT(vg_fr);
-   RARCH_PERFORMANCE_START(vg_fr);
-
    video_driver_get_size(&width, &height);
 
    if (frame_width != vg->mRenderWidth || frame_height != vg->mRenderHeight || vg->should_resize)
@@ -341,10 +338,7 @@ static bool vg_frame(void *data, const void *frame,
    vgClear(0, 0, width, height);
    vgSeti(VG_SCISSORING, VG_TRUE);
 
-   RARCH_PERFORMANCE_INIT(vg_image);
-   RARCH_PERFORMANCE_START(vg_image);
    vg_copy_frame(vg, frame, frame_width, frame_height, pitch);
-   RARCH_PERFORMANCE_STOP(vg_image);
 
    vgDrawImage(vg->mImage);
 
@@ -354,8 +348,6 @@ static bool vg_frame(void *data, const void *frame,
 #endif
 
    gfx_ctx_update_window_title(vg);
-
-   RARCH_PERFORMANCE_STOP(vg_fr);
 
    gfx_ctx_swap_buffers(vg);
 

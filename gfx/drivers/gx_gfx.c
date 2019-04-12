@@ -1038,9 +1038,6 @@ static bool gx_frame(void *data, const void *frame,
    u8 clear_efb             = GX_FALSE;
    settings_t *settings     = config_get_ptr();
 
-   RARCH_PERFORMANCE_INIT(gx_frame);
-   RARCH_PERFORMANCE_START(gx_frame);
-
    if(!gx || (!frame && !gx->menu_texture_enable))
       return true;
 
@@ -1072,9 +1069,6 @@ static bool gx_frame(void *data, const void *frame,
 
    if (frame)
    {
-      RARCH_PERFORMANCE_INIT(gx_frame_convert);
-      RARCH_PERFORMANCE_START(gx_frame_convert);
-
       if (gx->rgb32)
          convert_texture32(frame, g_tex.data, width, height, pitch);
       else if (gx->menu_texture_enable)
@@ -1082,8 +1076,6 @@ static bool gx_frame(void *data, const void *frame,
       else
          convert_texture16(frame, g_tex.data, width, height, pitch);
       DCFlushRange(g_tex.data, height * (width << (gx->rgb32 ? 2 : 1)));
-
-      RARCH_PERFORMANCE_STOP(gx_frame_convert);
    }
 
    if (gx->menu_texture_enable && gx->menu_data)
@@ -1159,8 +1151,6 @@ static bool gx_frame(void *data, const void *frame,
    __GX_Flush(__gx);
    VISetNextFrameBuffer(g_framebuf[g_current_framebuf]);
    VIFlush();
-
-   RARCH_PERFORMANCE_STOP(gx_frame);
 
    gx->frame_count++;
 

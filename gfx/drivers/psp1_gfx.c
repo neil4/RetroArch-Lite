@@ -528,9 +528,6 @@ static bool psp_frame(void *data, const void *frame,
    psp->draw_buffer = FROM_GU_POINTER(sceGuSwapBuffers());
    psp->frame_count++;
 
-   RARCH_PERFORMANCE_INIT(psp_frame_run);
-   RARCH_PERFORMANCE_START(psp_frame_run);
-
    if (psp->should_resize)
       psp_update_viewport(psp);
 
@@ -561,8 +558,6 @@ static bool psp_frame(void *data, const void *frame,
    }
 
    sceGuFinish();
-
-   RARCH_PERFORMANCE_STOP(psp_frame_run);
 
    if(psp->menu.active)
    {

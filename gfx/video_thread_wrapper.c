@@ -503,9 +503,6 @@ static bool thread_frame(void *data, const void *frame_,
       return false;
    }
 
-   RARCH_PERFORMANCE_INIT(thr_frame);
-   RARCH_PERFORMANCE_START(thr_frame);
-
    copy_stride = width * (thr->info.rgb32 
          ? sizeof(uint32_t) : sizeof(uint16_t));
 
@@ -572,8 +569,6 @@ static bool thread_frame(void *data, const void *frame_,
       thr->miss_count++;
 
    slock_unlock(thr->lock);
-
-   RARCH_PERFORMANCE_STOP(thr_frame);
 
    thr->last_time = rarch_get_time_usec();
    return true;

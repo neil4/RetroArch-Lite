@@ -226,6 +226,25 @@ static int rarch_main_data_http_conn_iterate_transfer_parse(http_handle_t *http)
    return rv;
 }
 
+/**
+ * rarch_main_data_http_cancel_transfer:
+ *
+ * Cancels HTTP transfer
+ **/
+static void rarch_main_data_http_cancel_transfer(void *data, const char* msg)
+{
+   http_handle_t *http = (http_handle_t*)data;
+   
+   menu_entries_unset_nonblocking_refresh();
+
+   net_http_delete(http->handle);
+   http->handle = NULL;
+   http->status = HTTP_STATUS_POLL;
+   
+   if (msg)
+      rarch_main_msg_queue_push(msg, 1, 180, false);
+}
+
 static int rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
 {
    bool rv = true;
@@ -240,26 +259,9 @@ static int rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
 
    http->handle = NULL;
 
+   if (!rv)
+      rarch_main_data_http_cancel_transfer(http, "Connection Failed");
    return rv;
-}
-
-/**
- * rarch_main_data_http_iterate_cancel:
- *
- * Cancels HTTP transfer
- **/
-static void rarch_main_data_http_iterate_cancel(void *data, const char* msg)
-{
-   http_handle_t *http = (http_handle_t*)data;
-   
-   menu_entries_unset_nonblocking_refresh();
-
-   net_http_delete(http->handle);
-   http->handle = NULL;
-   http->status = HTTP_STATUS_POLL;
-   
-   if (msg)
-      rarch_main_msg_queue_push(msg, 1, 180, false);
 }
 
 static int cb_http_conn_default(void *data_, size_t len)
@@ -274,7 +276,7 @@ static int cb_http_conn_default(void *data_, size_t len)
    if (!http->handle)
    {
       RARCH_ERR("Could not create new HTTP session handle.\n");
-      rarch_main_data_http_iterate_cancel(data_, "Connection Failed");
+      rarch_main_data_http_cancel_transfer(data_, "Connection Failed");
       return -1;
    }
 
@@ -372,21 +374,20 @@ static int rarch_main_data_http_iterate_transfer(void *data)
    int percent = 0;
    static bool in_progress;
    static size_t stall_frames;
+   char tmp[NAME_MAX_LENGTH];
    
    // Allow canceling stalled downloads
    if (menu_driver_alive() && stall_frames > 60
        && settings && input_driver_key_pressed(settings->menu_cancel_btn))
    {
-      char tmp[NAME_MAX_LENGTH];
       snprintf(tmp, sizeof(tmp),
                "Download Canceled: %s", http->connection.filename);
-      rarch_main_data_http_iterate_cancel(http, tmp);
+      rarch_main_data_http_cancel_transfer(http, tmp);
       return -1;
    }
    
    if (!net_http_update(http->handle, &pos, &tot))
    {
-      char tmp[NAME_MAX_LENGTH];
       if(tot != 0)
          percent=(unsigned long long)pos*100/(unsigned long long)tot;
       else
@@ -402,7 +403,7 @@ static int rarch_main_data_http_iterate_transfer(void *data)
       else
       {
          if (in_progress)
-            rarch_main_data_http_iterate_cancel(http, "Download Interrupted");
+            rarch_main_data_http_cancel_transfer(http, "Download Interrupted");
          else if (stall_frames++ > 60)
          {
             snprintf(tmp, sizeof(tmp), "Waiting for Connection...");

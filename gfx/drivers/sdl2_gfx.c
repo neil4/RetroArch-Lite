@@ -330,9 +330,6 @@ static void sdl_refresh_input_size(sdl2_video_t *vid, bool menu, bool rgb32,
 
       sdl_tex_zero(target);
 
-      RARCH_PERFORMANCE_INIT(sdl_create_texture);
-      RARCH_PERFORMANCE_START(sdl_create_texture);
-
       if (menu)
          format = rgb32 ? SDL_PIXELFORMAT_ARGB8888 : SDL_PIXELFORMAT_RGBA4444;
       else /* this assumes the frontend will convert 0RGB1555 to RGB565 */
@@ -344,8 +341,6 @@ static void sdl_refresh_input_size(sdl2_video_t *vid, bool menu, bool rgb32,
 
       target->tex = SDL_CreateTexture(vid->renderer, format,
                                       SDL_TEXTUREACCESS_STREAMING, width, height);
-
-      RARCH_PERFORMANCE_STOP(sdl_create_texture);
 
       if (!target->tex)
       {
@@ -489,13 +484,7 @@ static bool sdl2_gfx_frame(void *data, const void *frame, unsigned width,
    if (frame)
    {
       sdl_refresh_input_size(vid, false, vid->video.rgb32, width, height, pitch);
-
-      RARCH_PERFORMANCE_INIT(sdl_copy_frame);
-      RARCH_PERFORMANCE_START(sdl_copy_frame);
-
       SDL_UpdateTexture(vid->frame.tex, NULL, frame, pitch);
-
-      RARCH_PERFORMANCE_STOP(sdl_copy_frame);
    }
 
    SDL_RenderCopyEx(vid->renderer, vid->frame.tex, NULL, NULL, vid->rotation, NULL, SDL_FLIP_NONE);
@@ -607,9 +596,6 @@ static bool sdl2_gfx_read_viewport(void *data, uint8_t *buffer)
    SDL_Surface *surf = NULL, *bgr24 = NULL;
    sdl2_video_t *vid = (sdl2_video_t*)data;
 
-   RARCH_PERFORMANCE_INIT(sdl2_gfx_read_viewport);
-   RARCH_PERFORMANCE_START(sdl2_gfx_read_viewport);
-
    video_driver_cached_frame();
 
    surf  = SDL_GetWindowSurface(vid->window);
@@ -622,8 +608,6 @@ static bool sdl2_gfx_read_viewport(void *data, uint8_t *buffer)
    }
 
    memcpy(buffer, bgr24->pixels, bgr24->h * bgr24->pitch);
-
-   RARCH_PERFORMANCE_STOP(sdl2_gfx_read_viewport);
 
    return true;
 }
@@ -684,12 +668,7 @@ void sdl2_poke_set_texture_frame(void *data, const void *frame, bool rgb32,
       sdl_refresh_input_size(vid, true, rgb32, width, height,
                              width * (rgb32 ? 4 : 2));
 
-      RARCH_PERFORMANCE_INIT(copy_texture_frame);
-      RARCH_PERFORMANCE_START(copy_texture_frame);
-
       SDL_UpdateTexture(vid->menu.tex, NULL, frame, vid->menu.pitch);
-
-      RARCH_PERFORMANCE_STOP(copy_texture_frame);
    }
 }
 

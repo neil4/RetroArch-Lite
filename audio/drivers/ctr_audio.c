@@ -109,9 +109,6 @@ static ssize_t ctr_audio_write(void *data, const void *buf, size_t size)
    int i;
    const uint16_t* src = buf;
 
-   RARCH_PERFORMANCE_INIT(ctraudio_f);   
-   RARCH_PERFORMANCE_START(ctraudio_f);
-
    uint64_t current_tick = svcGetSystemTick();
    uint32_t samples_played = (current_tick - ctr->cpu_ticks_last) / ctr->cpu_ticks_per_sample;
    ctr->playpos = (ctr->playpos + samples_played) & CTR_AUDIO_COUNT_MASK;
@@ -147,9 +144,6 @@ static ssize_t ctr_audio_write(void *data, const void *buf, size_t size)
    }
    GSPGPU_FlushDataCache(NULL, (u8*)ctr->l, CTR_AUDIO_SIZE);
    GSPGPU_FlushDataCache(NULL, (u8*)ctr->r, CTR_AUDIO_SIZE);
-
-
-   RARCH_PERFORMANCE_STOP(ctraudio_f);
 
    return size;
 }

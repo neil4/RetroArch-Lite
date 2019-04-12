@@ -423,9 +423,6 @@ recheckcapacity:;
          goto recheckcapacity;
       }
 
-      RARCH_PERFORMANCE_INIT(gen_deltas);
-      RARCH_PERFORMANCE_START(gen_deltas);
-
       const uint8_t *oldb = state->thisblock;
       const uint8_t *newb = state->nextblock;
       uint8_t *compressed = state->head + sizeof(size_t);
@@ -498,7 +495,6 @@ recheckcapacity:;
       write_size_t(state->head, compressed-state->data);
       state->head = compressed;
 
-      RARCH_PERFORMANCE_STOP(gen_deltas);
    }
    else
       state->thisblock_valid = true;

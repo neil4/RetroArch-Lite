@@ -272,9 +272,6 @@ static bool ctr_frame(void* data, const void* frame,
    printf("fps: %8.4f frames: %i\r", fps, total_frames++);
    fflush(stdout);
 
-   RARCH_PERFORMANCE_INIT(ctrframe_f);
-   RARCH_PERFORMANCE_START(ctrframe_f);
-
    ctrGuSetMemoryFill(true, (u32*)CTR_GPU_FRAMEBUFFER, 0x00000000,
                     (u32*)(CTR_GPU_FRAMEBUFFER + CTR_TOP_FRAMEBUFFER_WIDTH * CTR_TOP_FRAMEBUFFER_HEIGHT * sizeof(uint32_t)),
                     0x201, (u32*)CTR_GPU_DEPTHBUFFER, 0x00000000,
@@ -359,8 +356,6 @@ static bool ctr_frame(void* data, const void* frame,
 
    ctrGuDisplayTransfer(true, CTR_GPU_FRAMEBUFFER, 240,400, CTRGU_RGBA8,
                         gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL), 240,400,CTRGU_RGB8, CTRGU_MULTISAMPLE_NONE);
-
-   RARCH_PERFORMANCE_STOP(ctrframe_f);
 
    ctr->frame_count++;
 

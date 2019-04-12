@@ -210,12 +210,7 @@ static void check_rewind(bool pressed)
       {
          void *state = NULL;
          state_manager_push_where(global->rewind.state, &state);
-
-         RARCH_PERFORMANCE_INIT(rewind_serialize);
-         RARCH_PERFORMANCE_START(rewind_serialize);
          pretro_serialize(state, global->rewind.size);
-         RARCH_PERFORMANCE_STOP(rewind_serialize);
-
          state_manager_push_do(global->rewind.state);
       }
    }

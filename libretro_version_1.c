@@ -49,16 +49,12 @@ static bool video_frame_scale(const void *data,
 {
    driver_t *driver = driver_get_ptr();
 
-   RARCH_PERFORMANCE_INIT(video_frame_conv);
-
    if (!data)
       return false;
    if (video_driver_get_pixel_format() != RETRO_PIXEL_FORMAT_0RGB1555)
       return false;
    if (data == RETRO_HW_FRAME_BUFFER_VALID)
       return false;
-
-   RARCH_PERFORMANCE_START(video_frame_conv);
 
    driver->scaler.in_width      = width;
    driver->scaler.in_height     = height;
@@ -68,8 +64,6 @@ static bool video_frame_scale(const void *data,
    driver->scaler.out_stride    = width * sizeof(uint16_t);
 
    scaler_ctx_scale(&driver->scaler, driver->scaler_out, data);
-
-   RARCH_PERFORMANCE_STOP(video_frame_conv);
    
    return true;
 }

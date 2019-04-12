@@ -1210,8 +1210,6 @@ bool video_driver_frame_filter(const void *data,
 {
    settings_t *settings = config_get_ptr();
 
-   RARCH_PERFORMANCE_INIT(softfilter_process);
-
    if (!video_state.filter.filter)
       return false;
    if (!data)
@@ -1222,11 +1220,9 @@ bool video_driver_frame_filter(const void *data,
 
    *output_pitch = (*output_width) * video_state.filter.out_bpp;
 
-   RARCH_PERFORMANCE_START(softfilter_process);
    rarch_softfilter_process(video_state.filter.filter,
          video_state.filter.buffer, *output_pitch,
          data, width, height, pitch);
-   RARCH_PERFORMANCE_STOP(softfilter_process);
 
    if (settings->video.post_filter_record)
       recording_dump_frame(video_state.filter.buffer,

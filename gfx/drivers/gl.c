@@ -1299,9 +1299,6 @@ static void gl_init_textures(gl_t *gl, const video_info_t *video)
 static INLINE void gl_copy_frame(gl_t *gl, const void *frame,
       unsigned width, unsigned height, unsigned pitch)
 {
-   RARCH_PERFORMANCE_INIT(copy_frame);
-   RARCH_PERFORMANCE_START(copy_frame);
-
 #if defined(HAVE_OPENGLES2)
 #if defined(HAVE_EGL)
    if (gl->egl_images)
@@ -1406,7 +1403,6 @@ static INLINE void gl_copy_frame(gl_t *gl, const void *frame,
 
    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 #endif
-   RARCH_PERFORMANCE_STOP(copy_frame);
 }
 
 static INLINE void gl_set_prev_texture(gl_t *gl,
@@ -1443,8 +1439,6 @@ static void gl_pbo_async_readback(gl_t *gl)
          video_pixel_get_alignment(gl->vp.width * sizeof(uint32_t)));
 
    /* Read asynchronously into PBO buffer. */
-   RARCH_PERFORMANCE_INIT(async_readback);
-   RARCH_PERFORMANCE_START(async_readback);
    glReadBuffer(GL_BACK);
 #ifdef HAVE_OPENGLES3
    glReadPixels(gl->vp.x, gl->vp.y,
@@ -1455,7 +1449,6 @@ static void gl_pbo_async_readback(gl_t *gl)
          gl->vp.width, gl->vp.height,
          GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, NULL);
 #endif
-   RARCH_PERFORMANCE_STOP(async_readback);
 
    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
@@ -1517,9 +1510,6 @@ static bool gl_frame(void *data, const void *frame,
    settings_t *settings        = config_get_ptr();
    uint64_t frame_count        = video_driver_get_frame_count();
    const struct font_renderer *font_driver = driver ? driver->font_osd_driver : NULL;
-
-   RARCH_PERFORMANCE_INIT(frame_run);
-   RARCH_PERFORMANCE_START(frame_run);
    
    if (!gl)
       return false;
@@ -1663,8 +1653,6 @@ static bool gl_frame(void *data, const void *frame,
 
    gfx_ctx_update_window_title(gl);
 
-   RARCH_PERFORMANCE_STOP(frame_run);
-
 #ifdef HAVE_FBO
    /* Reset state which could easily mess up libretro core. */
    if (gl->hw_render_fbo_init)
@@ -1713,8 +1701,6 @@ static bool gl_frame(void *data, const void *frame,
 #ifdef HAVE_GL_SYNC
    if (settings->video.hard_sync && gl->have_sync && !driver->nonblock_state)
    {
-      RARCH_PERFORMANCE_INIT(gl_fence);
-      RARCH_PERFORMANCE_START(gl_fence);
       glClear(GL_COLOR_BUFFER_BIT);
       gl->fences[gl->fence_count++] = 
          glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -1729,8 +1715,6 @@ static bool gl_frame(void *data, const void *frame,
          memmove(gl->fences, gl->fences + 1,
                gl->fence_count * sizeof(GLsync));
       }
-
-      RARCH_PERFORMANCE_STOP(gl_fence);
    }
 #endif
 
@@ -2722,9 +2706,6 @@ static bool gl_read_viewport(void *data, uint8_t *buffer)
 
    context_bind_hw_render(gl, false);
 
-   RARCH_PERFORMANCE_INIT(read_viewport);
-   RARCH_PERFORMANCE_START(read_viewport);
-
 #ifdef HAVE_GL_ASYNC_READBACK
    if (gl->pbo_readback_enable)
    {
@@ -2797,7 +2778,6 @@ static bool gl_read_viewport(void *data, uint8_t *buffer)
       gl->readback_buffer_screenshot = malloc(num_pixels * sizeof(uint32_t));
       if (!gl->readback_buffer_screenshot)
       {
-         RARCH_PERFORMANCE_STOP(read_viewport);
          goto error;
       }
 
@@ -2817,7 +2797,6 @@ static bool gl_read_viewport(void *data, uint8_t *buffer)
       gl->readback_buffer_screenshot = NULL;
    }
 
-   RARCH_PERFORMANCE_STOP(read_viewport);
    context_bind_hw_render(gl, true);
    return true;
 

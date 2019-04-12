@@ -77,8 +77,8 @@ public final class DownloadableCoresFragment extends ListFragment
    }
 
    public static final String BUILDBOT_BASE_URL = "http://buildbot.libretro.com";
-   public static String BUILDBOT_CORE_URL_ARM = BUILDBOT_BASE_URL + "/nightly/android/latest/";
-   public static String BUILDBOT_CORE_URL_INTEL = BUILDBOT_BASE_URL + "/nightly/android/latest/";
+   public static String BUILDBOT_CORE_URL_ARM = BUILDBOT_BASE_URL + "/nightly/android/latest/armeabi-v7a/";
+   public static String BUILDBOT_CORE_URL_INTEL = BUILDBOT_BASE_URL + "/nightly/android/latest/x86/";
    public static final String BUILDBOT_INFO_URL = BUILDBOT_BASE_URL + "/assets/frontend/info/";
    
    protected OnCoreDownloadedListener coreDownloadedListener = null;
@@ -94,13 +94,8 @@ public final class DownloadableCoresFragment extends ListFragment
       final String appId = getString(R.string.app_id);
       if (appId.endsWith("64"))
       {
-         BUILDBOT_CORE_URL_ARM += "arm64-v8a/";
-         BUILDBOT_CORE_URL_INTEL += "x86_64/";
-      }
-      else
-      {
-         BUILDBOT_CORE_URL_ARM += "armeabi-v7a/";
-         BUILDBOT_CORE_URL_INTEL += "x86/";
+         BUILDBOT_CORE_URL_ARM = BUILDBOT_CORE_URL_ARM.replace("armeabi-v7a","arm64-v8a");
+         BUILDBOT_CORE_URL_INTEL = BUILDBOT_CORE_URL_INTEL.replace("x86", "x86_64");
       }
 
       boolean newAdapter = false;
@@ -138,8 +133,8 @@ public final class DownloadableCoresFragment extends ListFragment
          @Override
          public void onClick(DialogInterface dialog, int which)
          {
-            // Begin downloading the core.
-            DownloadCore(getActivity(), core);
+      // Begin downloading the core.
+      DownloadCore(getActivity(), core);
          }
       });
       notification.show();
@@ -239,7 +234,7 @@ public final class DownloadableCoresFragment extends ListFragment
       {
          try
          {
-            final Connection core_connection = Build.SUPPORTED_ABIS[0].startsWith("arm") ?
+            final Connection core_connection = Build.CPU_ABI.startsWith("arm") ?
                                                 Jsoup.connect(BUILDBOT_CORE_URL_ARM)
                                                 : Jsoup.connect(BUILDBOT_CORE_URL_INTEL);
             final Elements coreElements = core_connection.get().body().getElementsByClass("fb-n").select("a");
@@ -266,7 +261,7 @@ public final class DownloadableCoresFragment extends ListFragment
          }
          catch (IOException e)
          {
-            Log.e("PopulateCoresListOperation", e.toString());
+            Log.e("PopulateCoresListOp", e.toString());
 
             // Make a dummy entry to notify an error.
             return new ArrayList<DownloadableCore>();
