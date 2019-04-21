@@ -279,7 +279,7 @@ public final class DownloadableCoresFragment extends ListFragment
             adapter.addAll(result);
       }
 
-      // Downloads the info file if there is none, writes it, and parses it for the corename key/value pair.
+      // Downloads the info file if there is none, and parses it for the corename key/value pair.
       private String getCoreName(String urlPath)
       {
          String name = "";
@@ -288,10 +288,10 @@ public final class DownloadableCoresFragment extends ListFragment
          try
          {
             URL url;
-            File outputPath = new File(adapter.getContext().getApplicationInfo().dataDir + "/info/", urlPath.substring(urlPath.lastIndexOf('/') + 1));
+            File localInfo = new File(adapter.getContext().getApplicationInfo().dataDir + "/info/", urlPath.substring(urlPath.lastIndexOf('/') + 1));
             
-            if ( outputPath.exists() )
-               url = outputPath.toURI().toURL();
+            if ( localInfo.exists() )
+               url = localInfo.toURI().toURL();
             else
                url = new URL(urlPath);
             final BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -304,9 +304,9 @@ public final class DownloadableCoresFragment extends ListFragment
             br.close();
 
             // Write the info file if need be
-            if ( !outputPath.exists() )
+            if ( !localInfo.exists() )
             {
-               BufferedWriter bw = new BufferedWriter(new FileWriter(outputPath));
+               BufferedWriter bw = new BufferedWriter(new FileWriter(localInfo));
                bw.append(sb);
                bw.close();
             }
@@ -320,19 +320,23 @@ public final class DownloadableCoresFragment extends ListFragment
                }
             }
             for (String line : lines) {
-               if (line.contains("display_name")) {
+               if (line.contains("display_name")) { // displayname preferred
                   systemName = line.split("=")[1].trim().replace("\"", "");
                   // remove parenthesized name
                   int i = systemName.indexOf("(");
                   if (i > -1)
-                     systemName = systemName.substring(0,i).trim();
+                     systemName = systemName.substring(0, i).trim();
                   break;
                }
-               else if (line.contains("systemname")) {
-                  systemName = line.split("=")[1].trim().replace("\"", "");
-                  break;
+            }
+            if (!systemName.contains(" - ")) { // no "-" means no make; better to use systemname
+               for (String line : lines) {
+                  if (line.contains("systemname")) {
+                     systemName = line.split("=")[1].trim().replace("\"", "");
+                     break;
+                  }
                }
-            }   
+            }
          } // end try
          catch (FileNotFoundException fnfe)
          {

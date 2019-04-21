@@ -1810,6 +1810,11 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
       if (desc->type == OVERLAY_TYPE_BUTTONS)
       {
          uint64_t mask = desc->key_mask;
+         if (mask & (UINT64_C(1) << RARCH_FAST_FORWARD_HOLD_KEY))
+         {  // disable descriptors overlapping fast forward hold
+            out->buttons = mask;
+            break;
+         }
          out->buttons |= mask;
          
          translate_highlevel_mask(desc, out, x, y);
