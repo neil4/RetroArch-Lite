@@ -1811,19 +1811,21 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
       {
          uint64_t mask = desc->key_mask;
          if (mask & (UINT64_C(1) << RARCH_FAST_FORWARD_HOLD_KEY))
-         {  // disable descriptors overlapping fast forward hold
+         {  /* disable descriptors overlapping fast forward hold
+             * todo: should do this for all meta keys */
             out->buttons = mask;
             break;
          }
-         out->buttons |= mask;
-         
-         translate_highlevel_mask(desc, out, x, y);
-
          if (mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
          {
+            out->buttons = mask;
             ol->next_index = desc->next_index;
             ol->blocked = true;
+            break;
          }
+         
+         out->buttons |= mask;
+         translate_highlevel_mask(desc, out, x, y);
       }
       else if (desc->type == OVERLAY_TYPE_KEYBOARD)
       {
