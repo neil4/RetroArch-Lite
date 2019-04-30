@@ -1137,47 +1137,6 @@ static int setting_uint_action_right_default(void *data, bool wraparound)
    return 0;
 }
 
-#if 0
-static int setting_int_action_left_default(void *data, bool wraparound)
-{
-   rarch_setting_t *setting = (rarch_setting_t*)data;
-
-   if (!setting)
-      return -1;
-
-   if (*setting->value.integer != setting->min)
-      *setting->value.integer =
-         *setting->value.integer - setting->step;
-
-   if (setting->enforce_minrange)
-   {
-      if (*setting->value.integer < setting->min)
-         *setting->value.integer = setting->min;
-   }
-
-   return 0;
-}
-
-static int setting_int_action_right_default(void *data, bool wraparound)
-{
-   rarch_setting_t *setting = (rarch_setting_t*)data;
-
-   if (!setting)
-      return -1;
-
-   *setting->value.integer =
-      *setting->value.integer + setting->step;
-
-   if (setting->enforce_maxrange)
-   {
-      if (*setting->value.integer > setting->max)
-         *setting->value.integer = setting->max;
-   }
-
-   return 0;
-}
-#endif
-
 static int setting_fraction_action_left_default(
       void *data, bool wraparound)
 {
@@ -3916,6 +3875,26 @@ static void gui_update_change_handler(void *data)
    global->menu.theme_update_flag = true;
 }
 
+static void menu_swap_ok_cancel_toggle_change_handler(void *data)
+{
+   settings_t *settings     = config_get_ptr();
+   rarch_setting_t *setting = (rarch_setting_t *)data;
+
+   if (!setting)
+      return;
+
+   if (setting->value.boolean && *setting->value.boolean)
+   {
+      settings->menu_ok_btn          = default_menu_btn_cancel;
+      settings->menu_cancel_btn      = default_menu_btn_ok;
+   }
+   else
+   {
+      settings->menu_ok_btn          = default_menu_btn_ok;
+      settings->menu_cancel_btn      = default_menu_btn_cancel;
+   }
+}
+
 static bool setting_append_list_main_menu_options(
       rarch_setting_t **list,
       rarch_setting_info_t *list_info,
@@ -6089,34 +6068,6 @@ static bool setting_append_list_input_options(
          general_read_handler);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
-   CONFIG_BOOL(
-         settings->input.input_descriptor_label_show,
-         "input_descriptor_label_show",
-         "Display Core Input Descriptor Labels",
-         input_descriptor_label_show,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_BOOL(
-         settings->input.input_descriptor_hide_unbound,
-         "input_descriptor_hide_unbound",
-         "Hide Unbound Core Input Descriptors",
-         input_descriptor_hide_unbound,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
    END_SUB_GROUP(list, list_info, parent_group);
 
    START_SUB_GROUP(
@@ -7132,36 +7083,6 @@ CONFIG_BOOL(
          parent_group,
          general_write_handler,
          general_read_handler);
-
-#if 0
-   CONFIG_BOOL(
-         settings->menu.dynamic_wallpaper_enable,
-         menu_hash_to_str(MENU_LABEL_DYNAMIC_WALLPAPER),
-         menu_hash_to_str(MENU_LABEL_VALUE_DYNAMIC_WALLPAPER),
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_BOOL(
-         settings->menu.boxart_enable,
-         menu_hash_to_str(MENU_LABEL_BOXART),
-         menu_hash_to_str(MENU_LABEL_VALUE_BOXART),
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-#endif
    
    if (!driver->netplay_data)
    {
@@ -7210,6 +7131,20 @@ CONFIG_BOOL(
    END_SUB_GROUP(list, list_info, parent_group);
 
    START_SUB_GROUP(list, list_info, "Navigation", group_info.name, subgroup_info, parent_group);
+   
+   CONFIG_BOOL(
+         settings->menu.swap_ok_cancel,
+         "menu_swap_ok_cancel",
+         "Swap OK & Cancel Buttons",
+         false,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   (*list)[list_info->index - 1].change_handler = menu_swap_ok_cancel_toggle_change_handler;
 
    CONFIG_BOOL(
          settings->menu.navigation.wraparound.vertical_enable,
@@ -7848,42 +7783,6 @@ static bool setting_append_list_directory_options(
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
-#if 0
-   CONFIG_DIR(
-         settings->dynamic_wallpapers_directory,
-         "dynamic_wallpapers_directory",
-         "Dynamic Wallpapers Directory",
-         "",
-         "<default>",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(
-         list,
-         list_info,
-         SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_DIR(
-         settings->boxarts_directory,
-         "boxarts_directory",
-         "Boxarts Directory",
-         "",
-         "<default>",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(
-         list,
-         list_info,
-         SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-#endif
-
    CONFIG_DIR(
          settings->menu_config_directory,
          "rgui_config_directory",
@@ -8257,101 +8156,6 @@ static bool setting_append_list_privacy_options(
 
    return true;
 }
-
-#if 0
-static bool setting_append_list_input_player_options(
-      rarch_setting_t **list,
-      rarch_setting_info_t *list_info,
-      const char *parent_group,
-      unsigned user)
-{
-   /* This constants matches the string length.
-    * Keep it up to date or you'll get some really obvious bugs.
-    * 2 is the length of '99'; we don't need more users than that.
-    */
-   static char buffer[MAX_USERS][7+2+1];
-   static char group_lbl[MAX_USERS][PATH_MAX_LENGTH];
-   unsigned i;
-   rarch_setting_group_info_t group_info    = {0};
-   rarch_setting_group_info_t subgroup_info = {0};
-   settings_t *settings = config_get_ptr();
-   global_t   *global   = global_get_ptr();
-   const struct retro_keybind* const defaults =
-      (user == 0) ? retro_keybinds_1 : retro_keybinds_rest;
-
-   snprintf(buffer[user],    sizeof(buffer[user]),
-         "User %u", user + 1);
-   snprintf(group_lbl[user], sizeof(group_lbl[user]),
-         "Input %s Binds", buffer[user]);
-
-   START_GROUP(group_info, group_lbl[user], parent_group);
-
-   parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
-
-   START_SUB_GROUP(
-         list,
-         list_info,
-         buffer[user],
-         group_info.name,
-         subgroup_info,
-         parent_group);
-
-   for (i = 0; i < RARCH_BIND_LIST_END; i ++)
-   {
-      char label[PATH_MAX_LENGTH];
-      char name[PATH_MAX_LENGTH];
-      bool do_add = true;
-      const struct input_bind_map* keybind = 
-         (const struct input_bind_map*)&input_config_bind_map[i];
-
-      if (!keybind || keybind->meta)
-         continue;
-
-      if (
-            settings->input.input_descriptor_label_show
-            && (i < RARCH_FIRST_META_KEY)
-            && (global->has_set_input_descriptors)
-            && (i != RARCH_TURBO_ENABLE)
-         )
-      {
-         if (global->system.input_desc_btn[user][i])
-            snprintf(label, sizeof(label), "%s %s", buffer[user],
-                  global->system.input_desc_btn[user][i]);
-         else
-         {
-            snprintf(label, sizeof(label), "%s %s", buffer[user], "N/A");
-
-            if (settings->input.input_descriptor_hide_unbound)
-               do_add = false;
-         }
-      }
-      else
-         snprintf(label, sizeof(label), "%s %s", buffer[user], keybind->desc);
-
-      snprintf(name, sizeof(name), "p%u_%s", user + 1, keybind->base);
-
-      if (do_add)
-      {
-         CONFIG_BIND(
-               settings->input.binds[user][i],
-               user + 1,
-               user,
-               strdup(name), /* TODO: Find a way to fix these memleaks. */
-               strdup(label),
-               &defaults[i],
-               group_info.name,
-               subgroup_info.name,
-               parent_group);
-         menu_settings_list_current_add_bind_type(list, list_info, i + MENU_SETTINGS_BIND_BEGIN);
-      }
-   }
-
-   END_SUB_GROUP(list, list_info, parent_group);
-   END_GROUP(list, list_info, parent_group);
-
-   return true;
-}
-#endif
 
 void menu_setting_free(rarch_setting_t *list)
 {

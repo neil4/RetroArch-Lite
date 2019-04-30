@@ -645,8 +645,6 @@ static void config_set_defaults(void)
    settings->camera.allow                           = false;
 
    settings->input.autoconfig_descriptor_label_show = true;
-   settings->input.input_descriptor_label_show      = input_descriptor_label_show;
-   settings->input.input_descriptor_hide_unbound    = input_descriptor_hide_unbound;
    settings->input.remap_binds_enable               = true;
    settings->input.max_users                        = 2;
    settings->input.rumble_enable                    = false;
@@ -1312,6 +1310,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_hotkey_menu,  "show_hotkey_menu");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_rewind_menu,  "show_rewind_menu");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_cheat_options,  "show_cheat_options");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.swap_ok_cancel,  "menu_swap_ok_cancel");
 #ifndef SINGLE_CORE
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_updater,  "show_core_updater");
 #endif
@@ -1429,8 +1428,6 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, input.rumble_enable, "input_rumble_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, input.netplay_client_swap_input, "netplay_client_swap_input");
    CONFIG_GET_INT_BASE(conf, settings, input.max_users, "input_max_users");
-   CONFIG_GET_BOOL_BASE(conf, settings, input.input_descriptor_label_show, "input_descriptor_label_show");
-   CONFIG_GET_BOOL_BASE(conf, settings, input.input_descriptor_hide_unbound, "input_descriptor_hide_unbound");
    CONFIG_GET_BOOL_BASE(conf, settings, input.autoconfig_descriptor_label_show, "autoconfig_descriptor_label_show");
 
    CONFIG_GET_BOOL_BASE(conf, settings, ui.companion_start_on_boot, "ui_companion_start_on_boot");
@@ -1996,12 +1993,8 @@ bool config_save_file(const char *path)
          settings->input.remap_binds_enable);
    config_set_bool(conf, "netplay_client_swap_input",
          settings->input.netplay_client_swap_input);
-   config_set_bool(conf, "input_descriptor_label_show",
-         settings->input.input_descriptor_label_show);
    config_set_bool(conf, "autoconfig_descriptor_label_show",
          settings->input.autoconfig_descriptor_label_show);
-   config_set_bool(conf, "input_descriptor_hide_unbound",
-         settings->input.input_descriptor_hide_unbound);
    if (!*global->libretro_name)
       config_set_bool(conf, "load_dummy_on_core_shutdown",
                       settings->load_dummy_on_core_shutdown);
@@ -2211,6 +2204,7 @@ bool config_save_file(const char *path)
    config_set_bool(conf, "show_hotkey_menu", settings->menu.show_hotkey_menu);
    config_set_bool(conf, "show_rewind_menu", settings->menu.show_rewind_menu);
    config_set_bool(conf, "show_cheat_options", settings->menu.show_cheat_options);
+   config_set_bool(conf, "menu_swap_ok_cancel", settings->menu.swap_ok_cancel);
 #ifndef SINGLE_CORE
    config_set_bool(conf, "show_core_updater", settings->menu.show_core_updater);
 #endif

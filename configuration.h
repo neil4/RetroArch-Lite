@@ -201,6 +201,7 @@ typedef struct settings
 #ifndef SINGLE_CORE
       bool show_core_updater;
 #endif
+      bool swap_ok_cancel;
    } menu;
 #endif // #ifdef HAVE_MENU
 
@@ -300,8 +301,6 @@ typedef struct settings
 
       char autoconfig_dir[PATH_MAX_LENGTH];
       bool autoconfig_descriptor_label_show;
-      bool input_descriptor_label_show;
-      bool input_descriptor_hide_unbound;
 
       char remapping_path[PATH_MAX_LENGTH];
    } input;

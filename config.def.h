@@ -696,12 +696,6 @@ static const unsigned turbo_duty_cycle = 3;
  * gamepads, plug-and-play style. */
 static const bool input_autodetect_enable = true;
 
-/* Show the input descriptors set by the core instead 
- * of the default ones. */
-static const bool input_descriptor_label_show = true;
-
-static const bool input_descriptor_hide_unbound = false;
-
 #if defined(ANDROID)
 #if defined(ANDROID_ARM)
 static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/armeabi-v7a/";
