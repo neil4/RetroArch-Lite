@@ -77,7 +77,7 @@ typedef struct global
 
    core_info_list_t *core_info;
    core_info_t *core_info_current;
-   config_file_t *mame_list;  // .zip to MAME title mapping
+   config_file_t *mame_list;  /* .zip to MAME title mapping */
 
    uint32_t content_crc;
 
@@ -115,7 +115,7 @@ typedef struct global
    
    char basename[PATH_MAX_LENGTH];
    char fullpath[PATH_MAX_LENGTH];
-   char libretro_name[NAME_MAX_LENGTH];  // sanitized library name
+   char libretro_name[NAME_MAX_LENGTH];  /* sanitized library name */
 
    bool content_dir_override;
    bool info_dir_override;
@@ -140,7 +140,7 @@ typedef struct global
 #ifdef HAVE_OVERLAY
    char overlay_dir[PATH_MAX_LENGTH];
    char osk_overlay_dir[PATH_MAX_LENGTH];
-   bool overlay_lightgun_use_autotrigger;  // trigger on x,y input
+   bool overlay_lightgun_use_autotrigger;  /* trigger on x,y input */
 #endif
 
    bool block_patch;

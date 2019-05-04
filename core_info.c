@@ -136,24 +136,24 @@ core_info_list_t *core_info_list_new(enum info_list_target target)
       char info_path_base[NAME_MAX_LENGTH] = {0};
       char info_path[PATH_MAX_LENGTH]      = {0};
 
-      // get platform-free name
+      /* get platform-free name */
       fill_pathname_base(info_path_base, contents->elems[i].data,
                          sizeof(info_path_base));
       substr = strstr(info_path_base, "_libretro");
       if (substr)
          *substr = '\0';
       
-      // set path (search key)
+      /* set path (search key) */
       if (target == DOWNLOADABLE_CORES)
-         core_info[i].path = strdup(info_path_base); // key on libretro name
+         core_info[i].path = strdup(info_path_base); /* key on libretro name */
       else
-         core_info[i].path = strdup(contents->elems[i].data); // key on lib path
+         core_info[i].path = strdup(contents->elems[i].data); /* key on lib path */
 
       if (target == LAUNCHED_CORE
           && strncmp(info_path_base, global->libretro_name, NAME_MAX_LENGTH))
          continue;
       
-      // get info file path
+      /* get info file path */
       strlcat(info_path_base, "_libretro.info", sizeof(info_path_base));
       fill_pathname_join(info_path, (*settings->libretro_info_path) ?
             settings->libretro_info_path : settings->libretro_directory,

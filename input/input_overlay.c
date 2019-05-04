@@ -104,7 +104,7 @@ struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_EN
 
 static struct overlay_eight_way_vals eight_way_vals[NUM_EIGHT_WAY_TYPES];
 
-// Below: need 2 additional elements for duplicated (obsolete) values
+/* Below: need 2 additional elements for duplicated (obsolete) values */
 const struct input_bind_map input_highlevel_config_bind_map[RARCH_HIGHLEVEL_END_NULL+2] = {
       DECLARE_BIND(lightgun_trigger, RARCH_LIGHTGUN_TRIGGER, "Lightgun trigger"),
       DECLARE_BIND(lightgun_cursor,  RARCH_LIGHTGUN_AUX_A, "Lightgun cursor"),
@@ -242,7 +242,7 @@ static unsigned input_overlay_auto_aspect_index(struct overlay *ol)
          best_delta = fabs(avg_delta[i]);
          best_index = i;
       }
-      else break; // overlay aspects are sorted
+      else break; /* overlay aspects are sorted */
    }
    return best_index;
 }
@@ -256,7 +256,7 @@ static void update_aspect_x_y_globals(struct overlay *ol)
    float overlay_aspect, bisect_aspect;
    settings_t* settings = config_get_ptr();
    
-   // initialize to defaults
+   /* initialize to defaults */
    adj.x_aspect_factor      = 1.0f;
    adj.x_center_shift       = 0.0f;
    adj.x_bisect_shift       = 0.0f;
@@ -281,7 +281,7 @@ static void update_aspect_x_y_globals(struct overlay *ol)
       bisect_aspect = adj.display_aspect;
 
    if (adj.display_aspect > overlay_aspect * 1.01)
-   {  // get values to adjust overlay aspect, re-center x, and then bisect
+   {  /* get values to adjust overlay aspect, re-center x, and then bisect */
       adj.x_aspect_factor = overlay_aspect / adj.display_aspect;
       adj.x_center_shift = (1.0f - adj.x_aspect_factor) / 2.0f;
       if (bisect_aspect > overlay_aspect * 1.01)
@@ -293,7 +293,7 @@ static void update_aspect_x_y_globals(struct overlay *ol)
       }
    }
    else if (overlay_aspect > adj.display_aspect * 1.01)
-   {  // overlay too wide; adjust its aspect and re-center y
+   {  /* overlay too wide; adjust its aspect and re-center y */
       adj.y_aspect_factor = adj.display_aspect / overlay_aspect;
       adj.y_center_shift = (1.0f - adj.y_aspect_factor) / 2.0f;
    }
@@ -332,13 +332,13 @@ static void input_overlay_desc_adjust_aspect_and_vertical(struct overlay_desc *d
    if (!desc)
       return;
    
-   // adjust aspect
+   /* adjust aspect */
    desc->x = desc->x_orig * adj.x_aspect_factor;
    desc->y = desc->y_orig * adj.y_aspect_factor;
    desc->range_x = desc->range_x_orig * adj.x_aspect_factor;
    desc->range_y = desc->range_y_orig * adj.y_aspect_factor;
    
-   // re-center and bisect
+   /* re-center and bisect */
    desc->x += adj.x_center_shift;
    if ( desc->x > 0.5f )
       desc->x += adj.x_bisect_shift;
@@ -346,16 +346,16 @@ static void input_overlay_desc_adjust_aspect_and_vertical(struct overlay_desc *d
       desc->x -= adj.x_bisect_shift;
    desc->y += adj.y_center_shift;
    
-   // adjust vertical
+   /* adjust vertical */
    desc->y -= settings->input.overlay_adjust_vertical;
    
-   // make sure the button isn't pushed off screen
+   /* make sure the button isn't pushed off screen */
    if ( desc->y + desc->range_y > 1.0f )
       desc->y = 1.0f - desc->range_y;
    else if ( desc->y - desc->range_y < 0.0f)
       desc->y = desc->range_y;
    
-   // optionally clamp to edge
+   /* optionally clamp to edge */
    if (settings->input.overlay_adjust_vertical_lock_edges)
    {
       if (desc->y_orig + desc->range_y_orig > 0.99f)
@@ -383,10 +383,10 @@ void get_slope_limits( const float diagonal_sensitivity,
    float fraction = 2.0f * diagonal_sensitivity
                          / ( 100.0f + diagonal_sensitivity );
    
-   float high_angle  // 67.5 deg max
+   float high_angle  /* 67.5 deg max */
    = ( fraction * (0.375*M_PI)
        + (1.0f - fraction) * (0.25*M_PI) );
-   float low_angle   // 22.5 deg min
+   float low_angle   /* 22.5 deg min */
    = ( fraction * (0.125*M_PI)
        + (1.0f - fraction) * (0.25*M_PI) );
    
@@ -1364,7 +1364,7 @@ static inline uint64_t eight_way_direction(struct overlay_eight_way_vals* vals,
    if (x_offset > 0.0f)
    {
       if (y_offset > 0.0f)
-      { // Q1
+      { /* Q1 */
          if (abs_slope > vals->slope_high)
             return vals->up;
          else if (abs_slope < vals->slope_low)
@@ -1372,7 +1372,7 @@ static inline uint64_t eight_way_direction(struct overlay_eight_way_vals* vals,
          else return vals->up_right;
       }
       else
-      { // Q4
+      { /* Q4 */
          if (abs_slope > vals->slope_high)
             return vals->down;
          else if (abs_slope < vals->slope_low)
@@ -1383,7 +1383,7 @@ static inline uint64_t eight_way_direction(struct overlay_eight_way_vals* vals,
    else
    {
       if (y_offset > 0.0f)
-      { // Q2
+      { /* Q2 */
          if (abs_slope > vals->slope_high)
             return vals->up;
          else if (abs_slope < vals->slope_low)
@@ -1391,7 +1391,7 @@ static inline uint64_t eight_way_direction(struct overlay_eight_way_vals* vals,
          else return vals->up_left;
       }
       else
-      { // Q3
+      { /* Q3 */
          if (abs_slope > vals->slope_high)
             return vals->down;
          else if (abs_slope < vals->slope_low)
@@ -1414,13 +1414,13 @@ static inline uint64_t four_way_direction(struct overlay_eight_way_vals* vals,
    if (x_offset > 0.0f)
    {
       if (y_offset > 0.0f)
-      { // Q1
+      { /* Q1 */
          if (abs_slope > 1.0f)
             return vals->up;
          else return vals->right;
       }
       else
-      { // Q4
+      { /* Q4 */
          if (abs_slope > 1.0f)
             return vals->down;
          else return vals->right;
@@ -1429,13 +1429,13 @@ static inline uint64_t four_way_direction(struct overlay_eight_way_vals* vals,
    else
    {
       if (y_offset > 0.0f)
-      { // Q2
+      { /* Q2 */
          if (abs_slope > 1.0f)
             return vals->up;
          else return vals->left;
       }
       else
-      { // Q3
+      { /* Q3 */
          if (abs_slope > 1.0f)
             return vals->down;
          else return vals->left;
@@ -1470,23 +1470,22 @@ static inline uint64_t eight_way_ellipse_coverage(struct overlay_eight_way_vals*
    float boost;
    uint64_t state = UINT64_C(0);
    
-   // for pointer tools
+   /* for pointer tools */
    if (ellipse.major_px[pointer_index] == 0)
       return four_way_direction(vals, x_ellipse_offset, y_ellipse_offset);
    
-   // normalize radii by screen height to keep aspect ratio
+   /* normalize radii by screen height to keep aspect ratio */
    video_driver_get_size(&screen_width, &screen_height);
    radius_major = ellipse.major_px[pointer_index] / (2*screen_height);
    radius_minor = ellipse.minor_px[pointer_index] / (2*screen_height);
    
-   // hacks for inaccurate touchscreens
+   /*/ hacks for inaccurate touchscreens */
    boost = settings->input.touch_ellipse_magnify;
    if (input_driver_state(NULL, 0, RARCH_DEVICE_POINTER_SCREEN,
                           1, RETRO_DEVICE_ID_POINTER_PRESSED))
       boost *= settings->input.touch_ellipse_multitouch_boost;
    
-   // get axis endpoints
-   //
+   /* get axis endpoints */
    major_angle = ellipse.orientation[pointer_index] > 0 ?
       ((float)M_PI/2 - ellipse.orientation[pointer_index])
       : ((float)(-M_PI)/2 - ellipse.orientation[pointer_index]);
@@ -1500,22 +1499,22 @@ static inline uint64_t eight_way_ellipse_coverage(struct overlay_eight_way_vals*
    x_minor_offset = boost * radius_minor * cos_minor;
    y_minor_offset = boost * radius_minor * sin_minor;
    
-   // major axis endpoint 1
+   /* major axis endpoint 1 */
    x_offset = x_ellipse_offset + x_major_offset;
    y_offset = y_ellipse_offset + y_major_offset;
    state |= four_way_direction(vals, x_offset, y_offset);
    
-   // major axis endpoint 2
+   /* major axis endpoint 2 */
    x_offset = x_ellipse_offset - x_major_offset;
    y_offset = y_ellipse_offset - y_major_offset;
    state |= four_way_direction(vals, x_offset, y_offset);
 
-   // minor axis endpoint 1
+   /* minor axis endpoint 1 */
    x_offset = x_ellipse_offset + x_minor_offset;
    y_offset = y_ellipse_offset + y_minor_offset;
    state |= four_way_direction(vals, x_offset, y_offset);
 
-   // minor axis endpoint 2
+   /* minor axis endpoint 2 */
    x_offset = x_ellipse_offset - x_minor_offset;
    y_offset = y_ellipse_offset - y_minor_offset;
    state |= four_way_direction(vals, x_offset, y_offset);
@@ -1597,7 +1596,7 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
    if ( lightgun_active )
    {
       switch (mask & lightgun_mask)
-      {  // expected cases
+      {  /* expected cases */
       case (UINT64_C(0)):
          break;
       case (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A):
@@ -1652,7 +1651,7 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
       case (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD):
          out->lightgun_buttons |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
          break;
-      default:  // overlapping buttons
+      default:  /* overlapping buttons */
          if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_A);
          if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_AUX_B ) )
@@ -1681,7 +1680,7 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
    }
 
    switch (mask & multibutton_mask)
-   {  // expected cases
+   {  /* expected cases */
    case (UINT64_C(0)):
       break;
    case (UINT64_C(1) << RARCH_ANALOG_DPAD_AREA):
@@ -1706,7 +1705,7 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
    case (UINT64_C(1) << RARCH_JOYPAD_AB_AREA):
       out->buttons |= eight_way_state(desc_ptr, AB_AREA, x, y);
       break;
-   default:  // overlapping buttons
+   default:  /* overlapping buttons */
       if ( mask & ( UINT64_C(1) << RARCH_ANALOG_DPAD_AREA ) )
          out->buttons |= eight_way_state(desc_ptr, ANALOG_DPAD_AREA, x, y);
       if ( mask & ( UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA ) )
@@ -1834,7 +1833,7 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
       }
       else
       {
-         // Ignore anything overlapping an analog area when its hitbox is extended 
+         /* Ignore anything overlapping an analog area when its hitbox is extended */
          bool ignore_other = (desc->range_x_mod > desc->range_x_hitbox);
          if (ignore_other)
             memset(out,0,sizeof(*out));
@@ -1986,7 +1985,7 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    char msg[64];
    struct retro_controller_info rci;
    
-   // disconnect any connected lightgun
+   /* disconnect any connected lightgun */
    if (lightgun_active)
    {
       pretro_set_controller_port_device
@@ -1996,7 +1995,7 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    
    if (ol->active->lightgun_overlay)
    {
-      // Search available ports.  If a lightgun device is selected, use it.
+      /* Search available ports.  If a lightgun device is selected, use it. */
       for (port = 0; port < global->system.num_ports; port++)
       {
          if ((RETRO_DEVICE_MASK & settings->input.libretro_device[port])
@@ -2007,7 +2006,7 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
          }
       }
       
-      // If already connected, just get the device name
+      /* If already connected, just get the device name */
       if (lightgun_active)
       {
          rci = global->system.ports[port];
@@ -2016,7 +2015,7 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
                break;
       }
       else for (port = 0; port < global->system.num_ports; port++)
-      {  // Otherwise, connect the first lightgun device found in this core.
+      {  /* Otherwise, connect the first lightgun device found in this core. */
          rci = global->system.ports[port];
          for (i = 0; i < rci.num_types; i++)
          {
@@ -2035,11 +2034,11 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    {
       old_port = port;
       
-      // Notify user
+      /* Notify user */
       snprintf(msg, 64, "%s active", rci.types[i].desc);
       rarch_main_msg_queue_push(msg, 2, 180, true);
       
-      // Set autotrigger if no trigger descriptor found
+      /* Set autotrigger if no trigger descriptor found */
       global->overlay_lightgun_use_autotrigger = true;
       for (i = 0; i < ol->active->size; i++)
       {

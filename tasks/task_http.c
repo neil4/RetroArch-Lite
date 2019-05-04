@@ -115,7 +115,7 @@ static int cb_core_updater_download(void *data, size_t len)
       remove(output_path);
    }
 #endif
-   // refresh installed core list
+   /* refresh installed core list */
    core_info_list_free(global->core_info);
    global->core_info = core_info_list_new(INSTALLED_CORES);
    
@@ -163,11 +163,11 @@ static int cb_core_info_download(void *data, size_t len)
    }
 #endif
    
-   // Refresh installed core info
+   /* Refresh installed core info */
    core_info_list_free(global->core_info);
    global->core_info = core_info_list_new(INSTALLED_CORES);
 
-   // Refresh core updater menu
+   /* Refresh core updater (or core list) menu */
    event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
 
    return 0;
@@ -245,22 +245,31 @@ static void rarch_main_data_http_cancel_transfer(void *data, const char* msg)
       rarch_main_msg_queue_push(msg, 1, 180, false);
 }
 
-static int rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
+static bool rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
 {
    bool rv = true;
    size_t len = 0;
+   char msg[32];
    char *data = (char*)net_http_data(http->handle, &len, false);
 
    strlcpy(download_filename, http->connection.filename, NAME_MAX_LENGTH);
    if (!http->cb || http->cb(data, len) < 0)
+   {
       rv = false;
-
+      /* Notify user unless this is a missing info file, which is common */
+      if (strcmp("info", path_get_extension(download_filename)))
+      {
+         if (http->handle)
+            snprintf(msg, sizeof(msg),
+                  "Transfer Failed\nStatus %i", net_http_status(http->handle));
+         else
+            rarch_main_data_http_cancel_transfer(http, "Transfer Failed");
+         rarch_main_data_http_cancel_transfer(http, msg);
+      }
+   }
+   
    net_http_delete(http->handle);
-
    http->handle = NULL;
-
-   if (!rv)
-      rarch_main_data_http_cancel_transfer(http, "Connection Failed");
    return rv;
 }
 
@@ -376,7 +385,7 @@ static int rarch_main_data_http_iterate_transfer(void *data)
    static size_t stall_frames;
    char tmp[NAME_MAX_LENGTH];
    
-   // Allow canceling stalled downloads
+   /* Allow canceling stalled downloads */
    if (menu_driver_alive() && stall_frames > 60
        && settings && input_driver_key_pressed(settings->menu_cancel_btn))
    {

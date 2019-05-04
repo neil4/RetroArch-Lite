@@ -461,9 +461,6 @@ void init_libretro_sym(bool dummy)
    }
 
    load_symbols(dummy);
-
-   //move this to init_core, will need to be tested
-   //pretro_set_environment(rarch_environment_cb);
 }
 
 /**
@@ -906,7 +903,7 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          const struct retro_audio_callback *info = 
             (const struct retro_audio_callback*)data;
 
-         if (driver->recording_data) // A/V sync is a must.
+         if (driver->recording_data) /* A/V sync is a must. */
             return false;
 
 #ifdef HAVE_NETPLAY
@@ -1135,20 +1132,20 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          break;
       }
       
-      //TODO
-      //case RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER:
+      /* TODO*/
+      /* case RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER: */
       
-      //TODO
-      //case RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE:
+      /* TODO */
+      /* case RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE: */
 
-      //TODO
-      //case RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS:
+      /* TODO */
+      /* case RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS: */
          
-      //TODO
-      //case RETRO_ENVIRONMENT_SET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE:
+      /* TODO */
+      /* case RETRO_ENVIRONMENT_SET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE: */
     
-      //TODO
-      //case RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS:
+      /* TODO */
+      /* case RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS: */
       
       case RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT:
       {
@@ -1156,11 +1153,11 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          break;
       }
       
-      //TODO
-      //case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE:
+      /* TODO */
+      /* case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE: */
       
-      //TODO
-      //case RETRO_ENVIRONMENT_GET_MIDI_INTERFACE:
+      /* TODO */
+      /* case RETRO_ENVIRONMENT_GET_MIDI_INTERFACE: */
 
       /* Private extensions for internal use, not part of libretro API. */
       case RETRO_ENVIRONMENT_SET_LIBRETRO_PATH:

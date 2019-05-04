@@ -635,7 +635,7 @@ static void config_set_defaults(void)
    settings->menu.show_core_info               = menu_show_core_info;
    settings->menu.show_system_info             = menu_show_system_info;
    settings->menu.show_cheat_options           = show_cheat_options;
-#endif // #ifdef HAVE_MENU
+#endif /* #ifdef HAVE_MENU */
 
    settings->ui.companion_start_on_boot             = true;
    settings->ui.menubar_enable                      = true;
@@ -700,6 +700,7 @@ static void config_set_defaults(void)
    settings->input.overlay_aspect_ratio_index      = OVERLAY_ASPECT_RATIO_AUTO;
    settings->input.overlay_bisect_aspect_ratio     = 2.0f;
    settings->input.overlay_adjust_vertical_lock_edges = true;
+   settings->osk.enable                            = true;
 #endif
 
    strlcpy(settings->network.buildbot_url, buildbot_server_url,
@@ -884,6 +885,7 @@ static void config_set_defaults(void)
 
 #ifdef HAVE_NETPLAY
    global->netplay_sync_frames = netplay_sync_frames;
+   global->netplay_port        = RARCH_DEFAULT_PORT;
 #endif
 
    if (*g_defaults.config_path)
@@ -1323,7 +1325,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    config_get_path(conf, "menu_theme", settings->menu.theme, sizeof(settings->menu.theme));
    if (!strcmp(settings->menu.theme, "default"))
       *settings->menu.theme = '\0';
-#endif // #ifdef HAVE_MENU
+#endif /* #ifdef HAVE_MENU */
 
    CONFIG_GET_INT_BASE(conf, settings, video.frame_delay, "video_frame_delay");
    if (settings->video.frame_delay > 15)
@@ -1567,7 +1569,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    if (!strcmp(settings->boxarts_directory, "default"))
       *settings->boxarts_directory = '\0';
 #ifdef HAVE_MENU
-   // override content directory if specified
+   /* override content directory if specified */
    if (global->content_dir_override)
       strlcpy(settings->menu_content_directory, g_defaults.content_dir, PATH_MAX_LENGTH);
    else
@@ -2210,7 +2212,7 @@ bool config_save_file(const char *path)
 #endif
    config_set_bool(conf, "menu_show_core_info", settings->menu.show_core_info);
    config_set_bool(conf, "menu_show_system_info", settings->menu.show_system_info);
-#endif // HAVE_MENU
+#endif /* HAVE_MENU */
 
    config_set_path(conf, "joypad_autoconfig_dir",
          settings->input.autoconfig_dir);
@@ -2433,7 +2435,7 @@ static inline bool get_scoped_config_filename(char* buf, const unsigned scope)
       if (!*global->basename)
          return false;
 
-      // Basename is conveniently updated between saving and loading scoped cfgs
+      /* Basename is conveniently updated between saving and loading scoped cfgs */
       path_parent_dir_name(buf, global->basename);
       if (!*buf)
          strcpy(buf, "root");
@@ -2466,8 +2468,7 @@ static void scoped_config_file_save(unsigned scope)
    if (!global || !settings || !settings->config_save_on_exit)
       return;
    
-   // Set scoped cfg path
-   //
+   /* Set scoped cfg path */
    if (!get_scoped_config_filename(buf, scope))
       return;
    
@@ -2475,15 +2476,15 @@ static void scoped_config_file_save(unsigned scope)
                       global->libretro_name, PATH_MAX_LENGTH);
    fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
    
-   // Read config if it exists. Unscoped settings will be removed
+   /* Read config if it exists. Unscoped settings will be removed */
    conf = config_file_new(fullpath);
    if (!conf)
       conf = config_file_new(NULL);
    if (!conf)
       return;
 
-   // Populate config
-   // Higher scopes are more specific and mask lower scopes
+   /* Populate config
+    * Higher scopes are more specific and mask lower scopes */
    if (settings->audio.sync_scope == scope)
       config_set_bool(conf, "audio_sync", settings->audio.sync);
    else if (settings->audio.sync_scope < scope)
@@ -2569,7 +2570,7 @@ static void scoped_config_file_save(unsigned scope)
       config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
    else if (settings->input.overlay_opacity_scope < scope)
       config_remove_entry(conf, "input_overlay_opacity");
-#endif // HAVE_OVERLAY
+#endif /* HAVE_OVERLAY */
 
    if (settings->throttle_setting_scope == scope)
    {
@@ -2668,8 +2669,8 @@ static void scoped_config_file_save(unsigned scope)
    if (scope == THIS_CORE)
    {
       config_set_path(conf, "rgui_browser_directory",
-                      settings->core_content_directory); // not written if empty
-      // Always save Core Settings
+                      settings->core_content_directory); /* not written if empty */
+      /* Always save Core Settings */
       config_set_bool(conf, "video_shared_context",
                       settings->video.shared_context);
       config_set_bool(conf, "load_dummy_on_core_shutdown",
@@ -2678,7 +2679,7 @@ static void scoped_config_file_save(unsigned scope)
                       settings->core.set_supports_no_game_enable);
    }
 
-   // Create/update or delete config file
+   /* Create/update or delete config file */
    if (conf->entries)
    {
       if(!path_file_exists(directory))
@@ -2688,7 +2689,7 @@ static void scoped_config_file_save(unsigned scope)
    else if (path_file_exists(fullpath))
       remove(fullpath);
    
-   // Cleanup
+   /* Cleanup */
    config_file_free(conf);
 }
 
@@ -2751,72 +2752,72 @@ void restore_update_config_globals()
       = (video_viewport_t*) video_viewport_get_custom();
    
    if (settings->audio.sync_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->audio.sync_scope = GLOBAL;
       settings->audio.sync = audio_sync;
    }
    else
-   {  // update
+   {  /* update */
       audio_sync = settings->audio.sync;
    }
    
    if (settings->audio.volume_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->audio.volume_scope = GLOBAL;
       settings->audio.volume = audio_volume;
    }
    else
-   {  // update
+   {  /* update */
       audio_volume = settings->audio.volume;
    }
    
    if (settings->video.threaded_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->video.threaded_scope = GLOBAL;
       settings->video.threaded = video_threaded;
    }
    else
-   {  // update
+   {  /* update */
       video_threaded = settings->video.threaded;
    }
    
    if (settings->video.vsync_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->video.vsync_scope = GLOBAL;
       settings->video.vsync = video_vsync;
    }
    else
-   {  // update
+   {  /* update */
       video_vsync = settings->video.vsync;
    }
 
    if (settings->video.hard_sync_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->video.hard_sync_scope = GLOBAL;
       settings->video.hard_sync = video_hard_sync;
       settings->video.hard_sync_frames = video_hard_sync_frames;
    }
    else
-   {  // update
+   {  /* update */
       video_hard_sync = settings->video.hard_sync;
       video_hard_sync_frames = settings->video.hard_sync_frames;
    }
    
 #ifdef HAVE_OVERLAY   
    if (settings->input.overlay_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->input.overlay_scope = GLOBAL;
       strlcpy(settings->input.overlay, input_overlay, PATH_MAX_LENGTH);
       settings->input.overlay_enable = input_overlay_enable;
    }
    else
-   {  // update
+   {  /* update */
       strlcpy(input_overlay, settings->input.overlay, PATH_MAX_LENGTH);
       input_overlay_enable = settings->input.overlay_enable;
    }
 
    if (settings->input.dpad_abxy_config_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->input.dpad_abxy_config_scope = GLOBAL;
       settings->input.dpad_method = input_dpad_method;
       settings->input.dpad_diagonal_sensitivity = input_dpad_diagonal_sensitivity;
@@ -2824,7 +2825,7 @@ void restore_update_config_globals()
       settings->input.abxy_diagonal_sensitivity = input_abxy_diagonal_sensitivity;
    }
    else
-   {  // update
+   {  /* update */
       input_dpad_method = settings->input.dpad_method;
       input_dpad_diagonal_sensitivity = settings->input.dpad_diagonal_sensitivity;
       input_abxy_method = settings->input.abxy_method;
@@ -2832,7 +2833,7 @@ void restore_update_config_globals()
    }
 
    if (settings->input.overlay_adjust_vert_horiz_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->input.overlay_adjust_vert_horiz_scope = GLOBAL;
       settings->input.overlay_adjust_aspect = overlay_adjust_aspect;
       settings->input.overlay_aspect_ratio_index = input_overlay_aspect_ratio_index;
@@ -2841,7 +2842,7 @@ void restore_update_config_globals()
       settings->input.overlay_adjust_vertical_lock_edges = input_overlay_adjust_vertical_lock_edges;
    }
    else
-   {  // update
+   {  /* update */
       overlay_adjust_aspect = settings->input.overlay_adjust_aspect;
       input_overlay_aspect_ratio_index = settings->input.overlay_aspect_ratio_index;
       input_overlay_bisect_aspect_ratio = settings->input.overlay_bisect_aspect_ratio;
@@ -2850,72 +2851,72 @@ void restore_update_config_globals()
    }
    
    if (settings->input.overlay_opacity_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->input.overlay_opacity_scope = GLOBAL;
       settings->input.overlay_opacity = input_overlay_opacity;
    }
    else
-   {  // update
+   {  /* update */
       input_overlay_opacity = settings->input.overlay_opacity;
    }
-#endif // HAVE_OVERLAY
+#endif /* HAVE_OVERLAY */
       
    if (settings->throttle_setting_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->throttle_setting_scope = GLOBAL;
       settings->throttle_using_core_fps = throttle_using_core_fps;
       settings->fastforward_ratio_throttle_enable = fastforward_ratio_throttle_enable;
    }
    else
-   {  // update
+   {  /* update */
       throttle_using_core_fps = settings->throttle_using_core_fps;
       fastforward_ratio_throttle_enable = settings->fastforward_ratio_throttle_enable;
    }
    
    if (settings->video.aspect_ratio_idx_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->video.aspect_ratio_idx_scope = GLOBAL;
       settings->video.aspect_ratio_idx = aspect_ratio_index;
       *p_custom_vp = custom_vp;
    }
    else
-   {  // update
+   {  /* update */
       aspect_ratio_index = settings->video.aspect_ratio_idx;
       custom_vp = *p_custom_vp;
    }
 
    if (settings->video.rotation_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->video.rotation_scope = GLOBAL;
       settings->video.rotation = video_rotation;
    }
    else
-   {  // update
+   {  /* update */
       video_rotation = settings->video.rotation;
    }
    
    if (settings->video.frame_delay_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->video.frame_delay_scope = GLOBAL;
       settings->video.frame_delay = video_frame_delay;
    }
    else
-   {  // update
+   {  /* update */
       video_frame_delay = settings->video.frame_delay;
    }
    
    if (settings->input.max_users_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->input.max_users_scope = GLOBAL;
       settings->input.max_users = input_max_users;
    }
    else
-   {  // update
+   {  /* update */
       input_max_users = settings->input.max_users;
    }
    
    if (settings->input.libretro_device_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->input.libretro_device_scope = GLOBAL;
       for (i = 0; i < input_max_users; i++)
       {
@@ -2924,7 +2925,7 @@ void restore_update_config_globals()
       }
    }
    else
-   {  // update
+   {  /* update */
       for (i = 0; i < input_max_users; i++)
       {
          input_joypad_map[i] = settings->input.joypad_map[i];
@@ -2933,41 +2934,41 @@ void restore_update_config_globals()
    }
    
    if (settings->video.filter_shader_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->video.filter_shader_scope = GLOBAL;
       strlcpy(settings->video.softfilter_plugin, video_filter, PATH_MAX_LENGTH);
       strlcpy(settings->video.shader_path, video_shader, PATH_MAX_LENGTH);
    }
    else
-   {  // update
+   {  /* update */
       strlcpy(video_filter, settings->video.softfilter_plugin, PATH_MAX_LENGTH);
       strlcpy(video_shader, settings->video.shader_path, PATH_MAX_LENGTH);
    }
    
 #ifdef HAVE_MENU
    if (settings->menu.theme_scope != GLOBAL)
-   {  // restore
+   {  /* restore */
       settings->menu.theme_scope = GLOBAL;
       strlcpy(settings->menu.theme, menu_theme, PATH_MAX_LENGTH);
       settings->menu.wallpaper_opacity = wallpaper_opacity;
       global->menu.theme_update_flag = true;
    }
    else
-   {  // update
+   {  /* update */
       strlcpy(menu_theme, settings->menu.theme, PATH_MAX_LENGTH);
       wallpaper_opacity = settings->menu.wallpaper_opacity;
    }
 #endif
    
    if (!*settings->libretro)
-   {  // restore
+   {  /* restore */
       settings->video.shared_context = video_shared_context;
       settings->load_dummy_on_core_shutdown = load_dummy_on_core_shutdown;
       settings->core.set_supports_no_game_enable = core_set_supports_no_game_enable;
       *settings->core_content_directory = '\0';
    }
    else
-   {  // update
+   {  /* update */
       video_shared_context = settings->video.shared_context;
       load_dummy_on_core_shutdown = settings->load_dummy_on_core_shutdown;
       core_set_supports_no_game_enable = settings->core.set_supports_no_game_enable;
@@ -2988,8 +2989,7 @@ static void scoped_config_file_load(unsigned scope)
    if (!global || !settings)
       return;
    
-   // Set scoped cfg path
-   //
+   /* Set scoped cfg path */
    if (!get_scoped_config_filename(buf, scope))
       return;
 
@@ -3001,7 +3001,7 @@ static void scoped_config_file_load(unsigned scope)
    if (!conf)
       return;
    
-   // Override values if found in scoped config, and update scope in those cases
+   /* Override values if found in scoped config, and update scope in those cases */
    if (config_get_bool(conf, "audio_sync", &settings->audio.sync))
       settings->audio.sync_scope = scope;
    if (config_get_float(conf, "audio_volume", &settings->audio.volume))
@@ -3043,7 +3043,7 @@ static void scoped_config_file_load(unsigned scope)
    }
    if (config_get_float(conf, "input_overlay_opacity", &settings->input.overlay_opacity))
       settings->input.overlay_opacity_scope = scope;
-#endif // HAVE_OVERLAY
+#endif /* HAVE_OVERLAY */
 
    if (config_get_bool(conf, "fastforward_ratio_throttle_enable", &settings->fastforward_ratio_throttle_enable))
    {
@@ -3115,14 +3115,13 @@ static void scoped_config_file_load(unsigned scope)
       CONFIG_GET_BOOL_BASE(conf, settings, core.set_supports_no_game_enable,
                            "core_set_supports_no_game_enable");
    }
-   
-   // cleanup
+
    config_file_free(conf);
 }
 
 void scoped_config_files_load_auto()
 {
-   // Back up or unmask global settings
+   /* Back up or unmask global settings */
    restore_update_config_globals();
    
    scoped_config_file_load(THIS_CORE);

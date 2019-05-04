@@ -104,9 +104,9 @@ typedef struct android_input
 typedef struct android_input_poll_scratchpad
 {
    int32_t down_id[MAX_TOUCH];
-   int32_t last_known_action;  // of any poll
-   uint8_t downs;  // num downs or pointer downs
-   uint8_t taps;  // quick down+up between frames
+   int32_t last_known_action;  /* of any poll */
+   uint8_t downs;  /* num downs or pointer downs */
+   uint8_t taps;  /* quick down+up between frames */
    bool any_events;
 } android_input_poll_scratchpad_t;
 
@@ -167,8 +167,8 @@ static void engine_handle_dpad_getaxisvalue(android_input_t *android,
    android->analog_state[port][1] = (int16_t)(y * 32767.0f);
    android->analog_state[port][2] = (int16_t)(z * 32767.0f);
    android->analog_state[port][3] = (int16_t)(rz * 32767.0f);
-   //android->analog_state[port][4] = (int16_t)(hatx * 32767.0f);
-   //android->analog_state[port][5] = (int16_t)(haty * 32767.0f);
+   /*android->analog_state[port][4] = (int16_t)(hatx * 32767.0f);*/
+   /*android->analog_state[port][5] = (int16_t)(haty * 32767.0f);*/
    android->analog_state[port][6] = (int16_t)(ltrig * 32767.0f);
    android->analog_state[port][7] = (int16_t)(rtrig * 32767.0f);
    android->analog_state[port][8] = (int16_t)(brake * 32767.0f);
@@ -542,7 +542,7 @@ static void *android_input_init(void)
    else
       engine_lookup_name = android_input_lookup_name_prekitkat;
 
-   // Start the JNI thread if it isn't running.
+   /* Start the JNI thread if it isn't running. */
    static pthread_t jni_thread_id = 0;
    if (!jni_thread_id)
       pthread_create(&jni_thread_id, NULL, jni_thread_func, NULL);
@@ -596,7 +596,7 @@ static INLINE int android_input_poll_event_type_motion(
 
    if (keydown && frame.downs < MAX_TOUCH)
    {
-      // record all downs since last poll
+      /* record all downs since last poll */
       frame.down_id[frame.downs++] = AMotionEvent_getPointerId(event, motion_ptr);
    }
    else if (keyup)
@@ -604,7 +604,7 @@ static INLINE int android_input_poll_event_type_motion(
       ignore_ptr = motion_ptr;
       int32_t keyup_id = AMotionEvent_getPointerId(event, motion_ptr);
       
-      // capture quick taps
+      /* capture quick taps */
       for (idx = 0; idx < frame.downs; idx++)
       {
          if (frame.down_id[idx] == keyup_id)
@@ -616,7 +616,7 @@ static INLINE int android_input_poll_event_type_motion(
             input_translate_coord_viewport(x, y, &p->x, &p->y,
                                                  &p->full_x, &p->full_y);
             
-            // Ignore ellipse data for quick taps.
+            /* Ignore ellipse data for quick taps. */
             reset_ellipse(frame.taps);
             
             frame.taps++;
@@ -764,20 +764,20 @@ static void handle_hotplug(android_input_t *android,
       strlcpy(name_buf, "iControlPad HID Joystick profile", sizeof(name_buf));
    else if (strstr(device_name, "TTT THT Arcade console 2P USB Play"))
    {
-      //FIXME - need to do a similar thing here as we did for nVidia Shield
-      //and Xperia Play. We need to keep 'count' of the amount of similar (grouped)
-      //devices.
-      //
-      //For Xperia Play - count similar devices and bind them to the same 'user'
-      //port
-      //
-      //For nVidia Shield - see above
-      //
-      //For TTT HT - keep track of how many of these 'pads' are already
-      //connected, and based on that, assign one of them to be User 1 and
-      //the other to be User 2.
-      //
-      //If this is finally implemented right, then these port conditionals can go.
+      /* FIXME - need to do a similar thing here as we did for nVidia Shield
+       * and Xperia Play. We need to keep 'count' of the amount of similar (grouped)
+       * devices.
+       *
+       * For Xperia Play - count similar devices and bind them to the same 'user'
+       * port
+       *
+       * For nVidia Shield - see above
+       *
+       * For TTT HT - keep track of how many of these 'pads' are already
+       * connected, and based on that, assign one of them to be User 1 and
+       * the other to be User 2.
+       *
+       * If this is finally implemented right, then these port conditionals can go. */
       if (*port == 0)
          strlcpy(name_buf, "TTT THT Arcade (User 1)", sizeof(name_buf));
       else if (*port == 1)
@@ -1005,7 +1005,7 @@ static void android_input_poll(void *data)
       }
    }
    
-   // reset pointer_count if no active pointers
+   /* reset pointer_count if no active pointers */
    if (!frame.any_events && frame.last_known_action == AMOTION_EVENT_ACTION_UP)
       android->pointer_count = 0;
 }
@@ -1066,7 +1066,7 @@ static int16_t android_input_state(void *data,
          switch(id)
          {
             case RETRO_DEVICE_ID_LIGHTGUN_X:
-               // todo: should be relative! (should also be obsolete)
+               /* todo: should be relative! (should also be obsolete) */
             case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
                return driver->overlay_state.lightgun_x;
             case RETRO_DEVICE_ID_LIGHTGUN_Y:
@@ -1168,7 +1168,7 @@ static bool android_input_set_sensor_state(void *data, unsigned port,
             ASensorEventQueue_enableSensor(android->sensorEventQueue,
                   android_app->accelerometerSensor);
 
-         // events per second (in us).
+         /* events per second (in us). */
          if (android_app->accelerometerSensor)
             ASensorEventQueue_setEventRate(android->sensorEventQueue,
                   android_app->accelerometerSensor, (1000L / event_rate)

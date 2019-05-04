@@ -227,7 +227,7 @@ static int16_t x_lightgun_overlay_state(unsigned id)
    switch(id)
    {
       case RETRO_DEVICE_ID_LIGHTGUN_X:
-         // todo: should be relative! (should also be obsolete)
+         /* todo: should be relative! (should also be obsolete) */
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
          return driver->overlay_state.lightgun_x;
       case RETRO_DEVICE_ID_LIGHTGUN_Y:
@@ -246,7 +246,7 @@ static int16_t x_lightgun_overlay_state(unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT:
       case RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT:
          return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
-      case RETRO_DEVICE_ID_LIGHTGUN_RELOAD: // hack
+      case RETRO_DEVICE_ID_LIGHTGUN_RELOAD: /* hack */
          return (driver->overlay_state.lightgun_buttons
                  & (1<<RARCH_LIGHTGUN_BIT_RELOAD)) != 0; 
       default:
@@ -459,5 +459,5 @@ input_driver_t input_x = {
    x_get_joypad_driver,
    x_keyboard_mapping_is_blocked,
    x_keyboard_mapping_set_block,
-   NULL // overlay_haptic_feedback
+   NULL /* overlay_haptic_feedback */
 };

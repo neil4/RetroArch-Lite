@@ -6475,6 +6475,7 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.2f, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_magnify_contact_area;
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_FLOAT(
          settings->input.touch_ellipse_multitouch_boost,
@@ -6488,6 +6489,8 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0.5f, 3.0f, 0.1f, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_magnify_contact_area;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    if (driver && driver->input && driver->input->overlay_haptic_feedback)

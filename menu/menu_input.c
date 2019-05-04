@@ -416,7 +416,7 @@ static bool menu_input_retropad_bind_keyboard_cb(void *data, unsigned code)
    time_since_cb = rarch_get_time_usec() - last_cb_usec;
    last_cb_usec = rarch_get_time_usec();
    
-   // Guard against held or repeated keys
+   /* Guard against held or repeated keys */
    if (time_since_cb > 100000 && code != last_code)
    {
       last_code = code;
@@ -497,9 +497,9 @@ static int menu_input_set_timeout(enum menu_input_bind_mode type)
                    : MENU_KEYBOARD_BIND_TIMEOUT_SECONDS_LONG);
 
    menu_input->binds.timeout_end = rarch_get_time_usec() + time * 1000000;
-   if (global->menu.bind_mode_keyboard)  // bind-all: keyboard mode
+   if (global->menu.bind_mode_keyboard)  /* bind-all: keyboard mode */
       input_keyboard_wait_keys(menu, menu_input_retropad_bind_keyboard_cb);
-   else if (type == MENU_INPUT_BIND_SINGLE)  // hotkey: keyboard or joypad
+   else if (type == MENU_INPUT_BIND_SINGLE)  /* hotkey: keyboard or joypad */
       input_keyboard_wait_keys(menu, menu_input_hotkey_bind_keyboard_cb);
 
    return 0;
@@ -590,11 +590,11 @@ int menu_input_bind_iterate(uint32_t label_hash)
    if (timeout <= 0)
       return menu_input_bind_handle_timeout(menu_input, hotkey_bind);
 
-   if (bind_mode_kb)  // keyboard, all keys
+   if (bind_mode_kb)  /* keyboard, all keys */
       strlcpy(fmt, "[%s]\npress keyboard\n(timeout %d seconds)", 64);
-   else if (hotkey_bind)  // keyboard or joypad, single key
+   else if (hotkey_bind)  /* keyboard or joypad, single key */
       strlcpy(fmt, "[%s]\npress keyboard or joypad\n(timeout %d seconds)", 64);
-   else  // joypad, all keys
+   else  /* joypad, all keys */
       strlcpy(fmt, "[%s]\npress joypad\n(RETURN to skip)\n(timeout %d seconds)", 64);
 
    snprintf(msg, sizeof(msg), fmt,
@@ -606,7 +606,7 @@ int menu_input_bind_iterate(uint32_t label_hash)
         && menu_input_bind_keyboard_stopcheck() )
       return 1;
    
-   // Hack: Allow user time to let go of the button in odd cases
+   /* Hack: Allow user time to let go of the button in odd cases */
    if (hold_ms > 0)
    {
       if (rarch_get_time_usec() > hold_ms)
@@ -1081,7 +1081,7 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
 
    if (menu_input->keyboard.display)
    {
-      // send return key to close keyboard input window
+      /* send return key to close keyboard input window */
       if (trigger_input & (1ULL << settings->menu_cancel_btn))
          input_keyboard_event(true, '\n', '\n', 0, RETRO_DEVICE_KEYBOARD);
 
