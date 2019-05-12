@@ -543,6 +543,7 @@ static void rmenu_xui_render(void)
    menu_framebuf_t *frame_buf  = menu_display_fb_get_ptr();
    menu_navigation_t *nav      = menu_navigation_get_ptr();
    uint64_t frame_count        = video_driver_get_frame_count();
+   global_t *global            = global_get_ptr();
 
    if (!menu)
       return;
@@ -553,9 +554,12 @@ static void rmenu_xui_render(void)
       )
 		return;
 
-   menu_display_fb_unset_dirty();
-   anim->is_active = false;
-   anim->label.is_updated    = false;
+   if (!global->menu.force_dirty)
+   {
+      menu_display_fb_unset_dirty();
+      anim->is_active = false;
+      anim->label.is_updated    = false;
+   }
 
 	rmenu_xui_render_background();
 

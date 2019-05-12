@@ -152,9 +152,12 @@ static void rmenu_render(void)
          && !disp->msg_force)
       return;
 
-   menu_display_fb_unset_dirty();
-   anim->is_active           = false;
-   anim->label.is_updated    = false;
+   if (!global->menu.force_dirty)
+   {
+      menu_display_fb_unset_dirty();
+      anim->is_active           = false;
+      anim->label.is_updated    = false;
+   }
 
    if (!menu_list->selection_buf)
       return;

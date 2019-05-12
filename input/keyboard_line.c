@@ -56,6 +56,7 @@ static void input_keyboard_line_toggle_osk(bool enable)
  **/
 void input_keyboard_line_free(input_keyboard_line_t *state)
 {
+   global_t* global = global_get_ptr();
    if (!state)
       return;
 
@@ -63,6 +64,7 @@ void input_keyboard_line_free(input_keyboard_line_t *state)
    free(state);
 
    input_keyboard_line_toggle_osk(false);
+   global->menu.force_dirty = false;
 }
 
 /**
@@ -79,6 +81,7 @@ void input_keyboard_line_free(input_keyboard_line_t *state)
 input_keyboard_line_t *input_keyboard_line_new(void *userdata,
       input_keyboard_line_complete_t cb)
 {
+   global_t* global = global_get_ptr();
    input_keyboard_line_t *state = (input_keyboard_line_t*)
       calloc(1, sizeof(*state));
    if (!state)
@@ -88,6 +91,7 @@ input_keyboard_line_t *input_keyboard_line_new(void *userdata,
    state->userdata = userdata;
 
    input_keyboard_line_toggle_osk(true);
+   global->menu.force_dirty = true;
 
    return state;
 }

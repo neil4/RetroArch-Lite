@@ -197,6 +197,7 @@ typedef struct global
       bool bind_mode_keyboard;
       bool theme_update_flag;
       char wallpaper[PATH_MAX_LENGTH];
+      bool force_dirty;
    } menu;
 #endif
 

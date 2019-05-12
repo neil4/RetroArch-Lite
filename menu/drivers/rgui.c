@@ -1183,13 +1183,15 @@ static void rgui_free(void *data)
 
 static void rgui_set_texture(void)
 {
+   global_t* global = global_get_ptr();
    menu_handle_t *menu = menu_driver_get_ptr();
    menu_framebuf_t *frame_buf = menu_display_fb_get_ptr();
 
    if (!menu)
       return;
 
-   if (particle_effect == RGUI_PARTICLE_EFFECT_NONE)
+   if (!global->menu.force_dirty
+       && particle_effect == RGUI_PARTICLE_EFFECT_NONE)
       menu_display_fb_unset_dirty();
 
    video_driver_set_texture_frame(
