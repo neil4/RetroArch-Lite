@@ -44,6 +44,7 @@
 
 #ifdef HAVE_RGUI
 #include "drivers/rgui.h"
+extern struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS];
 #endif
 
 static void menu_settings_info_list_free(rarch_setting_info_t *list_info)
@@ -1727,6 +1728,18 @@ static void setting_get_string_representation_uint_scope_index(void *data,
             scope_lut[*setting->value.unsigned_integer].name,
             len);
 }
+
+#ifdef HAVE_RGUI
+static void setting_get_string_representation_uint_rgui_particle_effect_index
+      (void *data, char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting)
+      strlcpy(s,
+            rgui_particle_effect_lut[*setting->value.unsigned_integer].name,
+            len);
+}
+#endif
 
 static void setting_get_string_representation_abxy_diag_sens(void *data,
       char *s, size_t len)
@@ -6712,6 +6725,7 @@ static bool setting_append_list_menu_options(
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
    driver_t   *driver   = driver_get_ptr();
+   bool using_rgui = !strcmp(settings->menu.driver, "rgui");
 
    START_GROUP(group_info, "Menu Settings", parent_group);
    
@@ -6748,6 +6762,30 @@ static bool setting_append_list_menu_options(
       general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0, 1, 0.1, true, true);
    (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+   
+#ifdef HAVE_RGUI
+   if (using_rgui)
+   {
+      CONFIG_UINT(
+            settings->menu.rgui_particle_effect,
+            "rgui_particle_effect",
+            "  Background Effect",
+            RGUI_PARTICLE_EFFECT_NONE,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(
+            list, list_info,
+            RGUI_PARTICLE_EFFECT_NONE,
+            NUM_RGUI_PARTICLE_EFFECTS-1,
+            1, true, true);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_rgui_particle_effect_index;
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+   }
+#endif
 
    CONFIG_UINT(
       settings->menu.theme_scope,
@@ -6806,8 +6844,38 @@ static bool setting_append_list_menu_options(
    (*list)[list_info->index - 1].action_start  = &setting_action_start_wallpaper;
 
 #ifdef HAVE_RGUI
-   if (!strcmp(settings->menu.driver, "rgui"))
+   if (using_rgui)
    {
+      CONFIG_BOOL(
+         settings->menu.rgui_thick_bg_checkerboard,
+         "rgui_thick_background_checkerboard",
+         "Thicken BG pattern",
+         false,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+      
+      CONFIG_BOOL(
+         settings->menu.rgui_thick_bd_checkerboard,
+         "rgui_thick_border_checkerboard",
+         "Thicken Border pattern",
+         false,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+      
       CONFIG_HEX(
             rgui_title_color,
             "rgui_title_color",

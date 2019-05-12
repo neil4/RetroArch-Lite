@@ -43,13 +43,13 @@ enum setting_scope
    NUM_SETTING_SCOPES
 };
 
-struct scope_elem
+struct enum_lut
 {
    char name[18];
    float value;
 };
 
-extern struct scope_elem scope_lut[NUM_SETTING_SCOPES];
+extern struct enum_lut scope_lut[NUM_SETTING_SCOPES];
 
 extern bool settings_touched;
 extern bool scoped_settings_touched;
@@ -143,6 +143,11 @@ typedef struct settings
       bool core_enable;
       bool dynamic_wallpaper_enable;
       bool boxart_enable;
+#ifdef HAVE_RGUI
+      bool rgui_thick_bg_checkerboard;
+      bool rgui_thick_bd_checkerboard;
+      unsigned rgui_particle_effect;
+#endif
       bool throttle;
       char theme_dir[PATH_MAX_LENGTH];
       float wallpaper_opacity;

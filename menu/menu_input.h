@@ -43,6 +43,7 @@ extern "C" {
 
 typedef enum menu_action
 {
+   MENU_ACTION_NOOP,
    MENU_ACTION_UP,
    MENU_ACTION_DOWN,
    MENU_ACTION_LEFT,
@@ -58,8 +59,7 @@ typedef enum menu_action
    MENU_ACTION_SCROLL_UP,
    MENU_ACTION_TOGGLE,
    MENU_ACTION_L,
-   MENU_ACTION_R,        
-   MENU_ACTION_NOOP
+   MENU_ACTION_R
 } menu_action_t;
 
 enum mouse_action

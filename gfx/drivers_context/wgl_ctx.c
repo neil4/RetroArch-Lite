@@ -329,8 +329,7 @@ static void gfx_ctx_wgl_check_window(void *data, bool *quit,
 static void gfx_ctx_wgl_swap_buffers(void *data)
 {
    (void)data;
-   if (wglSwapLayerBuffers(g_hdc, WGL_SWAP_MAIN_PLANE) == FALSE)
-      SwapBuffers(g_hdc);
+   SwapBuffers(g_hdc);
 }
 
 static void gfx_ctx_wgl_set_resize(void *data,
@@ -614,11 +613,12 @@ static void gfx_ctx_wgl_input_driver(void *data,
       const input_driver_t **input, void **input_data)
 {
    (void)data;
-
+#ifdef HAVE_DINPUT
    dinput_wgl   = input_dinput.init();
 
    *input       = dinput_wgl ? &input_dinput : NULL;
    *input_data  = dinput_wgl;
+#endif
 }
 
 static bool gfx_ctx_wgl_has_focus(void *data)

@@ -24,6 +24,7 @@ uint32_t rgui_bg_dark_color;
 uint32_t rgui_bg_light_color;
 uint32_t rgui_border_dark_color;
 uint32_t rgui_border_light_color;
+uint32_t rgui_particle_color;
 
 /* default colors (clean green) */
 #define rgui_hover_color_default 0xFF64FF64
@@ -33,6 +34,18 @@ uint32_t rgui_border_light_color;
 #define rgui_bg_light_color_default 0xC0303030
 #define rgui_border_dark_color_default 0xC0408040
 #define rgui_border_light_color_default 0xC0408040
+#define rgui_particle_color_default 0xC0879E87
+
+enum rgui_particle_animation_effect
+{
+   RGUI_PARTICLE_EFFECT_NONE = 0,
+   RGUI_PARTICLE_EFFECT_SNOW,
+   RGUI_PARTICLE_EFFECT_SNOW_ALT,
+   RGUI_PARTICLE_EFFECT_RAIN,
+   RGUI_PARTICLE_EFFECT_VORTEX,
+   RGUI_PARTICLE_EFFECT_STARFIELD,
+   NUM_RGUI_PARTICLE_EFFECTS
+};
 
 #endif /* RGUI_H */
 

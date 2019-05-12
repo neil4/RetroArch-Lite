@@ -1699,7 +1699,8 @@ static bool gl_frame(void *data, const void *frame,
    gfx_ctx_swap_buffers(gl);
 
 #ifdef HAVE_GL_SYNC
-   if (settings->video.hard_sync && gl->have_sync && !driver->nonblock_state)
+   if (settings->video.hard_sync && gl->have_sync && !driver->nonblock_state
+       && !gl->menu_texture_enable)
    {
       glClear(GL_COLOR_BUFFER_BIT);
       gl->fences[gl->fence_count++] = 
@@ -2295,6 +2296,9 @@ static void *gl_init(const video_info_t *video, const input_driver_t **input, vo
 
    RARCH_LOG("[GL]: Vendor: %s, Renderer: %s.\n", vendor, renderer);
    RARCH_LOG("[GL]: Version: %s.\n", version);
+   
+   if (!strcmp(ctx_driver->ident, "null"))
+      goto error;
 
 #ifndef RARCH_CONSOLE
    rglgen_resolve_symbols(ctx_driver->get_proc_address);

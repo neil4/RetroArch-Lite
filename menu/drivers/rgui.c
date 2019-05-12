@@ -44,14 +44,42 @@
 #define RGUI_TERM_WIDTH          (((frame_buf->width - RGUI_TERM_START_X - RGUI_TERM_START_X) / (FONT_WIDTH_STRIDE)))
 #define RGUI_TERM_HEIGHT         (((frame_buf->height - RGUI_TERM_START_Y - RGUI_TERM_START_X) / (FONT_HEIGHT_STRIDE)) - 1)
 
-#define WALLPAPER_WIDTH 320
-#define WALLPAPER_HEIGHT 240
+#define RENDER_WIDTH 320
+#define RENDER_HEIGHT 240
+
+#define NUM_PARTICLES 256
+
+/* A 'particle' is just 4 float variables that can
+ * be used for any purpose - e.g.:
+ * > a = x pos
+ * > b = y pos
+ * > c = x velocity
+ * or:
+ * > a = radius
+ * > b = theta
+ * etc. */
+typedef struct
+{
+   float a;
+   float b;
+   float c;
+   float d;
+} rgui_particle_t;
 
 typedef struct
 {
    char *path;
-   uint16_t data[WALLPAPER_WIDTH * WALLPAPER_HEIGHT];
+   uint16_t data[RENDER_WIDTH * RENDER_HEIGHT];
 } wallpaper_t;
+
+struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS] = {
+   { "None", RGUI_PARTICLE_EFFECT_NONE },
+   { "Snow (Light)", RGUI_PARTICLE_EFFECT_SNOW },
+   { "Snow (Heavy)", RGUI_PARTICLE_EFFECT_SNOW_ALT },
+   { "Rain", RGUI_PARTICLE_EFFECT_RAIN },
+   { "Vortex", RGUI_PARTICLE_EFFECT_VORTEX },
+   { "Star Field", RGUI_PARTICLE_EFFECT_STARFIELD },
+};
 
 static wallpaper_t wallpaper = {NULL, {0}};
 static char loaded_theme[PATH_MAX_LENGTH];
@@ -64,6 +92,13 @@ static uint16_t bg_dark_color;
 static uint16_t bg_light_color;
 static uint16_t border_dark_color;
 static uint16_t border_light_color;
+static uint16_t particle_color;
+
+static uint8_t thick_bg_pattern;
+static uint8_t thick_bd_pattern;
+
+static unsigned particle_effect;
+static rgui_particle_t particles[NUM_PARTICLES] = {{ 0.0f }};
 
 static INLINE uint16_t argb32_to_rgba4444(uint32_t col)
 {
@@ -83,6 +118,7 @@ static void rgui_update_colors()
    bg_light_color = argb32_to_rgba4444(rgui_bg_light_color);
    border_dark_color = argb32_to_rgba4444(rgui_border_dark_color);
    border_light_color = argb32_to_rgba4444(rgui_border_light_color);
+   particle_color = argb32_to_rgba4444(rgui_particle_color);
 }
 
 static void rgui_set_default_colors()
@@ -94,6 +130,7 @@ static void rgui_set_default_colors()
    rgui_bg_light_color = rgui_bg_light_color_default;
    rgui_border_dark_color = rgui_border_dark_color_default;
    rgui_border_light_color = rgui_border_light_color_default;
+   rgui_particle_color = rgui_particle_color_default;
    
    rgui_update_colors();
 }
@@ -113,16 +150,393 @@ static void fill_rect(menu_framebuf_t *frame_buf,
          frame_buf->data[j * (frame_buf->pitch >> 1) + i] = col(i, j);
 }
 
-static uint16_t rgui_bg_filler(unsigned x, unsigned y)
+static INLINE uint16_t rgui_bg_filler(unsigned x, unsigned y)
 {
-   unsigned select = ((x >> 1) + (y >> 1)) & 1;
+   unsigned select = ((x >> thick_bg_pattern) + (y >> thick_bg_pattern)) & 1;
    return (select == 0) ? bg_dark_color : bg_light_color;
 }
 
-static uint16_t rgui_border_filler(unsigned x, unsigned y)
+static INLINE uint16_t rgui_border_filler(unsigned x, unsigned y)
 {
-   unsigned select = ((x >> 1) + (y >> 1)) & 1;
+   unsigned select = ((x >> thick_bd_pattern) + (y >> thick_bd_pattern)) & 1;
    return (select == 0) ? border_dark_color : border_light_color;
+}
+
+/* Returns true if particle is on screen */
+static INLINE bool rgui_draw_particle(
+      uint16_t *data,
+      unsigned fb_width, unsigned fb_height,
+      int x, int y,
+      unsigned width, unsigned height,
+      uint16_t color)
+{
+   unsigned x_index, y_index;
+   
+   /* This great convoluted mess just saves us
+    * having to perform comparisons on every
+    * iteration of the for loops... */
+   int x_start = x > 0 ? x : 0;
+   int y_start = y > 0 ? y : 0;
+   int x_end = x + width;
+   int y_end = y + height;
+   
+   x_start = x_start <= (int)fb_width  ? x_start : fb_width;
+   y_start = y_start <= (int)fb_height ? y_start : fb_height;
+   
+   x_end = x_end >  0        ? x_end : 0;
+   x_end = x_end <= (int)fb_width ? x_end : fb_width;
+   
+   y_end = y_end >  0         ? y_end : 0;
+   y_end = y_end <= (int)fb_height ? y_end : fb_height;
+   
+   for (y_index = (unsigned)y_start; y_index < (unsigned)y_end; y_index++)
+   {
+      uint16_t *data_ptr = data + (y_index * fb_width);
+      for (x_index = (unsigned)x_start; x_index < (unsigned)x_end; x_index++)
+         *(data_ptr + x_index) = color;
+   }
+   
+   return (x_end > x_start) && (y_end > y_start);
+}
+
+static void rgui_init_particle_effect(menu_framebuf_t *frame_buf)
+{
+   size_t i;
+   
+   /* Sanity check */
+   if (!frame_buf)
+      return;
+   
+   switch (particle_effect)
+   {
+      case RGUI_PARTICLE_EFFECT_SNOW:
+      case RGUI_PARTICLE_EFFECT_SNOW_ALT:
+         {
+            for (i = 0; i < NUM_PARTICLES; i++)
+            {
+               rgui_particle_t *particle = &particles[i];
+               
+               particle->a = (float)(rand() % frame_buf->width);
+               particle->b = (float)(rand() % frame_buf->height);
+               particle->c = (float)(rand() % 64 - 16) * 0.1f;
+               particle->d = (float)(rand() % 64 - 48) * 0.1f;
+            }
+         }
+         break;
+      case RGUI_PARTICLE_EFFECT_RAIN:
+         {
+            uint8_t weights[] = { /* 60 entries */
+               2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+               3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+               4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+               5, 5, 5, 5, 5, 5, 5, 5,
+               6, 6, 6, 6, 6, 6,
+               7, 7, 7, 7,
+               8, 8, 8,
+               9, 9,
+               10};
+            unsigned num_drops = (unsigned)(0.85f * ((float)frame_buf->width / (float)RENDER_WIDTH) * (float)NUM_PARTICLES);
+            
+            num_drops = num_drops < NUM_PARTICLES ? num_drops : NUM_PARTICLES;
+            
+            for (i = 0; i < num_drops; i++)
+            {
+               rgui_particle_t *particle = &particles[i];
+               
+               /* x pos */
+               particle->a = (float)(rand() % (frame_buf->width / 3)) * 3.0f;
+               /* y pos */
+               particle->b = (float)(rand() % frame_buf->height);
+               /* drop length */
+               particle->c = (float)weights[(unsigned)(rand() % 60)];
+               /* drop speed (larger drops fall faster) */
+               particle->d = (particle->c / 12.0f) * (0.5f + ((float)(rand() % 150) / 200.0f));
+            }
+         }
+         break;
+      case RGUI_PARTICLE_EFFECT_VORTEX:
+         {
+            float max_radius         = (float)sqrt((double)((frame_buf->width * frame_buf->width) + (frame_buf->height * frame_buf->height))) / 2.0f;
+            float one_degree_radians = M_PI / 360.0f;
+            
+            for (i = 0; i < NUM_PARTICLES; i++)
+            {
+               rgui_particle_t *particle = &particles[i];
+               
+               /* radius */
+               particle->a = 1.0f + (((float)rand() / (float)RAND_MAX) * max_radius);
+               /* theta */
+               particle->b = ((float)rand() / (float)RAND_MAX) * 2.0f * M_PI;
+               /* radial speed */
+               particle->c = (float)((rand() % 100) + 1) * 0.001f;
+               /* rotational speed */
+               particle->d = (((float)((rand() % 50) + 1) / 200.0f) + 0.1f) * one_degree_radians;
+            }
+         }
+         break;
+      case RGUI_PARTICLE_EFFECT_STARFIELD:
+         {
+            for (i = 0; i < NUM_PARTICLES; i++)
+            {
+               rgui_particle_t *particle = &particles[i];
+               
+               /* x pos */
+               particle->a = (float)(rand() % frame_buf->width);
+               /* y pos */
+               particle->b = (float)(rand() % frame_buf->height);
+               /* depth */
+               particle->c = (float)frame_buf->width;
+               /* speed */
+               particle->d = 1.0f + ((float)(rand() % 20) * 0.01f);
+            }
+         }
+         break;
+      default:
+         /* Do nothing... */
+         break;
+   }
+}
+
+static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
+{
+   unsigned fb_width = frame_buf->width;
+   unsigned fb_height = frame_buf->height;
+   uint16_t *data = frame_buf->data;
+   size_t i;
+   
+   /* Sanity check */
+   if (!frame_buf || !frame_buf->data)
+      return;
+   
+   /* Note: It would be more elegant to have 'update' and 'draw'
+    * as separate functions, since 'update' is the part that
+    * varies with particle effect whereas 'draw' is always
+    * pretty much the same. However, this has the following
+    * disadvantages:
+    * - It means we have to loop through all particles twice,
+    *   and given that we're already using a heap of CPU cycles
+    *   to draw these effects any further performance overheads
+    *   are to be avoided
+    * - It locks us into a particular draw style. e.g. What if
+    *   an effect calls for round particles, instead of square
+    *   ones? This would make a mess of any 'standardised'
+    *   drawing
+    * So we go with the simple option of having the entire
+    * update/draw sequence here. This results in some code
+    * repetition, but it has better performance and allows for
+    * complete flexibility */
+   
+   switch (particle_effect)
+   {
+      case RGUI_PARTICLE_EFFECT_SNOW:
+      case RGUI_PARTICLE_EFFECT_SNOW_ALT:
+         {
+            unsigned particle_size;
+            bool on_screen;
+            
+            for (i = 0; i < NUM_PARTICLES; i++)
+            {
+               rgui_particle_t *particle = &particles[i];
+               
+               /* Update particle 'speed' */
+               particle->c = particle->c + (float)(rand() % 16 - 9) * 0.01f;
+               particle->d = particle->d + (float)(rand() % 16 - 7) * 0.01f;
+               
+               particle->c = (particle->c < -0.4f) ? -0.4f : particle->c;
+               particle->c = (particle->c >  0.1f) ?  0.1f : particle->c;
+               
+               particle->d = (particle->d < -0.1f) ? -0.1f : particle->d;
+               particle->d = (particle->d >  0.4f) ?  0.4f : particle->d;
+               
+               /* Update particle location */
+               particle->a = fmod(particle->a + particle->c, fb_width);
+               particle->b = fmod(particle->b + particle->d, fb_height);
+               
+               /* Get particle size */
+               particle_size = 1;
+               if (particle_effect == RGUI_PARTICLE_EFFECT_SNOW_ALT)
+               {
+                  /* Gives the following distribution:
+                   * 1x1: 96
+                   * 2x2: 128
+                   * 3x3: 32 */
+                  if (!(i & 0x2))
+                     particle_size = 2;
+                  else if ((i & 0x7) == 0x7)
+                     particle_size = 3;
+               }
+               
+               /* Draw particle */
+               on_screen = rgui_draw_particle(data, fb_width, fb_height,
+                                 (int)particle->a, (int)particle->b,
+                                 particle_size, particle_size, particle_color);
+               
+               /* Reset particle if it has fallen off screen */
+               if (!on_screen)
+               {
+                  particle->a = (particle->a < 0.0f) ? (particle->a + (float)fb_width)  : particle->a;
+                  particle->b = (particle->b < 0.0f) ? (particle->b + (float)fb_height) : particle->b;
+               }
+            }
+         }
+         break;
+      case RGUI_PARTICLE_EFFECT_RAIN:
+         {
+            uint8_t weights[] = { /* 60 entries */
+               2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+               3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+               4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+               5, 5, 5, 5, 5, 5, 5, 5,
+               6, 6, 6, 6, 6, 6,
+               7, 7, 7, 7,
+               8, 8, 8,
+               9, 9,
+               10};
+            unsigned num_drops = (unsigned)(0.85f * ((float)fb_width / (float)RENDER_WIDTH) * (float)NUM_PARTICLES);
+            bool on_screen;
+            
+            num_drops = num_drops < NUM_PARTICLES ? num_drops : NUM_PARTICLES;
+            
+            for (i = 0; i < num_drops; i++)
+            {
+               rgui_particle_t *particle = &particles[i];
+               
+               /* Draw particle */
+               on_screen = rgui_draw_particle(data, fb_width, fb_height,
+                                 (int)particle->a, (int)particle->b,
+                                 2, (unsigned)particle->c, particle_color);
+               
+               /* Update y pos */
+               particle->b += particle->d;
+               
+               /* Reset particle if it has fallen off the bottom of the screen */
+               if (!on_screen)
+               {
+                  /* x pos */
+                  particle->a = (float)(rand() % (fb_width / 3)) * 3.0f;
+                  /* y pos */
+                  particle->b = 0.0f;
+                  /* drop length */
+                  particle->c = (float)weights[(unsigned)(rand() % 60)];
+                  /* drop speed (larger drops fall faster) */
+                  particle->d = (particle->c / 12.0f) * (0.5f + ((float)(rand() % 150) / 200.0f));
+               }
+            }
+         }
+         break;
+      case RGUI_PARTICLE_EFFECT_VORTEX:
+         {
+            float max_radius         = (float)sqrt((double)((fb_width * fb_width) + (fb_height * fb_height))) / 2.0f;
+            float one_degree_radians = M_PI / 360.0f;
+            int x_centre             = (int)(fb_width >> 1);
+            int y_centre             = (int)(fb_height >> 1);
+            unsigned particle_size;
+            float r_speed, theta_speed;
+            int x, y;
+            
+            for (i = 0; i < NUM_PARTICLES; i++)
+            {
+               rgui_particle_t *particle = &particles[i];
+               
+               /* Get particle location */
+               x = (int)(particle->a * cos(particle->b)) + x_centre;
+               y = (int)(particle->a * sin(particle->b)) + y_centre;
+               
+               /* Get particle size */
+               particle_size = 1 + (unsigned)(((1.0f - ((max_radius - particle->a) / max_radius)) * 3.5f) + 0.5f);
+               
+               /* Draw particle */
+               rgui_draw_particle(data, fb_width, fb_height,
+                     x, y, particle_size, particle_size, particle_color);
+               
+               /* Update particle speed */
+               r_speed     = particle->c;
+               theta_speed = particle->d;
+               if ((particle->a > 0.0f) && (particle->a < (float)fb_height))
+               {
+                  float base_scale_factor = ((float)fb_height - particle->a) / (float)fb_height;
+                  r_speed     *= 1.0f + (base_scale_factor * 8.0f);
+                  theta_speed *= 1.0f + (base_scale_factor * base_scale_factor * 6.0f);
+               }
+               particle->a -= r_speed;
+               particle->b += theta_speed;
+               
+               /* Reset particle if it has reached the centre of the screen */
+               if (particle->a < 0.0f)
+               {
+                  /* radius
+                   * Note: In theory, this should be:
+                   * > particle->a = max_radius;
+                   * ...but it turns out that spawning new particles at random
+                   * locations produces a more visually appealing result... */
+                  particle->a = 1.0f + (((float)rand() / (float)RAND_MAX) * max_radius);
+                  /* theta */
+                  particle->b = ((float)rand() / (float)RAND_MAX) * 2.0f * M_PI;
+                  /* radial speed */
+                  particle->c = (float)((rand() % 100) + 1) * 0.001f;
+                  /* rotational speed */
+                  particle->d = (((float)((rand() % 50) + 1) / 200.0f) + 0.1f) * one_degree_radians;
+               }
+            }
+         }
+         break;
+      case RGUI_PARTICLE_EFFECT_STARFIELD:
+         {
+            float focal_length = (float)fb_width * 2.0f;
+            int x_centre       = (int)(fb_width >> 1);
+            int y_centre       = (int)(fb_height >> 1);
+            unsigned particle_size;
+            int x, y;
+            bool on_screen;
+            
+            /* Based on an example found here:
+             * https://codepen.io/nodws/pen/pejBNb */
+            for (i = 0; i < NUM_PARTICLES; i++)
+            {
+               rgui_particle_t *particle = &particles[i];
+               
+               /* Get particle location */
+               x = (int)((particle->a - (float)x_centre) * (focal_length / particle->c));
+               x += x_centre;
+               
+               y = (int)((particle->b - (float)y_centre) * (focal_length / particle->c));
+               y += y_centre;
+               
+               /* Get particle size */
+               particle_size = (unsigned)(focal_length / (2.0f * particle->c));
+               
+               /* Draw particle */
+               on_screen = rgui_draw_particle(data, fb_width, fb_height,
+                                 x, y, particle_size, particle_size, particle_color);
+               
+               /* Update depth */
+               particle->c -= particle->d;
+               
+               /* Reset particle if it has:
+                * - Dropped off the edge of the screen
+                * - Reached the screen depth
+                * - Grown larger than 16 pixels across
+                *   (this is an arbitrary limit, set to reduce overall
+                *   performance impact - i.e. larger particles are slower
+                *   to draw, and without setting a limit they can fill the screen...) */
+               if (!on_screen || (particle->c <= 0.0f) || particle_size > 16)
+               {
+                  /* x pos */
+                  particle->a = (float)(rand() % fb_width);
+                  /* y pos */
+                  particle->b = (float)(rand() % fb_height);
+                  /* depth */
+                  particle->c = (float)fb_width;
+                  /* speed */
+                  particle->d = 1.0f + ((float)(rand() % 20) * 0.01f);
+               }
+            }
+         }
+         break;
+      default:
+         /* Do nothing... */
+         break;
+   }
 }
 
 static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
@@ -149,6 +563,7 @@ static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
    config_get_hex(conf, "rgui_bg_light_color", &rgui_bg_light_color);
    config_get_hex(conf, "rgui_border_dark_color", &rgui_border_dark_color);
    config_get_hex(conf, "rgui_border_light_color", &rgui_border_light_color);
+   config_get_hex(conf, "rgui_particle_color", &rgui_particle_color);
    config_get_array(conf, "rgui_wallpaper", wallpaper_file, PATH_MAX_LENGTH);
 
    rgui_update_colors();
@@ -181,7 +596,7 @@ static void rgui_adjust_wallpaper_alpha()
    
    alpha = (uint16_t)(settings->menu.wallpaper_opacity * 0xf);
    
-   for (i = 0; i < WALLPAPER_WIDTH * WALLPAPER_HEIGHT; i++)
+   for (i = 0; i < RENDER_WIDTH * RENDER_HEIGHT; i++)
       wallpaper.data[i] = (wallpaper.data[i] & 0xfff0) | alpha;
 }
 
@@ -192,6 +607,9 @@ static inline void rgui_check_update(settings_t *settings,
    
    if (global->menu.theme_update_flag)
    {
+      thick_bg_pattern = settings->menu.rgui_thick_bg_checkerboard ? 1 : 0;
+      thick_bd_pattern = settings->menu.rgui_thick_bd_checkerboard ? 1: 0;
+      
       if (strncmp(loaded_theme, settings->menu.theme, PATH_MAX_LENGTH))
       {
          rgui_load_theme(settings, frame_buf);
@@ -209,6 +627,10 @@ static inline void rgui_check_update(settings_t *settings,
          fill_rect(frame_buf, 0, frame_buf->height, frame_buf->width, 4,
                    rgui_bg_filler);
       }
+      
+      particle_effect = settings->menu.rgui_particle_effect;
+      if (particle_effect != RGUI_PARTICLE_EFFECT_NONE)
+         rgui_init_particle_effect(frame_buf);
       
       global->menu.theme_update_flag = false;
    }
@@ -330,6 +752,29 @@ static bool rguidisp_init_font(menu_handle_t *menu)
    return true;
 }
 
+static void rgui_render_wallpaper(menu_framebuf_t *frame_buf)
+{
+   if (frame_buf)
+   {
+      /* Sanity check */
+      if ((frame_buf->width != RENDER_WIDTH)
+          || (frame_buf->height != RENDER_HEIGHT)
+          || (frame_buf->pitch != RENDER_WIDTH << 1) )
+      {
+         rgui_wallpaper_valid = false;
+         return;
+      }
+
+      /* Copy wallpaper to framebuffer */
+      memcpy(frame_buf->data, wallpaper.data, RENDER_WIDTH * RENDER_HEIGHT * sizeof(uint16_t));
+
+      return;
+   }
+
+   rgui_wallpaper_valid = false;
+   return;
+}
+
 static void rgui_render_background(void)
 {
    size_t pitch_in_pixels, size;
@@ -339,27 +784,39 @@ static void rgui_render_background(void)
    menu_framebuf_t *frame_buf = menu_display_fb_get_ptr();
    if (!menu)
       return;
+   
+   if (rgui_wallpaper_valid)
+      rgui_render_wallpaper(frame_buf);
+   
+   if (!rgui_wallpaper_valid)
+   {  /* render pattern if no wallpaper */
+      pitch_in_pixels = frame_buf->pitch >> 1;
+      size            = frame_buf->pitch * 4;
+      src             = frame_buf->data + pitch_in_pixels * frame_buf->height;
+      dst             = frame_buf->data;
 
-   pitch_in_pixels = frame_buf->pitch >> 1;
-   size            = frame_buf->pitch * 4;
-   src             = frame_buf->data + pitch_in_pixels * frame_buf->height;
-   dst             = frame_buf->data;
-
-   while (dst < src)
-   {
-      memcpy(dst, src, size);
-      dst += pitch_in_pixels * 4;
+      while (dst < src)
+      {
+         memcpy(dst, src, size);
+         dst += pitch_in_pixels * 4;
+      }
    }
+   
+   if (particle_effect != RGUI_PARTICLE_EFFECT_NONE)
+      rgui_render_particle_effect(frame_buf);
 
-   fill_rect(frame_buf, 5, 5, frame_buf->width - 10, 5, rgui_border_filler);
-   fill_rect(frame_buf, 5, frame_buf->height - 10,
-         frame_buf->width - 10, 5,
-         rgui_border_filler);
+   if (!rgui_wallpaper_valid)
+   {
+      fill_rect(frame_buf, 5, 5, frame_buf->width - 10, 5, rgui_border_filler);
+      fill_rect(frame_buf, 5, frame_buf->height - 10,
+            frame_buf->width - 10, 5,
+            rgui_border_filler);
 
-   fill_rect(frame_buf, 5, 5, 5, frame_buf->height - 10, rgui_border_filler);
-   fill_rect(frame_buf, frame_buf->width - 10, 5, 5,
-         frame_buf->height - 10,
-         rgui_border_filler);
+      fill_rect(frame_buf, 5, 5, 5, frame_buf->height - 10, rgui_border_filler);
+      fill_rect(frame_buf, frame_buf->width - 10, 5, 5,
+            frame_buf->height - 10,
+            rgui_border_filler);
+   }
 }
 
 static void rgui_render_messagebox(const char *message)
@@ -446,29 +903,6 @@ static void rgui_blit_cursor(menu_handle_t *menu)
    color_rect(menu, x - 5, y, 11, 1, 0xFFFF);
 }
 
-static bool rgui_render_wallpaper(menu_framebuf_t *frame_buf)
-{
-   if (frame_buf)
-   {
-      /* Sanity check */
-      if ((frame_buf->width != WALLPAPER_WIDTH)
-          || (frame_buf->height != WALLPAPER_HEIGHT)
-          || (frame_buf->pitch != WALLPAPER_WIDTH << 1) )
-      {
-         rgui_wallpaper_valid = false;
-         return false;
-      }
-
-      /* Copy wallpaper to framebuffer */
-      memcpy(frame_buf->data, wallpaper.data, WALLPAPER_WIDTH * WALLPAPER_HEIGHT * sizeof(uint16_t));
-
-      return true;
-   }
-
-   rgui_wallpaper_valid = false;
-   return false;
-}
-
 static void rgui_render(void)
 {
    unsigned x, y;
@@ -549,8 +983,7 @@ static void rgui_render(void)
    end = ((menu_entries_get_start() + RGUI_TERM_HEIGHT) <= (menu_entries_get_end())) ?
       menu_entries_get_start() + RGUI_TERM_HEIGHT : menu_entries_get_end();
 
-   if (!rgui_wallpaper_valid || !rgui_render_wallpaper(frame_buf))
-      rgui_render_background();
+   rgui_render_background();
 
 #if 0
    RARCH_LOG("Dir is: %s\n", label);
@@ -677,14 +1110,14 @@ static void *rgui_init(void)
 
    frame_buf                  = &menu->display.frame_buf;
 
-   /* 4 extra lines to cache  the checked background */
-   frame_buf->data = (uint16_t*)calloc(400 * (240 + 4), sizeof(uint16_t));
+   /* 4 extra lines to cache the checkered background */
+   frame_buf->data = (uint16_t*)calloc(400 * (RENDER_HEIGHT + 4), sizeof(uint16_t));
 
    if (!frame_buf->data)
       goto error;
 
-   frame_buf->width                   = 320;
-   frame_buf->height                  = 240;
+   frame_buf->width                   = RENDER_WIDTH;
+   frame_buf->height                  = RENDER_HEIGHT;
    menu->display.header_height        = FONT_HEIGHT_STRIDE * 2;
    frame_buf->pitch                   = frame_buf->width * sizeof(uint16_t);
 
@@ -699,6 +1132,12 @@ static void *rgui_init(void)
    }
    
    rgui_set_default_colors();
+   thick_bg_pattern = settings->menu.rgui_thick_bg_checkerboard ? 1 : 0;
+   thick_bd_pattern = settings->menu.rgui_thick_bd_checkerboard ? 1: 0;
+   
+   particle_effect = settings->menu.rgui_particle_effect;
+   if (particle_effect != RGUI_PARTICLE_EFFECT_NONE)
+      rgui_init_particle_effect(frame_buf);
    
    fill_rect(frame_buf, 0, frame_buf->height,
          frame_buf->width, 4, rgui_bg_filler);
@@ -750,7 +1189,8 @@ static void rgui_set_texture(void)
    if (!menu)
       return;
 
-   menu_display_fb_unset_dirty();
+   if (particle_effect == RGUI_PARTICLE_EFFECT_NONE)
+      menu_display_fb_unset_dirty();
 
    video_driver_set_texture_frame(
          frame_buf->data,
@@ -826,16 +1266,16 @@ static void process_wallpaper(struct texture_image *image)
 {
    unsigned x, y;
    /* Sanity check */
-   if (!image->pixels || (image->width != WALLPAPER_WIDTH) || (image->height != WALLPAPER_HEIGHT))
+   if (!image->pixels || (image->width != RENDER_WIDTH) || (image->height != RENDER_HEIGHT))
       return;
 
    /* Copy image to wallpaper buffer, performing pixel format conversion */
-   for (x = 0; x < WALLPAPER_WIDTH; x++)
+   for (x = 0; x < RENDER_WIDTH; x++)
    {
-      for (y = 0; y < WALLPAPER_HEIGHT; y++)
+      for (y = 0; y < RENDER_HEIGHT; y++)
       {
-         wallpaper.data[x + (y * WALLPAPER_WIDTH)] =
-            argb32_to_rgba4444(image->pixels[x + (y * WALLPAPER_WIDTH)]);
+         wallpaper.data[x + (y * RENDER_WIDTH)] =
+            argb32_to_rgba4444(image->pixels[x + (y * RENDER_WIDTH)]);
       }
    }
    
