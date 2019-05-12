@@ -62,36 +62,10 @@ apple/RetroArch_iOS.xcodeproj/project.xcworkspace/*
 /obj-w32/
 
 # Android
-/android/phoenix/obj/
-/android/phoenix/assets/shaders_glsl/*
-/android/phoenix/assets/themes_rgui/*
-/android/phoenix/assets/cores/*
-/android/phoenix/assets/info/*.info
-/android/phoenix/libs/appcompat/gen
-/android/phoenix/libs/appcompat/local.properties
-/android/phoenix/libs/googleplay/gen
-/android/phoenix/libs/googleplay/local.properties
-/android/phoenix/libs/appcompat/bin
-/android/phoenix/libs/googleplay/bin
-/android/phoenix/private
-/android/phoenix/bin/
-/android/phoenix/gen/
-/android/phoenix/local.properties
-/android/phoenix64/obj/
-/android/phoenix64/assets/shaders_glsl/*
-/android/phoenix64/assets/themes_rgui/*
-/android/phoenix64/assets/cores/*
-/android/phoenix64/assets/info/*.info
-/android/phoenix64/libs/appcompat/gen
-/android/phoenix64/libs/appcompat/local.properties
-/android/phoenix64/libs/googleplay/gen
-/android/phoenix64/libs/googleplay/local.properties
-/android/phoenix64/libs/appcompat/bin
-/android/phoenix64/libs/googleplay/bin
-/android/phoenix64/private
-/android/phoenix64/bin/
-/android/phoenix64/gen/
-/android/phoenix64/local.properties
+/android/phoenix-gradle/app/src/main/assets/shaders_glsl/*
+/android/phoenix-gradle/app/src/main/assets/themes_rgui/*
+/android/phoenix-gradle/app/src/main/assets/cores/*
+/android/phoenix-gradle/app/src/main/assets/info/*.info
 
 # Cloned by libretro-fetch.sh
 /media/assets/
