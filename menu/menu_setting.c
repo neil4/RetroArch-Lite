@@ -1070,6 +1070,20 @@ static int setting_action_left_bind_device(void *data, bool wraparound)
    return 0;
 }
 
+static int setting_action_left_video_refresh_rate(void *data)
+{
+   rarch_setting_t *setting  = (rarch_setting_t*)data;
+
+   if (!setting)
+      return -1;
+   
+   *setting->value.fraction -= 0.1f;
+   if (*setting->value.fraction < setting->min)
+      *setting->value.fraction = setting->min;
+
+   return 0;
+}
+
 static int setting_action_right_bind_device(void *data, bool wraparound)
 {
    unsigned               *p = NULL;
@@ -1210,6 +1224,20 @@ static int setting_string_action_right_driver(void *data,
       if (wraparound)
          find_first_driver(setting->name, setting->value.string, setting->size);
    }
+
+   return 0;
+}
+
+static int setting_action_right_video_refresh_rate(void *data)
+{
+   rarch_setting_t *setting  = (rarch_setting_t*)data;
+
+   if (!setting)
+      return -1;
+   
+   *setting->value.fraction += 0.1f;
+   if (*setting->value.fraction > setting->max)
+      *setting->value.fraction = setting->max;
 
    return 0;
 }
@@ -1438,7 +1466,6 @@ static int setting_bool_action_ok_exit(void *data, bool wraparound)
 
    return 0;
 }
-
 
 static int setting_action_ok_video_refresh_rate_auto(void *data, bool wraparound)
 {
@@ -3920,7 +3947,7 @@ static bool setting_append_list_main_menu_options(
    settings_t  *settings = config_get_ptr();
    const char *main_menu = menu_hash_to_str(MENU_VALUE_MAIN_MENU);
 
-   START_GROUP(group_info,main_menu, parent_group);
+   START_GROUP(group_info, main_menu, parent_group);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
    
 #ifndef SINGLE_CORE
@@ -4959,6 +4986,8 @@ static bool setting_append_list_video_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 49, 241, 0.001, true, true);
+   (*list)[list_info->index - 1].action_set_min = &setting_action_left_video_refresh_rate;
+   (*list)[list_info->index - 1].action_set_max = &setting_action_right_video_refresh_rate;
 
    CONFIG_FLOAT(
          settings->video.refresh_rate,

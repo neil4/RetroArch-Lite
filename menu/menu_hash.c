@@ -295,6 +295,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "deferred_core_list";
       case MENU_LABEL_VALUE_TAKE_SCREENSHOT:
          return "Take Screenshot";
+      case MENU_LABEL_INFO:
+         return "info";
       case MENU_LABEL_INFO_SCREEN:
          return "info_screen";
       case MENU_LABEL_VALUE_RESUME:

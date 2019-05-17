@@ -840,6 +840,10 @@ static void menu_action_setting_disp_set_label(file_list_t* list,
       case MENU_LABEL_PERFORMANCE_COUNTERS:
          *w = strlen(label);
          break;
+      case MENU_LABEL_CORE_INFORMATION:
+      case MENU_LABEL_SYSTEM_INFORMATION:
+         *w = 0;
+         break;
    }
 
    if (type >= MENU_SETTINGS_CORE_OPTION_START)

@@ -459,54 +459,55 @@ static int menu_cbs_init_bind_left_compare_label(menu_file_list_cbs_t *cbs,
       }
    }
 
-   for (i = 0; i < MAX_USERS; i++)
+   if (!strncmp(label,"input_", 6))
    {
-      uint32_t label_setting_hash;
-      char label_setting[PATH_MAX_LENGTH];
+      for (i = 0; i < MAX_USERS; i++)
+      {
+         uint32_t label_setting_hash;
+         char label_setting[PATH_MAX_LENGTH];
 
-      label_setting[0] = '\0';
-      snprintf(label_setting, sizeof(label_setting), "input_player%d_joypad_index", i + 1);
+         label_setting[0] = '\0';
+         snprintf(label_setting, sizeof(label_setting), "input_player%d_joypad_index", i + 1);
 
-      label_setting_hash = menu_hash_calculate(label_setting);
+         label_setting_hash = menu_hash_calculate(label_setting);
 
-      if (label_hash != label_setting_hash)
-         continue;
+         if (label_hash != label_setting_hash)
+            continue;
 
-      cbs->action_left = bind_left_generic;
-      return 0;
+         cbs->action_left = bind_left_generic;
+         return 0;
+      }
    }
 
-   if (strstr(label, "rdb_entry"))
-      cbs->action_left = action_left_scroll;
-   else
+   switch (label_hash)
    {
-      switch (label_hash)
-      {
-         case MENU_LABEL_SAVESTATE:
-         case MENU_LABEL_LOADSTATE:
-            cbs->action_left = action_left_save_state;
-            cbs->action_l = action_l_save_state;
-            break;
-         case MENU_LABEL_VIDEO_SHADER_SCALE_PASS:
-            cbs->action_left = action_left_shader_scale_pass;
-            break;
-         case MENU_LABEL_VIDEO_SHADER_FILTER_PASS:
-            cbs->action_left = action_left_shader_filter_pass;
-            break;
-         case MENU_LABEL_VIDEO_SHADER_DEFAULT_FILTER:
-            cbs->action_left = action_left_shader_filter_default;
-            break;
-         case MENU_LABEL_VIDEO_SHADER_NUM_PASSES:
-            cbs->action_left = action_left_shader_num_passes;
-            cbs->action_l = action_l_shader_num_passes;
-            break;
-         case MENU_LABEL_CHEAT_NUM_PASSES:
-            cbs->action_left = action_left_cheat_num_passes;
-            cbs->action_l = action_l_cheat_num_passes;
-            break;
-         default:
-            return -1;
-      }
+      case MENU_LABEL_SAVESTATE:
+      case MENU_LABEL_LOADSTATE:
+         cbs->action_left = action_left_save_state;
+         cbs->action_l = action_l_save_state;
+         break;
+      case MENU_LABEL_VIDEO_SHADER_SCALE_PASS:
+         cbs->action_left = action_left_shader_scale_pass;
+         break;
+      case MENU_LABEL_VIDEO_SHADER_FILTER_PASS:
+         cbs->action_left = action_left_shader_filter_pass;
+         break;
+      case MENU_LABEL_VIDEO_SHADER_DEFAULT_FILTER:
+         cbs->action_left = action_left_shader_filter_default;
+         break;
+      case MENU_LABEL_VIDEO_SHADER_NUM_PASSES:
+         cbs->action_left = action_left_shader_num_passes;
+         cbs->action_l = action_l_shader_num_passes;
+         break;
+      case MENU_LABEL_CHEAT_NUM_PASSES:
+         cbs->action_left = action_left_cheat_num_passes;
+         cbs->action_l = action_l_cheat_num_passes;
+         break;
+      case MENU_LABEL_INFO:
+         cbs->action_left = action_left_scroll;
+         break;
+      default:
+         return -1;
    }
 
    return 0;

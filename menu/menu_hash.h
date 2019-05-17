@@ -286,6 +286,7 @@ extern "C" {
 #define MENU_LABEL_REMAP_FILE_LOAD                                             0x9c2799b8U
 #define MENU_LABEL_VALUE_REMAP_FILE_LOAD                                       0xabdd415aU
 #define MENU_LABEL_MESSAGE                                                     0xbe463eeaU
+#define MENU_LABEL_INFO                                                        0x7c9884d1U
 #define MENU_LABEL_INFO_SCREEN                                                 0xd97853d0U
 #define MENU_LABEL_LOAD_OPEN_ZIP                                               0x8aa3c068U
 #define MENU_LABEL_CUSTOM_VIEWPORT_1                                           0x76c3016fU

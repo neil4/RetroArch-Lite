@@ -213,8 +213,6 @@ int menu_driver_bind_init(menu_file_list_cbs_t *cbs,
       const char *elem0, const char *elem1,
       uint32_t label_hash, uint32_t menu_label_hash);
 
-/* HACK */
-extern unsigned int rdb_entry_start_game_selection_ptr;
 
 #ifdef __cplusplus
 }

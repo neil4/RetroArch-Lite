@@ -117,6 +117,10 @@ static void check_fast_forward_button(bool fastforward_pressed,
       return;
 
    driver_set_nonblock_state(driver->nonblock_state);
+   if (driver->nonblock_state)
+      rarch_main_msg_queue_push("Fast forward", 0, 0, true);
+   else
+      rarch_main_msg_queue_push("", 0, 1, true);
 }
 
 /**
@@ -239,7 +243,7 @@ static void check_slowmotion(bool slowmotion_pressed)
       video_driver_cached_frame();
 
    rarch_main_msg_queue_push(global->rewind.frame_is_reverse ?
-         "Slow motion rewind." : "Slow motion.", 0, 30, true);
+         "Slow motion rewind" : "Slow motion", 0, 1, true);
 }
 
 static bool check_movie_init(void)

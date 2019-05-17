@@ -985,10 +985,6 @@ static void rgui_render(void)
 
    rgui_render_background();
 
-#if 0
-   RARCH_LOG("Dir is: %s\n", label);
-#endif
-
    menu_entries_get_title(title, sizeof(title));
 
    menu_animation_ticker_line(title_buf, RGUI_TERM_WIDTH - 10,

@@ -1479,7 +1479,7 @@ static inline uint64_t eight_way_ellipse_coverage(struct overlay_eight_way_vals*
    radius_major = ellipse.major_px[pointer_index] / (2*screen_height);
    radius_minor = ellipse.minor_px[pointer_index] / (2*screen_height);
    
-   /*/ hacks for inaccurate touchscreens */
+   /* hacks for inaccurate touchscreens */
    boost = settings->input.touch_ellipse_magnify;
    if (input_driver_state(NULL, 0, RARCH_DEVICE_POINTER_SCREEN,
                           1, RETRO_DEVICE_ID_POINTER_PRESSED))

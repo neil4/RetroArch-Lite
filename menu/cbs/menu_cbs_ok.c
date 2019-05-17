@@ -30,7 +30,6 @@
 
 /* FIXME - Global variables, refactor */
 char detect_content_path[PATH_MAX_LENGTH];
-unsigned rdb_entry_start_game_selection_ptr;
 size_t hack_shader_pass = 0;
 #ifdef HAVE_NETWORKING
 char download_filename[NAME_MAX_LENGTH];
