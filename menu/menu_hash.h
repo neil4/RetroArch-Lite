@@ -117,6 +117,7 @@ extern "C" {
 #define MENU_LABEL_SYSTEM_BGM_ENABLE                                           0x9287a1c5U
 
 #define MENU_LABEL_FASTFORWARD_RATIO                                           0x3a0c2706U
+#define MENU_LABEL_CORE_THROTTLE_ENABLE                                        0x87359049U
 #define MENU_LABEL_VIDEO_MONITOR_INDEX                                         0xb6fcdc9aU
 #define MENU_LABEL_VIDEO_REFRESH_RATE_AUTO                                     0x9addb6cdU
 #define MENU_LABEL_VIDEO_ROTATION                                              0x4ce6882bU

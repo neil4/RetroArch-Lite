@@ -1823,6 +1823,16 @@ static void setting_get_string_representation_dpad_diag_sens(void *data,
    }
 }
 
+static void setting_get_string_representation_fastforward_ratio(void *data,
+      char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting && *setting->value.fraction > 1.0f)
+      sprintf(s, "%.1fx", *setting->value.fraction);
+   else
+      strcpy(s, "Unlimited");
+}
+
 static void setting_get_string_representation_millisec(void *data,
       char *s, size_t len)
 {
@@ -3019,6 +3029,16 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "Do not rely on this cap to be perfectly \n"
                "accurate.");
          break;
+      case MENU_LABEL_CORE_THROTTLE_ENABLE:
+         snprintf(s, len,
+               " -- Explicitly throttles core speed.\n"
+               "RetroArch will sleep between frames to ensure\n"
+               "the specified framerate is not exceeded.\n"
+               " \n"
+               "Note: Separate from video & audio sync,\n"
+               "which also limit core speed.\n"
+               );
+         break;
       case MENU_LABEL_VIDEO_MONITOR_INDEX:
          snprintf(s, len,
                " -- Which monitor to prefer.\n"
@@ -3286,8 +3306,8 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                " -- Slowmotion ratio."
                " \n"
-               "When slowmotion, content will slow\n"
-               "down by factor.");
+               "When slowmotion is enabled, content will\n"
+               "slow down by this factor.");
          break;
       case MENU_LABEL_INPUT_AXIS_THRESHOLD:
          snprintf(s, len,
@@ -4642,17 +4662,17 @@ static bool setting_append_list_frame_throttling_options(
    if (!settings->menu.show_frame_throttle_menu)
       return true;
 
-   START_GROUP(group_info, "Frame Throttle Settings", parent_group);
+   START_GROUP(group_info, "Throttle Settings", parent_group);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-   
+
    CONFIG_BOOL(
-         settings->fastforward_ratio_throttle_enable,
-         "fastforward_ratio_throttle_enable",
-         "Limit Maximum Run Speed",
-         fastforward_ratio_throttle_enable,
+         settings->core_throttle_enable,
+         "core_throttle_enable",
+         "Limit Core Speed",
+         false,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,
@@ -4695,11 +4715,10 @@ static bool setting_append_list_frame_throttling_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
    
-
    CONFIG_FLOAT(
          settings->fastforward_ratio,
          "fastforward_ratio",
-         "Maximum Run Speed",
+         "Fast-Forward Ratio",
          fastforward_ratio,
          "%.1fx",
          group_info.name,
@@ -4708,6 +4727,8 @@ static bool setting_append_list_frame_throttling_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 1, 10, 0.1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_fastforward_ratio;
 
    CONFIG_FLOAT(
          settings->slowmotion_ratio,
@@ -4721,7 +4742,6 @@ static bool setting_append_list_frame_throttling_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 1, 10, 1.0, true, true);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);

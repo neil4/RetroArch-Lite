@@ -583,7 +583,6 @@ static void config_set_defaults(void)
    settings->rewind_granularity                = rewind_granularity;
    settings->slowmotion_ratio                  = slowmotion_ratio;
    settings->fastforward_ratio                 = fastforward_ratio;
-   settings->fastforward_ratio_throttle_enable = fastforward_ratio_throttle_enable;
    settings->throttle_using_core_fps           = throttle_using_core_fps;
    settings->pause_nonactive                   = pause_nonactive;
    settings->autosave_interval                 = autosave_interval;
@@ -1663,9 +1662,8 @@ static bool config_load_file(const char *path, bool set_defaults)
    if (settings->fastforward_ratio <= 0.0f)
       settings->fastforward_ratio = 1.0f;
 
-   CONFIG_GET_BOOL_BASE(conf, settings, fastforward_ratio_throttle_enable, "fastforward_ratio_throttle_enable");
+   CONFIG_GET_BOOL_BASE(conf, settings, core_throttle_enable, "core_throttle_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, throttle_using_core_fps, "throttle_using_core_fps");
-   CONFIG_GET_BOOL_BASE(conf, settings, fastforward_ratio_throttle_enable, "fastforward_ratio_throttle_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, pause_nonactive, "pause_nonactive");
    CONFIG_GET_INT_BASE(conf, settings, autosave_interval, "autosave_interval");
 
@@ -2328,7 +2326,7 @@ bool config_save_file(const char *path)
    
    if ( settings->throttle_setting_scope == GLOBAL )
    {
-      config_set_bool(conf, "fastforward_ratio_throttle_enable", settings->fastforward_ratio_throttle_enable);
+      config_set_bool(conf, "core_throttle_enable", settings->core_throttle_enable);
       config_set_bool(conf, "throttle_using_core_fps", settings->throttle_using_core_fps);
    }
    
@@ -2584,12 +2582,12 @@ static void scoped_config_file_save(unsigned scope)
 
    if (settings->throttle_setting_scope == scope)
    {
-      config_set_bool(conf, "fastforward_ratio_throttle_enable", settings->fastforward_ratio_throttle_enable);
+      config_set_bool(conf, "core_throttle_enable", settings->core_throttle_enable);
       config_set_bool(conf, "throttle_using_core_fps", settings->throttle_using_core_fps);
    }
    else if (settings->throttle_setting_scope < scope)
    {
-      config_remove_entry(conf, "fastforward_ratio_throttle_enable");
+      config_remove_entry(conf, "core_throttle_enable");
       config_remove_entry(conf, "throttle_using_core_fps");
    }
 
@@ -2729,7 +2727,7 @@ void restore_update_config_globals()
    static bool video_hard_sync;
    static unsigned video_hard_sync_frames;
    static bool throttle_using_core_fps;
-   static bool fastforward_ratio_throttle_enable;
+   static bool core_throttle_enable;
    static unsigned aspect_ratio_index;
    static unsigned video_rotation;
    static unsigned video_frame_delay;
@@ -2881,12 +2879,12 @@ void restore_update_config_globals()
    {  /* restore */
       settings->throttle_setting_scope = GLOBAL;
       settings->throttle_using_core_fps = throttle_using_core_fps;
-      settings->fastforward_ratio_throttle_enable = fastforward_ratio_throttle_enable;
+      settings->core_throttle_enable = core_throttle_enable;
    }
    else
    {  /* update */
       throttle_using_core_fps = settings->throttle_using_core_fps;
-      fastforward_ratio_throttle_enable = settings->fastforward_ratio_throttle_enable;
+      core_throttle_enable = settings->core_throttle_enable;
    }
    
    if (settings->video.aspect_ratio_idx_scope != GLOBAL)
@@ -3063,7 +3061,7 @@ static void scoped_config_file_load(unsigned scope)
       settings->input.overlay_opacity_scope = scope;
 #endif /* HAVE_OVERLAY */
 
-   if (config_get_bool(conf, "fastforward_ratio_throttle_enable", &settings->fastforward_ratio_throttle_enable))
+   if (config_get_bool(conf, "core_throttle_enable", &settings->core_throttle_enable))
    {
       settings->throttle_setting_scope = scope;
       config_get_bool(conf, "throttle_using_core_fps", &settings->throttle_using_core_fps);

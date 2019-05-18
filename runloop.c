@@ -666,24 +666,36 @@ static void rarch_update_frame_time(void)
 /**
  * rarch_limit_frame_time:
  *
- * Limit frame time if fast forward ratio throttle is enabled.
+ * Throttle core speed or fastforward speed.
  **/
-static void rarch_limit_frame_time(void)
+static void rarch_limit_frame_time(bool fastforward)
 {
-   retro_time_t target      = 0;
-   retro_time_t to_sleep_ms = 0;
-   runloop_t *runloop       = rarch_main_get_ptr();
-   settings_t *settings     = config_get_ptr();
-   retro_time_t current     = rarch_get_time_usec();
-   double effective_fps;
-   if (settings->throttle_using_core_fps)
+   retro_time_t target                  = 0;
+   retro_time_t to_sleep_ms             = 0;
+   runloop_t *runloop                   = rarch_main_get_ptr();
+   settings_t *settings                 = config_get_ptr();
+   retro_time_t current                 = rarch_get_time_usec();
+   double mft_f;
+   
+   double throttled_fps = settings->throttle_using_core_fps ?
+                          video_viewport_get_system_av_info()->timing.fps
+                          : settings->video.refresh_rate;
+   
+   if (menu_driver_alive())
+      mft_f = 1000000.0f / throttled_fps;
+   else if (runloop->is_slowmotion)
+      mft_f = settings->slowmotion_ratio * (1000000.0f / throttled_fps);
+   else if (fastforward)
    {
-      struct retro_system_av_info *av_info = video_viewport_get_system_av_info();
-      effective_fps = av_info->timing.fps * settings->fastforward_ratio;
+      if (settings->fastforward_ratio > 1.0f)
+         mft_f = 1000000.0f / (throttled_fps * settings->fastforward_ratio);
+      else
+         mft_f = 0.0f;
    }
+   else if (settings->core_throttle_enable)
+      mft_f = 1000000.0f / throttled_fps;
    else
-      effective_fps = settings->video.refresh_rate * settings->fastforward_ratio;
-   double mft_f             = 1000000.0f / effective_fps;
+      mft_f = 0.0f;
 
    runloop->frames.limit.minimum_time = (retro_time_t) roundf(mft_f);
 
@@ -1236,9 +1248,7 @@ int rarch_main_iterate(void)
 #endif
 
 success:
-   if ( (settings->fastforward_ratio_throttle_enable && !driver->nonblock_state)
-        || menu_driver_alive() )
-      rarch_limit_frame_time();
+   rarch_limit_frame_time(driver->nonblock_state);
 
    return ret;
 }

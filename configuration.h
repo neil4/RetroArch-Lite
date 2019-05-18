@@ -357,7 +357,7 @@ typedef struct settings
 
    float slowmotion_ratio;
    float fastforward_ratio;
-   bool fastforward_ratio_throttle_enable;
+   bool core_throttle_enable;
    unsigned throttle_setting_scope;
    bool throttle_using_core_fps;
 

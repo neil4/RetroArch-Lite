@@ -473,7 +473,7 @@ static bool show_overlay_menu = true;
 static float overlay_opacity = 0.4f;
 static const unsigned input_vibrate_time = 5;
 #endif
-static bool show_frame_throttle_menu = false;
+static bool show_frame_throttle_menu = true;
 #ifdef HAVE_NETPLAY
 static bool show_netplay_menu = true;
 static unsigned netplay_sync_frames = 1;
@@ -655,8 +655,7 @@ static const float slowmotion_ratio = 3.0;
 /* Maximum fast forward ratio. */
 static const float fastforward_ratio = 1.0;
 
-/* Throttle fast forward. */
-static const bool fastforward_ratio_throttle_enable = false;
+/* Normal core throttling. */
 static const bool throttle_using_core_fps = true;
 
 /* Enable stdin/network command interface. */

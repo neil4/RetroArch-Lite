@@ -45,10 +45,11 @@ void main_exit_save_config(void)
 
    if (settings->config_save_on_exit)
    {
-      if (settings_touched && *global->config_path)
-         config_save_file(global->config_path);
       if (scoped_settings_touched)
          scoped_config_files_save();
+      restore_update_config_globals();
+      if (settings_touched && *global->config_path)
+         config_save_file(global->config_path);
       if (global->system.core_options)
       {
          if (options_touched)
