@@ -178,7 +178,7 @@ static void rmenu_render(void)
    menu_entries_get_title(title, sizeof(title));
 
    menu_animation_ticker_line(title_buf, RMENU_TERM_WIDTH,
-         frame_count / 15, title, true);
+         frame_count, title, true);
 
    font_parms.x = POSITION_EDGE_MIN + POSITION_OFFSET;
    font_parms.y = POSITION_EDGE_MIN + POSITION_RENDER_OFFSET
@@ -213,9 +213,9 @@ static void rmenu_render(void)
       menu_entry_get_path(i, entry_path, sizeof(entry_path));
 
       menu_animation_ticker_line(entry_title_buf, RMENU_TERM_WIDTH - (entry_spacing + 1 + 2),
-            frame_count / 15, entry_path, entry_selected);
+            frame_count, entry_path, entry_selected);
       menu_animation_ticker_line(type_str_buf, entry_spacing,
-            frame_count / 15, entry_value, entry_selected);
+            frame_count, entry_value, entry_selected);
 
       snprintf(message, sizeof(message), "%c %s",
             entry_selected ? '>' : ' ', entry_title_buf);
@@ -304,6 +304,8 @@ static void *rmenu_init(void)
       free(menu);
       return NULL;
    }
+   
+   menu_update_ticker_speed();
 
    return menu;
 }

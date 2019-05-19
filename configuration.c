@@ -609,6 +609,7 @@ static void config_set_defaults(void)
    *settings->menu.theme                       = '\0';
    settings->menu.wallpaper_opacity            = wallpaper_opacity;
    settings->menu.show_advanced_settings       = show_advanced_settings;
+   settings->menu.ticker_speed                 = menu_ticker_speed;
 
    settings->menu.dpi.override_enable          = menu_dpi_override_enable;
    settings->menu.dpi.override_value           = menu_dpi_override_value;
@@ -1297,6 +1298,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, menu.rgui_thick_bd_checkerboard,   "rgui_thick_border_checkerboard");
    CONFIG_GET_INT_BASE (conf, settings, menu.rgui_particle_effect, "rgui_particle_effect");
 #endif
+   CONFIG_GET_FLOAT_BASE(conf, settings, menu.ticker_speed, "menu_ticker_speed");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.navigation.wraparound.vertical_enable,   "menu_navigation_wraparound_vertical_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.navigation.browser.filter.supported_extensions_enable,   "menu_navigation_browser_filter_supported_extensions_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_advanced_settings,   "menu_show_advanced_settings");
@@ -2066,6 +2068,7 @@ bool config_save_file(const char *path)
    config_set_bool(conf,"menu_boxart_enable", settings->menu.boxart_enable);
    config_set_bool(conf,"menu_thicken_bg_checkerboard", settings->menu.rgui_thick_bg_checkerboard);
    config_set_bool(conf,"menu_thicken_border_checkerboard", settings->menu.rgui_thick_bd_checkerboard);
+   config_set_float(conf, "menu_ticker_speed", settings->menu.ticker_speed);
    config_set_path(conf, "menu_theme_dir", settings->menu.theme_dir);
    if (settings->menu.theme_scope == GLOBAL)
    {
@@ -2965,14 +2968,18 @@ void restore_update_config_globals()
       settings->menu.theme_scope = GLOBAL;
       strlcpy(settings->menu.theme, menu_theme, PATH_MAX_LENGTH);
       settings->menu.wallpaper_opacity = wallpaper_opacity;
+#ifdef HAVE_RGUI
       settings->menu.rgui_particle_effect = rgui_particle_effect;
+#endif
       global->menu.theme_update_flag = true;
    }
    else
    {  /* update */
       strlcpy(menu_theme, settings->menu.theme, PATH_MAX_LENGTH);
       wallpaper_opacity = settings->menu.wallpaper_opacity;
+#ifdef HAVE_RGUI
       rgui_particle_effect = settings->menu.rgui_particle_effect;
+#endif
    }
 #endif
    
@@ -3115,8 +3122,10 @@ static void scoped_config_file_load(unsigned scope)
          *settings->menu.theme = '\0';
       config_get_float(conf, "menu_wallpaper_opacity",
                        &settings->menu.wallpaper_opacity);
+#ifdef HAVE_RGUI
       config_get_uint(conf, "rgui_particle_effect",
                       &settings->menu.rgui_particle_effect);
+#endif
       settings->menu.theme_scope = scope;
       global->menu.theme_update_flag = true;
    }

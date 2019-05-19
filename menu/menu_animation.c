@@ -25,6 +25,8 @@
 #include "../runloop.h"
 #include "../performance.h"
 
+static unsigned tick_divisor;
+
 menu_animation_t *menu_animation_get_ptr(void)
 {
    menu_display_t *disp = menu_display_get_ptr();
@@ -496,42 +498,18 @@ bool menu_animation_update(menu_animation_t *anim, float dt)
    return true;
 }
 
-/**
- * menu_animation_ticker_line:
- * @s                        : buffer to write new message line to.
- * @len                      : length of buffer @input.
- * @idx                      : Index. Will be used for ticker logic.
- * @str                      : Input string.
- * @selected                 : Is the item currently selected in the menu?
- *
- * Take the contents of @str and apply a ticker effect to it,
- * and write the results in @s.
- **/
-void menu_animation_ticker_line(char *s, size_t len, uint64_t idx,
-      const char *str, bool selected)
+/* Original left/right bounce ticker
+ */
+static void menu_animation_ticker_bounce(char *s, size_t len, uint64_t idx,
+      const char *str, const size_t str_len)
 {
    unsigned ticker_period, phase, phase_left_stop;
    unsigned phase_left_moving, phase_right_stop;
    unsigned left_offset, right_offset;
-   size_t         str_len = strlen(str);
-   menu_animation_t *anim = menu_animation_get_ptr();
-
-   if (str_len <= len)
-   {
-      strlcpy(s, str, len + 1);
-      return;
-   }
-
-   if (!selected)
-   {
-      strlcpy(s, str, len + 1 - 3);
-      strlcat(s, "...", len + 1);
-      return;
-   }
 
    /* Wrap long strings in options with some kind of ticker line. */
    ticker_period     = 2 * (str_len - len) + 4;
-   phase             = idx % ticker_period;
+   phase             = (idx / tick_divisor) % ticker_period;
 
    phase_left_stop   = 2;
    phase_left_moving = phase_left_stop + (str_len - len);
@@ -554,6 +532,86 @@ void menu_animation_ticker_line(char *s, size_t len, uint64_t idx,
       strlcpy(s, str + str_len - len, len + 1);
    else
       strlcpy(s, str + right_offset, len + 1);
+}
+
+/* Simple endless scrolling ticker
+ * Could misbehave if len < sep_len+2
+ */
+static void menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
+      const char *str, const size_t str_len)
+{
+   unsigned ticker_period, phase;
+   unsigned phase1, phase2, phase3;
+   const char* sep = " | ";
+   const size_t sep_len = strlen(sep);
+
+   /* 4 phases:
+    * string only
+    * string + separator
+    * string + separator + wrapped string
+    * separator + wrapped string
+    */
+   phase1 = str_len - len;
+   phase2 = phase1 + sep_len;
+   phase3 = str_len;
+
+   ticker_period = str_len + sep_len;
+   phase         = (idx / tick_divisor) % ticker_period;
+
+   if (phase < phase1)
+      strlcpy(s, str + phase, len + 1);
+   else if (phase < phase2)
+   {
+      strlcpy(s, str + phase, len + 1);
+      strlcat(s, sep, len + 1);
+   }
+   else if (phase < phase3)
+   {
+      strlcpy(s, str + phase, len + 1);
+      strlcat(s, sep, len + 1);
+      strlcat(s, str, len + 1);
+   }
+   else
+   {
+      strlcpy(s, sep + (phase - str_len), len + 1);
+      strlcat(s, str, len + 1);
+   }
+}
+
+/**
+ * menu_animation_ticker_line:
+ * @s                        : buffer to write new message line to.
+ * @len                      : length of buffer @input.
+ * @idx                      : Index. Will be used for ticker logic.
+ * @str                      : Input string.
+ * @selected                 : Is the item currently selected in the menu?
+ *
+ * Take the contents of @str and apply a ticker effect to it,
+ * and write the results in @s.
+ **/
+void menu_animation_ticker_line(char *s, size_t len, uint64_t idx,
+      const char *str, bool selected)
+{
+   size_t         str_len = strlen(str);
+   menu_animation_t *anim = menu_animation_get_ptr();
+
+   if (str_len <= len)
+   {
+      strlcpy(s, str, len + 1);
+      return;
+   }
+
+   if (!selected)
+   {
+      strlcpy(s, str, len + 1 - 3);
+      strlcat(s, "...", len + 1);
+      return;
+   }
+
+   if (str_len > len + (len >> 1))
+      menu_animation_ticker_loop(s, len, idx, str, str_len);
+   else
+      menu_animation_ticker_bounce(s, len, idx, str, str_len);
 
    anim->is_active = true;
 }
@@ -577,4 +635,10 @@ void menu_animation_update_time(menu_animation_t *anim)
       anim->label.is_updated = true;
       last_clock_update = anim->cur_time;
    }
+}
+
+void menu_update_ticker_speed()
+{
+   settings_t *settings = config_get_ptr();
+   tick_divisor = (unsigned)(10.0f / settings->menu.ticker_speed + 0.5f);
 }

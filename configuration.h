@@ -148,11 +148,11 @@ typedef struct settings
       bool rgui_thick_bd_checkerboard;
       unsigned rgui_particle_effect;
 #endif
-      bool throttle;
       char theme_dir[PATH_MAX_LENGTH];
       float wallpaper_opacity;
       char theme[PATH_MAX_LENGTH];
       unsigned theme_scope;
+      float ticker_speed;
 
       struct
       {

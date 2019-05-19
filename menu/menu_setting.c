@@ -2021,6 +2021,7 @@ static void setting_get_string_representation_uint(void *data,
             *setting->value.unsigned_integer);
 }
 
+#if 0
 static void setting_get_string_representation_hex(void *data,
       char *s, size_t len)
 {
@@ -2029,6 +2030,7 @@ static void setting_get_string_representation_hex(void *data,
       snprintf(s, len, "%08x",
             *setting->value.unsigned_integer);
 }
+#endif
 
 /**
  ******* LIST BUILDING HELPER FUNCTIONS *******
@@ -2345,6 +2347,7 @@ static rarch_setting_t setting_uint_setting(const char* name,
  *
  * Returns: setting of type ST_HEX.
  **/
+#if 0
 static rarch_setting_t setting_hex_setting(const char* name,
       const char* short_description, unsigned int* target,
       unsigned int default_value,
@@ -2376,6 +2379,7 @@ static rarch_setting_t setting_hex_setting(const char* name,
 
    return result;
 }
+#endif
 
 /**
  * setting_bind_setting:
@@ -6877,20 +6881,20 @@ static bool setting_append_list_menu_options(
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
 
-   CONFIG_PATH(
-         global->menu.wallpaper,
-         menu_hash_to_str(MENU_LABEL_MENU_WALLPAPER),
-         menu_hash_to_str(MENU_LABEL_VALUE_MENU_WALLPAPER),
-         settings->menu.theme_dir,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_values(list, list_info, "png");
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
+   CONFIG_FLOAT(
+      settings->menu.ticker_speed,
+      "menu_ticker_speed",
+      "Ticker Speed",
+      menu_ticker_speed,
+      "%.1fx",
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0.5, 5, 0.5, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   (*list)[list_info->index - 1].action_start  = &setting_action_start_wallpaper;
+   (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
 
 #ifdef HAVE_RGUI
    if (using_rgui)
@@ -6924,106 +6928,23 @@ static bool setting_append_list_menu_options(
          general_read_handler);
       (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-      
-      CONFIG_HEX(
-            rgui_title_color,
-            "rgui_title_color",
-            "Menu Title Color test (argb)",
-            rgui_title_color_default,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-      CONFIG_HEX(
-            rgui_normal_color,
-            "rgui_entry_normal_color",
-            "Menu Text Color test (argb)",
-            rgui_normal_color_default,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-      CONFIG_HEX(
-            rgui_hover_color,
-            "rgui_entry_hover_color",
-            "Menu Hover Color test (argb)",
-            rgui_hover_color_default,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-      CONFIG_HEX(
-            rgui_bg_dark_color,
-            "rgui_background_dark_color",
-            "Menu BG Dark Color test (argb)",
-            rgui_bg_dark_color_default,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-      CONFIG_HEX(
-            rgui_bg_light_color,
-            "rgui_background_light_color",
-            "Menu BG Light Color test (argb)",
-            rgui_bg_light_color_default,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-      CONFIG_HEX(
-            rgui_border_dark_color,
-            "rgui_border_dark_color",
-            "Menu Border Dark Color test (argb)",
-            rgui_border_dark_color_default,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-      CONFIG_HEX(
-            rgui_border_light_color,
-            "rgui_border_light_color",
-            "Menu Border Light Color test (argb)",
-            rgui_border_light_color_default,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    }
 #endif
+
+   CONFIG_PATH(
+         global->menu.wallpaper,
+         menu_hash_to_str(MENU_LABEL_MENU_WALLPAPER),
+         menu_hash_to_str(MENU_LABEL_VALUE_MENU_WALLPAPER),
+         settings->menu.theme_dir,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_values(list, list_info, "png");
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   (*list)[list_info->index - 1].action_start  = &setting_action_start_wallpaper;
 
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);

@@ -146,6 +146,8 @@ menu_animation_t *menu_animation_get_ptr(void);
 
 void menu_animation_update_time(menu_animation_t *anim);
 
+void menu_update_ticker_speed();
+
 #ifdef __cplusplus
 }
 #endif

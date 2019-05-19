@@ -83,8 +83,19 @@ struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS] = {
 
 static wallpaper_t wallpaper = {NULL, {0}};
 static char loaded_theme[PATH_MAX_LENGTH];
+static bool rgui_wallpaper_valid;
 
-/* in-use colors */
+/* theme colors (argb32)*/
+static uint32_t rgui_hover_color;
+static uint32_t rgui_normal_color;
+static uint32_t rgui_title_color;
+static uint32_t rgui_bg_dark_color;
+static uint32_t rgui_bg_light_color;
+static uint32_t rgui_border_dark_color;
+static uint32_t rgui_border_light_color;
+static uint32_t rgui_particle_color;
+
+/* in-use colors (rgba4444) */
 static uint16_t hover_color;
 static uint16_t normal_color;
 static uint16_t title_color;
@@ -631,7 +642,9 @@ static inline void rgui_check_update(settings_t *settings,
       particle_effect = settings->menu.rgui_particle_effect;
       if (particle_effect != RGUI_PARTICLE_EFFECT_NONE)
          rgui_init_particle_effect(frame_buf);
-      
+
+      menu_update_ticker_speed();
+
       global->menu.theme_update_flag = false;
    }
 }
@@ -988,7 +1001,7 @@ static void rgui_render(void)
    menu_entries_get_title(title, sizeof(title));
 
    menu_animation_ticker_line(title_buf, RGUI_TERM_WIDTH - 10,
-         frame_count / RGUI_TERM_START_X, title, true);
+         frame_count, title, true);
 
    if (menu_entries_show_back())
       blit_line(menu,
@@ -1045,9 +1058,9 @@ static void rgui_render(void)
       menu_entry_get_path(i, entry_path, sizeof(entry_path));
 
       menu_animation_ticker_line(entry_title_buf, RGUI_TERM_WIDTH - (entry_spacing + 1 + 2),
-            frame_count / RGUI_TERM_START_X, entry_path, entry_selected);
+            frame_count, entry_path, entry_selected);
       menu_animation_ticker_line(type_str_buf, entry_spacing,
-            frame_count / RGUI_TERM_START_X,
+            frame_count,
             entry_value, entry_selected);
 
       snprintf(message, sizeof(message), "%c %-*.*s %-*s",
@@ -1086,7 +1099,7 @@ static void rgui_render(void)
       snprintf(msg, sizeof(msg), "%s\n%s", menu_input->keyboard.label, str);
       rgui_render_messagebox(msg);
    }
-   else // Temp colors are updated through a message box, so defer until closed
+   else
       rgui_check_update(settings, frame_buf);
   
    if (settings->menu.mouse.enable)
@@ -1129,7 +1142,7 @@ static void *rgui_init(void)
    
    rgui_set_default_colors();
    thick_bg_pattern = settings->menu.rgui_thick_bg_checkerboard ? 1 : 0;
-   thick_bd_pattern = settings->menu.rgui_thick_bd_checkerboard ? 1: 0;
+   thick_bd_pattern = settings->menu.rgui_thick_bd_checkerboard ? 1 : 0;
    
    particle_effect = settings->menu.rgui_particle_effect;
    if (particle_effect != RGUI_PARTICLE_EFFECT_NONE)
@@ -1144,6 +1157,7 @@ static void *rgui_init(void)
      rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, global->menu.wallpaper,
                                     "cb_menu_wallpaper", 0, 1,true);
 
+   menu_update_ticker_speed();
    return menu;
 
 error:

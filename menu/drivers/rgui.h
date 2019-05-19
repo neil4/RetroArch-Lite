@@ -15,17 +15,6 @@
 #ifndef RGUI_H
 #define RGUI_H
 
-/* globals */
-bool rgui_wallpaper_valid;
-uint32_t rgui_hover_color;
-uint32_t rgui_normal_color;
-uint32_t rgui_title_color;
-uint32_t rgui_bg_dark_color;
-uint32_t rgui_bg_light_color;
-uint32_t rgui_border_dark_color;
-uint32_t rgui_border_light_color;
-uint32_t rgui_particle_color;
-
 /* default colors (clean green) */
 #define rgui_hover_color_default 0xFF64FF64
 #define rgui_normal_color_default 0xFFFFFFFF

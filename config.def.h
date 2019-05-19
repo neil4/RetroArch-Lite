@@ -464,6 +464,7 @@ static bool default_block_config_read = true;
 static bool show_advanced_settings    = false;
 static bool mame_titles = true;
 static float wallpaper_opacity = 1.0f;
+static float menu_ticker_speed = 1.0f;
 #ifdef HAVE_OVERLAY
 #ifndef ANDROID
 static bool show_overlay_menu = false;
