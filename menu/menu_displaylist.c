@@ -116,25 +116,25 @@ static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
       
       strlcpy(buf, path, strlen(path)+1);
       
-      // use platform-free name created in core_info_list_new
+      /* use platform-free name created in core_info_list_new */
       substr = strstr(buf,"_libretro");
       if (substr)
          *substr = '\0';
 
-      // put display_name in 'alt'
+      /* put display_name in 'alt' */
       if (!core_info_list_get_display_name(core_info, buf, buf, NAME_MAX_LENGTH)
           && !num_missing++)
          strlcpy(first_missing, buf, NAME_MAX_LENGTH);
       menu_list_set_alt_at_offset(list, i, buf);
    }
    
-   // queue info file download
+   /* queue info file download */
    if (!info_update_attempted && num_missing)
    {
       if (num_missing == 1)
-         core_info_download(first_missing);
+         core_info_download_queue(first_missing);
       else
-         core_info_download(NULL); // download all (info.zip)
+         core_info_download_queue(NULL); /* download all (info.zip) */
       info_update_attempted = true;
    }
    
@@ -1338,7 +1338,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          options_touched = true;
          break;
       case DISPLAYLIST_OVERLAYS:
-         // Highlight the currently used overlay
+         /* Highlight the currently used overlay */
          menu_list_clear(info->list);
          if (menu_displaylist_parse_generic(info, &need_sort) == 0)
          {

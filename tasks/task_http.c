@@ -82,7 +82,6 @@ error:
 
 static int cb_core_updater_download(void *data, size_t len)
 {
-   const char             *file_ext  = NULL;
    char output_path[PATH_MAX_LENGTH] = {0};
    char buf[PATH_MAX_LENGTH]         = {0};
    settings_t              *settings = config_get_ptr();
@@ -104,10 +103,8 @@ static int cb_core_updater_download(void *data, size_t len)
    rarch_main_msg_queue_push(buf, 1, 90, true);
 
 #ifdef HAVE_ZLIB
-   file_ext = path_get_extension(output_path);
-
    if (settings->network.buildbot_auto_extract_archive
-       && !strcasecmp(file_ext,"zip"))
+       && !strcasecmp(path_get_extension(output_path),"zip"))
    {
       if (!zlib_parse_file(output_path, NULL, zlib_extract_core_callback,
                (void*)settings->libretro_directory))
@@ -123,7 +120,7 @@ static int cb_core_updater_download(void *data, size_t len)
    substr = strstr(buf,"_libretro");
    if (substr)
       *substr = '\0';
-   core_info_download(buf);
+   core_info_download_queue(buf);
    
    return 0;
 }
@@ -174,7 +171,7 @@ static int cb_core_info_download(void *data, size_t len)
 }
 
 
-void core_info_download(const char* libretro_name)
+void core_info_download_queue(const char* libretro_name)
 {
 #ifdef HAVE_NETWORKING
    char info_path[PATH_MAX_LENGTH] = {0};

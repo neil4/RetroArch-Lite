@@ -639,9 +639,12 @@ static inline void rgui_check_update(settings_t *settings,
                    rgui_bg_filler);
       }
       
-      particle_effect = settings->menu.rgui_particle_effect;
-      if (particle_effect != RGUI_PARTICLE_EFFECT_NONE)
-         rgui_init_particle_effect(frame_buf);
+      if (particle_effect != settings->menu.rgui_particle_effect)
+      {
+         particle_effect = settings->menu.rgui_particle_effect;
+         if (particle_effect != RGUI_PARTICLE_EFFECT_NONE)
+            rgui_init_particle_effect(frame_buf);
+      }
 
       menu_update_ticker_speed();
 

@@ -25,7 +25,7 @@
 #include "../runloop.h"
 #include "../performance.h"
 
-static unsigned tick_divisor;
+static unsigned tick_div;
 
 menu_animation_t *menu_animation_get_ptr(void)
 {
@@ -498,7 +498,7 @@ bool menu_animation_update(menu_animation_t *anim, float dt)
    return true;
 }
 
-/* Original left/right bounce ticker
+/* Left/right bounce ticker
  */
 static void menu_animation_ticker_bounce(char *s, size_t len, uint64_t idx,
       const char *str, const size_t str_len)
@@ -506,10 +506,14 @@ static void menu_animation_ticker_bounce(char *s, size_t len, uint64_t idx,
    unsigned ticker_period, phase, phase_left_stop;
    unsigned phase_left_moving, phase_right_stop;
    unsigned left_offset, right_offset;
+   unsigned div;
+
+   /* Slower ticks for shorter strings */
+   div = str_len < (len + (len>>2)) ? tick_div + (tick_div>>1) : tick_div;
 
    /* Wrap long strings in options with some kind of ticker line. */
    ticker_period     = 2 * (str_len - len) + 4;
-   phase             = (idx / tick_divisor) % ticker_period;
+   phase             = (idx / div) % ticker_period;
 
    phase_left_stop   = 2;
    phase_left_moving = phase_left_stop + (str_len - len);
@@ -556,7 +560,7 @@ static void menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
    phase3 = str_len;
 
    ticker_period = str_len + sep_len;
-   phase         = (idx / tick_divisor) % ticker_period;
+   phase         = (idx / tick_div) % ticker_period;
 
    if (phase < phase1)
       strlcpy(s, str + phase, len + 1);
@@ -640,5 +644,5 @@ void menu_animation_update_time(menu_animation_t *anim)
 void menu_update_ticker_speed()
 {
    settings_t *settings = config_get_ptr();
-   tick_divisor = (unsigned)(10.0f / settings->menu.ticker_speed + 0.5f);
+   tick_div = (unsigned)(10.0f / settings->menu.ticker_speed + 0.5f);
 }

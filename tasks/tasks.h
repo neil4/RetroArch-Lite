@@ -34,7 +34,7 @@ extern "C" {
  * with the transfer on the next frame.
  **/
 void rarch_main_data_http_iterate(void *data);
-void core_info_download();
+void core_info_download_queue();
 #endif
 
 #ifdef HAVE_RPNG
