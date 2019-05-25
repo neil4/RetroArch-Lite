@@ -619,7 +619,7 @@ static inline void rgui_check_update(settings_t *settings,
    if (global->menu.theme_update_flag)
    {
       thick_bg_pattern = settings->menu.rgui_thick_bg_checkerboard ? 1 : 0;
-      thick_bd_pattern = settings->menu.rgui_thick_bd_checkerboard ? 1: 0;
+      thick_bd_pattern = settings->menu.rgui_thick_bd_checkerboard ? 1 : 0;
       
       if (strncmp(loaded_theme, settings->menu.theme, PATH_MAX_LENGTH))
       {

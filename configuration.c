@@ -2368,10 +2368,9 @@ bool config_save_file(const char *path)
       {
          snprintf(cfg, sizeof(cfg), "input_libretro_device_p%u", i + 1);
          config_set_int(conf, cfg, settings->input.libretro_device[i]);
+         snprintf(cfg, sizeof(cfg), "input_player%u_analog_dpad_mode", i + 1);
+         config_set_int(conf, cfg, settings->input.analog_dpad_mode[i]);
       }
-
-      snprintf(cfg, sizeof(cfg), "input_player%u_analog_dpad_mode", i + 1);
-      config_set_int(conf, cfg, settings->input.analog_dpad_mode[i]);
    }
 
    for (i = 0; i < settings->input.max_users; i++)
@@ -2635,6 +2634,8 @@ static void scoped_config_file_save(unsigned scope)
          char buf[64] = {0};
          snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
          config_set_int(conf, buf, settings->input.libretro_device[i]);
+         snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
+         config_set_int(conf, buf, settings->input.analog_dpad_mode[i]);
       }
    }
    else if (settings->input.libretro_device_scope < scope)
@@ -2643,6 +2644,8 @@ static void scoped_config_file_save(unsigned scope)
       {
          char buf[64] = {0};
          snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
+         config_remove_entry(conf, buf);
+         snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
          config_remove_entry(conf, buf);
       }
    }
@@ -2752,6 +2755,7 @@ void restore_update_config_globals()
    static unsigned input_max_users;
    static int input_joypad_map[MAX_USERS];
    static int input_libretro_device[MAX_USERS];
+   static int input_analog_dpad_mode[MAX_USERS];
    static char video_filter[PATH_MAX_LENGTH];
    static char video_shader[PATH_MAX_LENGTH];
    static bool video_shared_context;
@@ -2939,6 +2943,7 @@ void restore_update_config_globals()
       {
          settings->input.joypad_map[i] = input_joypad_map[i];
          settings->input.libretro_device[i] = input_libretro_device[i];
+         settings->input.analog_dpad_mode[i] = input_analog_dpad_mode[i];
       }
    }
    else
@@ -2947,6 +2952,7 @@ void restore_update_config_globals()
       {
          input_joypad_map[i] = settings->input.joypad_map[i];
          input_libretro_device[i] = settings->input.libretro_device[i];
+         input_analog_dpad_mode[i] = settings->input.analog_dpad_mode[i];
       }
    }
    
@@ -2983,6 +2989,7 @@ void restore_update_config_globals()
    }
 #endif
    
+   /* Core Settings, auto-scoped */
    if (!*settings->libretro)
    {  /* restore */
       settings->video.shared_context = video_shared_context;
@@ -2995,6 +3002,7 @@ void restore_update_config_globals()
       video_shared_context = settings->video.shared_context;
       load_dummy_on_core_shutdown = settings->load_dummy_on_core_shutdown;
       core_set_supports_no_game_enable = settings->core.set_supports_no_game_enable;
+      /* Force core-specific Virtual Device a core is loaded */
       settings->input.libretro_device_scope = THIS_CORE;
    }
 }
@@ -3095,6 +3103,8 @@ static void scoped_config_file_load(unsigned scope)
       snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
       if (!config_get_uint(conf, buf, &settings->input.libretro_device[i]))
          break;
+      snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
+      config_get_uint(conf, buf, &settings->input.analog_dpad_mode[i]);
    }
    if (i > 0)
       settings->input.libretro_device_scope = scope;
