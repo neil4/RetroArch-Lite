@@ -3002,7 +3002,7 @@ void restore_update_config_globals()
       video_shared_context = settings->video.shared_context;
       load_dummy_on_core_shutdown = settings->load_dummy_on_core_shutdown;
       core_set_supports_no_game_enable = settings->core.set_supports_no_game_enable;
-      /* Force core-specific Virtual Device a core is loaded */
+      /* Force core-specific Virtual Device if a core is loaded */
       settings->input.libretro_device_scope = THIS_CORE;
    }
 }
