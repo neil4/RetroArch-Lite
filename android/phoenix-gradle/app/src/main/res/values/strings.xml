@@ -163,7 +163,7 @@
     <string name="reextract_cores_desc">Reinstalls cores from the currently installed APK.  New cores are not removed.</string>
     <string name="config_style">Configuration style</string>
     <string name="mame_titles">MAME Titles</string>
-    <string name="mame_titles_desc">Translate zip filenames to MAME / FB Alpha titles.</string>
+    <string name="mame_titles_desc">Translate zip filenames to MAME titles.</string>
     <string name="append_abi_to_corenames">Show 32-bit/64-bit</string>
     <string name="append_abi_to_corenames_desc">Distinguish between 32-bit and 64-bit cores.</string>
 

@@ -872,11 +872,11 @@ bool event_command(enum event_command cmd)
          if (global->bsv.movie)
             return false;
 
-#ifdef HAVE_NETPLAY
-         if (driver->netplay_data)
-            return false;
-#endif
          event_main_state(cmd);
+#ifdef HAVE_NETPLAY
+         if (driver->netplay_data && !netplay_send_savestate())
+            netplay_disconnect();
+#endif
          break;
       case EVENT_CMD_RESIZE_WINDOWED_SCALE:
          if (global->pending.windowed_scale == 0)
@@ -910,6 +910,11 @@ bool event_command(enum event_command cmd)
           * after a reset, so just enforce it here. */
          event_command(EVENT_CMD_CONTROLLERS_INIT);
          rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
+
+#ifdef HAVE_NETPLAY
+         if (driver->netplay_data && !netplay_send_savestate())
+            netplay_disconnect();
+#endif
          break;
       case EVENT_CMD_SAVE_STATE:
          if (settings->savestate_auto_index)

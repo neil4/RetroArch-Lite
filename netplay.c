@@ -47,6 +47,7 @@ struct delta_frame
 #define NETPLAY_CMD_ACK 0
 #define NETPLAY_CMD_NAK 1
 #define NETPLAY_CMD_FLIP_PLAYERS 2
+#define NETPLAY_CMD_LOAD_SAVESTATE 3
 
 #define PREV_PTR(x) ((x) == 0 ? netplay->buffer_size - 1 : (x) - 1)
 #define NEXT_PTR(x) ((x + 1) % netplay->buffer_size)
@@ -100,6 +101,8 @@ struct netplay
    bool has_client_addr;
 
    unsigned timeout_cnt;
+   /* Set after sending or receiving a savestate */
+   bool need_resync;
 
    /* Spectating. */
    bool spectate;
@@ -168,13 +171,30 @@ static bool send_chunk(netplay_t *netplay)
                sizeof(netplay->packet_buffer), 0, addr,
                sizeof(struct sockaddr_in6)) != sizeof(netplay->packet_buffer))
       {
-         warn_hangup();
-         netplay->has_connection = false;
-         deinit_netplay();
+         netplay_disconnect();
          return false;
       }
    }
    return true;
+}
+
+static void netplay_resync(netplay_t *netplay)
+{
+   pretro_unserialize(netplay->buffer[netplay->other_ptr].state,
+                      netplay->state_size);
+   netplay->buffer[netplay->other_ptr].self_state = 0;
+   netplay->buffer[netplay->other_ptr].real_input_state = 0;
+   netplay->buffer[netplay->other_ptr].is_simulated = false;
+   netplay->buffer[netplay->other_ptr].used_real = true;
+
+   netplay->self_ptr = netplay->other_ptr;
+   netplay->read_ptr = netplay->other_ptr;
+
+   netplay->other_frame_count = 1;
+   netplay->frame_count = 1;
+   netplay->read_frame_count = 1;
+
+   netplay->need_resync = false;
 }
 
 /**
@@ -206,14 +226,14 @@ static bool get_self_input_state(netplay_t *netplay)
          state |= tmp ? 1 << i : 0;
       }
    }
-   else if (netplay->frame_count == 0)
+   else if (netplay->frame_count == 0 && !netplay_connect(netplay))
    {
-      if (!netplay_connect(netplay))
-      {
-         deinit_netplay();
-         return false;
-      }
+      deinit_netplay();
+      return false;
    }
+
+   if (netplay->need_resync)
+      netplay_resync(netplay);
 
    memmove(netplay->packet_buffer, netplay->packet_buffer + 2,
          sizeof (netplay->packet_buffer) - 2 * sizeof(uint32_t));
@@ -222,9 +242,7 @@ static bool get_self_input_state(netplay_t *netplay)
 
    if (!send_chunk(netplay))
    {
-      warn_hangup();
-      netplay->has_connection = false;
-      deinit_netplay();
+      netplay_disconnect();
       return false;
    }
 
@@ -256,6 +274,10 @@ static bool netplay_get_response(netplay_t *netplay)
 
 static bool netplay_get_cmd(netplay_t *netplay)
 {
+   void* state_buf;
+   uint32_t* state_buf_u32;
+   unsigned i;
+
    uint32_t cmd, flip_frame;
    size_t cmd_size;
 
@@ -298,6 +320,27 @@ static bool netplay_get_cmd(netplay_t *netplay)
 
          return netplay_cmd_ack(netplay);
 
+      case NETPLAY_CMD_LOAD_SAVESTATE:
+         state_buf = netplay->buffer[netplay->other_ptr].state;
+
+         rarch_main_msg_queue_push("Receiving netplay state...", 0, 0, true);
+         video_driver_cached_frame();
+         if (!socket_receive_all_blocking(netplay->fd, state_buf,
+                                          netplay->state_size))
+         {
+            RARCH_ERR("Failed to receive netplay state from peer.\n");
+            return netplay_cmd_nak(netplay);
+         }
+
+         state_buf_u32 = (uint32_t*)state_buf;
+         for (i = 0; i < netplay->state_size/sizeof(uint32_t); i++)
+            state_buf_u32[i] = ntohl(state_buf_u32[i]);
+
+         netplay->need_resync = true;
+
+         rarch_main_msg_queue_push("Netplay state received.", 1, 180, true);
+         return netplay_cmd_ack(netplay);
+
       default:
          break;
    }
@@ -313,11 +356,11 @@ static bool hold_B_to_cancel_iterate(const unsigned hold_limit)
    netplay_t *netplay         = (netplay_t*)driver->netplay_data;
    char msg[64]               = {0};
    static unsigned hold_count;
-   
+
 #ifdef HAVE_OVERLAY
    accelerate_overlay_load();
 #endif
-   
+
    netplay->cbs.poll_cb();
    if (input_driver_key_pressed(settings->menu_cancel_btn))
       hold_count--;
@@ -335,7 +378,7 @@ static bool hold_B_to_cancel_iterate(const unsigned hold_limit)
 
    rarch_main_msg_queue_push(msg, 1, 50, true);
    video_driver_cached_frame();
-   
+
    if (hold_count == 0)
    {
       hold_count = hold_limit;
@@ -353,7 +396,7 @@ static int poll_input(netplay_t *netplay, bool block)
    tv.tv_usec        = block ? (RETRY_MS * 1000) : 0;
 
    do
-   { 
+   {
       fd_set fds;
       /* select() does not take pointer to const struct timeval.
        * Technically possible for select() to modify tmp_tv, so 
@@ -372,7 +415,10 @@ static int poll_input(netplay_t *netplay, bool block)
       /* Somewhat hacky,
        * but we aren't using the TCP connection for anything useful atm. */
       if (FD_ISSET(netplay->fd, &fds) && !netplay_get_cmd(netplay))
-         return -1; 
+         return -1;
+      /* netplay_get_cmd might set this flag */
+      if (netplay->need_resync)
+         return 0;
 
       if (FD_ISSET(netplay->udp_fd, &fds))
          return 1;
@@ -382,9 +428,7 @@ static int poll_input(netplay_t *netplay, bool block)
 
       if (!send_chunk(netplay))
       {
-         warn_hangup();
-         netplay->has_connection = false;
-         deinit_netplay();
+         netplay_disconnect();
          return -1;
       }
       
@@ -484,9 +528,7 @@ static bool netplay_poll(netplay_t *netplay)
    res = poll_input(netplay, netplay->other_ptr == netplay->self_ptr);
    if (res == -1)
    {
-      netplay->has_connection = false;
-      warn_hangup();
-      deinit_netplay();
+      netplay_disconnect();
       return false;
    }
 
@@ -498,9 +540,7 @@ static bool netplay_poll(netplay_t *netplay)
          uint32_t buffer[UDP_FRAME_PACKETS * 2];
          if (!receive_data(netplay, buffer, sizeof(buffer)))
          {
-            warn_hangup();
-            netplay->has_connection = false;
-            deinit_netplay();
+            netplay_disconnect();
             return false;
          }
          parse_packet(netplay, buffer, UDP_FRAME_PACKETS);
@@ -512,7 +552,7 @@ static bool netplay_poll(netplay_t *netplay)
    else
    {
       /* Cannot allow this. Should not happen though. */
-      if (netplay->self_ptr == netplay->other_ptr)
+      if (netplay->self_ptr == netplay->other_ptr && !netplay->need_resync)
       {
          warn_hangup();
          return false;
@@ -1415,6 +1455,53 @@ error:
    rarch_main_msg_queue_push(msg, 1, 180, false);
 }
 
+bool netplay_send_savestate()
+{
+   driver_t *driver   = driver_get_ptr();
+   netplay_t *netplay = (netplay_t*)driver->netplay_data;
+
+   void *state_buf = NULL;
+   uint32_t* state_buf_u32;
+   size_t i;
+
+   state_buf = malloc(netplay->state_size);
+   if (!state_buf)
+      return false;
+
+   if (!pretro_serialize(state_buf, netplay->state_size))
+   {
+      free(state_buf);
+      return false;
+   }
+
+   memcpy(netplay->buffer[netplay->other_ptr].state,
+          state_buf, netplay->state_size);
+
+   state_buf_u32 = (uint32_t*)state_buf;
+   for (i = 0; i < netplay->state_size / sizeof(uint32_t); i++)
+      state_buf_u32[i] = htonl(state_buf_u32[i]);
+
+   rarch_main_msg_queue_push("Sending netplay state...", 0, 0, true);
+   video_driver_cached_frame();
+
+   if ( !netplay_send_cmd(netplay, NETPLAY_CMD_LOAD_SAVESTATE, state_buf,
+                          netplay->state_size)
+        || !netplay_get_response(netplay) )
+   {
+      RARCH_LOG("Failed to send netplay state.\n");
+      rarch_main_msg_queue_push("Failed to send netplay state.", 1, 180, true);
+      free(state_buf);
+      return false;
+   }
+
+   rarch_main_msg_queue_push("Netplay state sent.", 0, 180, true);
+
+   netplay->need_resync = true;
+
+   free(state_buf);
+   return true;
+}
+
 /**
  * netplay_free:
  * @netplay              : pointer to netplay object
@@ -1459,8 +1546,9 @@ void netplay_free(netplay_t *netplay)
  **/
 static void netplay_pre_frame_net(netplay_t *netplay)
 {
-   pretro_serialize(netplay->buffer[netplay->self_ptr].state,
-         netplay->state_size);
+   if (!netplay->need_resync)
+      pretro_serialize(netplay->buffer[netplay->self_ptr].state,
+                       netplay->state_size);
    netplay->can_poll = true;
 
    input_poll_net();
@@ -1739,7 +1827,7 @@ void netplay_post_frame(netplay_t *netplay)
 {
    if (netplay->spectate)
       netplay_post_frame_spectate(netplay);
-   else
+   else if (!netplay->need_resync)
       netplay_post_frame_net(netplay);
 }
 
@@ -1777,6 +1865,16 @@ void netplay_mask_config()
 void netplay_unmask_config()
 {
    netplay_mask_unmask_config(false);
+}
+
+void netplay_disconnect()
+{
+   driver_t *driver   = driver_get_ptr();
+   netplay_t *netplay = (netplay_t*)driver->netplay_data;
+
+   warn_hangup();
+   netplay->has_connection = false;
+   deinit_netplay();
 }
 
 void deinit_netplay(void)

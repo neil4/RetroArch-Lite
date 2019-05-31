@@ -116,6 +116,8 @@ bool init_netplay(void);
 
 void deinit_netplay(void);
 
+void netplay_disconnect();
+
 /**
  * netplay_mask_config
  * 
@@ -123,6 +125,8 @@ void deinit_netplay(void);
  */
 void netplay_mask_config();
 void netplay_unmask_config();
+
+bool netplay_send_savestate();
 
 #endif
 

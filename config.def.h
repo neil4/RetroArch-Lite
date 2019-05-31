@@ -477,7 +477,7 @@ static const unsigned input_vibrate_time = 5;
 static bool show_frame_throttle_menu = true;
 #ifdef HAVE_NETPLAY
 static bool show_netplay_menu = true;
-static unsigned netplay_sync_frames = 1;
+static unsigned netplay_sync_frames = 3;
 #endif
 static bool show_saving_menu = false;
 static bool show_core_menu = false;
