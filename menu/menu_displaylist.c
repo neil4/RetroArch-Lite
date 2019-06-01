@@ -1335,7 +1335,6 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
                   MENU_SETTINGS_CORE_OPTION_NONE, 0, 0);
          
          need_push = true;
-         options_touched = true;
          break;
       case DISPLAYLIST_OVERLAYS:
          /* Highlight the currently used overlay */

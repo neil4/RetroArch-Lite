@@ -140,6 +140,9 @@ static int action_start_options_file_delete_game(unsigned type, const char *labe
    opt_path = core_option_conf_path(global->system.core_options);
    core_option_get_core_conf_path(opt_path);
    
+   core_options_conf_reload(global->system.core_options);
+   options_touched = true;
+   
    return 0;
 }
 

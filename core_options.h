@@ -153,6 +153,15 @@ void core_option_prev(core_option_manager_t *opt, size_t idx);
  **/
 void core_option_set_default(core_option_manager_t *opt, size_t idx);
 
+/**
+ * core_options_conf_reload
+ * @opt                   : pointer to core option manager object.
+ * 
+ * Reloads @opt->conf with entries from @opt->conf_path. Blanks @opt-conf if
+ * @opt->conf_path does not exist.
+ */
+void core_options_conf_reload(core_option_manager_t *opt);
+
 char* core_option_conf_path(core_option_manager_t *opt);
 
 /**

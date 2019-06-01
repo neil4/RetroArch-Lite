@@ -312,8 +312,9 @@ void core_option_set_val(core_option_manager_t *opt,
    if (!option)
       return;
 
-   option->index = val_idx % option->vals->size;
-   opt->updated  = true;
+   option->index   = val_idx % option->vals->size;
+   opt->updated    = true;
+   options_touched = true;
 }
 
 /**
@@ -331,8 +332,9 @@ void core_option_next(core_option_manager_t *opt, size_t idx)
    if (!option)
       return;
 
-   option->index = (option->index + 1) % option->vals->size;
-   opt->updated  = true;
+   option->index   = (option->index + 1) % option->vals->size;
+   opt->updated    = true;
+   options_touched = true;
 }
 
 /**
@@ -351,9 +353,10 @@ void core_option_prev(core_option_manager_t *opt, size_t idx)
    if (!option)
       return;
 
-   option->index = (option->index + option->vals->size - 1) %
+   option->index   = (option->index + option->vals->size - 1) %
       option->vals->size;
-   opt->updated  = true;
+   opt->updated    = true;
+   options_touched = true;
 }
 
 /**
@@ -370,6 +373,16 @@ void core_option_set_default(core_option_manager_t *opt, size_t idx)
 
    opt->opts[idx].index = 0;
    opt->updated         = true;
+   options_touched      = true;
+}
+
+void core_options_conf_reload(core_option_manager_t *opt)
+{
+   config_file_free(opt->conf);
+   if (path_file_exists(opt->conf_path))
+      opt->conf = config_file_new(opt->conf_path);
+   else
+      opt->conf = config_file_new(NULL);
 }
 
 char* core_option_conf_path(core_option_manager_t *opt)

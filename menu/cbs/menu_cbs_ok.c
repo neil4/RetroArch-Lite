@@ -756,16 +756,22 @@ static int action_ok_options_file_save_game(const char *path,
    opt_path = core_option_conf_path(global->system.core_options);
    
    strlcpy(opt_path, abs_path, sizeof(abs_path));
-   
+
    if (path_file_exists(abs_path))
       rarch_main_msg_queue_push("Already using a ROM Options file"
-                                "\nUpdates are automatic", 1, 100, true);
-   else if (core_option_flush(global->system.core_options))
-      rarch_main_msg_queue_push("ROM Options file created successfully", 1, 100, true);
+                                "\nUpdates are automatic", 1, 180, true);
    else
    {
-      rarch_main_msg_queue_push("Error creating options file", 1, 100, true);
-      core_option_get_core_conf_path(opt_path);
+      /* trim to relevant options only */
+      core_options_conf_reload(global->system.core_options);
+      if (core_option_flush(global->system.core_options))
+         rarch_main_msg_queue_push("ROM Options file created successfully", 1, 100, true);
+      else
+      {
+         rarch_main_msg_queue_push("Error creating options file", 1, 100, true);
+         core_option_get_core_conf_path(opt_path);
+         core_options_conf_reload(global->system.core_options);
+      }
    }
 
    return 0;
