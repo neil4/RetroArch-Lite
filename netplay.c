@@ -504,6 +504,7 @@ static void simulate_input(netplay_t *netplay)
  **/
 static bool netplay_poll(netplay_t *netplay)
 {
+   runloop_t *runloop = rarch_main_get_ptr();
    int res;
 
    netplay->can_poll = false;
@@ -560,9 +561,15 @@ static bool netplay_poll(netplay_t *netplay)
    }
 
    if (netplay->read_ptr != netplay->self_ptr)
+   {
       simulate_input(netplay);
+      runloop->is_slowmotion = true;
+   }
    else
+   {
       netplay->buffer[PREV_PTR(netplay->self_ptr)].used_real = true;
+      runloop->is_slowmotion = false;
+   }
 
    return true;
 }
@@ -1838,6 +1845,7 @@ static void netplay_mask_unmask_config(bool starting)
    static bool has_started;
    static unsigned video_frame_delay;
    static bool menu_pause_libretro;
+   static float slowmotion_ratio;
    
    if (starting && !has_started)
    {  /* mask */
@@ -1846,6 +1854,9 @@ static void netplay_mask_unmask_config(bool starting)
       
       menu_pause_libretro = settings->menu.pause_libretro;
       settings->menu.pause_libretro = false;
+
+      slowmotion_ratio = settings->slowmotion_ratio;
+      settings->slowmotion_ratio = 1.033333;  /* shave 2fps for peer catch-up */
       
       has_started = true;
    }
@@ -1853,6 +1864,7 @@ static void netplay_mask_unmask_config(bool starting)
    {  /* unmask */
       settings->video.frame_delay = video_frame_delay;
       settings->menu.pause_libretro = menu_pause_libretro;
+      settings->slowmotion_ratio = slowmotion_ratio;
       has_started = false;
    }
 }

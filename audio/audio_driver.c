@@ -660,7 +660,7 @@ bool audio_driver_flush(const int16_t *data, size_t samples)
       audio_driver_readjust_input_rate();
 
    src_data.ratio = audio_data.src_ratio;
-   if (runloop->is_slowmotion)
+   if (runloop->is_slowmotion && !driver->netplay_data)
       src_data.ratio *= settings->slowmotion_ratio;
 
    rarch_resampler_process(driver->resampler,

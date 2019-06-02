@@ -668,16 +668,17 @@ static void rarch_update_frame_time(void)
  *
  * Throttle core speed or fastforward speed.
  **/
-static void rarch_limit_frame_time(bool fastforward)
+static void rarch_limit_frame_time()
 {
    retro_time_t target                  = 0;
    retro_time_t to_sleep_ms             = 0;
    runloop_t *runloop                   = rarch_main_get_ptr();
    settings_t *settings                 = config_get_ptr();
+   driver_t *driver                     = driver_get_ptr();
    retro_time_t current                 = rarch_get_time_usec();
    double mft_f;
    
-   double throttled_fps = settings->throttle_using_core_fps ?
+   double throttled_fps = settings->throttle_using_core_fps || driver->netplay_data ?
                           video_viewport_get_system_av_info()->timing.fps
                           : settings->video.refresh_rate;
    
@@ -685,7 +686,7 @@ static void rarch_limit_frame_time(bool fastforward)
       mft_f = 1000000.0f / throttled_fps;
    else if (runloop->is_slowmotion)
       mft_f = settings->slowmotion_ratio * (1000000.0f / throttled_fps);
-   else if (fastforward)
+   else if (driver->nonblock_state)
    {
       if (settings->fastforward_ratio > 1.0f)
          mft_f = 1000000.0f / (throttled_fps * settings->fastforward_ratio);
@@ -1248,7 +1249,7 @@ int rarch_main_iterate(void)
 #endif
 
 success:
-   rarch_limit_frame_time(driver->nonblock_state);
+   rarch_limit_frame_time();
 
    return ret;
 }

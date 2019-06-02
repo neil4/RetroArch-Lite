@@ -4662,6 +4662,7 @@ static bool setting_append_list_frame_throttling_options(
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
+   driver_t   *driver   = driver_get_ptr();
    
    if (!settings->menu.show_frame_throttle_menu)
       return true;
@@ -4734,18 +4735,21 @@ static bool setting_append_list_frame_throttling_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_fastforward_ratio;
 
-   CONFIG_FLOAT(
-         settings->slowmotion_ratio,
-         "slowmotion_ratio",
-         "Slow-Motion Ratio",
-         slowmotion_ratio,
-         "%.1fx",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 1, 10, 1.0, true, true);
+   if (!driver->netplay_data)
+   {
+      CONFIG_FLOAT(
+            settings->slowmotion_ratio,
+            "slowmotion_ratio",
+            "Slow-Motion Ratio",
+            slowmotion_ratio,
+            "%.1fx",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 1, 10, 1.0, true, true);
+   }
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
