@@ -83,6 +83,7 @@ struct netplay
    size_t tmp_ptr;
 
    size_t state_size;
+   size_t state_u32_size;
 
    /* Are we replaying old frames? */
    bool is_replay;
@@ -326,14 +327,14 @@ static bool netplay_get_cmd(netplay_t *netplay)
          rarch_main_msg_queue_push("Receiving netplay state...", 0, 0, true);
          video_driver_cached_frame();
          if (!socket_receive_all_blocking(netplay->fd, state_buf,
-                                          netplay->state_size))
+                                          netplay->state_u32_size))
          {
             RARCH_ERR("Failed to receive netplay state from peer.\n");
             return netplay_cmd_nak(netplay);
          }
 
          state_buf_u32 = (uint32_t*)state_buf;
-         for (i = 0; i < netplay->state_size/sizeof(uint32_t); i++)
+         for (i = 0; i < netplay->state_u32_size / sizeof(uint32_t); i++)
             state_buf_u32[i] = ntohl(state_buf_u32[i]);
 
          netplay->need_resync = true;
@@ -1265,7 +1266,7 @@ static bool get_info_spectate(netplay_t *netplay)
 
 static bool init_buffers(netplay_t *netplay)
 {
-   unsigned i;
+   unsigned i, tmp;
 
    if (!netplay)
       return false;
@@ -1277,10 +1278,13 @@ static bool init_buffers(netplay_t *netplay)
       return false;
 
    netplay->state_size = pretro_serialize_size();
+   tmp = netplay->state_size % sizeof(uint32_t);
+   netplay->state_u32_size
+      = netplay->state_size + (tmp ? sizeof(uint32_t) - tmp : 0);
 
    for (i = 0; i < netplay->buffer_size; i++)
    {
-      netplay->buffer[i].state = malloc(netplay->state_size);
+      netplay->buffer[i].state = malloc(netplay->state_u32_size);
 
       if (!netplay->buffer[i].state)
          return false;
@@ -1485,14 +1489,14 @@ bool netplay_send_savestate()
           state_buf, netplay->state_size);
 
    state_buf_u32 = (uint32_t*)state_buf;
-   for (i = 0; i < netplay->state_size / sizeof(uint32_t); i++)
+   for (i = 0; i < netplay->state_u32_size / sizeof(uint32_t); i++)
       state_buf_u32[i] = htonl(state_buf_u32[i]);
 
    rarch_main_msg_queue_push("Sending netplay state...", 0, 0, true);
    video_driver_cached_frame();
 
    if ( !netplay_send_cmd(netplay, NETPLAY_CMD_LOAD_SAVESTATE, state_buf,
-                          netplay->state_size)
+                          netplay->state_u32_size)
         || !netplay_get_response(netplay) )
    {
       RARCH_LOG("Failed to send netplay state.\n");
