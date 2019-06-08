@@ -1647,12 +1647,9 @@ static bool config_load_file(const char *path, bool set_defaults)
 #endif
 
    CONFIG_GET_BOOL_BASE(conf, settings, rewind_enable, "rewind_enable");
-
-   int buffer_size = 0;
-   if (config_get_int(conf, "rewind_buffer_size", &buffer_size))
-      settings->rewind_buffer_size = buffer_size * UINT64_C(1000000);
-
+   CONFIG_GET_INT_BASE(conf, settings, rewind_buffer_size, "rewind_buffer_size");
    CONFIG_GET_INT_BASE(conf, settings, rewind_granularity, "rewind_granularity");
+
    CONFIG_GET_FLOAT_BASE(conf, settings, slowmotion_ratio, "slowmotion_ratio");
    if (settings->slowmotion_ratio < 1.0f)
       settings->slowmotion_ratio = 1.0f;
@@ -2002,9 +1999,8 @@ bool config_save_file(const char *path)
          settings->input.netplay_client_swap_input);
    config_set_bool(conf, "autoconfig_descriptor_label_show",
          settings->input.autoconfig_descriptor_label_show);
-   if (!*global->libretro_name)
-      config_set_bool(conf, "load_dummy_on_core_shutdown",
-                      settings->load_dummy_on_core_shutdown);
+   config_set_bool(conf, "load_dummy_on_core_shutdown",
+                   settings->load_dummy_on_core_shutdown);
    config_set_bool(conf,  "fps_show", settings->fps_show);
    config_set_bool(conf,  "ui_menubar_enable", settings->ui.menubar_enable);
 
@@ -2019,7 +2015,10 @@ bool config_save_file(const char *path)
    if (!global->info_dir_override)
    config_set_path(conf,  "libretro_info_path", settings->libretro_info_path);
    config_set_path(conf,  "cheat_database_path", settings->cheat_database);
-   config_set_bool(conf,  "rewind_enable", settings->rewind_enable);
+
+   config_set_bool(conf, "rewind_enable", settings->rewind_enable);
+   config_set_int(conf, "rewind_buffer_size", settings->rewind_buffer_size);
+
    config_set_int(conf,   "audio_latency", settings->audio.latency);
    
    if (settings->audio.sync_scope == GLOBAL)
@@ -2043,8 +2042,7 @@ bool config_save_file(const char *path)
    if (settings->video.threaded_scope == GLOBAL)
       config_set_bool(conf, "video_threaded", settings->video.threaded);
    
-   if (!*global->libretro_name)
-      config_set_bool(conf,  "video_shared_context", settings->video.shared_context);
+   config_set_bool(conf,  "video_shared_context", settings->video.shared_context);
    
    config_set_bool(conf,  "video_force_srgb_disable",
          settings->video.force_srgb_disable);
@@ -2386,9 +2384,8 @@ bool config_save_file(const char *path)
    config_set_bool(conf, "log_verbosity", global->verbosity);
    config_set_bool(conf, "perfcnt_enable", global->perfcnt_enable);
 
-   if (!*global->libretro_name)
-      config_set_bool(conf, "core_set_supports_no_game_enable",
-                      settings->core.set_supports_no_game_enable);
+   config_set_bool(conf, "core_set_supports_no_game_enable",
+                   settings->core.set_supports_no_game_enable);
 
    config_set_int(conf, "archive_mode", settings->archive.mode);
 
@@ -2683,17 +2680,19 @@ static void scoped_config_file_save(unsigned scope)
    }
 #endif
       
+   /* Core specific settings */
    if (scope == THIS_CORE)
    {
       config_set_path(conf, "rgui_browser_directory",
                       settings->core_content_directory); /* not written if empty */
-      /* Always save Core Settings */
       config_set_bool(conf, "video_shared_context",
                       settings->video.shared_context);
       config_set_bool(conf, "load_dummy_on_core_shutdown",
                       settings->load_dummy_on_core_shutdown);
       config_set_bool(conf, "core_set_supports_no_game_enable",
                       settings->core.set_supports_no_game_enable);
+      config_set_bool(conf, "rewind_enable", settings->rewind_enable);
+      config_set_int(conf, "rewind_buffer_size", settings->rewind_buffer_size);
    }
 
    /* Create/update or delete config file */
@@ -2721,6 +2720,7 @@ void restore_update_config_globals()
 {
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
+   static bool prev_libretro;
    unsigned i;
    
    if (!settings)
@@ -2761,6 +2761,8 @@ void restore_update_config_globals()
    static bool video_shared_context;
    static bool load_dummy_on_core_shutdown;
    static bool core_set_supports_no_game_enable;
+   static bool rewind_enable;
+   static unsigned rewind_buffer_size;
 #ifdef HAVE_MENU
    static char menu_theme[PATH_MAX_LENGTH];
    static float wallpaper_opacity;
@@ -2989,21 +2991,27 @@ void restore_update_config_globals()
    }
 #endif
    
-   /* Core Settings, auto-scoped */
-   if (!*settings->libretro)
+   /* Core specific settings */
+   if (!*settings->libretro && prev_libretro)
    {  /* restore */
       settings->video.shared_context = video_shared_context;
       settings->load_dummy_on_core_shutdown = load_dummy_on_core_shutdown;
       settings->core.set_supports_no_game_enable = core_set_supports_no_game_enable;
+      settings->rewind_enable = rewind_enable;
+      settings->rewind_buffer_size = rewind_buffer_size;
       *settings->core_content_directory = '\0';
+      prev_libretro = false;
    }
-   else
+   else if (!prev_libretro)
    {  /* update */
       video_shared_context = settings->video.shared_context;
       load_dummy_on_core_shutdown = settings->load_dummy_on_core_shutdown;
       core_set_supports_no_game_enable = settings->core.set_supports_no_game_enable;
+      rewind_enable = settings->rewind_enable;
+      rewind_buffer_size = settings->rewind_buffer_size;
       /* Force core-specific Virtual Device if a core is loaded */
       settings->input.libretro_device_scope = THIS_CORE;
+      prev_libretro = true;
    }
 }
 
@@ -3140,7 +3148,8 @@ static void scoped_config_file_load(unsigned scope)
       global->menu.theme_update_flag = true;
    }
 #endif
-   
+
+   /* Core specific settings */
    if (scope == THIS_CORE)
    {
       if (config_get_path(conf, "rgui_browser_directory", buf, PATH_MAX_LENGTH))
@@ -3151,6 +3160,9 @@ static void scoped_config_file_load(unsigned scope)
                            "load_dummy_on_core_shutdown");
       CONFIG_GET_BOOL_BASE(conf, settings, core.set_supports_no_game_enable,
                            "core_set_supports_no_game_enable");
+      CONFIG_GET_BOOL_BASE(conf, settings, rewind_enable, "rewind_enable");
+      CONFIG_GET_INT_BASE(conf, settings, rewind_buffer_size,
+                          "rewind_buffer_size");
    }
 
    config_file_free(conf);

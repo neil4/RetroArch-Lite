@@ -1872,6 +1872,14 @@ static void setting_get_string_representation_on_off_core_specific(void *data,
       strcpy(s, "OFF (Core specific)");
 }
 
+static void setting_get_string_representation_netplay_buffer_size(void *data,
+      char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting)
+      sprintf(s, "%uMB (Core specific)", *setting->value.unsigned_integer);
+}
+
 static void setting_get_string_representation_uint_libretro_device(void *data,
       char *s, size_t len)
 {
@@ -4369,7 +4377,7 @@ static bool setting_append_list_core_options(
          general_write_handler,
          general_read_handler);
    (*list)[list_info->index - 1].get_string_representation = 
-   &setting_get_string_representation_on_off_core_specific; 
+      &setting_get_string_representation_on_off_core_specific; 
 
    CONFIG_BOOL(
          settings->load_dummy_on_core_shutdown,
@@ -4384,7 +4392,7 @@ static bool setting_append_list_core_options(
          general_write_handler,
          general_read_handler);
    (*list)[list_info->index - 1].get_string_representation = 
-   &setting_get_string_representation_on_off_core_specific; 
+      &setting_get_string_representation_on_off_core_specific; 
 
    CONFIG_BOOL(
          settings->core.set_supports_no_game_enable,
@@ -4399,7 +4407,7 @@ static bool setting_append_list_core_options(
          general_write_handler,
          general_read_handler);
    (*list)[list_info->index - 1].get_string_representation = 
-   &setting_get_string_representation_on_off_core_specific; 
+      &setting_get_string_representation_on_off_core_specific; 
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -4784,8 +4792,10 @@ static bool setting_append_list_rewind_options(
          general_read_handler);
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_REWIND_TOGGLE);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
-#if 0
-   CONFIG_SIZE(
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_on_off_core_specific; 
+
+   CONFIG_UINT(
          settings->rewind_buffer_size,
          "rewind_buffer_size",
          "Rewind Buffer Size",
@@ -4795,17 +4805,20 @@ static bool setting_append_list_rewind_options(
          parent_group,
          general_write_handler,
          general_read_handler)
-#endif
-      CONFIG_UINT(
-            settings->rewind_granularity,
-            menu_hash_to_str(MENU_LABEL_REWIND_GRANULARITY),
-            menu_hash_to_str(MENU_LABEL_VALUE_REWIND_GRANULARITY),
-            rewind_granularity,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_netplay_buffer_size; 
+   menu_settings_list_current_add_range(list, list_info, 10, 1000, 10, true, true);
+
+   CONFIG_UINT(
+         settings->rewind_granularity,
+         menu_hash_to_str(MENU_LABEL_REWIND_GRANULARITY),
+         menu_hash_to_str(MENU_LABEL_VALUE_REWIND_GRANULARITY),
+         rewind_granularity,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 1, 32768, 1, true, false);
 
    END_SUB_GROUP(list, list_info, parent_group);

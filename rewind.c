@@ -553,11 +553,10 @@ void init_rewind(void)
       return;
    }
 
-   RARCH_LOG(RETRO_MSG_REWIND_INIT "%u MB\n",
-         (unsigned)(settings->rewind_buffer_size / 1000000));
+   RARCH_LOG(RETRO_MSG_REWIND_INIT "%u MB\n", settings->rewind_buffer_size);
 
    global->rewind.state = state_manager_new(global->rewind.size,
-         settings->rewind_buffer_size);
+         settings->rewind_buffer_size << 20);
 
    if (!global->rewind.state)
       RARCH_WARN(RETRO_LOG_REWIND_INIT_FAILED);

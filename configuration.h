@@ -352,7 +352,7 @@ typedef struct settings
    char extraction_directory[PATH_MAX_LENGTH];
 
    bool rewind_enable;
-   size_t rewind_buffer_size;
+   unsigned rewind_buffer_size; /* MB */
    unsigned rewind_granularity;
 
    float slowmotion_ratio;
