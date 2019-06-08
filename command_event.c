@@ -1353,7 +1353,7 @@ bool event_command(enum event_command cmd)
             rarch_main_msg_queue_push("Netplay has disconnected."
                                       " Will continue without connection.",
                                       0, 480, false);
-         }  // else, init on next launch
+         }  /* else, init on next launch */
 #endif
          break;  
             

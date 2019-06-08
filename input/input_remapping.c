@@ -75,7 +75,7 @@ bool input_remapping_load_file(const char *path)
 
 int remap_file_load_auto()
 {
-   // Look for game-specific file first, then core-specific file
+  /* Look for game-specific file first, then core-specific file */
    char directory[PATH_MAX_LENGTH]  = {0};
    char buf[PATH_MAX_LENGTH]        = {0};
    char fullpath[PATH_MAX_LENGTH]   = {0};
@@ -95,7 +95,7 @@ int remap_file_load_auto()
    fill_pathname_noext(fullpath, buf, ".rmp", PATH_MAX_LENGTH);
 
    if( !path_file_exists(fullpath) )
-   {  // fall back to core remap file
+   {  /* fall back to core remap file */
       fill_pathname_join(buf,directory,core_name,PATH_MAX_LENGTH);
       fill_pathname_noext(fullpath, buf, ".rmp", PATH_MAX_LENGTH);
    }
@@ -104,7 +104,7 @@ int remap_file_load_auto()
        && input_remapping_load_file(fullpath) )
       strlcpy(settings->input.remapping_path, fullpath, PATH_MAX_LENGTH);
    else
-   {  // fall back to default mapping
+   {  /* fall back to default mapping */
       settings->input.remapping_path[0] = '\0';
       input_remapping_set_defaults();
    }

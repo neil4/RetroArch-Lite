@@ -34,6 +34,7 @@
 #include "runloop.h"
 #include "configuration.h"
 #include "general.h"
+#include "netplay.h"
 
 #include "input/input_sensor.h"
 
@@ -1147,17 +1148,45 @@ bool rarch_environment_cb(unsigned cmd, void *data)
       /* TODO */
       /* case RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS: */
       
+      /* TODO */
+      /* case RETRO_ENVIRONMENT_GET_MIDI_INTERFACE: */
+      
       case RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT:
       {
          core_set_shared_context = true;
          break;
       }
       
-      /* TODO */
-      /* case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE: */
-      
-      /* TODO */
-      /* case RETRO_ENVIRONMENT_GET_MIDI_INTERFACE: */
+      case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE:
+      {
+         int result = 0;
+         if (driver->audio_active)
+            result |= 2;
+         if (driver->video_active)
+            result |= 1;
+         #ifdef HAVE_NETWORKING
+         if (driver->netplay_data)
+         {
+            if (netplay_is_replaying(driver->netplay_data))
+               result &= ~(1|2);
+            result |= 4;
+         }
+         #endif
+         if (data != NULL)
+         {
+            int* result_p = (int*)data;
+            *result_p = result;
+         }
+         break;
+      }
+         
+      case RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE:
+         *(float *)data = settings->video.refresh_rate;
+         break;
+         
+      case RETRO_ENVIRONMENT_GET_FASTFORWARDING:
+         *(bool *)data = driver->nonblock_state;
+         break;
 
       /* Private extensions for internal use, not part of libretro API. */
       case RETRO_ENVIRONMENT_SET_LIBRETRO_PATH:

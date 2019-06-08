@@ -3482,15 +3482,10 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_NETPLAY_DELAY_FRAMES:
          snprintf(s, len,
-                     "The number of frames of input latency for \n"
-                     "netplay to use to hide network latency. \n"
+                     "Netplay's rewind buffer size, in frames\n"
                      " \n"
-                     "When in netplay, this option delays local \n"
-                     "input, so that the frame being run is \n"
-                     "closer to the frames being received from \n"
-                     "the network. This reduces jitter and makes \n"
-                     "netplay less CPU-intensive, but at the \n"
-                     "price of noticeable input lag. \n");
+                     "Higher values can reduce stalling at the \n"
+                     "cost of higher CPU usage and jitter. \n");
             break;
       default:
          return -1;
@@ -7591,14 +7586,14 @@ static bool setting_append_list_netplay_options(
    CONFIG_UINT(
          global->netplay_sync_frames,
          "netplay_delay_frames",
-         "Input Delay Frames",
+         "Allowed Latency (frames)",
          netplay_sync_frames,
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 16, 1, true, true);
+   menu_settings_list_current_add_range(list, list_info, 0, 10, 1, true, true);
    
    CONFIG_BOOL(
          global->netplay_is_spectate,

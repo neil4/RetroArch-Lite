@@ -176,7 +176,7 @@ static void blargg_ntsc_snes_render_rgb565(void *data, int width, int height,
 #endif
       snes_ntsc_blit(filt->ntsc, input, pitch, filt->burst,
             width, height, output, outpitch * 2, first, last);
-   // For now, disabled snes_ntsc_blit_hires to be friendlier to other emulators
+   /* For now, disabled snes_ntsc_blit_hires to be friendlier to other emulators */
 #if 0
    else
       snes_ntsc_blit_hires(filt->ntsc, input, pitch, filt->burst,

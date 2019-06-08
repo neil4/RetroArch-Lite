@@ -372,7 +372,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          }
          break;
 
-      case MENU_ACTION_START:  // reset to default aspect
+      case MENU_ACTION_START:  /* reset to default aspect */
          if (!settings->video.scale_integer)
          {
             video_viewport_t vp;
@@ -388,7 +388,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          }
          break;
          
-   case MENU_ACTION_L:  // ten strides at a time
+   case MENU_ACTION_L:  /* ten strides at a time */
       if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
          {
             custom->x     -= 10*stride_x;
@@ -400,7 +400,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
          break;
          
-      case MENU_ACTION_R:  // ten strides at a time
+      case MENU_ACTION_R:  /* ten strides at a time */
          if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
          {
             custom->x += 10*stride_x;
@@ -478,17 +478,17 @@ static void delete_core_file(menu_list_t *menu_list)
    
    menu_list_pop_stack(menu_list);
    
-   // get dir
+   /* get dir */
    menu_list_get_last_stack(menu_list, &menu_dir, &menu_label, NULL, NULL);
    
-   // get filename
+   /* get filename */
    selected = menu_navigation_get_current_selection();
    selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
    menu_entry_get(&entry, selected, NULL, false);
    
    fill_pathname_join(core_path, menu_dir, entry.path, PATH_MAX_LENGTH);
    
-   // delete core
+   /* delete core */
    if (remove(core_path))
       rarch_main_msg_queue_push("Error deleting core", 1, 100, true);
    else
@@ -519,11 +519,11 @@ static bool menu_input_core_delete_hold(char *s, size_t len, menu_list_t *menu_l
       else
       {
          end_time = 0;
-         return true;  // trigger deletion
+         return true;  /* trigger deletion */
       }
    }
 
-   // button released
+   /* button released */
    menu_list_pop_stack(menu_list);
    end_time = 0;
    return false;

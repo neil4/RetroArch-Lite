@@ -23,7 +23,10 @@
         android:networkSecurityConfig="@xml/network_security_config">
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
         <activity android:name="com.retroarch.browser.DisplayRefreshRateTest"/>
-        <activity android:name="com.retroarch.browser.mainmenu.MainMenuActivity" android:exported="true" android:launchMode="singleInstance" android:theme="@android:style/Theme.Holo">
+        <activity android:name="com.retroarch.browser.mainmenu.MainMenuActivity"
+                  android:exported="true"
+                  android:launchMode="singleInstance"
+                  android:theme="@android:style/Theme.Holo">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -32,10 +35,18 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.retroarch.browser.preferences.PreferenceActivity" android:theme="@style/Theme.AppCompat" />
-        <activity android:name="com.retroarch.browser.coremanager.CoreManagerActivity" android:exported="true" android:theme="@style/Theme.AppCompat"/>
+        <activity android:name="com.retroarch.browser.preferences.PreferenceActivity"
+                  android:theme="@style/Theme.AppCompat" />
+        <activity android:name="com.retroarch.browser.coremanager.CoreManagerActivity"
+                  android:exported="true"
+                  android:theme="@style/Theme.AppCompat"/>
 
-        <activity android:name="com.retroarch.browser.retroactivity.RetroActivity" android:exported="true" android:screenOrientation="sensorLandscape" android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:launchMode="singleTask">
+        <activity android:name="com.retroarch.browser.retroactivity.RetroActivity"
+                  android:exported="true"
+                  android:screenOrientation="sensorLandscape"
+                  android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale"
+                  android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+                  android:launchMode="singleTask">
             <meta-data android:name="android.app.lib_name" android:value="retroarch-activity" />
             <meta-data android:name="android.app.func_name" android:value="ANativeActivity_onCreate" />
         </activity>

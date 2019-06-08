@@ -128,5 +128,7 @@ void netplay_unmask_config();
 
 bool netplay_send_savestate();
 
+bool netplay_is_replaying(netplay_t *netplay);
+
 #endif
 

@@ -177,10 +177,10 @@ static int action_start_shader_preset_delete(unsigned type, const char *label)
    (void)menu_dir;
    (void)menu_list;
    
-   // get directory
+   /* get directory */
    menu_list_get_last_stack(menu_list, &menu_dir, NULL, NULL, NULL);
    
-   // get filename
+   /* get filename */
    selected = menu_navigation_get_current_selection();
    selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
    menu_entry_get(&entry, selected, NULL, false);

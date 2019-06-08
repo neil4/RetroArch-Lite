@@ -450,6 +450,7 @@ enum retro_key
    RETROK_POWER          = 320,
    RETROK_EURO           = 321,
    RETROK_UNDO           = 322,
+   RETROK_OEM_102        = 323,
 
    RETROK_LAST,
 
@@ -481,11 +482,13 @@ enum retro_mod
 /* Environment commands. */
 #define RETRO_ENVIRONMENT_SET_ROTATION  1  /* const unsigned * --
                                             * Sets screen rotation of graphics.
-                                            * Is only implemented if rotation can be accelerated by hardware.
                                             * Valid values are 0, 1, 2, 3, which rotates screen by 0, 90, 180,
                                             * 270 degrees counter-clockwise respectively.
                                             */
 #define RETRO_ENVIRONMENT_GET_OVERSCAN  2  /* bool * --
+                                            * NOTE: As of 2019 this callback is considered deprecated in favor of
+                                            * using core options to manage overscan in a more nuanced, core-specific way.
+                                            *
                                             * Boolean value whether or not the implementation should use overscan,
                                             * or crop away overscan.
                                             */
@@ -657,6 +660,15 @@ enum retro_mod
                                            /* Environment 20 was an obsolete version of SET_AUDIO_CALLBACK.
                                             * It was not used by any known core at the time,
                                             * and was removed from the API. */
+#define RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK 21
+                                           /* const struct retro_frame_time_callback * --
+                                            * Lets the core know how much time has passed since last
+                                            * invocation of retro_run().
+                                            * The frontend can tamper with the timing to fake fast-forward,
+                                            * slow-motion, frame stepping, etc.
+                                            * In this case the delta time will use the reference value
+                                            * in frame_time_callback..
+                                            */
 #define RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK 22
                                            /* const struct retro_audio_callback * --
                                             * Sets an interface which is used to notify a libretro core about audio
@@ -682,15 +694,6 @@ enum retro_mod
                                             *
                                             * A libretro core using SET_AUDIO_CALLBACK should also make use of
                                             * SET_FRAME_TIME_CALLBACK.
-                                            */
-#define RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK 21
-                                           /* const struct retro_frame_time_callback * --
-                                            * Lets the core know how much time has passed since last
-                                            * invocation of retro_run().
-                                            * The frontend can tamper with the timing to fake fast-forward,
-                                            * slow-motion, frame stepping, etc.
-                                            * In this case the delta time will use the reference value
-                                            * in frame_time_callback..
                                             */
 #define RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE 23
                                            /* struct retro_rumble_interface * --
@@ -968,7 +971,37 @@ enum retro_mod
                                             * A frontend must make sure that the pointer obtained from this function is
                                             * writeable (and readable).
                                             */
-
+#define RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE (41 | RETRO_ENVIRONMENT_EXPERIMENTAL)
+                                           /* const struct retro_hw_render_interface ** --
+                                            * Returns an API specific rendering interface for accessing API specific data.
+                                            * Not all HW rendering APIs support or need this.
+                                            * The contents of the returned pointer is specific to the rendering API
+                                            * being used. See the various headers like libretro_vulkan.h, etc.
+                                            *
+                                            * GET_HW_RENDER_INTERFACE cannot be called before context_reset has been called.
+                                            * Similarly, after context_destroyed callback returns,
+                                            * the contents of the HW_RENDER_INTERFACE are invalidated.
+                                            */
+#define RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS (42 | RETRO_ENVIRONMENT_EXPERIMENTAL)
+                                           /* const bool * --
+                                            * If true, the libretro implementation supports achievements
+                                            * either via memory descriptors set with RETRO_ENVIRONMENT_SET_MEMORY_MAPS
+                                            * or via retro_get_memory_data/retro_get_memory_size.
+                                            *
+                                            * This must be called before the first call to retro_run.
+                                            */
+#define RETRO_ENVIRONMENT_SET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE (43 | RETRO_ENVIRONMENT_EXPERIMENTAL)
+                                           /* const struct retro_hw_render_context_negotiation_interface * --
+                                            * Sets an interface which lets the libretro core negotiate with frontend how a context is created.
+                                            * The semantics of this interface depends on which API is used in SET_HW_RENDER earlier.
+                                            * This interface will be used when the frontend is trying to create a HW rendering context,
+                                            * so it will be used after SET_HW_RENDER, but before the context_reset callback.
+                                            */
+#define RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS 44
+                                           /* uint64_t * --
+                                            * Sets quirk flags associated with serialization. The frontend will zero any flags it doesn't
+                                            * recognize or support. Should be set in either retro_init or retro_load_game, but not both.
+                                            */
 #define RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT (44 | RETRO_ENVIRONMENT_EXPERIMENTAL)
                                            /* N/A (null) * --
                                             * The frontend will try to use a 'shared' hardware context (mostly applicable
@@ -980,19 +1013,84 @@ enum retro_mod
                                             * This will do nothing on its own until SET_HW_RENDER env callbacks are
                                             * being used.
                                             */
-
 #define RETRO_ENVIRONMENT_GET_VFS_INTERFACE (45 | RETRO_ENVIRONMENT_EXPERIMENTAL)
                                            /* struct retro_vfs_interface_info * --
                                             * Gets access to the VFS interface.
                                             * VFS presence needs to be queried prior to load_game or any
                                             * get_system/save/other_directory being called to let front end know
                                             * core supports VFS before it starts handing out paths.
-                                            * It is recomended to do so in retro_set_environment */
+                                            * It is recomended to do so in retro_set_environment
+                                            */
+#define RETRO_ENVIRONMENT_GET_LED_INTERFACE (46 | RETRO_ENVIRONMENT_EXPERIMENTAL)
+                                           /* struct retro_led_interface * --
+                                            * Gets an interface which is used by a libretro core to set
+                                            * state of LEDs.
+                                            */
+#define RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE (47 | RETRO_ENVIRONMENT_EXPERIMENTAL)
+                                           /* int * --
+                                            * Tells the core if the frontend wants audio or video.
+                                            * If disabled, the frontend will discard the audio or video,
+                                            * so the core may decide to skip generating a frame or generating audio.
+                                            * This is mainly used for increasing performance.
+                                            * Bit 0 (value 1): Enable Video
+                                            * Bit 1 (value 2): Enable Audio
+                                            * Bit 2 (value 4): Use Fast Savestates.
+                                            * Bit 3 (value 8): Hard Disable Audio
+                                            * Other bits are reserved for future use and will default to zero.
+                                            * If video is disabled:
+                                            * * The frontend wants the core to not generate any video,
+                                            *   including presenting frames via hardware acceleration.
+                                            * * The frontend's video frame callback will do nothing.
+                                            * * After running the frame, the video output of the next frame should be
+                                            *   no different than if video was enabled, and saving and loading state
+                                            *   should have no issues.
+                                            * If audio is disabled:
+                                            * * The frontend wants the core to not generate any audio.
+                                            * * The frontend's audio callbacks will do nothing.
+                                            * * After running the frame, the audio output of the next frame should be
+                                            *   no different than if audio was enabled, and saving and loading state
+                                            *   should have no issues.
+                                            * Fast Savestates:
+                                            * * Guaranteed to be created by the same binary that will load them.
+                                            * * Will not be written to or read from the disk.
+                                            * * Suggest that the core assumes loading state will succeed.
+                                            * * Suggest that the core updates its memory buffers in-place if possible.
+                                            * * Suggest that the core skips clearing memory.
+                                            * * Suggest that the core skips resetting the system.
+                                            * * Suggest that the core may skip validation steps.
+                                            * Hard Disable Audio:
+                                            * * Used for a secondary core when running ahead.
+                                            * * Indicates that the frontend will never need audio from the core.
+                                            * * Suggests that the core may stop synthesizing audio, but this should not
+                                            *   compromise emulation accuracy.
+                                            * * Audio output for the next frame does not matter, and the frontend will
+                                            *   never need an accurate audio state in the future.
+                                            * * State will never be saved when using Hard Disable Audio.
+                                            */
+#define RETRO_ENVIRONMENT_GET_MIDI_INTERFACE (48 | RETRO_ENVIRONMENT_EXPERIMENTAL)
+                                           /* struct retro_midi_interface ** --
+                                            * Returns a MIDI interface that can be used for raw data I/O.
+                                            */
+
+#define RETRO_ENVIRONMENT_GET_FASTFORWARDING (49 | RETRO_ENVIRONMENT_EXPERIMENTAL)
+                                            /* bool * --
+                                            * Boolean value that indicates whether or not the frontend is in
+                                            * fastforwarding mode.
+                                            */
+
+#define RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE (50 | RETRO_ENVIRONMENT_EXPERIMENTAL)
+                                            /* float * --
+                                            * Float value that lets us know what target refresh rate 
+                                            * is curently in use by the frontend.
+                                            *
+                                            * The core can use the returned value to set an ideal 
+                                            * refresh rate/framerate.
+                                            */
 
 /* VFS functionality */
 
 /* File paths:
- * File paths passed as parameters when using this api shall be well formed unix-style,
+ * File paths passed as parameters when using this api shall be well formed UNIX-style,
  * using "/" (unquoted forward slash) as directory separator regardless of the platform's native separator.
  * Paths shall also include at least one forward slash ("game.bin" is an invalid path, use "./game.bin" instead).
  * Other than the directory separator, cores shall not make assumptions about path format:
@@ -1128,65 +1226,11 @@ struct retro_hw_render_interface
    unsigned interface_version;
 };
 
-
-#define RETRO_ENVIRONMENT_GET_LED_INTERFACE (46 | RETRO_ENVIRONMENT_EXPERIMENTAL)
-                                           /* struct retro_led_interface * --
-                                            * Gets an interface which is used by a libretro core to set
-                                            * state of LEDs.
-                                            */
-
 typedef void (RETRO_CALLCONV *retro_set_led_state_t)(int led, int state);
 struct retro_led_interface
 {
     retro_set_led_state_t set_led_state;
 };
-
-#define RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE (47 | RETRO_ENVIRONMENT_EXPERIMENTAL)
-                                           /* int * --
-                                            * Tells the core if the frontend wants audio or video.
-                                            * If disabled, the frontend will discard the audio or video,
-                                            * so the core may decide to skip generating a frame or generating audio.
-                                            * This is mainly used for increasing performance.
-                                            * Bit 0 (value 1): Enable Video
-                                            * Bit 1 (value 2): Enable Audio
-                                            * Bit 2 (value 4): Use Fast Savestates.
-                                            * Bit 3 (value 8): Hard Disable Audio
-                                            * Other bits are reserved for future use and will default to zero.
-                                            * If video is disabled:
-                                            * * The frontend wants the core to not generate any video,
-                                            *   including presenting frames via hardware acceleration.
-                                            * * The frontend's video frame callback will do nothing.
-                                            * * After running the frame, the video output of the next frame should be
-                                            *   no different than if video was enabled, and saving and loading state
-                                            *   should have no issues.
-                                            * If audio is disabled:
-                                            * * The frontend wants the core to not generate any audio.
-                                            * * The frontend's audio callbacks will do nothing.
-                                            * * After running the frame, the audio output of the next frame should be
-                                            *   no different than if audio was enabled, and saving and loading state
-                                            *   should have no issues.
-                                            * Fast Savestates:
-                                            * * Guaranteed to be created by the same binary that will load them.
-                                            * * Will not be written to or read from the disk.
-                                            * * Suggest that the core assumes loading state will succeed.
-                                            * * Suggest that the core updates its memory buffers in-place if possible.
-                                            * * Suggest that the core skips clearing memory.
-                                            * * Suggest that the core skips resetting the system.
-                                            * * Suggest that the core may skip validation steps.
-                                            * Hard Disable Audio:
-                                            * * Used for a secondary core when running ahead.
-                                            * * Indicates that the frontend will never need audio from the core.
-                                            * * Suggests that the core may stop synthesizing audio, but this should not
-                                            *   compromise emulation accuracy.
-                                            * * Audio output for the next frame does not matter, and the frontend will
-                                            *   never need an accurate audio state in the future.
-                                            * * State will never be saved when using Hard Disable Audio.
-                                            */
-
-#define RETRO_ENVIRONMENT_GET_MIDI_INTERFACE (48 | RETRO_ENVIRONMENT_EXPERIMENTAL)
-                                           /* struct retro_midi_interface ** --
-                                            * Returns a MIDI interface that can be used for raw data I/O.
-                                            */
 
 /* Retrieves the current state of the MIDI input.
  * Returns true if it's enabled, false otherwise. */
@@ -1218,27 +1262,6 @@ struct retro_midi_interface
    retro_midi_flush_t flush;
 };
 
-#define RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE (41 | RETRO_ENVIRONMENT_EXPERIMENTAL)
-                                           /* const struct retro_hw_render_interface ** --
-                                            * Returns an API specific rendering interface for accessing API specific data.
-                                            * Not all HW rendering APIs support or need this.
-                                            * The contents of the returned pointer is specific to the rendering API
-                                            * being used. See the various headers like libretro_vulkan.h, etc.
-                                            *
-                                            * GET_HW_RENDER_INTERFACE cannot be called before context_reset has been called.
-                                            * Similarly, after context_destroyed callback returns,
-                                            * the contents of the HW_RENDER_INTERFACE are invalidated.
-                                            */
-
-#define RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS (42 | RETRO_ENVIRONMENT_EXPERIMENTAL)
-                                           /* const bool * --
-                                            * If true, the libretro implementation supports achievements
-                                            * either via memory descriptors set with RETRO_ENVIRONMENT_SET_MEMORY_MAPS
-                                            * or via retro_get_memory_data/retro_get_memory_size.
-                                            *
-                                            * This must be called before the first call to retro_run.
-                                            */
-
 enum retro_hw_render_context_negotiation_interface_type
 {
    RETRO_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE_VULKAN = 0,
@@ -1252,13 +1275,6 @@ struct retro_hw_render_context_negotiation_interface
    enum retro_hw_render_context_negotiation_interface_type interface_type;
    unsigned interface_version;
 };
-#define RETRO_ENVIRONMENT_SET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE (43 | RETRO_ENVIRONMENT_EXPERIMENTAL)
-                                           /* const struct retro_hw_render_context_negotiation_interface * --
-                                            * Sets an interface which lets the libretro core negotiate with frontend how a context is created.
-                                            * The semantics of this interface depends on which API is used in SET_HW_RENDER earlier.
-                                            * This interface will be used when the frontend is trying to create a HW rendering context,
-                                            * so it will be used after SET_HW_RENDER, but before the context_reset callback.
-                                            */
 
 /* Serialized state is incomplete in some way. Set if serialization is
  * usable in typical end-user cases but should not be relied upon to
@@ -1284,20 +1300,17 @@ struct retro_hw_render_context_negotiation_interface
  * dependence */
 #define RETRO_SERIALIZATION_QUIRK_PLATFORM_DEPENDENT (1 << 6)
 
-#define RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS 44
-                                           /* uint64_t * --
-                                            * Sets quirk flags associated with serialization. The frontend will zero any flags it doesn't
-                                            * recognize or support. Should be set in either retro_init or retro_load_game, but not both.
-                                            */
-
-#define RETRO_MEMDESC_CONST     (1 << 0)   /* The frontend will never change this memory area once retro_load_game has returned. */
-#define RETRO_MEMDESC_BIGENDIAN (1 << 1)   /* The memory area contains big endian data. Default is little endian. */
-#define RETRO_MEMDESC_ALIGN_2   (1 << 16)  /* All memory access in this area is aligned to their own size, or 2, whichever is smaller. */
-#define RETRO_MEMDESC_ALIGN_4   (2 << 16)
-#define RETRO_MEMDESC_ALIGN_8   (3 << 16)
-#define RETRO_MEMDESC_MINSIZE_2 (1 << 24)  /* All memory in this region is accessed at least 2 bytes at the time. */
-#define RETRO_MEMDESC_MINSIZE_4 (2 << 24)
-#define RETRO_MEMDESC_MINSIZE_8 (3 << 24)
+#define RETRO_MEMDESC_CONST      (1 << 0)   /* The frontend will never change this memory area once retro_load_game has returned. */
+#define RETRO_MEMDESC_BIGENDIAN  (1 << 1)   /* The memory area contains big endian data. Default is little endian. */
+#define RETRO_MEMDESC_SYSTEM_RAM (1 << 2)   /* The memory area is system RAM.  This is main RAM of the gaming system. */
+#define RETRO_MEMDESC_SAVE_RAM   (1 << 3)   /* The memory area is save RAM. This RAM is usually found on a game cartridge, backed up by a battery. */
+#define RETRO_MEMDESC_VIDEO_RAM  (1 << 4)   /* The memory area is video RAM (VRAM) */
+#define RETRO_MEMDESC_ALIGN_2    (1 << 16)  /* All memory access in this area is aligned to their own size, or 2, whichever is smaller. */
+#define RETRO_MEMDESC_ALIGN_4    (2 << 16)
+#define RETRO_MEMDESC_ALIGN_8    (3 << 16)
+#define RETRO_MEMDESC_MINSIZE_2  (1 << 24)  /* All memory in this region is accessed at least 2 bytes at the time. */
+#define RETRO_MEMDESC_MINSIZE_4  (2 << 24)
+#define RETRO_MEMDESC_MINSIZE_8  (3 << 24)
 struct retro_memory_descriptor
 {
    uint64_t flags;

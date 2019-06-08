@@ -1956,6 +1956,11 @@ bool init_netplay(void)
    return false;
 }
 
+bool netplay_is_replaying(netplay_t *netplay)
+{
+   return netplay->is_replay;
+}
+
 #ifdef HAVE_SOCKET_LEGACY
 
 #undef sockaddr_storage
