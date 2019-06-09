@@ -222,9 +222,6 @@ bool core_option_updated(core_option_manager_t *opt)
  **/
 bool core_option_flush(core_option_manager_t *opt)
 {
-   if ( !options_touched )
-      return true;
-   
    size_t i;
 
    for (i = 0; i < opt->size; i++)
