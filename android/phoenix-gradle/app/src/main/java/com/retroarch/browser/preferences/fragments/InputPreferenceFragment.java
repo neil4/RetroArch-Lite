@@ -25,7 +25,6 @@ public final class InputPreferenceFragment extends PreferenceListFragment implem
       addPreferencesFromResource(R.xml.input_preferences);
 
       // Set preference listeners
-      findPreference("reextract_overlays_pref").setOnPreferenceClickListener(this);
       findPreference("install_overlays_pref").setOnPreferenceClickListener(this);
    }
 
@@ -42,35 +41,6 @@ public final class InputPreferenceFragment extends PreferenceListFragment implem
          overlayFileBrowser.addAllowedExts("zip");
          overlayFileBrowser.setIsDirectoryTarget(false);
          overlayFileBrowser.show(getFragmentManager(), "overlayFileBrowser");
-      }
-      else if (prefKey.equals("reextract_overlays_pref"))
-      {
-         final DirectoryFragment overlayFileBrowser
-                 = DirectoryFragment.newInstance("");
-         
-         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-         builder.setMessage("Confirm: Update/Restore Overlays?\nUser-installed overlays will be removed.")
-            .setCancelable(true)
-            .setPositiveButton("Yes",
-                  new DialogInterface.OnClickListener()
-                  {
-                     public void onClick(DialogInterface dialog, int id)
-                     {
-                        boolean success = overlayFileBrowser.RestoreDirFromZip(
-                                getActivity().getApplicationInfo().sourceDir,
-                               "assets/overlays",
-                                getActivity().getApplicationInfo().dataDir + "/overlays");
-                        if (success) {
-                           Toast.makeText(getContext(), "Overlays Restored.", Toast.LENGTH_SHORT).show();
-                        }
-                     }
-                  })
-            .setNegativeButton("No", new DialogInterface.OnClickListener()
-            {
-               public void onClick(DialogInterface dialog, int id) {}
-            });
-         Dialog dialog = builder.create();
-         dialog.show();
       }
 
       return true;

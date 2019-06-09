@@ -11,10 +11,6 @@
             android:key="install_overlays_pref"
             android:title="@string/install_overlays"
             android:summary="@string/install_overlays_desc"/>
-         <Preference
-             android:key="reextract_overlays_pref"
-             android:summary="@string/reextract_overlays_desc"
-             android:title="@string/reextract_overlays" />
     </PreferenceCategory>
     
     <!-- Configuration Autodetection -->

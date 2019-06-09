@@ -595,7 +595,6 @@ public class DirectoryFragment extends DialogFragment
                             .commit();
       return true;
    }
-
    
    public boolean RestoreDirFromZip(final String zipPath,
                                     final String zipSubDir,

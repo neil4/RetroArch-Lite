@@ -39,9 +39,17 @@
            android:key="install_themes_pref"
            android:title="@string/install_themes"
            android:summary="@string/install_themes_desc"/>
+    </PreferenceCategory>
+
+    <!-- All Assets -->
+    <PreferenceCategory android:title="@string/asset_management" >
         <Preference
-            android:key="reextract_themes_pref"
-            android:summary="@string/reextract_themes_desc"
-            android:title="@string/reextract_themes" />
+            android:key="update_assets_pref"
+            android:summary="@string/update_assets_desc"
+            android:title="@string/update_assets" />
+        <Preference
+            android:key="restore_assets_pref"
+            android:summary="@string/restore_assets_desc"
+            android:title="@string/restore_assets" />
     </PreferenceCategory>
 </PreferenceScreen>

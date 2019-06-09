@@ -495,7 +495,11 @@ static bool show_hotkey_menu = false;
 #ifndef SINGLE_CORE
 static bool show_core_updater = true;
 #endif
+#ifdef RARCH_MOBILE
 static bool show_rewind_menu = false;
+#else
+static bool show_rewind_menu = true;
+#endif
 #else
 static bool default_block_config_read = false;
 #endif

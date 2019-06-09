@@ -5,6 +5,8 @@ import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+
+import com.retroarch.browser.NativeInterface;
 import com.retroarchlite.R;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
 
@@ -31,8 +33,9 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
          addPreferencesFromResource(R.xml.general_preferences);
       
       // Set preference listeners
-      findPreference("reextract_themes_pref").setOnPreferenceClickListener(this);
       findPreference("install_themes_pref").setOnPreferenceClickListener(this);
+      findPreference("update_assets_pref").setOnPreferenceClickListener(this);
+      findPreference("restore_assets_pref").setOnPreferenceClickListener(this);
    }
    
    protected boolean haveSharedCoreManager()
@@ -60,25 +63,21 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
          themeFileBrowser.setIsDirectoryTarget(false);
          themeFileBrowser.show(getFragmentManager(), "themeFileBrowser");
       }
-      else if (prefKey.equals("reextract_themes_pref"))
+      else if (prefKey.equals("update_assets_pref"))
       {
-         final DirectoryFragment themeFileBrowser
-                 = DirectoryFragment.newInstance("");
-         
          AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-         builder.setMessage("Confirm: Update/Restore RGUI Themes?\nUser-installed themes will be removed.")
+         builder.setMessage("Confirm: Update all assets?")
             .setCancelable(true)
             .setPositiveButton("Yes",
                   new DialogInterface.OnClickListener()
                   {
                      public void onClick(DialogInterface dialog, int id)
                      {
-                        boolean success = themeFileBrowser.RestoreDirFromZip(
+                        boolean success = NativeInterface.extractArchiveTo(
                                 getActivity().getApplicationInfo().sourceDir,
-                                "assets/themes_rgui",
-                                getActivity().getApplicationInfo().dataDir + "/themes_rgui");
+                                "assets", getActivity().getApplicationInfo().dataDir);
                         if (success) {
-                           Toast.makeText(getContext(), "Themes Restored.", Toast.LENGTH_SHORT).show();
+                           Toast.makeText(getContext(), "Assets Updated.", Toast.LENGTH_SHORT).show();
                         }
                      }
                   })
@@ -86,6 +85,55 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
             {
                public void onClick(DialogInterface dialog, int id) {}
             });
+         Dialog dialog = builder.create();
+         dialog.show();
+      }
+      else if (prefKey.equals("restore_assets_pref"))
+      {
+         final DirectoryFragment assetFileBrowser
+               = DirectoryFragment.newInstance("");
+
+         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+         builder.setMessage("Confirm: Restore all assets?\nUser-installed assets will be removed.")
+               .setCancelable(true)
+               .setPositiveButton("Yes",
+                     new DialogInterface.OnClickListener()
+                     {
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                           boolean success = assetFileBrowser.RestoreDirFromZip(
+                                 getActivity().getApplicationInfo().sourceDir,
+                                 "assets/themes_rgui",
+                                 getActivity().getApplicationInfo().dataDir + "/themes_rgui");
+                           success &= assetFileBrowser.RestoreDirFromZip(
+                                 getActivity().getApplicationInfo().sourceDir,
+                                 "assets/audio_filters",
+                                 getActivity().getApplicationInfo().dataDir + "/audio_filters");
+                           success &= assetFileBrowser.RestoreDirFromZip(
+                                 getActivity().getApplicationInfo().sourceDir,
+                                 "assets/video_filters",
+                                 getActivity().getApplicationInfo().dataDir + "/video_filters");
+                           success &= assetFileBrowser.RestoreDirFromZip(
+                                 getActivity().getApplicationInfo().sourceDir,
+                                 "assets/shaders_glsl",
+                                 getActivity().getApplicationInfo().dataDir + "/shaders_glsl");
+                           success &= assetFileBrowser.RestoreDirFromZip(
+                                 getActivity().getApplicationInfo().sourceDir,
+                                 "assets/overlays",
+                                 getActivity().getApplicationInfo().dataDir + "/overlays");
+                           success &= NativeInterface.extractArchiveTo(
+                                 getActivity().getApplicationInfo().sourceDir,
+                                 "assets/info",
+                                 getActivity().getApplicationInfo().dataDir + "/info");
+                           if (success) {
+                              Toast.makeText(getContext(), "Assets Restored.", Toast.LENGTH_SHORT).show();
+                           }
+                        }
+                     })
+               .setNegativeButton("No", new DialogInterface.OnClickListener()
+               {
+                  public void onClick(DialogInterface dialog, int id) {}
+               });
          Dialog dialog = builder.create();
          dialog.show();
       }

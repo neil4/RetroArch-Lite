@@ -7141,7 +7141,7 @@ static bool setting_append_list_menu_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-#ifdef ANDROID
+#ifdef RARCH_MOBILE
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 #endif
 CONFIG_BOOL(
@@ -7365,7 +7365,7 @@ static bool setting_append_list_ui_options(
       return true;
 
    START_GROUP(group_info, "UI Settings", parent_group);
-#ifdef ANDROID
+#ifdef RARCH_MOBILE
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 #endif
 

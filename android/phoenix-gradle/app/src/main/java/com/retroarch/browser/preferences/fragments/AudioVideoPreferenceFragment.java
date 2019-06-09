@@ -32,7 +32,6 @@ public final class AudioVideoPreferenceFragment extends PreferenceListFragment i
       // Set preference click listeners
       findPreference("set_os_reported_ref_rate_pref").setOnPreferenceClickListener(this);
       findPreference("install_shaders_pref").setOnPreferenceClickListener(this);
-      findPreference("reextract_shaders_pref").setOnPreferenceClickListener(this);
    }
 
    @Override
@@ -62,35 +61,6 @@ public final class AudioVideoPreferenceFragment extends PreferenceListFragment i
          shaderFileBrowser.addAllowedExts("zip");
          shaderFileBrowser.setIsDirectoryTarget(false);
          shaderFileBrowser.show(getFragmentManager(), "shaderFileBrowser");
-      }
-      else if (prefKey.equals("reextract_shaders_pref"))
-      {
-         final DirectoryFragment shaderFileBrowser
-                 = DirectoryFragment.newInstance("");
-         
-         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-         builder.setMessage("Confirm: Update/Restore Shaders and Presets?\nUser-installed shaders will be removed.")
-            .setCancelable(true)
-            .setPositiveButton("Yes",
-                  new DialogInterface.OnClickListener()
-                  {
-                     public void onClick(DialogInterface dialog, int id)
-                     {
-                        boolean success = shaderFileBrowser.RestoreDirFromZip(
-                                getActivity().getApplicationInfo().sourceDir,
-                                "assets/shaders_glsl",
-                                getActivity().getApplicationInfo().dataDir + "/shaders_glsl");
-                        if (success) {
-                           Toast.makeText(getContext(), "Shaders Restored.", Toast.LENGTH_SHORT).show();
-                        }
-                     }
-                  })
-            .setNegativeButton("No", new DialogInterface.OnClickListener()
-            {
-               public void onClick(DialogInterface dialog, int id) {}
-            });
-         Dialog dialog = builder.create();
-         dialog.show();
       }
 
       return true;
