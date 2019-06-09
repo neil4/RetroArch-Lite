@@ -63,6 +63,7 @@ apple/RetroArch_iOS.xcodeproj/project.xcworkspace/*
 
 # Android
 /android/phoenix-gradle/app/src/main/assets/shaders_glsl/*
+/android/phoenix-gradle/app/src/main/assets/audio_filters/*
 /android/phoenix-gradle/app/src/main/assets/themes_rgui/*
 /android/phoenix-gradle/app/src/main/assets/cores/*
 /android/phoenix-gradle/app/src/main/assets/info/*.info

@@ -2115,7 +2115,8 @@ bool config_save_file(const char *path)
    }
    
    config_set_string(conf, "audio_device", settings->audio.device);
-   config_set_string(conf, "audio_dsp_plugin", settings->audio.dsp_plugin);
+   if (settings->audio.dsp_scope == GLOBAL)
+      config_set_string(conf, "audio_dsp_plugin", settings->audio.dsp_plugin);
    config_set_string(conf, "core_updater_buildbot_url", settings->network.buildbot_url);
    config_set_string(conf, "core_updater_buildbot_assets_url", settings->network.buildbot_assets_url);
    config_set_bool(conf, "core_updater_auto_extract_archive", settings->network.buildbot_auto_extract_archive);
@@ -2502,6 +2503,15 @@ static void scoped_config_file_save(unsigned scope)
    else if (settings->audio.volume_scope < scope)
       config_remove_entry(conf, "audio_volume");
 
+   if (settings->audio.dsp_scope == scope)
+   {
+      if (!*settings->audio.dsp_plugin)
+         strlcpy(settings->audio.dsp_plugin, EXPLICIT_NULL, PATH_MAX_LENGTH);
+      config_set_string(conf, "audio_dsp_plugin", settings->audio.dsp_plugin);
+   }
+   else if (settings->audio.dsp_scope < scope)
+      config_remove_entry(conf, "audio_dsp_plugin");
+
    if (settings->video.threaded_scope == scope)
       config_set_bool(conf, "video_threaded", settings->video.threaded);
    else if (settings->video.threaded_scope < scope)
@@ -2728,6 +2738,7 @@ void restore_update_config_globals()
    
    static bool audio_sync;
    static float audio_volume;
+   static char audio_dsp_plugin[PATH_MAX_LENGTH];
    static bool video_threaded;
    static bool video_vsync;
    static bool video_hard_sync;
@@ -2792,6 +2803,16 @@ void restore_update_config_globals()
    else
    {  /* update */
       audio_volume = settings->audio.volume;
+   }
+   
+   if (settings->audio.dsp_scope != GLOBAL)
+   {  /* restore */
+      settings->audio.dsp_scope = GLOBAL;
+      strlcpy(settings->audio.dsp_plugin, audio_dsp_plugin, PATH_MAX_LENGTH);
+   }
+   else
+   {  /* update */
+      strlcpy(audio_dsp_plugin, settings->audio.dsp_plugin, PATH_MAX_LENGTH);
    }
    
    if (settings->video.threaded_scope != GLOBAL)
@@ -3045,6 +3066,13 @@ static void scoped_config_file_load(unsigned scope)
       settings->audio.sync_scope = scope;
    if (config_get_float(conf, "audio_volume", &settings->audio.volume))
       settings->audio.volume_scope = scope;
+   if (config_get_path(conf, "audio_dsp_plugin", settings->audio.dsp_plugin,
+                       sizeof(settings->audio.dsp_plugin)))
+   {
+      if (!strcmp(settings->audio.dsp_plugin, EXPLICIT_NULL))
+         *settings->audio.dsp_plugin = '\0';
+      settings->audio.dsp_scope = scope;
+   }
    if (config_get_bool(conf, "video_vsync", &settings->video.vsync))
       settings->video.vsync_scope = scope;
    if (config_get_bool(conf, "video_hard_sync", &settings->video.hard_sync))

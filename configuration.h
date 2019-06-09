@@ -241,6 +241,7 @@ typedef struct settings
 
       char dsp_plugin[PATH_MAX_LENGTH];
       char filter_dir[PATH_MAX_LENGTH];
+      unsigned dsp_scope;
 
       bool rate_control;
       float rate_control_delta;

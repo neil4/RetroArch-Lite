@@ -261,6 +261,8 @@ static void frontend_win32_get_environment_settings(int *argc, char *argv[],
                       sizeof(g_defaults.osk_overlay_dir));
    fill_pathname_join(g_defaults.menu_theme_dir, exe_dir, "themes_rgui",
                       sizeof(g_defaults.menu_theme_dir));
+   fill_pathname_join(g_defaults.audio_filter_dir, exe_dir, "audio_filters",
+                      sizeof(g_defaults.audio_filter_dir));
 }
 
 const frontend_ctx_driver_t frontend_ctx_win32 = {

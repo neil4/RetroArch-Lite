@@ -1397,6 +1397,16 @@ static int setting_action_start_theme(void *data)
    return 0;
 }
 
+static int setting_action_audio_dsp_filter(void *data)
+{
+   settings_t *settings = config_get_ptr();
+   if (!settings)
+      return -1;
+
+   settings->audio.dsp_plugin[0] = '\0';
+   return 0;
+}
+
 static int setting_action_ok_bind_all(void *data, bool wraparound)
 {
    global_t      *global     = global_get_ptr();
@@ -5895,7 +5905,29 @@ static bool setting_append_list_audio_options(
          general_read_handler);
    menu_settings_list_current_add_values(list, list_info, "dsp");
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_DSP_FILTER_INIT);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY | SD_FLAG_ADVANCED);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
+   (*list)[list_info->index - 1].action_start = &setting_action_audio_dsp_filter;
+
+   CONFIG_UINT(
+         settings->audio.dsp_scope,
+         "audio_dsp_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+      menu_settings_list_current_add_range(
+            list,
+            list_info,
+            0,
+            global->max_scope,
+            1,
+            true,
+            true);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_scope_index;
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
