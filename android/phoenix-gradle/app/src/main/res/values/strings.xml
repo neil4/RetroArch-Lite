@@ -84,8 +84,8 @@
 
     <!-- Input Settings -->
     <string name="input_options">Input</string>
-    <string name="overlay_assets">Overlay Assets</string>
-    <string name="theme_assets">Menu Theme Assets</string>
+    <string name="overlay_assets">Overlays</string>
+    <string name="theme_assets">Themes</string>
     <string name="enable_overlay_desc">Enable Touchscreen Overlays</string>
     <string name="install_overlays">Install Overlays</string>
     <string name="install_overlays_desc">Add/Update input overlays from a zip file.\nZipfile contents are installed as-is, keeping relative paths.</string>
@@ -144,7 +144,7 @@
     <string name="update_assets">Update Assets</string>
     <string name="update_assets_desc">Extracts all assets from currently installed APK without removing user-installed assets.</string>
     <string name="restore_assets">Restore Assets</string>
-    <string name="restore_assets_desc">Restores all assets from currently installed APK, and removes user-installed assets.</string>
+    <string name="restore_assets_desc">Restores all assets from currently installed APK, and removes user-installed assets.\nThis includes themes, shaders, and overlays.</string>
 
     <!-- Video Settings -->
     <string name="video_options">Video</string>
@@ -154,7 +154,7 @@
     <string name="calibrate_refresh_rate_desc">Attempts to find the true refresh rate of monitor. Updates value in \'Force refresh rate (Hz)\' option. To help ensure accuracy, make sure no intense background services are running, and avoid triggering screensaver.</string>
     <string name="set_os_reported_refresh_rate">Set OS-reported Refresh Rate</string>
     <string name="set_os_reported_refresh_rate_desc">Sets refresh rate equal to OS-reported value. This might not be accurate for your device.</string>
-    <string name="shader_assets">Shader Assets</string>
+    <string name="shader_assets">Shaders</string>
     <string name="install_shaders">Install GLSL Shaders</string>
     <string name="install_shaders_desc">Add/Update GLSL shaders from a zip file.\nZipfile contents are installed as-is, keeping relative paths.</string>
     
