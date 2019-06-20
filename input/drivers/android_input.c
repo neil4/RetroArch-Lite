@@ -1049,6 +1049,8 @@ static int16_t android_input_state(void *data,
                return android->pointer[idx].y;
             case RETRO_DEVICE_ID_POINTER_PRESSED:
                return (idx < android->pointer_count);
+            case RETRO_DEVICE_ID_POINTER_COUNT:
+               return android->pointer_count;
          }
          break;
       case RARCH_DEVICE_POINTER_SCREEN:
@@ -1059,7 +1061,9 @@ static int16_t android_input_state(void *data,
             case RETRO_DEVICE_ID_POINTER_Y:
                return android->pointer[idx].full_y;
             case RETRO_DEVICE_ID_POINTER_PRESSED:
-               return (idx < android->pointer_count);         
+               return (idx < android->pointer_count);
+            case RETRO_DEVICE_ID_POINTER_COUNT:
+               return android->pointer_count;
          }
          break;
       case RETRO_DEVICE_LIGHTGUN:
