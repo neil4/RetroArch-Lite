@@ -107,14 +107,6 @@ else
    WINDRES = windres
 endif
 
-ifeq ($(BUILD_32BIT),1)
-#TODO: no-sse flag only needed for mingw?
-   CFLAGS += -m32 -mno-sse
-   CXXFLAGS += -m32 -mno-sse
-   LDCXXFLAGS += -m32 -mno-sse
-   WINDRES += --target=pe-i386
-endif
-
 libretro ?= -lretro
 
 ifeq ($(DYNAMIC), 1)

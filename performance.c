@@ -583,7 +583,13 @@ void rarch_get_memory_use_megabytes(unsigned int* total, unsigned int* used)
 {
    *total = 0;
    *used = 0;
-#if defined(__linux__) || (defined(BSD) && !defined(__MACH__))
+#if _WIN32_WINNT >= 0x0500
+   MEMORYSTATUSEX mem_info;
+   mem_info.dwLength = sizeof(MEMORYSTATUSEX);
+   GlobalMemoryStatusEx(&mem_info);
+   *total = mem_info.ullTotalPhys/(1024*1024);
+   *used = *total - mem_info.ullAvailPhys/(1024*1024);
+#elif defined(__linux__) || (defined(BSD) && !defined(__MACH__))
    char line[256];
    size_t freemem  = 0;
    size_t buffers  = 0;
