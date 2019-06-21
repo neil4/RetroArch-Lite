@@ -1,4 +1,4 @@
-/* Copyright (C) 2010-2017 The RetroArch team
+/* Copyright (C) 2010-2018 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this libretro SDK code part (glsym).
@@ -26,10 +26,10 @@
 #include "rglgen.h"
 
 #ifndef HAVE_PSGL
-#if defined(HAVE_OPENGLES2)
-#include "glsym_es2.h"
-#elif defined(HAVE_OPENGLES3)
+#if defined(HAVE_OPENGLES3)
 #include "glsym_es3.h"
+#elif defined(HAVE_OPENGLES2)
+#include "glsym_es2.h"
 #else
 #include "glsym_gl.h"
 #endif

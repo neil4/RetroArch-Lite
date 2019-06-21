@@ -1,4 +1,4 @@
-/* Copyright (C) 2010-2017 The RetroArch team
+/* Copyright (C) 2010-2018 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this libretro SDK code part (glsym).
@@ -39,8 +39,14 @@
 #endif
 
 #elif defined(__APPLE__)
+#include <compat/apple_compat.h>
+#if MAC_OS_X_VERSION_10_7
+#include <OpenGL/gl3.h>
+#include <OpenGL/gl3ext.h>
+#else
 #include <OpenGL/gl.h>
 #include <OpenGL/glext.h>
+#endif
 #elif defined(HAVE_PSGL)
 #include <PSGL/psgl.h>
 #include <GLES/glext.h>
@@ -54,7 +60,7 @@
 #elif defined(HAVE_OPENGLES2)
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-#elif defined(HAVE_OPENGLES1)
+#elif defined(HAVE_OPENGLES)
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 #else
@@ -76,6 +82,14 @@
 
 #ifndef GL_RED_INTEGER
 #define GL_RED_INTEGER 0x8D94
+#endif
+
+#ifndef GL_BGRA_EXT
+#define GL_BGRA_EXT GL_BGRA
+#endif
+
+#ifndef GL_LUMINANCE_ALPHA
+#define GL_LUMINANCE_ALPHA 0x190A
 #endif
 
 #endif

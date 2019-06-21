@@ -483,7 +483,7 @@ void uninit_drivers(int flags)
          (const struct retro_hw_render_callback*)video_driver_callback();
 
       if (hw_render->context_destroy && !driver->video_cache_context)
-            hw_render->context_destroy();
+         hw_render->context_destroy();
    }
 
    if ((flags & DRIVER_VIDEO) && !driver->video_data_own)
