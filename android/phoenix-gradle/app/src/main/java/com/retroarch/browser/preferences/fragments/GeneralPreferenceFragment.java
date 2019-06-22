@@ -34,7 +34,6 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
       
       // Set preference listeners
       findPreference("install_themes_pref").setOnPreferenceClickListener(this);
-      findPreference("update_assets_pref").setOnPreferenceClickListener(this);
       findPreference("restore_assets_pref").setOnPreferenceClickListener(this);
    }
    
@@ -62,31 +61,6 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
          themeFileBrowser.addAllowedExts("zip");
          themeFileBrowser.setIsDirectoryTarget(false);
          themeFileBrowser.show(getFragmentManager(), "themeFileBrowser");
-      }
-      else if (prefKey.equals("update_assets_pref"))
-      {
-         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-         builder.setMessage("Confirm: Update all assets?")
-            .setCancelable(true)
-            .setPositiveButton("Yes",
-                  new DialogInterface.OnClickListener()
-                  {
-                     public void onClick(DialogInterface dialog, int id)
-                     {
-                        boolean success = NativeInterface.extractArchiveTo(
-                                getActivity().getApplicationInfo().sourceDir,
-                                "assets", getActivity().getApplicationInfo().dataDir);
-                        if (success) {
-                           Toast.makeText(getContext(), "Assets Updated.", Toast.LENGTH_SHORT).show();
-                        }
-                     }
-                  })
-            .setNegativeButton("No", new DialogInterface.OnClickListener()
-            {
-               public void onClick(DialogInterface dialog, int id) {}
-            });
-         Dialog dialog = builder.create();
-         dialog.show();
       }
       else if (prefKey.equals("restore_assets_pref"))
       {

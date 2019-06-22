@@ -451,14 +451,14 @@ public final class LocalCoresFragment extends ListFragment
       // Begin building the AlertDialog
       final AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
       alert.setTitle(R.string.confirm_title);
-      alert.setMessage("Remove backup core files?");
+      alert.setMessage("Remove " + core.getCoreName() + " backup?");
       alert.setNegativeButton(R.string.no, null);
       alert.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
       {
          @Override
          public void onClick(DialogInterface dialog, int which)
          {
-            // Attempt to uninstall the core
+            // Attempt to remove backup files
             if (new File(corePath).delete())
             {
                // remove info file if no other core files are present
