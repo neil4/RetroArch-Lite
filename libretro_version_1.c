@@ -215,6 +215,17 @@ static int16_t input_state(unsigned port, unsigned device,
 
       global->bsv.movie_end = true;
    }
+   
+   if (id == RETRO_DEVICE_ID_JOYPAD_MASK
+       && device == RETRO_DEVICE_JOYPAD)
+   {
+      unsigned i;
+
+      for (i = 0; i < RARCH_FIRST_CUSTOM_BIND; i++)
+         if (input_state(port, device, idx, i))
+            res |= (1 << i);
+      return res;
+   }
 
    if (settings->input.remap_binds_enable)
       input_remapping_state(port, &device, &idx, &id);

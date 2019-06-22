@@ -1177,6 +1177,10 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          }
          break;
       }
+      
+      case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
+         /* return true */
+         break;
          
       case RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE:
          *(float *)data = settings->video.refresh_rate;
