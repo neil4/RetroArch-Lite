@@ -20,7 +20,11 @@ public final class PathPreferenceFragment extends PreferenceListFragment impleme
       super.onCreate(savedInstanceState);
 
       // Add path preferences from the XML.
-      addPreferencesFromResource(R.xml.path_preferences);
+      final String sharedId = getString(R.string.app_id);
+      if (sharedId.contains("64"))
+         addPreferencesFromResource(R.xml.path_preferences_64);
+      else
+         addPreferencesFromResource(R.xml.path_preferences_32);
 
       // Set preference click listeners
       findPreference("romDirPref").setOnPreferenceClickListener(this);

@@ -102,7 +102,8 @@
     <string name="rom_directory_select">Select a ROM directory</string>
     <string name="backup_cores_paths">Core Backup &amp; Restore</string>
     <string name="backup_cores_directory">Backup Cores Directory</string>
-    <string name="backup_cores_directory_desc">Sets the directory where Core Manager finds or creates backup cores (.so or zipped .so with optional .info).\nDefaults to &lt;InternalSD&gt;/RetroArchLite/cores32.</string>
+    <string name="backup_cores32_directory_desc">Sets the directory Core Manager will use for 32-bit backup cores (.so or zipped .so with optional .info).\nDefaults to &lt;InternalSD&gt;/RetroArchLite/cores32.</string>
+    <string name="backup_cores64_directory_desc">Sets the directory Core Manager will use for 64-bit backup cores (.so or zipped .so with optional .info).\nDefaults to &lt;InternalSD&gt;/RetroArchLite/cores64.</string>
     <string name="backup_cores_directory_select">Select a Backup Cores directory</string>
     <string name="save_files">Save Files</string>
     <string name="enable_custom_dir">Enable Custom Directory</string>

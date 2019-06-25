@@ -66,6 +66,6 @@
         <Preference
             android:key="localCoresDirPref"
             android:title="@string/backup_cores_directory"
-            android:summary="@string/backup_cores_directory_desc"/>
+            android:summary="@string/backup_cores64_directory_desc"/>
     </PreferenceCategory>
 </PreferenceScreen>
