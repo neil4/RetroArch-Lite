@@ -291,12 +291,6 @@ public class DirectoryFragment extends DialogFragment
          String startPath = (startDirectory == null || startDirectory.isEmpty()) ?
             Environment.getExternalStorageDirectory().getPath() : startDirectory;
          
-         if (pathSettingKey != null && (pathSettingKey.equals("overlay_zip")
-                                        || pathSettingKey.equals("shader_zip")
-                                        || pathSettingKey.equals("themes_zip")))
-            startPath = UserPreferences.getPreferences(getActivity())
-                        .getString( "user_zip_directory", startPath);
-         
          backStack.add(new BackStackItem(startPath, false));
       }
 
@@ -588,11 +582,7 @@ public class DirectoryFragment extends DialogFragment
          });
       Dialog dialog = builder.create();
       dialog.show();
-      
-      SharedPreferences prefs = UserPreferences.getPreferences(getContext());
-      prefs.edit().putString("user_zip_directory",
-                             zipPath.substring(0, zipPath.lastIndexOf( "/" )))
-                            .commit();
+
       return true;
    }
    

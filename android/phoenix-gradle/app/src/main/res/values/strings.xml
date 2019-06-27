@@ -29,7 +29,7 @@
     <string name="core_info_manufacturer">Manufacturer</string>
     <string name="core_info_permissions">Permissions</string>
     <string name="core_info_extensions">Supported File Extensions</string>
-    <string name="core_info_firmwares">Firmware(s)</string>
+    <string name="core_info_firmwares">Firmware</string>
     <string name="core_info_notes">Notes</string>
 
     <!-- Core Downloader Fragment -->
@@ -119,7 +119,7 @@
     <string name="system">System</string>
     <string name="system_custom_dir">Enables use of custom system directory.\nDefaults to &lt;InternalSD&gt;/RetroArchLite/system.</string>
     <string name="system_directory">System directory</string>
-    <string name="system_directory_desc">Sets base directory for all system files (BIOS, etc.).\nCores may expect specific subdirectories to exist here.</string>
+    <string name="system_directory_desc">Sets base directory for all system files (BIOS, etc.).\nCheck the Firmware section of each core info for the files expected here.</string>
     <string name="system_directory_select">Select a system directory</string>
     <string name="config">Configs</string>
     <string name="config_custom_dir">Enables use of custom config directory.\nDefaults to &lt;InternalSD&gt;/RetroArchLite/config.</string>
