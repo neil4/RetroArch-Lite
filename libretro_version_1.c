@@ -43,6 +43,8 @@
 #include "netplay.h"
 #endif
 
+const struct retro_keybind *libretro_input_binds[MAX_USERS];
+
 static bool video_frame_scale(const void *data,
       unsigned width, unsigned height,
       size_t pitch)
@@ -179,24 +181,6 @@ static int16_t input_state(unsigned port, unsigned device,
    settings_t *settings           = config_get_ptr();
    driver_t *driver               = driver_get_ptr();
    global_t *global               = global_get_ptr();
-   const struct retro_keybind *libretro_input_binds[MAX_USERS] = {
-      settings->input.binds[0],
-      settings->input.binds[1],
-      settings->input.binds[2],
-      settings->input.binds[3],
-      settings->input.binds[4],
-      settings->input.binds[5],
-      settings->input.binds[6],
-      settings->input.binds[7],
-      settings->input.binds[8],
-      settings->input.binds[9],
-      settings->input.binds[10],
-      settings->input.binds[11],
-      settings->input.binds[12],
-      settings->input.binds[13],
-      settings->input.binds[14],
-      settings->input.binds[15],
-   };
    
    /* Enforce max_users unless using a lightgun, which could be on another port */
    if (port >= settings->input.max_users
@@ -508,6 +492,8 @@ void retro_init_libretro_cbs(void *data)
    struct retro_callbacks *cbs = (struct retro_callbacks*)data;
    driver_t *driver = driver_get_ptr();
    global_t *global = global_get_ptr();
+   settings_t *settings = config_get_ptr();
+   int i;
 
    if (!cbs)
       return;
@@ -522,6 +508,9 @@ void retro_init_libretro_cbs(void *data)
    pretro_set_input_poll(input_poll);
 
    retro_set_default_callbacks(cbs);
+
+   for (i = 0; i < MAX_USERS; i++)
+      libretro_input_binds[i] = settings->input.binds[i];
 
 #ifdef HAVE_NETPLAY
    if (!driver->netplay_data)
