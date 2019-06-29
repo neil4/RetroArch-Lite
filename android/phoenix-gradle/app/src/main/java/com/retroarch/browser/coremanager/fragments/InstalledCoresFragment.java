@@ -138,8 +138,8 @@ public final class InstalledCoresFragment extends ListFragment
             return UpdateCore(info.position);
          case R.id.backup_core:
             return BackupCore(info.position);
-         case R.id.reset_core_options:
-            return PurgeCoreSettings(info.position);
+         case R.id.reinit_core:
+            return PurgeCoreData(info.position);
          case R.id.remove_core:
             return RemoveCore(info.position);
 
@@ -196,11 +196,6 @@ public final class InstalledCoresFragment extends ListFragment
             // Attempt to uninstall the core item.
             if (item.getUnderlyingFile().delete())
             {
-               // Remove ROM search directory preference also
-               String key_prefix = sanitizedLibretroName(item.getUnderlyingFile().getName()) + "_";
-               final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-               prefs.edit().remove(key_prefix + "directory").commit();
-               
                Toast.makeText(getActivity(), String.format(getString(R.string.uninstall_success), item.getText()), Toast.LENGTH_LONG).show();
                adapter.remove(item);
                adapter.notifyDataSetChanged();
@@ -222,13 +217,13 @@ public final class InstalledCoresFragment extends ListFragment
     * @param position list position of current core 
     * @return true
     */
-   public boolean PurgeCoreSettings(int position)
+   public boolean PurgeCoreData(int position)
    {
       // Begin building the AlertDialog
       final ModuleWrapper item = adapter.getItem(position);
       final AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
       alert.setTitle(R.string.confirm_title);
-      alert.setMessage(String.format(getString(R.string.reset_core_options_message), item.getText()));
+      alert.setMessage(String.format(getString(R.string.purge_core_data_message), item.getText()));
       alert.setNegativeButton(R.string.no, null);
       alert.setPositiveButton(R.string.yes, new OnClickListener()
       {
@@ -237,15 +232,29 @@ public final class InstalledCoresFragment extends ListFragment
          {
             final String default_base = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RetroArchLite";
             final String default_config = default_base + "/config";
+            final String default_save = default_base + "/save";
+            final String default_state = default_base + "/state";
+
             final SharedPreferences prefs = getPreferences(getContext());
             String cfg_dir = prefs.getBoolean("config_directory_enable", false) ?
                        prefs.getString("rgui_config_directory", default_config) : default_config;
+            String save_dir = prefs.getBoolean("savefile_directory_enable", false) ?
+                  prefs.getString("savefile_directory", default_save) : default_save;
+            String state_dir = prefs.getBoolean("savestate_directory_enable", false) ?
+                  prefs.getString("savestate_directory", default_state) : default_state;
                         
             String libretro_name = sanitizedLibretroName(item.getUnderlyingFile().getName());
             String core_cfg_dir = cfg_dir + '/' + libretro_name;
+            String core_save_dir = save_dir + '/' + libretro_name;
+            String core_state_dir = state_dir + '/' + libretro_name;
             
-            // Remove core's config folder
+            // Delete all core specific folders created by frontend
             DirectoryFragment.DeleteDirTree(new File(core_cfg_dir));
+            DirectoryFragment.DeleteDirTree(new File(core_save_dir));
+            DirectoryFragment.DeleteDirTree(new File(core_state_dir));
+
+            // Remove ROM search directory preference also
+            prefs.edit().remove(libretro_name + "_directory").commit();
             
             Toast.makeText(getActivity(), String.format(getString(R.string.reset_core_settings_success), item.getText()), Toast.LENGTH_LONG).show();
          }
@@ -393,11 +402,7 @@ public final class InstalledCoresFragment extends ListFragment
          @Override
          public void onClick(DialogInterface dialog, int which)
          {
-            // Begin backup
-            Toast.makeText(getActivity(), "Writing " + destFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-
-            new BackupCoreOperation( getActivity(),
-                                     item.getUnderlyingFile().getName() )
+            new BackupCoreOperation( getActivity(), item.getText() )
                 .execute( item.getUnderlyingFile().getAbsolutePath(),
                           item.getUnderlyingFile().getName() );
          }
@@ -533,6 +538,7 @@ public final class InstalledCoresFragment extends ListFragment
       {
          super.onPostExecute(result);
          dlg.dismiss();
+         Toast.makeText(getActivity(), "Backed up " + coreName, Toast.LENGTH_LONG).show();
       }
    }
 }

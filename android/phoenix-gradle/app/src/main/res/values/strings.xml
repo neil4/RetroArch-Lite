@@ -13,7 +13,7 @@
     <string name="installed_cores">Installed Cores</string>
     <string name="uninstall_core_message">Uninstall %1$s?</string>
     <string name="backup_core_message">Copy %1$s to Backup Cores directory?</string>
-    <string name="reset_core_options_message">Purge settings for %1$s?\nThis includes its core-specific settings, core-provided options, and input remapping files.</string>
+    <string name="purge_core_data_message">Purge data for %1$s?\nThis includes all settings, savefiles, savestates, and input remaps.\nDoes not include files in the System directory.</string>
     <string name="uninstall_failure">Failed to uninstall core: %1$s</string>
     <string name="uninstall_success">%1$s uninstalled.</string>
     <string name="reset_core_settings_success">Removed all %1$s data.</string>
@@ -46,7 +46,7 @@
     
     <!-- Installed Cores Context Menu -->
     <string name="installed_cores_ctx_title">Actions</string>
-    <string name="installed_cores_ctx_reset_core_options">Purge Settings</string>
+    <string name="installed_cores_ctx_purge_core_data">Purge Data</string>
     <string name="installed_cores_ctx_remove_core">Uninstall Core</string>
     <string name="installed_cores_ctx_backup_core">Backup Core</string>
     <string name="installed_cores_ctx_update_core">Update Core</string>
