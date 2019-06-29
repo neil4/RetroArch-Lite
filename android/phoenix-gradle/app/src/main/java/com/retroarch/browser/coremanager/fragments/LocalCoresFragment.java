@@ -229,21 +229,9 @@ public final class LocalCoresFragment extends ListFragment
             }
          }
          for (String line : lines) {
-            if (line.contains("display_name")) { // displayname preferred
+            if (line.contains("systemname")) {
                systemName = line.split("=")[1].trim().replace("\"", "");
-               // remove parenthesized name
-               int i = systemName.indexOf("(");
-               if (i > -1)
-                  systemName = systemName.substring(0, i).trim();
                break;
-            }
-         }
-         if (!systemName.contains(" - ")) { // no "-" means no make; better to use systemname
-            for (String line : lines) {
-               if (line.contains("systemname")) {
-                  systemName = line.split("=")[1].trim().replace("\"", "");
-                  break;
-               }
             }
          }
       }
