@@ -41,12 +41,14 @@ final class DownloadableCoresAdapter extends ArrayAdapter<DownloadableCore>
       {
          TextView title    = (TextView) convertView.findViewById(android.R.id.text1);
          TextView subtitle = (TextView) convertView.findViewById(android.R.id.text2);
+         boolean sysTitle = DownloadableCore.sortBySystem && !core.isLocal;
 
          if (title != null)
-            title.setText(core.getCoreName());
+            title.setText(sysTitle ? core.getSystemName() : core.getCoreName());
 
          if (subtitle != null)
-            subtitle.setText(core.getSystemName() + "\n" + core.getCoreURL());
+            subtitle.setText((sysTitle ? core.getCoreName() : core.getSystemName())
+                             + "\n" + core.getCoreURL());
       }
 
       return convertView;

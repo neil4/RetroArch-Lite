@@ -80,6 +80,15 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
          dir.mkdir();
    }
 
+
+   @Override
+   public void onDestroy() {
+      super.onDestroy();
+
+      if (isFinishing())
+         DownloadableCoresFragment.sAdapter = null;
+   }
+
    @Override
    public void onTabSelected(Tab tab, FragmentTransaction ft)
    {

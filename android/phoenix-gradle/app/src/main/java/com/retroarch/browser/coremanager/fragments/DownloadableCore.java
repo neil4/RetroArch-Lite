@@ -9,6 +9,7 @@ final class DownloadableCore implements Comparable<DownloadableCore>
    private final String systemName;
    private final String coreURL;
    private final String shortURL;
+   public boolean isLocal;
    public static boolean sortBySystem;
       
    /**
@@ -24,6 +25,8 @@ final class DownloadableCore implements Comparable<DownloadableCore>
       this.systemName = systemName;
       this.coreURL  = coreURL;
       this.shortURL = coreURL.substring(coreURL.lastIndexOf('/') + 1);
+
+      isLocal = coreURL.startsWith("file");
    }
 
    /**
@@ -67,7 +70,7 @@ final class DownloadableCore implements Comparable<DownloadableCore>
    @Override
    public int compareTo(DownloadableCore other)
    {
-      if ( sortBySystem )
+      if ( sortBySystem && !isLocal )
       {
          if( systemName == null || systemName.isEmpty() )
             return 1;

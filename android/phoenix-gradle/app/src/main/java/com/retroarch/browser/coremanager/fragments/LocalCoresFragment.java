@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -163,6 +165,7 @@ public final class LocalCoresFragment extends ListFragment
       try
       {
          final File[] files = new File(localCoresDir).listFiles();
+         final ArrayList<DownloadableCore> cores = new ArrayList<DownloadableCore>();
 
          for (int i = 0; i < files.length; i++)
          {
@@ -178,8 +181,12 @@ public final class LocalCoresFragment extends ListFragment
                                + (is_zip ? (coreName.contains(".so.") ? ".so.zip" : ".zip" ) : ".so" );
             String infoPath = localCoresDir + File.separator + coreName.replace(searchStr, ".info");
 
-            adapter.add(new DownloadableCore(getCoreName(infoPath), systemName, urlPath));
+            cores.add(new DownloadableCore(getCoreName(infoPath), systemName, urlPath));
          }
+
+         Collections.sort(cores);
+         adapter.clear();
+         adapter.addAll(cores);
       }
       catch (Exception e)
       {
@@ -222,9 +229,21 @@ public final class LocalCoresFragment extends ListFragment
             }
          }
          for (String line : lines) {
-            if (line.contains("systemname")) {
+            if (line.contains("display_name")) { // displayname preferred
                systemName = line.split("=")[1].trim().replace("\"", "");
+               // remove parenthesized name
+               int i = systemName.indexOf("(");
+               if (i > -1)
+                  systemName = systemName.substring(0, i).trim();
                break;
+            }
+         }
+         if (!systemName.contains(" - ")) { // no "-" means no make; better to use systemname
+            for (String line : lines) {
+               if (line.contains("systemname")) {
+                  systemName = line.split("=")[1].trim().replace("\"", "");
+                  break;
+               }
             }
          }
       }

@@ -60,9 +60,7 @@ public final class DownloadableCoresFragment extends ListFragment
    // - Eventually make the core downloader capable of directory-based browsing from the base URL.
    // - Allow for 'repository'-like core downloading.
    // - Clean this up a little better. It can likely be way more organized.
-   // - Don't re-download the info files on orientation changes.
    // - Use a loading wheel when core retrieval is being done. User may think something went wrong otherwise.
-   // - Check the info directory for an info file before downloading it. Can save bandwidth this way (and list load times would be faster).
    // - Should probably display a dialog or a toast message when the Internet connection process fails.
 
    /**
@@ -82,7 +80,7 @@ public final class DownloadableCoresFragment extends ListFragment
    public static final String BUILDBOT_INFO_URL = BUILDBOT_BASE_URL + "/assets/frontend/info/";
    
    protected OnCoreDownloadedListener coreDownloadedListener = null;
-   protected static DownloadableCoresAdapter sAdapter = null;
+   public static DownloadableCoresAdapter sAdapter = null;
    
    @Override
    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
