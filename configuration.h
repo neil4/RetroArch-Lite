@@ -528,12 +528,12 @@ void scoped_config_files_load_auto();
 void core_config_file_load_auto();
 
 /**
- * restore_update_config_globals
+ * config_backup_restore_globals
  * 
  * Called between ROM loads. Restores scoped settings to global values, and
  * updates backups for already-global values.
  */
-void restore_update_config_globals();
+void config_backup_restore_globals();
 
 /**
  * config_save_file:

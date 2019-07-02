@@ -2726,7 +2726,7 @@ void scoped_config_files_save()
    scoped_config_file_save(THIS_CONTENT_ONLY);
 }
 
-void restore_update_config_globals()
+void config_backup_restore_globals()
 {
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
@@ -2791,7 +2791,7 @@ void restore_update_config_globals()
       settings->audio.sync = audio_sync;
    }
    else
-   {  /* update */
+   {  /* back up */
       audio_sync = settings->audio.sync;
    }
    
@@ -2801,7 +2801,7 @@ void restore_update_config_globals()
       settings->audio.volume = audio_volume;
    }
    else
-   {  /* update */
+   {  /* back up */
       audio_volume = settings->audio.volume;
    }
    
@@ -2811,7 +2811,7 @@ void restore_update_config_globals()
       strlcpy(settings->audio.dsp_plugin, audio_dsp_plugin, PATH_MAX_LENGTH);
    }
    else
-   {  /* update */
+   {  /* back up */
       strlcpy(audio_dsp_plugin, settings->audio.dsp_plugin, PATH_MAX_LENGTH);
    }
    
@@ -2821,7 +2821,7 @@ void restore_update_config_globals()
       settings->video.threaded = video_threaded;
    }
    else
-   {  /* update */
+   {  /* back up */
       video_threaded = settings->video.threaded;
    }
    
@@ -2831,7 +2831,7 @@ void restore_update_config_globals()
       settings->video.vsync = video_vsync;
    }
    else
-   {  /* update */
+   {  /* back up */
       video_vsync = settings->video.vsync;
    }
 
@@ -2842,7 +2842,7 @@ void restore_update_config_globals()
       settings->video.hard_sync_frames = video_hard_sync_frames;
    }
    else
-   {  /* update */
+   {  /* back up */
       video_hard_sync = settings->video.hard_sync;
       video_hard_sync_frames = settings->video.hard_sync_frames;
    }
@@ -2855,7 +2855,7 @@ void restore_update_config_globals()
       settings->input.overlay_enable = input_overlay_enable;
    }
    else
-   {  /* update */
+   {  /* back up */
       strlcpy(input_overlay, settings->input.overlay, PATH_MAX_LENGTH);
       input_overlay_enable = settings->input.overlay_enable;
    }
@@ -2869,7 +2869,7 @@ void restore_update_config_globals()
       settings->input.abxy_diagonal_sensitivity = input_abxy_diagonal_sensitivity;
    }
    else
-   {  /* update */
+   {  /* back up */
       input_dpad_method = settings->input.dpad_method;
       input_dpad_diagonal_sensitivity = settings->input.dpad_diagonal_sensitivity;
       input_abxy_method = settings->input.abxy_method;
@@ -2886,7 +2886,7 @@ void restore_update_config_globals()
       settings->input.overlay_adjust_vertical_lock_edges = input_overlay_adjust_vertical_lock_edges;
    }
    else
-   {  /* update */
+   {  /* back up */
       overlay_adjust_aspect = settings->input.overlay_adjust_aspect;
       input_overlay_aspect_ratio_index = settings->input.overlay_aspect_ratio_index;
       input_overlay_bisect_aspect_ratio = settings->input.overlay_bisect_aspect_ratio;
@@ -2900,7 +2900,7 @@ void restore_update_config_globals()
       settings->input.overlay_opacity = input_overlay_opacity;
    }
    else
-   {  /* update */
+   {  /* back up */
       input_overlay_opacity = settings->input.overlay_opacity;
    }
 #endif /* HAVE_OVERLAY */
@@ -2912,7 +2912,7 @@ void restore_update_config_globals()
       settings->core_throttle_enable = core_throttle_enable;
    }
    else
-   {  /* update */
+   {  /* back up */
       throttle_using_core_fps = settings->throttle_using_core_fps;
       core_throttle_enable = settings->core_throttle_enable;
    }
@@ -2924,7 +2924,7 @@ void restore_update_config_globals()
       *p_custom_vp = custom_vp;
    }
    else
-   {  /* update */
+   {  /* back up */
       aspect_ratio_index = settings->video.aspect_ratio_idx;
       custom_vp = *p_custom_vp;
    }
@@ -2935,7 +2935,7 @@ void restore_update_config_globals()
       settings->video.rotation = video_rotation;
    }
    else
-   {  /* update */
+   {  /* back up */
       video_rotation = settings->video.rotation;
    }
    
@@ -2945,7 +2945,7 @@ void restore_update_config_globals()
       settings->video.frame_delay = video_frame_delay;
    }
    else
-   {  /* update */
+   {  /* back up */
       video_frame_delay = settings->video.frame_delay;
    }
    
@@ -2955,7 +2955,7 @@ void restore_update_config_globals()
       settings->input.max_users = input_max_users;
    }
    else
-   {  /* update */
+   {  /* back up */
       input_max_users = settings->input.max_users;
    }
    
@@ -2970,7 +2970,7 @@ void restore_update_config_globals()
       }
    }
    else
-   {  /* update */
+   {  /* back up */
       for (i = 0; i < input_max_users; i++)
       {
          input_joypad_map[i] = settings->input.joypad_map[i];
@@ -2986,7 +2986,7 @@ void restore_update_config_globals()
       strlcpy(settings->video.shader_path, video_shader, PATH_MAX_LENGTH);
    }
    else
-   {  /* update */
+   {  /* back up */
       strlcpy(video_filter, settings->video.softfilter_plugin, PATH_MAX_LENGTH);
       strlcpy(video_shader, settings->video.shader_path, PATH_MAX_LENGTH);
    }
@@ -3003,7 +3003,7 @@ void restore_update_config_globals()
       global->menu.theme_update_flag = true;
    }
    else
-   {  /* update */
+   {  /* back up */
       strlcpy(menu_theme, settings->menu.theme, PATH_MAX_LENGTH);
       wallpaper_opacity = settings->menu.wallpaper_opacity;
 #ifdef HAVE_RGUI
@@ -3024,7 +3024,7 @@ void restore_update_config_globals()
       prev_libretro = false;
    }
    else if (!prev_libretro)
-   {  /* update */
+   {  /* back up */
       video_shared_context = settings->video.shared_context;
       load_dummy_on_core_shutdown = settings->load_dummy_on_core_shutdown;
       core_set_supports_no_game_enable = settings->core.set_supports_no_game_enable;
@@ -3199,7 +3199,7 @@ static void scoped_config_file_load(unsigned scope)
 void scoped_config_files_load_auto()
 {
    /* Back up or unmask global settings */
-   restore_update_config_globals();
+   config_backup_restore_globals();
    
    scoped_config_file_load(THIS_CORE);
    scoped_config_file_load(THIS_CONTENT_DIR);
@@ -3208,6 +3208,6 @@ void scoped_config_files_load_auto()
 
 void core_config_file_load_auto()
 {
-   restore_update_config_globals();
+   config_backup_restore_globals();
    scoped_config_file_load(THIS_CORE);
 }

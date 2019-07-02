@@ -1573,7 +1573,7 @@ void rarch_update_configs()
 
    /* restore globals when a core is unloaded */
    if (!*global->libretro_name)
-      restore_update_config_globals();
+      config_backup_restore_globals();
    
    scoped_settings_touched = false;
    options_touched = false;

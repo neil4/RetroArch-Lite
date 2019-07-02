@@ -48,7 +48,7 @@ void main_exit_save_config(void)
       if (scoped_settings_touched)
          scoped_config_files_save();
       *settings->libretro = '\0';
-      restore_update_config_globals();
+      config_backup_restore_globals();
       if (settings_touched && *global->config_path)
          config_save_file(global->config_path);
       if (global->system.core_options)
