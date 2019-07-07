@@ -1079,21 +1079,11 @@ static int16_t android_input_state(void *data,
             case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
                if (global->overlay_lightgun_use_autotrigger)
                   return (driver->overlay_state.lightgun_autotrigger);
-            case RETRO_DEVICE_ID_LIGHTGUN_CURSOR:
-            case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
-            case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
-            case RETRO_DEVICE_ID_LIGHTGUN_START:
-            case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
-            case RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP:
-            case RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN:
-            case RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT:
-            case RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT:
-               return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
             case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
                return (driver->overlay_state.lightgun_buttons
-                       & (1<<RARCH_LIGHTGUN_BIT_RELOAD)) != 0;       
+                       & (1<<RARCH_LIGHTGUN_BIT_RELOAD)) != 0;
             default:
-               return 0;
+               return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
          }
          break;
    }

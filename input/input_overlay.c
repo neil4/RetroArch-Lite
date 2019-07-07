@@ -1774,6 +1774,7 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
 {
    size_t i;
    float x, y;
+   input_overlay_state_t* old_state;
 
    memset(out, 0, sizeof(*out));
 
@@ -1808,22 +1809,25 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
 
       if (desc->type == OVERLAY_TYPE_BUTTONS)
       {
-         uint64_t mask = desc->key_mask;
-         if (mask & (UINT64_C(1) << RARCH_FAST_FORWARD_HOLD_KEY))
-         {  /* disable descriptors overlapping fast forward hold
-             * todo: should do this for all meta keys */
-            out->buttons = mask;
+         if (desc->key_mask & (UINT64_C(1) << RARCH_FAST_FORWARD_HOLD_KEY))
+         {  /* disallow overlap with other controls */
+            out->buttons = desc->key_mask;
             break;
          }
-         if (mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
-         {
-            out->buttons = mask;
-            ol->next_index = desc->next_index;
-            ol->blocked = true;
-            break;
+         if (desc->key_mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
+         {  /* disallow any use with other controls */
+            old_state = &driver_get_ptr()->old_overlay_state;
+            if (old_state->buttons != UINT64_C(0)
+                || (uint64_t)*old_state->analog != UINT64_C(0))
+               continue;
+            else
+            {
+               out->buttons = desc->key_mask;
+               break;
+            }
          }
          
-         out->buttons |= mask;
+         out->buttons |= desc->key_mask;
          translate_highlevel_mask(desc, out, x, y);
       }
       else if (desc->type == OVERLAY_TYPE_KEYBOARD)
