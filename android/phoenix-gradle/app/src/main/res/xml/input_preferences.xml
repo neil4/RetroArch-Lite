@@ -6,7 +6,8 @@
          <CheckBoxPreference
             android:defaultValue="true"
             android:key="input_overlay_enable"
-            android:title="@string/enable_overlay_desc" />
+            android:title="@string/enable_overlay"
+            android:summary="@string/enable_overlay_desc"/>
          <Preference
             android:key="install_overlays_pref"
             android:title="@string/install_overlays"

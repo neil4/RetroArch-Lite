@@ -17,28 +17,24 @@
                 android:targetClass="com.retroarch.browser.coremanager.CoreManagerActivity"
                 android:targetPackage="com.retroarchlite64"/>
         </Preference>
+    </PreferenceCategory>
+
+    <!-- UI -->
+    <PreferenceCategory android:title="UI" >
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="append_abi_to_corenames"
             android:summary="@string/append_abi_to_corenames_desc"
             android:title="@string/append_abi_to_corenames" />
-    </PreferenceCategory>
-    
-    <!-- Titles -->
-    <PreferenceCategory android:title="@string/mame_titles" >
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="mame_titles"
             android:summary="@string/mame_titles_desc"
-            android:title="@string/enable" />
-    </PreferenceCategory>
-    
-    <!-- Theme Assets -->
-    <PreferenceCategory android:title="@string/theme_assets" >
+            android:title="@string/mame_titles" />
         <Preference
-           android:key="install_themes_pref"
-           android:title="@string/install_themes"
-           android:summary="@string/install_themes_desc"/>
+            android:key="install_themes_pref"
+            android:title="@string/install_themes"
+            android:summary="@string/install_themes_desc"/>
     </PreferenceCategory>
 
     <!-- All Assets -->

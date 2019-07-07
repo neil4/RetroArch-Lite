@@ -135,33 +135,12 @@ public final class UserPreferences
       
       // Input
       //
-      if (prefs.contains("input_overlay_enable"))
-         config.setBoolean("input_overlay_enable", prefs.getBoolean("input_overlay_enable", true));
+      config.setBoolean("input_overlay_enable", prefs.getBoolean("input_overlay_enable", true));
       config.setBoolean("input_autodetect_enable", prefs.getBoolean("input_autodetect_enable", true));
       
       // Menu
       config.setBoolean("mame_titles",
                         prefs.getBoolean("mame_titles", false));
-
-      // FIXME: This is incomplete. Need analog axes as well.
-      for (int i = 1; i <= 4; i++)
-      {
-         final String[] btns =
-         { 
-            "up", "down", "left", "right",
-            "a", "b", "x", "y", "start", "select",
-            "l", "r", "l2", "r2", "l3", "r3"
-         };
-
-         for (String b : btns)
-         {
-            String p = "input_player" + i + "_" + b + "_btn";
-            if (prefs.contains(p))
-               config.setInt(p, prefs.getInt(p, 0));
-            else
-               config.setString(p, "nul");
-         }
-      }
 
       try
       {

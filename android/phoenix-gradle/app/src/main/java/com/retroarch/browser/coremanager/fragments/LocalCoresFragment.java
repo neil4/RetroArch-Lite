@@ -78,8 +78,8 @@ public final class LocalCoresFragment extends ListFragment
       if (sharedId.contains("64"))
          defaultLocalCoresDir = defaultLocalCoresDir.replace("cores32", "cores64");
       sharedSettings = UserPreferences.getPreferences(getActivity());
-      localCoresDir = sharedSettings.getString("backup_cores_directory",
-                                               defaultLocalCoresDir);
+      localCoresDir = sharedSettings.getBoolean("backup_cores_directory_enable", false) ?
+            sharedSettings.getString("backup_cores_directory", defaultLocalCoresDir) : defaultLocalCoresDir;
          
       coreList = (ListView) inflater.inflate(R.layout.coremanager_listview, container, false);
       registerForContextMenu(coreList);
@@ -98,7 +98,8 @@ public final class LocalCoresFragment extends ListFragment
    {
       if (adapter != null && sharedSettings != null)
       {
-         localCoresDir = sharedSettings.getString("backup_cores_directory", defaultLocalCoresDir);
+         localCoresDir = sharedSettings.getBoolean("backup_cores_directory_enable", false) ?
+               sharedSettings.getString("backup_cores_directory", defaultLocalCoresDir) : defaultLocalCoresDir;
          adapter.clear();
          PopulateCoresList();
          adapter.notifyDataSetChanged();

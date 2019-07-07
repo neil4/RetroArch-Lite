@@ -63,9 +63,14 @@
     
     <!-- Local/Backup Installable Cores -->
     <PreferenceCategory android:title="@string/backup_cores_paths">
+        <CheckBoxPreference android:title="@string/enable_custom_dir"
+            android:summary="@string/backup_cores32_custom_dir"
+            android:key="backup_cores_directory_enable"
+            android:defaultValue="false"/>
         <Preference
             android:key="localCoresDirPref"
             android:title="@string/backup_cores_directory"
-            android:summary="@string/backup_cores32_directory_desc"/>
+            android:summary="@string/backup_cores32_directory_desc"
+            android:dependency="backup_cores_directory_enable"/>
     </PreferenceCategory>
 </PreferenceScreen>

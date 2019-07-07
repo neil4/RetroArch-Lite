@@ -385,9 +385,9 @@ public final class InstalledCoresFragment extends ListFragment
       final AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
       
       SharedPreferences settings = UserPreferences.getPreferences(getActivity());
-      final File destFile
-         = new File( settings.getString("backup_cores_directory", LocalCoresFragment.defaultLocalCoresDir),
-                     File.separator+item.getUnderlyingFile().getName() );
+      String localCoresDir = settings.getBoolean("backup_cores_directory_enable", false) ?
+              settings.getString("backup_cores_directory", LocalCoresFragment.defaultLocalCoresDir) : LocalCoresFragment.defaultLocalCoresDir;
+      final File destFile = new File(localCoresDir,File.separator+item.getUnderlyingFile().getName());
       boolean exists = destFile.exists();
       
       if (!destFile.getParentFile().exists())
@@ -465,9 +465,9 @@ public final class InstalledCoresFragment extends ListFragment
 
             // Set up the streams
             final int fileLen = connection.getContentLength();
-            final File outFile = new File( settings.getString("backup_cores_directory",
-                                                              LocalCoresFragment.defaultLocalCoresDir),
-                                           File.separator+params[1] );
+            String localCoresDir = settings.getBoolean("backup_cores_directory_enable", false) ?
+                  settings.getString("backup_cores_directory", LocalCoresFragment.defaultLocalCoresDir) : LocalCoresFragment.defaultLocalCoresDir;
+            final File outFile = new File(localCoresDir,File.separator + params[1]);
 
             input = new BufferedInputStream(connection.getInputStream(), 8192);
             output = new FileOutputStream(outFile);            
@@ -495,9 +495,8 @@ public final class InstalledCoresFragment extends ListFragment
                {
                   url = new URL("file:" + infoPath);  // input URL
                   connection = (URLConnection) url.openConnection();
-                  final File outInfoFile
-                  = new File( settings.getString("backup_cores_directory", LocalCoresFragment.defaultLocalCoresDir),
-                              File.separator+params[1].replace("_android.so",".info") );
+                  final File outInfoFile = new File( localCoresDir,
+                                                     File.separator+params[1].replace("_android.so",".info"));
                   connection.connect();
                   input = new BufferedInputStream(connection.getInputStream(), 8192);
                   output = new FileOutputStream(outInfoFile); 
