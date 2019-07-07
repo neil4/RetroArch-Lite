@@ -906,10 +906,11 @@ static int menu_input_mouse_post_iterate(uint64_t *input_mouse,
 static int pointer_tap(menu_file_list_cbs_t *cbs,
       menu_entry_t *entry, unsigned action)
 {
-   menu_input_t *menu_input = menu_input_get_ptr();
-   menu_list_t   *menu_list = menu_list_get_ptr();
-   menu_navigation_t *nav   = menu_navigation_get_ptr();
-   rarch_setting_t *setting =
+   menu_input_t *menu_input   = menu_input_get_ptr();
+   menu_list_t   *menu_list   = menu_list_get_ptr();
+   menu_navigation_t *nav     = menu_navigation_get_ptr();
+   menu_framebuf_t *frame_buf = menu_display_fb_get_ptr();
+   rarch_setting_t *setting   =
       menu_setting_find(
             menu_list->selection_buf->list[nav->selection_ptr].label);
 
@@ -917,7 +918,12 @@ static int pointer_tap(menu_file_list_cbs_t *cbs,
          && cbs && cbs->action_right && setting &&
          (setting->type == ST_BOOL || setting->type == ST_UINT
           || setting->type == ST_FLOAT || setting->type == ST_STRING))
-      return menu_entry_action(entry, nav->selection_ptr, MENU_ACTION_RIGHT);
+   {
+      if (menu_input->pointer.x > frame_buf->width / 2)
+         return menu_entry_action(entry, nav->selection_ptr, MENU_ACTION_RIGHT);
+      else
+         return menu_entry_action(entry, nav->selection_ptr, MENU_ACTION_LEFT);
+   }
    else if (menu_input->pointer.ptr == nav->selection_ptr)
       return menu_entry_action(entry, nav->selection_ptr, MENU_ACTION_OK);
    else
@@ -935,6 +941,7 @@ static int menu_input_pointer_post_iterate(menu_file_list_cbs_t *cbs,
    menu_input_t *menu_input = menu_input_get_ptr();
    driver_t *driver         = driver_get_ptr();
    settings_t *settings     = config_get_ptr();
+   static retro_time_t ptr_start_time;
 
    if (!menu_input)
       return -1;
@@ -955,9 +962,9 @@ static int menu_input_pointer_post_iterate(menu_file_list_cbs_t *cbs,
          menu_input->pointer.old_x         = menu_input->pointer.x;
          menu_input->pointer.old_y         = menu_input->pointer.y;
          menu_input->pointer.oldpressed[0] = true;
+         ptr_start_time = rarch_get_time_usec();
       }
-      else if ((menu_input->pointer.x != menu_input->pointer.start_x)
-         && (menu_input->pointer.y != menu_input->pointer.start_y))
+      else if (rarch_get_time_usec() - ptr_start_time > 125000)
       {
          menu_input->pointer.dragging = true;
          menu_input->pointer.dx       = menu_input->pointer.x - menu_input->pointer.old_x;

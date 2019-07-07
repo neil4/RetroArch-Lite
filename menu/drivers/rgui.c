@@ -970,7 +970,7 @@ static void rgui_render(void)
       if (menu_input->pointer.dragging)
       {
          menu->scroll_y += menu_input->pointer.dy;
-         menu_entries_set_start(-menu->scroll_y / 11 + 2);
+         menu_entries_set_start(-menu->scroll_y / 11);
          if (menu->scroll_y > 0)
             menu->scroll_y = 0;
       }
