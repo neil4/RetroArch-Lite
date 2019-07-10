@@ -342,7 +342,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
                          path.substring(0, path.lastIndexOf( "/" )) ).apply();
       }
 
-      String current_ime = Settings.Secure.getString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD);
+      String currentIme = Settings.Secure.getString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD);
       Toast.makeText(this, String.format(getString(R.string.loading_data), path), Toast.LENGTH_SHORT).show();
       
       boolean usingSharedActivity = false;
@@ -361,7 +361,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
          retro.putExtra("ROM", path);
       retro.putExtra("LIBRETRO", libretroPath);
       retro.putExtra("CONFIGFILE", UserPreferences.getDefaultConfigPath(this));
-      retro.putExtra("IME", current_ime);
+      retro.putExtra("IME", currentIme);
       retro.putExtra("DATADIR", getApplicationInfo().dataDir);
 
       startActivity(retro);

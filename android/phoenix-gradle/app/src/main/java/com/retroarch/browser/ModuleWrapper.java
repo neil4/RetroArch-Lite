@@ -31,7 +31,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    private final List<String> authors;
    private final List<String> supportedExtensions;
    private final List<String> permissions;
-   private int firmware_count = 0;
+   private int firmwareCount = 0;
    private String firmwares;
 
    /**
@@ -78,7 +78,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          this.notes        = (infoFile.keyExists("notes"))
                              ? infoFile.getString("notes").replace("|", "\n")
                              : "N/A";
-         this.firmware_count = (infoFile.keyExists("firmware_count") ? infoFile.getInt("firmware_count") : 0);
+         this.firmwareCount = (infoFile.keyExists("firmwareCount") ? infoFile.getInt("firmwareCount") : 0);
          
          // For licenses, extensions and authors, use '|' delimiter
          final String licenses = infoFile.getString("license");
@@ -127,7 +127,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          
          // Firmware list
          //
-         if (this.firmware_count == 0)
+         if (this.firmwareCount == 0)
             this.firmwares = "N/A";
          else
          {
@@ -137,7 +137,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
             String sys_dir = prefs.getBoolean("system_directory_enable", false) ?
                              prefs.getString("system_directory", default_sys) : default_sys;         
             this.firmwares = "";
-            for (int i = 0; i < this.firmware_count; i++)
+            for (int i = 0; i < this.firmwareCount; i++)
             {
                String key = "firmware" + Integer.toString(i) + "_desc";
                this.firmwares += ((infoFile.keyExists(key)) ? infoFile.getString(key) : "N/A");

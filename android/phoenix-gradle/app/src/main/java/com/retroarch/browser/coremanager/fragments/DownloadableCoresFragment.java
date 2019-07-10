@@ -232,10 +232,10 @@ public final class DownloadableCoresFragment extends ListFragment
       {
          try
          {
-            final Connection core_connection = Build.CPU_ABI.startsWith("arm") ?
-                                                Jsoup.connect(BUILDBOT_CORE_URL_ARM)
-                                                : Jsoup.connect(BUILDBOT_CORE_URL_INTEL);
-            final Elements coreElements = core_connection.get().body().getElementsByClass("fb-n").select("a");
+            final Connection conn = Build.CPU_ABI.startsWith("arm") ?
+                                       Jsoup.connect(BUILDBOT_CORE_URL_ARM)
+                                       : Jsoup.connect(BUILDBOT_CORE_URL_INTEL);
+            final Elements coreElements = conn.get().body().getElementsByClass("fb-n").select("a");
 
             final ArrayList<DownloadableCore> downloadableCores = new ArrayList<DownloadableCore>();
 

@@ -220,15 +220,15 @@ public class DirectoryFragment extends DialogFragment
       bundle.putInt("titleResId", -88);
       bundle.putString("title", title);
       
-      String ext_array[] = new String[exts.size()];
+      String extArray[] = new String[exts.size()];
       int i = 0;
       for ( String ext : exts)
       {
          if (ext == null)
             return null;
-         ext_array[i++] = ext.toLowerCase();
+         extArray[i++] = ext.toLowerCase();
       }
-      bundle.putStringArray("exts", ext_array);
+      bundle.putStringArray("exts", extArray);
       
       dFrag.setArguments(bundle);
 
@@ -251,9 +251,9 @@ public class DirectoryFragment extends DialogFragment
       // Set supported extensions
       if (!isDirectoryTarget)
       {
-         String ext_array[] = getArguments().getStringArray("exts");
-         if ( ext_array != null && ext_array.length > 0 )
-            addAllowedExts(ext_array);
+         String extArray[] = getArguments().getStringArray("exts");
+         if ( extArray != null && extArray.length > 0 )
+            addAllowedExts(extArray);
          else
             addDisallowedExts("state", "srm", "state.auto", "rtc", "ccd");
       }
@@ -537,10 +537,10 @@ public class DirectoryFragment extends DialogFragment
          {
             for (int j = 0; j < adapter.getCount(); j++)
             {
-               String other_name = adapter.getItem(j).getText().toLowerCase();
-               if (j == i || !other_name.endsWith(".cue"))
+               String otherName = adapter.getItem(j).getText().toLowerCase();
+               if (j == i || !otherName.endsWith(".cue"))
                   continue;
-               if ( other_name.replace(".cue", ".bin")
+               if ( otherName.replace(".cue", ".bin")
                     .equals(name) )
                {
                   adapter.remove(adapter.getItem(i--));

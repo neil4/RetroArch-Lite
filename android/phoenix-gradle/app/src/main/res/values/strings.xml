@@ -110,7 +110,7 @@
     <string name="backup_cores_directory_select">Select a Backup Cores directory</string>
     <string name="save_files">Save Files</string>
     <string name="enable_custom_dir">Enable Custom Directory</string>
-    <string name="savefiles_custom_dir">Enables use of custom savefile directory.\nDefaults to &lt;InternalSD&gt;/RetroArchLite/save.</string>
+    <string name="savefiles_custom_dir">Enables use of a custom savefile directory.\nDefaults to &lt;InternalSD&gt;/RetroArchLite/save.</string>
     <string name="savefile_directory">Savefile directory</string>
     <string name="savefile_directory_desc">Save files (.srm) will be saved in per-core subdirectories of this directory.</string>
     <string name="savefile_directory_select">Select a savefile directory</string>
@@ -146,7 +146,7 @@
     <string name="append_abi_to_corenames_desc">Distinguish between 32-bit and 64-bit cores.</string>
     <string name="asset_management">Asset Management</string>
     <string name="restore_assets">Restore Assets</string>
-    <string name="restore_assets_desc">Restores all assets from currently installed APK, and removes user-installed assets.\nThis includes themes, shaders, and overlays.</string>
+    <string name="restore_assets_desc">Reinstalls original assets, and removes user-installed assets.\nThis includes themes, shaders, and overlays.</string>
 
     <!-- Video Settings -->
     <string name="video_options">Video</string>

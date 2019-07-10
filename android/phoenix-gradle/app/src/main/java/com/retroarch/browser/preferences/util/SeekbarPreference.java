@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 public final class SeekbarPreference extends DialogPreference implements SeekBar.OnSeekBarChangeListener {
 
-	private float seek_value;
+	private float seekValue;
 	private SeekBar bar;
 	private TextView text;
 	private final Context context;
@@ -31,10 +31,10 @@ public final class SeekbarPreference extends DialogPreference implements SeekBar
 		View view = inflater.inflate(R.layout.seek_dialog, null);
 		this.bar = (SeekBar) view.findViewById(R.id.seekbar_bar);
 		this.text = (TextView) view.findViewById(R.id.seekbar_text);
-		this.seek_value = getPersistedFloat(1.0f);
+		this.seekValue = getPersistedFloat(1.0f);
 
 		// Set initial progress for seek bar and set the listener.
-		int prog = (int) (seek_value * 100);
+		int prog = (int) (seekValue * 100);
 		this.bar.setProgress(prog);
 		this.text.setText(prog + "%");
 		this.bar.setOnSeekBarChangeListener(this);
@@ -47,14 +47,14 @@ public final class SeekbarPreference extends DialogPreference implements SeekBar
 		super.onDialogClosed(positiveResult);
 
 		if (positiveResult) {
-			persistFloat(seek_value);
+			persistFloat(seekValue);
 		}
 	}
 
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-		seek_value = (float) progress / 100.0f;
-		text.setText((int) (seek_value * 100) + "%");
+		seekValue = (float) progress / 100.0f;
+		text.setText((int) (seekValue * 100) + "%");
 	}
 
 	@Override

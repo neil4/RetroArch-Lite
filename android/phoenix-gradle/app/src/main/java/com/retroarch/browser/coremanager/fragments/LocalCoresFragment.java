@@ -173,13 +173,13 @@ public final class LocalCoresFragment extends ListFragment
             String urlPath = files[i].toURI().toURL().toString();
             String coreName = files[i].getName();
 
-            boolean is_zip = coreName.endsWith(".zip");
-            if (!is_zip && !coreName.endsWith(".so"))
+            boolean isZip = coreName.endsWith(".zip");
+            if (!isZip && !coreName.endsWith(".so"))
                continue;
 
             // Allow any name ending in .so or .zip
             String searchStr = (coreName.contains("_android.") ? "_android" : "")
-                               + (is_zip ? (coreName.contains(".so.") ? ".so.zip" : ".zip" ) : ".so" );
+                               + (isZip ? (coreName.contains(".so.") ? ".so.zip" : ".zip" ) : ".so" );
             String infoPath = localCoresDir + File.separator + coreName.replace(searchStr, ".info");
 
             cores.add(new DownloadableCore(getCoreName(infoPath), systemName, urlPath));
