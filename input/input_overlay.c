@@ -1988,6 +1988,7 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    int port, i;
    char msg[64];
    struct retro_controller_info rci;
+   bool generic = false;
    
    /* disconnect any connected lightgun */
    if (lightgun_active)
@@ -1999,17 +2000,17 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    
    if (ol->active->lightgun_overlay)
    {
-      /* Search available ports.  If a lightgun device is selected, use it. */
+      /* Search available ports. If a lightgun device is selected, use it. */
       for (port = 0; port < global->system.num_ports; port++)
       {
-         if ((RETRO_DEVICE_MASK & settings->input.libretro_device[port])
-             == RETRO_DEVICE_LIGHTGUN)
+         if ( (RETRO_DEVICE_MASK & settings->input.libretro_device[port])
+                 == RETRO_DEVICE_LIGHTGUN )
          {
             lightgun_active = true;
             break;
          }
       }
-      
+
       /* If already connected, just get the device name */
       if (lightgun_active)
       {
@@ -2032,6 +2033,13 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
          }
          if (lightgun_active) break;
       }
+
+      if (!lightgun_active)
+      {  /* Fall back to generic lightgun */
+         port = 0;
+         lightgun_active = true;
+         generic = true;
+      }
    }
    
    if (lightgun_active)
@@ -2039,17 +2047,17 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
       old_port = port;
       
       /* Notify user */
-      snprintf(msg, 64, "%s active", rci.types[i].desc);
+      snprintf(msg, 64, "%s active", generic ? "Lightgun" : rci.types[i].desc);
       rarch_main_msg_queue_push(msg, 2, 180, true);
       
       /* Set autotrigger if no trigger descriptor found */
-      global->overlay_lightgun_use_autotrigger = true;
+      global->overlay_lightgun_autotrigger = true;
       for (i = 0; i < ol->active->size; i++)
       {
          if (ol->active->descs[i].highlevel_mask
              & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER))
          {
-            global->overlay_lightgun_use_autotrigger = false;
+            global->overlay_lightgun_autotrigger = false;
             break;
          }
       }

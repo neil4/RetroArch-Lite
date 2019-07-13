@@ -233,12 +233,15 @@ static int16_t x_lightgun_overlay_state(unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_Y:
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
          return driver->overlay_state.lightgun_y;
+      case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
+         if (!driver->overlay_state.lightgun_onscreen)
+            return 1; /* else, fall through to reload (offscreen shot) */
       case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
          return (driver->overlay_state.lightgun_buttons
-                 & (1<<RARCH_LIGHTGUN_BIT_RELOAD)) != 0;
+                 & (1<<RARCH_LIGHTGUN_BIT_RELOAD));
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
-         if (global->overlay_lightgun_use_autotrigger)
-            return (driver->overlay_state.lightgun_autotrigger);
+         if (global->overlay_lightgun_autotrigger)
+            return driver->overlay_state.lightgun_onscreen;
       default:
          return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
    }

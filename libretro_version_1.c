@@ -320,15 +320,21 @@ static INLINE void input_poll_overlay(input_overlay_t *overlay_device, float opa
       {
          if (polled_data.lightgun_buttons)
             driver->overlay_state.lightgun_buttons |= polled_data.lightgun_buttons;
-         else if (!overlay_device->blocked && polled_data.buttons == UINT64_C(0))
+         else if (!overlay_device->blocked && polled_data.buttons == 0ULL)
          {  /* Assume this is the lightgun pointer if all buttons were missed */
-            driver->overlay_state.lightgun_x
-               = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
-                                    RETRO_DEVICE_ID_POINTER_X);
-            driver->overlay_state.lightgun_y
-               = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
-                                    RETRO_DEVICE_ID_POINTER_Y);
-            driver->overlay_state.lightgun_autotrigger = true;
+            if (!driver->overlay_state.lightgun_onscreen)
+            {
+               driver->overlay_state.lightgun_x
+                  = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
+                                       RETRO_DEVICE_ID_POINTER_X);
+               driver->overlay_state.lightgun_y
+                  = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
+                                       RETRO_DEVICE_ID_POINTER_Y);
+               driver->overlay_state.lightgun_onscreen = true;
+            }
+            else /* 2nd lightgun pointer reloads */
+               driver->overlay_state.lightgun_buttons
+                  |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
          }
       }
 
