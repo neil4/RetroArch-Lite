@@ -280,22 +280,38 @@ static bool dinput_key_pressed(void *data, int key)
 
 static int16_t dinput_lightgun_mouse_state(struct dinput_input *di, unsigned id)
 {
+   static int coord_x, coord_y;
+   struct video_viewport vp = {0};
+   
    switch (id)
    {
-      case RETRO_DEVICE_ID_LIGHTGUN_X:
-         return di->mouse_rel_x;
-      case RETRO_DEVICE_ID_LIGHTGUN_Y:
-         return di->mouse_rel_y;
+      case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
+         if (!video_driver_viewport_info(&vp))
+            break;
+         coord_x = (2 * di->mouse_x * 0x7fff) / (int)vp.width - 0x7fff;
+         if (coord_x < -0x7fff) coord_x = -0x7fff;
+         else if (coord_x > 0x7fff) coord_x = 0x7fff;
+         return coord_x;
+      case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
+         if (!video_driver_viewport_info(&vp))
+            break;
+         coord_y = (2 * di->mouse_y * 0x7fff) / (int)vp.height - 0x7fff;
+         if (coord_y < -0x7fff) coord_y = -0x7fff;
+         else if (coord_y > 0x7fff) coord_y = 0x7fff;
+         return coord_y;
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
-         return di->mouse_l;
+         return di->mouse_l && !di->mouse_r;
       case RETRO_DEVICE_ID_LIGHTGUN_CURSOR:
-         return di->mouse_m;
+         return di->mouse_m && !di->mouse_r;
       case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
-         return di->mouse_r;
-      case RETRO_DEVICE_ID_LIGHTGUN_START:
          return di->mouse_m && di->mouse_r;
+      case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
-         return di->mouse_m && di->mouse_l;
+         return di->mouse_l && di->mouse_r;
+      case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
+         return abs(coord_y) == -0x7fff;
+      case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
+         return di->mouse_l && (coord_y == 0x7fff);
    }
 
    return 0;
@@ -309,11 +325,8 @@ static int16_t dinput_lightgun_overlay_state(unsigned id)
    
    switch(id)
    {
-      case RETRO_DEVICE_ID_LIGHTGUN_X:
-         /* todo: should be relative! (should also be obsolete) */
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
          return driver->overlay_state.lightgun_x;
-      case RETRO_DEVICE_ID_LIGHTGUN_Y:
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
          return driver->overlay_state.lightgun_y;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:

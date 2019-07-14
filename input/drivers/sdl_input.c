@@ -199,22 +199,38 @@ static int16_t sdl_pointer_device_state(sdl_input_t *sdl,
 
 static int16_t sdl_lightgun_device_state(sdl_input_t *sdl, unsigned id)
 {
+   static int coord_x, coord_y;
+   struct video_viewport vp = {0};
+   
    switch (id)
    {
-      case RETRO_DEVICE_ID_LIGHTGUN_X:
-         return sdl->mouse_x;
-      case RETRO_DEVICE_ID_LIGHTGUN_Y:
-         return sdl->mouse_y;
+      case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
+         if (!video_driver_viewport_info(&vp))
+            break;
+         coord_x = (2 * sdl->mouse_abs_x * 0x7fff) / (int)vp.width - 0x7fff;
+         if (coord_x < -0x7fff) coord_x = -0x7fff;
+         else if (coord_x > 0x7fff) coord_x = 0x7fff;
+         return coord_x;
+      case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
+         if (!video_driver_viewport_info(&vp))
+            break;
+         coord_y = (2 * sdl->mouse_abs_y * 0x7fff) / (int)vp.height - 0x7fff;
+         if (coord_y < -0x7fff) coord_y = -0x7fff;
+         else if (coord_y > 0x7fff) coord_y = 0x7fff;
+         return coord_y;
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
-         return sdl->mouse_l;
+         return sdl->mouse_l && !sdl->mouse_r;
       case RETRO_DEVICE_ID_LIGHTGUN_CURSOR:
-         return sdl->mouse_m;
+         return sdl->mouse_m && !sdl->mouse_r;
       case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
-         return sdl->mouse_r;
-      case RETRO_DEVICE_ID_LIGHTGUN_START:
          return sdl->mouse_m && sdl->mouse_r; 
+      case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
+         return abs(coord_y) == -0x7fff;
+      case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
+         return sdl->mouse_l && (coord_y == 0x7fff);
+      case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
-         return sdl->mouse_m && sdl->mouse_l; 
+         return sdl->mouse_l && sdl->mouse_r;
    }
 
    return 0;

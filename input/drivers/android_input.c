@@ -1069,11 +1069,8 @@ static int16_t android_input_state(void *data,
       case RETRO_DEVICE_LIGHTGUN:
          switch(id)
          {
-            case RETRO_DEVICE_ID_LIGHTGUN_X:
-               /* todo: should be relative! (should also be obsolete) */
             case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
                return driver->overlay_state.lightgun_x;
-            case RETRO_DEVICE_ID_LIGHTGUN_Y:
             case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
                return driver->overlay_state.lightgun_y;
             case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
