@@ -333,8 +333,12 @@ static INLINE void input_poll_overlay(input_overlay_t *overlay_device, float opa
                driver->overlay_state.lightgun_onscreen = true;
             }
             else /* 2nd lightgun pointer reloads */
+            {
                driver->overlay_state.lightgun_buttons
                   |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
+               old_state->lightgun_buttons /* suppress haptic feedback */
+                  |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
+            }
          }
       }
 
