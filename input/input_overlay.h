@@ -295,7 +295,7 @@ typedef struct input_overlay_state
 
    uint16_t lightgun_buttons;
    uint16_t lightgun_x, lightgun_y;
-   bool lightgun_onscreen;
+   bool lightgun_ptr_active;
    
    uint32_t keys[RETROK_LAST / 32 + 1];
 } input_overlay_state_t;

@@ -1562,8 +1562,6 @@ static inline uint64_t eight_way_state(const struct overlay_desc *desc_ptr,
  *
  * Translate high level input into something usable.
  * For now, "high level" means multi-button areas and lightgun buttons
- * 
- * TODO: Do something about RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN
  *
  **/
 void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
