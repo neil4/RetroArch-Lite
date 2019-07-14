@@ -1673,7 +1673,7 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
          if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER ) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_TRIGGER);
          if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_RELOAD ) )
-            out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN);
+            out->lightgun_buttons |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
       }
    }
 
