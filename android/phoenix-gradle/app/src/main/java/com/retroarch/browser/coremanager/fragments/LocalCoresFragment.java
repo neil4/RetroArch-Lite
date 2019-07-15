@@ -389,7 +389,7 @@ public final class LocalCoresFragment extends ListFragment
          // Invoke callback to update the installed cores list.
          coreDownloadedListener.onCoreDownloaded();
          
-         Toast.makeText(getActivity(), (this.coreName.isEmpty() ? "Core" : this.coreName) + " Installed.", Toast.LENGTH_LONG).show();
+         Toast.makeText(getActivity(), (this.coreName.isEmpty() ? "Core" : this.coreName) + " installed.", Toast.LENGTH_LONG).show();
       }
    }
 

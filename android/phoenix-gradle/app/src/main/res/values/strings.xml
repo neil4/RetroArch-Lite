@@ -48,7 +48,7 @@
     <string name="installed_cores_ctx_title">Actions</string>
     <string name="installed_cores_ctx_purge_core_data">Purge Data</string>
     <string name="installed_cores_ctx_remove_core">Uninstall Core</string>
-    <string name="installed_cores_ctx_backup_core">Backup Core</string>
+    <string name="installed_cores_ctx_backup_core">Create Backup</string>
     <string name="installed_cores_ctx_update_core">Update Core</string>
     <string name="update_core_confirm_msg">Update %1$s?</string>
     <string name="backing_up_msg">Backing up %1$s…</string>

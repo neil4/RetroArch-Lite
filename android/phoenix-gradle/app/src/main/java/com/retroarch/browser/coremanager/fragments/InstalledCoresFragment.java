@@ -537,7 +537,7 @@ public final class InstalledCoresFragment extends ListFragment
       {
          super.onPostExecute(result);
          dlg.dismiss();
-         Toast.makeText(getActivity(), "Backed up " + coreName, Toast.LENGTH_LONG).show();
+         Toast.makeText(getActivity(), coreName + " backup created.", Toast.LENGTH_LONG).show();
       }
    }
 }
