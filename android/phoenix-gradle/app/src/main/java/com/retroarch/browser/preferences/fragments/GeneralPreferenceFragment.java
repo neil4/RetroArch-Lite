@@ -100,7 +100,7 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
                                  "assets/info",
                                  getActivity().getApplicationInfo().dataDir + "/info");
                            if (success) {
-                              Toast.makeText(getContext(), "Assets Restored.", Toast.LENGTH_SHORT).show();
+                              Toast.makeText(getContext(), "Assets restored.", Toast.LENGTH_SHORT).show();
                            }
                         }
                      })

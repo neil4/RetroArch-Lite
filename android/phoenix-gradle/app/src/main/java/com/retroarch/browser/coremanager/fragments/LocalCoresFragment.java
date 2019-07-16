@@ -477,7 +477,7 @@ public final class LocalCoresFragment extends ListFragment
                   new File(corePrefix + ".info").delete();
                }
                
-               Toast.makeText(getActivity(), "Backup Core Removed.", Toast.LENGTH_LONG).show();
+               Toast.makeText(getActivity(), "Backup core removed.", Toast.LENGTH_LONG).show();
                adapter.remove(core);
                adapter.notifyDataSetChanged();
             }

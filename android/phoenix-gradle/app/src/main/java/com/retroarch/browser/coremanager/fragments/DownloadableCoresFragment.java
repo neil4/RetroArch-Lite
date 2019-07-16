@@ -494,7 +494,7 @@ public final class DownloadableCoresFragment extends ListFragment
          if (coreDownloadedListener != null)
             coreDownloadedListener.onCoreDownloaded();
          
-         Toast.makeText(this.ctx, this.coreName + (overwrite ? " Updated" : " Installed"),
+         Toast.makeText(this.ctx, this.coreName + (overwrite ? " updated." : " installed."),
                         Toast.LENGTH_LONG).show();
       }
    }
