@@ -309,9 +309,9 @@ static int16_t dinput_lightgun_mouse_state(struct dinput_input *di, unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
          return di->mouse_l && di->mouse_r;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
-         return abs(coord_y) == -0x7fff;
+         return abs(coord_y) == 0x7fff;
       case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
-         return di->mouse_l && (coord_y == 0x7fff);
+         return di->mouse_l && (abs(coord_y) == 0x7fff);
    }
 
    return 0;
