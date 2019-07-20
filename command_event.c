@@ -617,6 +617,11 @@ static bool event_init_content(void)
    if (global->libretro_dummy) 
       return true;
 
+   scoped_config_files_load_auto();
+
+   if (settings->auto_remaps_enable)
+      remap_file_load_auto();
+
    if (!global->libretro_no_content)
       rarch_fill_pathnames();
 
@@ -627,10 +632,6 @@ static bool event_init_content(void)
       return true;
 
    event_set_savestate_auto_index();
-   if (settings->auto_remaps_enable)
-      remap_file_load_auto();
-   
-   scoped_config_files_load_auto();
 
    if (event_load_save_files())
       RARCH_LOG("Skipping SRAM load.\n");

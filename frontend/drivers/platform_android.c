@@ -575,9 +575,14 @@ static void frontend_android_get_environment_settings(int *argc,
          path_basedir(g_defaults.content_dir);
          global->content_dir_override = true;
       }
+      else
+         global->max_scope = THIS_CORE;
    }
    else
+   {
       args->no_content = true;
+      global->max_scope = THIS_CORE;
+   }
 
    /* Paths. */
    CALL_OBJ_METHOD_PARAM(env, jstr, obj, android_app->getStringExtra,

@@ -2125,8 +2125,9 @@ bool config_save_file(const char *path)
    config_set_bool(conf, "audio_rate_control", settings->audio.rate_control);
    config_set_float(conf, "audio_rate_control_delta",
          settings->audio.rate_control_delta);
-   config_set_float(conf, "audio_max_timing_skew",
-         settings->audio.max_timing_skew);
+   if (settings->audio.max_timing_skew_scope == GLOBAL)
+      config_set_float(conf, "audio_max_timing_skew",
+                       settings->audio.max_timing_skew);
    if (settings->audio.volume_scope == GLOBAL)
       config_set_float(conf, "audio_volume", settings->audio.volume);
    config_set_string(conf, "video_context_driver", settings->video.context_driver);
@@ -2503,6 +2504,12 @@ static void scoped_config_file_save(unsigned scope)
    else if (settings->audio.volume_scope < scope)
       config_remove_entry(conf, "audio_volume");
 
+   if (settings->audio.max_timing_skew_scope == scope)
+      config_set_float(conf, "audio_max_timing_skew",
+                       settings->audio.max_timing_skew);
+   else if (settings->audio.max_timing_skew_scope < scope)
+      config_remove_entry(conf, "audio_max_timing_skew");
+
    if (settings->audio.dsp_scope == scope)
    {
       if (!*settings->audio.dsp_plugin)
@@ -2738,6 +2745,7 @@ void config_backup_restore_globals()
    
    static bool audio_sync;
    static float audio_volume;
+   static float audio_max_timing_skew;
    static char audio_dsp_plugin[PATH_MAX_LENGTH];
    static bool video_threaded;
    static bool video_vsync;
@@ -2803,6 +2811,16 @@ void config_backup_restore_globals()
    else
    {  /* back up */
       audio_volume = settings->audio.volume;
+   }
+   
+   if (settings->audio.max_timing_skew_scope != GLOBAL)
+   {  /* restore */
+      settings->audio.max_timing_skew_scope = GLOBAL;
+      settings->audio.max_timing_skew = audio_max_timing_skew;
+   }
+   else
+   {  /* back up */
+      audio_max_timing_skew = settings->audio.max_timing_skew;
    }
    
    if (settings->audio.dsp_scope != GLOBAL)
@@ -3013,7 +3031,7 @@ void config_backup_restore_globals()
 #endif
    
    /* Core specific settings */
-   if (!*settings->libretro && prev_libretro)
+   if (prev_libretro && !*settings->libretro)
    {  /* restore */
       settings->video.shared_context = video_shared_context;
       settings->load_dummy_on_core_shutdown = load_dummy_on_core_shutdown;
@@ -3023,17 +3041,23 @@ void config_backup_restore_globals()
       *settings->core_content_directory = '\0';
       prev_libretro = false;
    }
-   else if (!prev_libretro)
+   else if (!prev_libretro && *settings->libretro)
    {  /* back up */
       video_shared_context = settings->video.shared_context;
       load_dummy_on_core_shutdown = settings->load_dummy_on_core_shutdown;
       core_set_supports_no_game_enable = settings->core.set_supports_no_game_enable;
       rewind_enable = settings->rewind_enable;
       rewind_buffer_size = settings->rewind_buffer_size;
-      /* Force core-specific Virtual Device if a core is loaded */
-      settings->input.libretro_device_scope = THIS_CORE;
-      prev_libretro = true;
    }
+   
+   /* Force THIS_CORE or narrower scope for certain settings */
+   if (*settings->libretro)
+   {
+      settings->input.libretro_device_scope = THIS_CORE;
+      settings->video.filter_shader_scope = THIS_CORE;
+   }
+   
+   prev_libretro = *settings->libretro;
 }
 
 static void scoped_config_file_load(unsigned scope)
@@ -3066,6 +3090,8 @@ static void scoped_config_file_load(unsigned scope)
       settings->audio.sync_scope = scope;
    if (config_get_float(conf, "audio_volume", &settings->audio.volume))
       settings->audio.volume_scope = scope;
+   if (config_get_float(conf, "audio_max_timing_skew", &settings->audio.max_timing_skew))
+      settings->audio.max_timing_skew_scope = scope;
    if (config_get_path(conf, "audio_dsp_plugin", settings->audio.dsp_plugin,
                        sizeof(settings->audio.dsp_plugin)))
    {

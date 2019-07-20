@@ -246,6 +246,7 @@ typedef struct settings
       bool rate_control;
       float rate_control_delta;
       float max_timing_skew;
+      unsigned max_timing_skew_scope;
       float volume; /* dB scale. */
       unsigned volume_scope;
       char resampler[32];

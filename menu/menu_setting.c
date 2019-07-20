@@ -4949,6 +4949,7 @@ static bool setting_append_list_video_options(
    rarch_setting_group_info_t subgroup_info = {0};
    global_t *global     = global_get_ptr();
    settings_t *settings = config_get_ptr();
+   bool core_loaded     = *settings->libretro ? true : false;
     
    (void)global;
 
@@ -5508,9 +5509,9 @@ static bool setting_append_list_video_options(
             group_info.name,
             subgroup_info.name,
             parent_group);
-      (*list)[list_info->index - 1].action_ok      = &setting_action_ok_video_filter;
-      (*list)[list_info->index - 1].action_start   = &setting_action_start_video_filter;
-      (*list)[list_info->index - 1].action_cancel  = NULL; 
+   (*list)[list_info->index - 1].action_ok      = &setting_action_ok_video_filter;
+   (*list)[list_info->index - 1].action_start   = &setting_action_start_video_filter;
+   (*list)[list_info->index - 1].action_cancel  = NULL; 
 #endif
 
 #ifdef HAVE_SHADER_MANAGER
@@ -5531,24 +5532,24 @@ static bool setting_append_list_video_options(
    (*list)[list_info->index - 1].action_cancel  = NULL;
 #endif
       
-      CONFIG_UINT(
-      settings->video.filter_shader_scope,
-      "video_filter_shader_scope",
+   CONFIG_UINT(
+         settings->video.filter_shader_scope,
+         "video_filter_shader_scope",
 #ifdef HAVE_SHADER_MANAGER
-      "  Scope (Filter & Shader)",
+         "  Scope (Filter & Shader)",
 #else
-      "  Scope",
+         "  Scope",
 #endif
-      GLOBAL,
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         (core_loaded ? THIS_CORE : GLOBAL),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(
          list,
          list_info,
-         0,
+         (core_loaded ? THIS_CORE : GLOBAL),
          global->max_scope,
          1,
          true,
@@ -5844,6 +5845,26 @@ static bool setting_append_list_audio_options(
          0.01,
          true,
          true);
+   CONFIG_UINT(
+      settings->audio.max_timing_skew_scope,
+      "audio_max_timing_skew_scope",
+      "  Scope",
+      GLOBAL,
+      group_info.name,
+      subgroup_info.name,
+      parent_group,
+      general_write_handler,
+      general_read_handler);
+   menu_settings_list_current_add_range(
+         list,
+         list_info,
+         0,
+         global->max_scope,
+         1,
+         true,
+         true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
 
    CONFIG_UINT(
          settings->audio.block_frames,
