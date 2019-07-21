@@ -87,7 +87,7 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
       DECLARE_META_BIND(1, rewind,                RARCH_REWIND, "Rewind"),
       DECLARE_META_BIND(2, movie_record_toggle,   RARCH_MOVIE_RECORD_TOGGLE, "Movie record toggle"),
       DECLARE_META_BIND(2, pause_toggle,          RARCH_PAUSE_TOGGLE, "Pause toggle"),
-      DECLARE_META_BIND(2, frame_advance,         RARCH_FRAMEADVANCE, "Frameadvance"),
+      DECLARE_META_BIND(2, frame_advance,         RARCH_FRAMEADVANCE, "Frame advance"),
       DECLARE_META_BIND(2, reset,                 RARCH_RESET, "Reset game"),
       DECLARE_META_BIND(2, shader_next,           RARCH_SHADER_NEXT, "Next shader"),
       DECLARE_META_BIND(2, shader_prev,           RARCH_SHADER_PREV, "Previous shader"),

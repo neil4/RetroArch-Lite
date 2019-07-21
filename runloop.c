@@ -486,7 +486,6 @@ static int do_netplay_state_checks(
 #endif
 
 static int do_pause_state_checks(
-      bool pause_pressed,
       bool frameadvance_pressed,
       bool fullscreen_toggle_pressed,
       bool rewind_pressed)
@@ -535,12 +534,12 @@ static int do_state_checks(event_cmd_state_t *cmd)
 
    if (cmd->osk_pressed)
    {
-        driver_t *driver     = driver_get_ptr();
+      driver_t *driver     = driver_get_ptr();
 
-        if (driver)
-           driver->keyboard_linefeed_enable = !driver->keyboard_linefeed_enable;
+      if (driver)
+         driver->keyboard_linefeed_enable = !driver->keyboard_linefeed_enable;
    }
-      
+
    if (cmd->volume_up_pressed)
       event_command(EVENT_CMD_VOLUME_UP);
    else if (cmd->volume_down_pressed)
@@ -551,14 +550,16 @@ static int do_state_checks(event_cmd_state_t *cmd)
       return do_netplay_state_checks(cmd->netplay_flip_pressed, cmd->fullscreen_toggle);
 #endif
 
-   check_pause(cmd->pause_pressed, cmd->frameadvance_pressed);
+   if (!menu_driver_alive())
+   {
+      check_pause(cmd->pause_pressed, cmd->frameadvance_pressed);
 
-   if (do_pause_state_checks(
-            cmd->pause_pressed,
-            cmd->frameadvance_pressed,
-            cmd->fullscreen_toggle,
-            cmd->rewind_pressed))
-      return 1;
+      if (do_pause_state_checks(
+               cmd->frameadvance_pressed,
+               cmd->fullscreen_toggle,
+               cmd->rewind_pressed))
+         return 1;
+   }
 
    check_fast_forward_button(cmd->fastforward_pressed, cmd->hold_pressed, cmd->old_hold_pressed);
    check_stateslots(cmd->state_slot_increase, cmd->state_slot_decrease);
