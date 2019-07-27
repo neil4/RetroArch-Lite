@@ -29,6 +29,7 @@
 #include "retroarch.h"
 #include "runloop.h"
 #include "runloop_data.h"
+#include "preempt.h"
 
 #include "input/keyboard_line.h"
 #include "input/input_common.h"
@@ -492,6 +493,13 @@ static int do_pause_state_checks(
 {
    runloop_t *runloop        = rarch_main_get_ptr();
    bool check_is_oneshot     = frameadvance_pressed || rewind_pressed;
+   static char msg[32];
+   
+   if (frameadvance_pressed)
+   {
+      sprintf(msg, "Frame %lu", (unsigned long)video_driver_get_frame_count());
+      rarch_main_msg_queue_push(msg, 1, 10, true);
+   }
 
    if (!runloop || !runloop->is_paused)
       return 0;
@@ -1170,7 +1178,7 @@ int rarch_main_iterate(void)
    {
       /* RetroArch has been paused */
       driver->retro_ctx.poll_cb();
-      rarch_sleep(100);
+      rarch_sleep(10);
       
       return 1;
    }
@@ -1198,12 +1206,7 @@ int rarch_main_iterate(void)
 #if defined(HAVE_THREADS)
    lock_autosave();
 #endif
-
-#ifdef HAVE_NETPLAY
-   if (driver->netplay_data)
-      netplay_pre_frame((netplay_t*)driver->netplay_data);
-#endif
-
+      
    if (global->bsv.movie)
       bsv_movie_set_frame_start(global->bsv.movie);
 
@@ -1224,6 +1227,14 @@ int rarch_main_iterate(void)
 
    if ((settings->video.frame_delay > 0) && !driver->nonblock_state)
          rarch_sleep(settings->video.frame_delay);
+   
+#ifdef HAVE_NETPLAY
+   if (driver->netplay_data)
+      netplay_pre_frame((netplay_t*)driver->netplay_data);
+   else
+#endif
+   if (driver->preempt_data)
+      preempt_pre_frame((preempt_t*)driver->preempt_data);
 
    /* Run libretro for one frame. */
    pretro_run();
@@ -1243,7 +1254,10 @@ int rarch_main_iterate(void)
 #ifdef HAVE_NETPLAY
    if (driver->netplay_data)
       netplay_post_frame((netplay_t*)driver->netplay_data);
+   else
 #endif
+   if (driver->preempt_data)
+      preempt_post_frame((preempt_t*)driver->preempt_data);
 
 #if defined(HAVE_THREADS)
    unlock_autosave();

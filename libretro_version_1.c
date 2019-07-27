@@ -38,6 +38,7 @@
 #include "record/record_driver.h"
 #include "intl/intl.h"
 #include "input/input_common.h"
+#include "preempt.h"
 
 #ifdef HAVE_NETPLAY
 #include "netplay.h"
@@ -524,24 +525,33 @@ void retro_init_libretro_cbs(void *data)
       libretro_input_binds[i] = settings->input.binds[i];
 
 #ifdef HAVE_NETPLAY
-   if (!driver->netplay_data)
-      return;
-
-   if (global->netplay_is_spectate)
+   if (driver->netplay_data)
    {
-      pretro_set_input_state(
-            (global->netplay_is_client ?
-             input_state_spectate_client : input_state_spectate)
-            );
+      if (global->netplay_is_spectate)
+      {
+         pretro_set_input_state(
+               (global->netplay_is_client ?
+                input_state_spectate_client : input_state_spectate)
+               );
+      }
+      else
+      {
+         pretro_set_video_refresh(video_frame_net);
+         pretro_set_audio_sample(audio_sample_net);
+         pretro_set_audio_sample_batch(audio_sample_batch_net);
+         pretro_set_input_state(input_state_net);
+      }
    }
    else
-   {
-      pretro_set_video_refresh(video_frame_net);
-      pretro_set_audio_sample(audio_sample_net);
-      pretro_set_audio_sample_batch(audio_sample_batch_net);
-      pretro_set_input_state(input_state_net);
-   }
 #endif
+   if (driver->preempt_data)
+   {
+      pretro_set_video_refresh(video_frame_preempt);
+      pretro_set_audio_sample(audio_sample_preempt);
+      pretro_set_audio_sample_batch(audio_sample_batch_preempt);
+      pretro_set_input_poll(input_poll_preempt);
+      pretro_set_input_state(input_state_preempt);
+   }
 }
 
 /**

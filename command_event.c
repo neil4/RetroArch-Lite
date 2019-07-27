@@ -27,6 +27,7 @@
 #include "intl/intl.h"
 #include "retroarch.h"
 #include "dir_list_special.h"
+#include "preempt.h"
 
 #include "configuration.h"
 #include "input/input_remapping.h"
@@ -639,6 +640,7 @@ static bool event_init_content(void)
    event_load_auto_state();
    event_command(EVENT_CMD_BSV_MOVIE_INIT);
    event_command(EVENT_CMD_NETPLAY_INIT);
+   event_command(EVENT_CMD_PREEMPT_FRAMES_UPDATE);
 
    return true;
 }
@@ -877,7 +879,10 @@ bool event_command(enum event_command cmd)
 #ifdef HAVE_NETPLAY
          if (driver->netplay_data && !netplay_send_savestate())
             netplay_disconnect();
+         else
 #endif
+         if (driver->preempt_data)
+            preempt_reset_buffer(driver->preempt_data);
          break;
       case EVENT_CMD_RESIZE_WINDOWED_SCALE:
          if (global->pending.windowed_scale == 0)
@@ -915,7 +920,10 @@ bool event_command(enum event_command cmd)
 #ifdef HAVE_NETPLAY
          if (driver->netplay_data && !netplay_send_savestate())
             netplay_disconnect();
+         else
 #endif
+         if (driver->preempt_data)
+            preempt_reset_buffer(driver->preempt_data);
          break;
       case EVENT_CMD_SAVE_STATE:
          if (settings->savestate_auto_index)
@@ -1390,6 +1398,9 @@ bool event_command(enum event_command cmd)
             netplay_flip_users(netplay);
          }
 #endif
+         break;
+      case EVENT_CMD_PREEMPT_FRAMES_UPDATE:
+         update_preempt_frames();
          break;
       case EVENT_CMD_FULLSCREEN_TOGGLE:
          settings_touched = true;

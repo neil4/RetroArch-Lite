@@ -157,6 +157,7 @@ enum event_command
    EVENT_CMD_NETPLAY_TOGGLE,
    /* Flip netplay players. */
    EVENT_CMD_NETPLAY_FLIP_PLAYERS,
+   EVENT_CMD_PREEMPT_FRAMES_UPDATE,
    /* Initializes BSV movie. */
    EVENT_CMD_BSV_MOVIE_INIT,
    /* Deinitializes BSV movie. */

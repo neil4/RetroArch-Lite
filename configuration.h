@@ -357,6 +357,9 @@ typedef struct settings
    unsigned rewind_buffer_size; /* MB */
    unsigned rewind_granularity;
 
+   unsigned preempt_frames;
+   unsigned preempt_frames_scope;
+
    float slowmotion_ratio;
    float fastforward_ratio;
    bool core_throttle_enable;

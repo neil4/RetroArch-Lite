@@ -219,6 +219,7 @@ typedef struct driver
    void *resampler_data;
    void *recording_data;
    void *netplay_data;
+   void *preempt_data;
    void *ui_companion_data;
 
    bool audio_active;

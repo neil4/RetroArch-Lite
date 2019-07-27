@@ -19,6 +19,7 @@
 #include <compat/posix_string.h>
 #include "retroarch_logger.h"
 #include "performance.h"
+#include "preempt.h"
 #include <file/file_path.h>
 #include <string.h>
 #include <ctype.h>
@@ -1169,7 +1170,14 @@ bool rarch_environment_cb(unsigned cmd, void *data)
                result &= ~(1|2);
             result |= 4;
          }
+         else
          #endif
+         if (driver->preempt_data)
+         {
+            if (preempt_skip_av(driver->preempt_data))
+               result &= ~(1|2);
+            result |= 4;
+         }
          if (data != NULL)
          {
             int* result_p = (int*)data;

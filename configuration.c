@@ -1504,6 +1504,8 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_PATH_BASE(conf, settings, video.softfilter_plugin, "video_filter");
    CONFIG_GET_PATH_BASE(conf, settings, video.shader_path, "video_shader");
    
+   CONFIG_GET_INT_BASE(conf, settings, preempt_frames, "preempt_frames");
+   
    CONFIG_GET_PATH_BASE(conf, settings, audio.dsp_plugin, "audio_dsp_plugin");
    CONFIG_GET_STRING_BASE(conf, settings, input.driver, "input_driver");
    CONFIG_GET_STRING_BASE(conf, settings, input.joypad_driver, "input_joypad_driver");
@@ -2114,6 +2116,9 @@ bool config_save_file(const char *path)
       config_set_path(conf, "video_shader", settings->video.shader_path);
    }
    
+   if (settings->preempt_frames_scope == GLOBAL)
+      config_set_int(conf, "preempt_frames", settings->preempt_frames);
+   
    config_set_string(conf, "audio_device", settings->audio.device);
    if (settings->audio.dsp_scope == GLOBAL)
       config_set_string(conf, "audio_dsp_plugin", settings->audio.dsp_plugin);
@@ -2696,6 +2701,11 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "menu_wallpaper_opacity");
    }
 #endif
+   
+   if (settings->preempt_frames_scope == scope)
+      config_set_int(conf, "preempt_frames", settings->preempt_frames);
+   else if (settings->preempt_frames_scope < scope)
+      config_remove_entry(conf, "preempt_frames");
       
    /* Core specific settings */
    if (scope == THIS_CORE)
@@ -2782,6 +2792,7 @@ void config_backup_restore_globals()
    static bool core_set_supports_no_game_enable;
    static bool rewind_enable;
    static unsigned rewind_buffer_size;
+   static unsigned preempt_frames;
 #ifdef HAVE_MENU
    static char menu_theme[PATH_MAX_LENGTH];
    static float wallpaper_opacity;
@@ -3009,6 +3020,16 @@ void config_backup_restore_globals()
       strlcpy(video_shader, settings->video.shader_path, PATH_MAX_LENGTH);
    }
    
+   if (settings->preempt_frames_scope != GLOBAL)
+   {  /* restore */
+      settings->preempt_frames_scope = GLOBAL;
+      settings->preempt_frames = preempt_frames;
+   }
+   else
+   {  /* back up */
+      preempt_frames = settings->preempt_frames;
+   }
+   
 #ifdef HAVE_MENU
    if (settings->menu.theme_scope != GLOBAL)
    {  /* restore */
@@ -3055,6 +3076,7 @@ void config_backup_restore_globals()
    {
       settings->input.libretro_device_scope = THIS_CORE;
       settings->video.filter_shader_scope = THIS_CORE;
+      settings->preempt_frames_scope = THIS_CORE;
    }
    
    prev_libretro = *settings->libretro;
@@ -3185,6 +3207,9 @@ static void scoped_config_file_load(unsigned scope)
          *settings->video.shader_path = '\0';
       settings->video.filter_shader_scope = scope;
    }
+   
+   if (config_get_uint(conf, "preempt_frames", &settings->preempt_frames))
+      settings->preempt_frames_scope = scope;
    
 #ifdef HAVE_MENU
    if (config_get_path(conf, "menu_theme", settings->menu.theme,

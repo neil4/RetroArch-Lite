@@ -32,6 +32,7 @@
 #include "../config.def.h"
 #include "../file_ext.h"
 #include "../performance.h"
+#include "../preempt.h"
 
 #if defined(__CELLOS_LV2__)
 #include <sdk_version.h>
@@ -1856,6 +1857,19 @@ static void setting_get_string_representation_millisec(void *data,
    }
 }
 
+static void setting_get_string_representation_preemptive_frames(void *data,
+      char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting)
+   {
+      if (*setting->value.unsigned_integer > 0)
+         sprintf(s, "%u", *setting->value.unsigned_integer);
+      else
+         strcpy(s, "OFF");
+   }
+}
+
 static void setting_get_string_representation_touch_method(void *data,
       char *s, size_t len)
 {
@@ -3505,6 +3519,15 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                      "Higher values can reduce stalling at the \n"
                      "cost of higher CPU usage and jitter. \n");
             break;
+      case MENU_LABEL_PREEMPTIVE_FRAMES:
+      snprintf(s, len,
+                     "Internally reruns recent frames using the \n"
+                     "latest joypad input to hide latency. \n"
+                     " \n"
+                     "- Requires savestate support from the core   \n"
+                     "- Requires higher CPU speed to execute these \n"
+                     "  additional frames within one frame period  \n");
+            break;
       default:
          return -1;
    }
@@ -4700,28 +4723,28 @@ static bool setting_append_list_frame_throttling_options(
          general_read_handler);
    
    CONFIG_BOOL(
-      settings->throttle_using_core_fps,
-      "throttle_using_core_fps",
-      "  Use Refresh Rate from",
-      throttle_using_core_fps,
-      "Video Setting",
-      "Core",
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->throttle_using_core_fps,
+         "throttle_using_core_fps",
+         "  Use Refresh Rate from",
+         throttle_using_core_fps,
+         "Video Setting",
+         "Core",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
       
    CONFIG_UINT(
-      settings->throttle_setting_scope,
-      "throttle_setting_scope",
-      "  Scope",
-      GLOBAL,
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->throttle_setting_scope,
+         "throttle_setting_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(
          list,
          list_info,
@@ -5966,6 +5989,7 @@ static bool setting_append_list_latency_options(
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
    driver_t   *driver   = driver_get_ptr();
+   bool core_loaded     = *settings->libretro ? true : false;
 
    START_GROUP(group_info, "Latency Settings", parent_group);
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
@@ -5998,15 +6022,15 @@ static bool setting_append_list_latency_options(
    menu_settings_list_current_add_range(list, list_info, 0, 3, 1, true, true);
    
    CONFIG_UINT(
-      settings->video.hard_sync_scope,
-      "video_hard_sync_scope",
-      "  Scope",
-      GLOBAL,
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->video.hard_sync_scope,
+         "video_hard_sync_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(
          list,
          list_info,
@@ -6022,6 +6046,43 @@ static bool setting_append_list_latency_options(
    if (!driver->netplay_data)
    {
       CONFIG_UINT(
+            settings->preempt_frames,
+            "preempt_frames",
+            "Preemptive Frames",
+            0,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0, MAX_PREEMPT_FRAMES, 1, true, true);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_preemptive_frames;
+      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_PREEMPT_FRAMES_UPDATE);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_IS_DEFERRED);
+
+      CONFIG_UINT(
+            settings->preempt_frames_scope,
+            "preempt_frames_scope",
+            "  Scope",
+            (core_loaded ? THIS_CORE : GLOBAL),
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(
+            list,
+            list_info,
+            (core_loaded ? THIS_CORE : GLOBAL),
+            global->max_scope,
+            1,
+            true,
+            true);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_scope_index;
+
+      CONFIG_UINT(
             settings->video.frame_delay,
             "video_frame_delay",
             "Frame Delay",
@@ -6036,15 +6097,15 @@ static bool setting_append_list_latency_options(
          &setting_get_string_representation_millisec;
 
       CONFIG_UINT(
-         settings->video.frame_delay_scope,
-         "video_frame_delay_scope",
-         "  Scope",
-         GLOBAL,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
+            settings->video.frame_delay_scope,
+            "video_frame_delay_scope",
+            "  Scope",
+            GLOBAL,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
       menu_settings_list_current_add_range(
             list,
             list_info,
@@ -6137,15 +6198,15 @@ static bool setting_append_list_input_options(
    menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    
    CONFIG_UINT(
-      settings->input.max_users_scope,
-      "input_max_users_scope",
-      "  Scope",
-      GLOBAL,
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->input.max_users_scope,
+         "input_max_users_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(
          list,
          list_info,
@@ -6339,15 +6400,15 @@ static bool setting_append_list_input_options(
    }
    
    CONFIG_UINT(
-      settings->input.libretro_device_scope,
-      "input_libretro_device_scope",
-      "  Scope (Virtual Devices)",
-      (core_loaded ? THIS_CORE : GLOBAL),
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->input.libretro_device_scope,
+         "input_libretro_device_scope",
+         "  Scope (Virtual Devices)",
+         (core_loaded ? THIS_CORE : GLOBAL),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(
          list,
          list_info,
@@ -6479,15 +6540,15 @@ static bool setting_append_list_overlay_options(
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
    
    CONFIG_UINT(
-      settings->input.overlay_scope,
-      "input_overlay_scope",
-      "  Scope",
-      GLOBAL,
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->input.overlay_scope,
+         "input_overlay_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(
          list,
          list_info,
@@ -6572,15 +6633,15 @@ static bool setting_append_list_overlay_options(
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    
    CONFIG_UINT(
-      settings->input.dpad_abxy_config_scope,
-      "input_dpad_abxy_diag_sens_scope",
-      "  Scope (Dpad & ABXY)",
-      GLOBAL,
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->input.dpad_abxy_config_scope,
+         "input_dpad_abxy_diag_sens_scope",
+         "  Scope (Dpad & ABXY)",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(
          list,
          list_info,
@@ -6658,15 +6719,15 @@ static bool setting_append_list_overlay_options(
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    
    CONFIG_UINT(
-      settings->input.overlay_opacity_scope,
-      "input_overlay_opacity_scope",
-      "  Scope",
-      GLOBAL,
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->input.overlay_opacity_scope,
+         "input_overlay_opacity_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(
          list,
          list_info,
@@ -6694,17 +6755,17 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL);
    
    CONFIG_BOOL(
-      settings->input.overlay_adjust_vertical_lock_edges,
-      "input_overlay_adjust_vertical_lock_edges",
-      "  Clamp Edge Buttons",
-      true,
-      menu_hash_to_str(MENU_VALUE_OFF),
-      menu_hash_to_str(MENU_VALUE_ON),
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->input.overlay_adjust_vertical_lock_edges,
+         "input_overlay_adjust_vertical_lock_edges",
+         "  Clamp Edge Buttons",
+         true,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL);
    
    CONFIG_BOOL(
@@ -6759,15 +6820,15 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL);
    
    CONFIG_UINT(
-      settings->input.overlay_adjust_vert_horiz_scope,
-      "input_overlay_adjust_vert_horiz_scope",
-      "  Scope (Vert & Aspect)",
-      GLOBAL,
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->input.overlay_adjust_vert_horiz_scope,
+         "input_overlay_adjust_vert_horiz_scope",
+         "  Scope (Vert & Aspect)",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(
          list,
          list_info,
@@ -6868,16 +6929,16 @@ static bool setting_append_list_menu_options(
       &setting_get_string_representation_st_path_with_default;
 
    CONFIG_FLOAT(
-      settings->menu.wallpaper_opacity,
-      "menu_wallpaper_opacity",
-      "  Wallpaper Opacity",
-      wallpaper_opacity,
-      "%.1f",
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->menu.wallpaper_opacity,
+         "menu_wallpaper_opacity",
+         "  Wallpaper Opacity",
+         wallpaper_opacity,
+         "%.1f",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0, 1, 0.1, true, true);
    (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
    
@@ -6906,15 +6967,15 @@ static bool setting_append_list_menu_options(
 #endif
 
    CONFIG_UINT(
-      settings->menu.theme_scope,
-      "menu_theme_scope",
-      "  Scope",
-      GLOBAL,
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->menu.theme_scope,
+         "menu_theme_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(
          list,
          list_info,
@@ -6947,16 +7008,16 @@ static bool setting_append_list_menu_options(
    START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
 
    CONFIG_FLOAT(
-      settings->menu.ticker_speed,
-      "menu_ticker_speed",
-      "Ticker Speed",
-      menu_ticker_speed,
-      "%.1fx",
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->menu.ticker_speed,
+         "menu_ticker_speed",
+         "Ticker Speed",
+         menu_ticker_speed,
+         "%.1fx",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0.5, 5, 0.5, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
