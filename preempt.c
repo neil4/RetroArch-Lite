@@ -24,14 +24,14 @@
 #include "runloop.h"
 #include "preempt.h"
 
-#define PREEMPT_BUFFER_SIZE (MAX_PREEMPT_FRAMES + 1)
-#define PREEMPT_NEXT_PTR(x) ((x + 1) % PREEMPT_BUFFER_SIZE)
+#define PREEMPT_NEXT_PTR(x) ((x + 1) % preempt->frames)
 
 struct preempt
 {
    struct retro_callbacks cbs;
 
-   void* buffer[PREEMPT_BUFFER_SIZE];
+   void* buffer[MAX_PREEMPT_FRAMES];
+   size_t frames;
    size_t state_size;
    
    /* Last-used joypad state. Replays are triggered when this changes. */
@@ -137,7 +137,7 @@ size_t audio_sample_batch_preempt(const int16_t *data, size_t frames)
    return frames;
 }
 
-static bool preempt_init_buffers(preempt_t *preempt)
+static bool preempt_init_buffer(preempt_t *preempt)
 {
    unsigned i;
 
@@ -149,7 +149,7 @@ static bool preempt_init_buffers(preempt_t *preempt)
 
    preempt->state_size = pretro_serialize_size();
 
-   for (i = 0; i < PREEMPT_BUFFER_SIZE; i++)
+   for (i = 0; i < preempt->frames; i++)
    {
       preempt->buffer[i] = malloc(preempt->state_size);
       if (!preempt->buffer[i])
@@ -171,7 +171,7 @@ static void preempt_free(preempt_t *preempt)
 {
    unsigned i;
 
-   for (i = 0; i < PREEMPT_BUFFER_SIZE; i++)
+   for (i = 0; i < preempt->frames; i++)
       free(preempt->buffer[i]);
 
    free(preempt);
@@ -185,11 +185,14 @@ static void preempt_free(preempt_t *preempt)
  **/
 static preempt_t *preempt_new()
 {
-   preempt_t *preempt = (preempt_t*)calloc(1, sizeof(*preempt));
+   settings_t *settings = config_get_ptr();
+   preempt_t  *preempt  = (preempt_t*)calloc(1, sizeof(*preempt));
    if (!preempt)
       return NULL;
+   
+   preempt->frames = settings->preempt_frames;
 
-   if (!preempt_init_buffers(preempt))
+   if (!preempt_init_buffer(preempt))
    {
       preempt_free(preempt);
       preempt = NULL;
@@ -249,7 +252,7 @@ void preempt_post_frame(preempt_t *preempt)
 
 void deinit_preempt(void)
 {
-   driver_t *driver   = driver_get_ptr();
+   driver_t  *driver  = driver_get_ptr();
    preempt_t *preempt = (preempt_t*)driver->preempt_data;
    
    if (preempt)
@@ -313,7 +316,6 @@ bool init_preempt(void)
  * update_preempt_frames
  * 
  * Inits/Deinits/Reinits preempt as needed.
- * TODO: This is overkill if core & ROM have not changed.
  */
 void update_preempt_frames()
 {
@@ -333,14 +335,13 @@ void update_preempt_frames()
  */
 void preempt_reset_buffer(preempt_t *preempt)
 {
-   settings_t *settings = config_get_ptr();
    unsigned i;
    
    preempt->start_ptr = 0;
-   preempt->av_ptr = settings->preempt_frames;
+   preempt->av_ptr = PREEMPT_NEXT_PTR(preempt->frames - 1);
    
    pretro_serialize(preempt->buffer[0], preempt->state_size);
    
-   for (i = 1; i < settings->preempt_frames; i++)
+   for (i = 1; i < preempt->frames; i++)
       memcpy(preempt->buffer[i], preempt->buffer[0], preempt->state_size);
 }
