@@ -45,7 +45,7 @@ enum setting_scope
 
 struct enum_lut
 {
-   char name[18];
+   char name[20];
    float value;
 };
 

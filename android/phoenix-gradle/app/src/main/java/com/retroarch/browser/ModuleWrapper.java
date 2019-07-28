@@ -78,7 +78,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          this.notes        = (infoFile.keyExists("notes"))
                              ? infoFile.getString("notes").replace("|", "\n")
                              : "N/A";
-         this.firmwareCount = (infoFile.keyExists("firmwareCount") ? infoFile.getInt("firmwareCount") : 0);
+         this.firmwareCount = (infoFile.keyExists("firmware_count") ? infoFile.getInt("firmware_count") : 0);
          
          // For licenses, extensions and authors, use '|' delimiter
          final String licenses = infoFile.getString("license");
@@ -135,28 +135,28 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
                                                     .getAbsolutePath() + "/RetroArchLite";
             final String default_sys = default_base + "/system";
             String sys_dir = prefs.getBoolean("system_directory_enable", false) ?
-                             prefs.getString("system_directory", default_sys) : default_sys;         
-            this.firmwares = "";
+                             prefs.getString("system_directory", default_sys) : default_sys;
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < this.firmwareCount; i++)
             {
                String key = "firmware" + Integer.toString(i) + "_desc";
-               this.firmwares += ((infoFile.keyExists(key)) ? infoFile.getString(key) : "N/A");
+               sb.append((infoFile.keyExists(key)) ? infoFile.getString(key) : "N/A");
 
                key = "firmware" + Integer.toString(i) + "_path";
                String rel_path = ((infoFile.keyExists(key)) ? infoFile.getString(key) : "?");
-               this.firmwares += "\n   path:  system/" + rel_path;
+               sb.append("\n   path:  system/" + rel_path);
 
                key = "firmware" + Integer.toString(i) + "_opt";
-               this.firmwares += "\n   status:  "
-                              + (new File(sys_dir + "/" + rel_path).exists() ?
-                                 "present" : "missing")
-                              + ", "
-                              + ((infoFile.keyExists(key)) ?
-                                 (infoFile.getBoolean(key) ? "required" : "optional")
-                                 : "unknown if required");
-               
-               this.firmwares += "\n";
+               sb.append( "\n   status:  "
+                          + (new File(sys_dir + "/" + rel_path).exists() ?
+                             "present" : "missing")
+                          + ", "
+                          + ((infoFile.keyExists(key)) ?
+                             (infoFile.getBoolean(key) ? "required" : "optional")
+                             : "unknown if required") );
+               sb.append('\n');
             }
+            this.firmwares = sb.toString();
          }
       }
       else // No info file.
