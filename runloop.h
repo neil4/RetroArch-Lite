@@ -245,7 +245,6 @@ typedef struct global
    char netplay_server[46];
    bool netplay_enable;
    bool netplay_is_client;
-   bool netplay_is_spectate;
    unsigned netplay_sync_frames;
    unsigned netplay_port;
 #endif

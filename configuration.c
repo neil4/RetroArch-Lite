@@ -1691,9 +1691,6 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_INT_BASE(conf, settings, user_language, "user_language");
 #ifdef HAVE_NETPLAY
    if (!global->has_set_netplay_mode)
-      CONFIG_GET_BOOL_BASE(conf, global, netplay_is_spectate,
-            "netplay_spectator_mode_enable");
-   if (!global->has_set_netplay_mode)
       CONFIG_GET_BOOL_BASE(conf, global, netplay_is_client, "netplay_mode");
    if (!global->has_set_netplay_ip_address)
       CONFIG_GET_PATH_BASE(conf, global, netplay_server, "netplay_ip_address");
@@ -2344,8 +2341,6 @@ bool config_save_file(const char *path)
    config_set_int(conf, "state_slot", settings->state_slot);
 
 #ifdef HAVE_NETPLAY
-   config_set_bool(conf, "netplay_spectator_mode_enable",
-         global->netplay_is_spectate);
    config_set_bool(conf, "netplay_mode", global->netplay_is_client);
    config_set_string(conf, "netplay_ip_address", global->netplay_server);
    config_set_int(conf, "netplay_ip_port", global->netplay_port);

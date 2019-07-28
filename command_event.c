@@ -530,7 +530,7 @@ static void event_load_auto_state(void)
    global_t   *global   = global_get_ptr();
 
 #ifdef HAVE_NETPLAY
-   if (global->netplay_enable && !global->netplay_is_spectate)
+   if (global->netplay_enable)
       return;
 #endif
 

@@ -3807,8 +3807,6 @@ static void general_write_handler(void *data)
          global->has_set_netplay_mode = true;
 #endif
          break;
-      case MENU_LABEL_NETPLAY_SPECTATOR_MODE_ENABLE:
-         break;
       case MENU_LABEL_NETPLAY_DELAY_FRAMES:
 #ifdef HAVE_NETPLAY
          global->has_set_netplay_delay_frames = (global->netplay_sync_frames > 0);
@@ -7721,20 +7719,6 @@ static bool setting_append_list_netplay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0, 10, 1, true, true);
-   
-   CONFIG_BOOL(
-         global->netplay_is_spectate,
-         "netplay_spectator_mode_enable",
-         "Spectate Only",
-         false,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
 

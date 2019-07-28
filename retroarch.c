@@ -64,7 +64,6 @@
 enum {
    RA_OPT_MENU,
    RA_OPT_PORT,
-   RA_OPT_SPECTATE,
    RA_OPT_NICK,
    RA_OPT_COMMAND,
    RA_OPT_APPENDCONFIG,
@@ -210,7 +209,6 @@ static void print_help(const char *arg0)
    puts("  -C, --connect=HOST    Connect to netplay server as user 2.");
    puts("      --port=PORT       Port used to netplay. Default is 55435.");
    puts("  -F, --frames=NUMBER   Sync frames when using netplay.");
-   puts("      --spectate        Connect to netplay server as spectator.");
 #endif
    puts("      --nick=NICK       Picks a username (for use with netplay). Not mandatory.");
 #if defined(HAVE_NETWORK_CMD) && defined(HAVE_NETPLAY)
@@ -514,7 +512,6 @@ static void parse_input(int argc, char *argv[])
       { "connect",      1, NULL, 'C' },
       { "frames",       1, NULL, 'F' },
       { "port",         1, &val, RA_OPT_PORT },
-      { "spectate",     0, &val, RA_OPT_SPECTATE },
 #endif
       { "nick",         1, &val, RA_OPT_NICK },
 #if defined(HAVE_NETWORK_CMD) && defined(HAVE_NETPLAY)
@@ -743,12 +740,6 @@ static void parse_input(int argc, char *argv[])
                   global->has_set_netplay_ip_port = true;
                   global->netplay_port = strtoul(optarg, NULL, 0);
                   break;
-
-               case RA_OPT_SPECTATE:
-                  global->has_set_netplay_mode = true;
-                  global->netplay_is_spectate = true;
-                  break;
-
 #endif
                case RA_OPT_NICK:
                   global->has_set_username = true;

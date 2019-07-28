@@ -38,17 +38,10 @@ void audio_sample_net(int16_t left, int16_t right);
 
 size_t audio_sample_batch_net(const int16_t *data, size_t frames);
 
-int16_t input_state_spectate(unsigned port, unsigned device,
-      unsigned idx, unsigned id);
-
-int16_t input_state_spectate_client(unsigned port, unsigned device,
-      unsigned idx, unsigned id);
-
 /**
  * netplay_new:
  * @server               : IP address of server.
  * @cb                   : Libretro callbacks.
- * @spectate             : If true, enable spectator mode.
  * @nick                 : Nickname of user.
  * @cb                   : set by retro_set_default_callbacks
  *
@@ -57,7 +50,7 @@ int16_t input_state_spectate_client(unsigned port, unsigned device,
  *
  * Returns: new netplay handle.
  **/
-netplay_t *netplay_new(const char *server, bool spectate, const char *nick,
+netplay_t *netplay_new(const char *server, const char *nick,
                        const struct retro_callbacks *cb);
 
 /**
