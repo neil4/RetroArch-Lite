@@ -1202,7 +1202,6 @@ netplay_t *netplay_new(const char *server, const char *nick,
 bool netplay_connect(netplay_t *netplay)
 {
    global_t *global = global_get_ptr();
-   unsigned i;
    char* server = global->netplay_is_client ? global->netplay_server : NULL;
    uint16_t port = global->netplay_port ? global->netplay_port : RARCH_DEFAULT_PORT;
 

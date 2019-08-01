@@ -144,9 +144,6 @@ static bool preempt_init_buffer(preempt_t *preempt)
    if (!preempt)
       return false;
 
-   if (!preempt->buffer)
-      return false;
-
    preempt->state_size = pretro_serialize_size();
 
    for (i = 0; i < preempt->frames; i++)

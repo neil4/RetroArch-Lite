@@ -86,7 +86,8 @@ void update_preempt_frames();
  */
 void preempt_reset_buffer();
 
-/* Overrides for libretro callbacks*/
+/* Overrides for libretro callbacks
+ */
 void input_poll_preempt(void);
 int16_t input_state_preempt(unsigned port, unsigned device,
       unsigned idx, unsigned id);

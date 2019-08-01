@@ -3072,6 +3072,7 @@ void config_backup_restore_globals()
       settings->input.libretro_device_scope = THIS_CORE;
       settings->video.filter_shader_scope = THIS_CORE;
       settings->preempt_frames_scope = THIS_CORE;
+      settings->video.frame_delay_scope = THIS_CORE;
    }
    
    prev_libretro = *settings->libretro;

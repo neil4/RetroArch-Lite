@@ -23,3 +23,9 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
   * 'Start' deletes a Core, Options file or Shader Preset, and deletes a Remap if "Save..." highlighted.
   * 'L'/'R' sets min/max value; in a few cases, jumps left/right by 10.
 * Touchscreen: On most overlays, tapping the screen center toggles the menu.
+* Mouse as Lightgun:
+  * trigger: lmb
+  * cursor: mmb
+  * start/pause: rmb+lmb
+  * turbo: rmb+mmb
+  * offscreen: screen top or bottom

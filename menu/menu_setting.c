@@ -3242,7 +3242,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_VIDEO_BLACK_FRAME_INSERTION:
          snprintf(s, len,
-               " -- Inserts a black frame inbetween \n"
+               " -- Inserts a black frame in-between \n"
                "frames.\n"
                " \n"
                "Useful for 120 Hz monitors who want to \n"
@@ -3514,19 +3514,21 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_NETPLAY_DELAY_FRAMES:
          snprintf(s, len,
-                     "Netplay's rewind buffer size, in frames\n"
+                     " -- Netplay's rewind buffer size, in frames. \n"
                      " \n"
                      "Higher values can reduce stalling at the \n"
                      "cost of higher CPU usage and jitter. \n");
             break;
       case MENU_LABEL_PREEMPTIVE_FRAMES:
       snprintf(s, len,
-                     "Internally reruns recent frames using the \n"
-                     "latest joypad input to hide latency. \n"
+                     " -- Hides latency by rewriting history. \n"
                      " \n"
-                     "- Requires savestate support from the core   \n"
+                     "On joypad updates, recent frames are internally \n"
+                     "re-executed using the latest input. \n"
+                     " \n"
+                     "- Requires savestate support from the core.  \n"
                      "- Requires higher CPU speed to execute these \n"
-                     "  additional frames within one frame period  \n");
+                     "  additional frames within one frame period. \n");
             break;
       default:
          return -1;
@@ -6098,7 +6100,7 @@ static bool setting_append_list_latency_options(
             settings->video.frame_delay_scope,
             "video_frame_delay_scope",
             "  Scope",
-            GLOBAL,
+            (core_loaded ? THIS_CORE : GLOBAL),
             group_info.name,
             subgroup_info.name,
             parent_group,
@@ -6107,7 +6109,7 @@ static bool setting_append_list_latency_options(
       menu_settings_list_current_add_range(
             list,
             list_info,
-            0,
+            (core_loaded ? THIS_CORE : GLOBAL),
             global->max_scope,
             1,
             true,
