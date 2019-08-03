@@ -2513,8 +2513,9 @@ static void scoped_config_file_save(unsigned scope)
    if (settings->audio.dsp_scope == scope)
    {
       if (!*settings->audio.dsp_plugin)
-         strlcpy(settings->audio.dsp_plugin, EXPLICIT_NULL, PATH_MAX_LENGTH);
-      config_set_string(conf, "audio_dsp_plugin", settings->audio.dsp_plugin);
+         config_set_string(conf, "audio_dsp_plugin", EXPLICIT_NULL);
+      else
+         config_set_string(conf, "audio_dsp_plugin", settings->audio.dsp_plugin);
    }
    else if (settings->audio.dsp_scope < scope)
       config_remove_entry(conf, "audio_dsp_plugin");
@@ -2667,11 +2668,14 @@ static void scoped_config_file_save(unsigned scope)
    if (settings->video.filter_shader_scope == scope)
    {
       if (!*settings->video.softfilter_plugin)
-         strlcpy(settings->video.softfilter_plugin, EXPLICIT_NULL, PATH_MAX_LENGTH);
-      config_set_path(conf, "video_filter", settings->video.softfilter_plugin);
+         config_set_path(conf, "video_filter", EXPLICIT_NULL);
+      else
+         config_set_path(conf, "video_filter", settings->video.softfilter_plugin);
+
       if (!*settings->video.shader_path)
-         strlcpy(settings->video.shader_path, EXPLICIT_NULL, PATH_MAX_LENGTH);
-      config_set_path(conf, "video_shader", settings->video.shader_path);
+         config_set_path(conf, "video_shader", EXPLICIT_NULL);
+      else
+         config_set_path(conf, "video_shader", settings->video.shader_path);
    }
    else if (settings->video.filter_shader_scope < scope)
    {
@@ -2683,8 +2687,10 @@ static void scoped_config_file_save(unsigned scope)
    if (settings->menu.theme_scope == scope)
    {
       if (!*settings->menu.theme)
-         strlcpy(settings->menu.theme, EXPLICIT_NULL, PATH_MAX_LENGTH);
-      config_set_path(conf, "menu_theme", settings->menu.theme);
+         config_set_path(conf, "menu_theme", EXPLICIT_NULL);
+      else
+         config_set_path(conf, "menu_theme", settings->menu.theme);
+
       config_set_float(conf, "menu_wallpaper_opacity", settings->menu.wallpaper_opacity);
 #ifdef HAVE_RGUI
       config_set_int(conf, "rgui_particle_effect", settings->menu.rgui_particle_effect);
