@@ -549,7 +549,7 @@ static int action_ok_video_filter_file_load(const char *path,
 
    event_command(EVENT_CMD_REINIT);
 
-   menu_list_flush_stack(menu_list, "Video Settings", 0);
+   menu_list_flush_stack(menu_list, menu_hash_to_str(MENU_LABEL_VIDEO_SETTINGS), 0);
 
    return 0;
 }
@@ -641,7 +641,7 @@ static int action_ok_shader_preset_load(const char *path,
    menu_shader_manager_set_preset(menu->shader,
          video_shader_parse_type(shader_path, RARCH_SHADER_NONE),
          shader_path);
-   menu_list_flush_stack(menu_list, "Video Settings", 0);
+   menu_list_flush_stack(menu_list, menu_hash_to_str(MENU_LABEL_VIDEO_SETTINGS), 0);
    
    return 0;
 #else
@@ -940,7 +940,7 @@ static int action_ok_theme_load(const char *path,
    
    fill_pathname_join(settings->menu.theme, menu_path, path, PATH_MAX_LENGTH);
    
-   menu_list_flush_stack(menu_list, "Menu Settings", 0);
+   menu_list_flush_stack(menu_list, menu_hash_to_str(MENU_LABEL_MENU_SETTINGS), 0);
 
    return 0;
 }

@@ -1220,7 +1220,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
             setting = menu_setting_find(menu_hash_to_str(MENU_LABEL_OVERLAY_SETTINGS));
          else
 #endif
-         setting = menu_setting_find("Video Settings");
+         setting = menu_setting_find(menu_hash_to_str(MENU_LABEL_VIDEO_SETTINGS));
 
          for (; setting->type != ST_NONE; setting++)
          {

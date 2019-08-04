@@ -2009,18 +2009,7 @@ static void setting_get_string_representation_uint_user_language(void *data,
       char *s, size_t len)
 {
    static const char *modes[] = {
-      "English",
-      "Japanese",
-      "French",
-      "Spanish",
-      "German",
-      "Italian",
-      "Dutch",
-      "Portuguese",
-      "Russian",
-      "Korean",
-      "Chinese (Traditional)",
-      "Chinese (Simplified)"
+      "English"
    };
    settings_t      *settings = config_get_ptr();
 
@@ -4976,7 +4965,7 @@ static bool setting_append_list_video_options(
     
    (void)global;
 
-   START_GROUP(group_info, "Video Settings", parent_group);
+   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_VIDEO_SETTINGS), parent_group);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
   
@@ -6906,8 +6895,8 @@ static bool setting_append_list_menu_options(
    driver_t   *driver   = driver_get_ptr();
    bool using_rgui = !strcmp(settings->menu.driver, "rgui");
 
-   START_GROUP(group_info, "Menu Settings", parent_group);
-   
+   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_MENU_SETTINGS), parent_group);
+
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
    START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
