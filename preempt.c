@@ -305,6 +305,7 @@ bool init_preempt(void)
 
    preempt = (preempt_t*)driver->preempt_data;
    retro_set_default_callbacks(&preempt->cbs);
+   retro_init_libretro_cbs(&driver->retro_ctx); /* usually redundant */
 
    return true;
 }
@@ -316,12 +317,8 @@ bool init_preempt(void)
  */
 void update_preempt_frames()
 {
-   driver_t *driver = driver_get_ptr();
-
    deinit_preempt();
    init_preempt();
-   if (driver->preempt_data)
-      retro_init_libretro_cbs(&driver->retro_ctx);
 }
 
 /**

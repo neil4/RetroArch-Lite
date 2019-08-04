@@ -677,7 +677,7 @@ static int action_ok_remap_file_save_core(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    char directory[PATH_MAX_LENGTH]   = {0};
-   char rel_path[PATH_MAX_LENGTH]        = {0};
+   char rel_path[PATH_MAX_LENGTH]    = {0};
    global_t *global                  = global_get_ptr();
    settings_t *settings              = config_get_ptr();
    const char *core_name             = global ? global->libretro_name
@@ -704,7 +704,7 @@ static int action_ok_remap_file_save_game(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    char directory[PATH_MAX_LENGTH] = {0};
-   char rel_path[PATH_MAX_LENGTH]      = {0};
+   char rel_path[PATH_MAX_LENGTH]  = {0};
    global_t *global                = global_get_ptr();
    settings_t *settings            = config_get_ptr();
    const char *core_name           = global ? global->libretro_name
@@ -826,10 +826,8 @@ static int action_ok_core_load(const char *path,
    event_command(EVENT_CMD_LOAD_CORE);
    menu_list_flush_stack(menu_list, NULL, MENU_SETTINGS);
 #if defined(HAVE_DYNAMIC)
-   /* No content needed for this core, load core immediately. */
-
    if (menu->load_no_content && settings->core.set_supports_no_game_enable)
-   {
+   {  /* No content needed for this core, load core immediately. */
       *global->fullpath = '\0';
 
       menu_common_load_content(false);
