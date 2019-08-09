@@ -237,6 +237,7 @@ static int16_t input_state(unsigned port, unsigned device,
                }
                break;
             case RETRO_DEVICE_ANALOG:
+               if (idx < 2 && id < 2)  /* axes only */
                {
                   unsigned base = 0;
                   
