@@ -72,7 +72,6 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
       DECLARE_BIND(r_y_plus,  RARCH_ANALOG_RIGHT_Y_PLUS, "Right analog Y+ (down)"),
       DECLARE_BIND(r_y_minus, RARCH_ANALOG_RIGHT_Y_MINUS, "Right analog Y- (up)"),
 
-      DECLARE_BIND(turbo, RARCH_TURBO_ENABLE, "Turbo enable"),
       DECLARE_META_BIND(2, toggle_hotkeys,        RARCH_TOGGLE_HOTKEYS, "Hotkeys toggle"),
 
       DECLARE_META_BIND(2, enable_hotkey,         RARCH_ENABLE_HOTKEY, "Hotkeys enable hold"),

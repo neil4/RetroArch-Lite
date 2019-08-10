@@ -35,7 +35,6 @@
 #define RETRO_LBL_JOYPAD_R2 "RetroPad R2 Button"
 #define RETRO_LBL_JOYPAD_L3 "RetroPad L3 Button"
 #define RETRO_LBL_JOYPAD_R3 "RetroPad R3 Button"
-#define RETRO_LBL_TURBO_ENABLE "Turbo Enable"
 #define RETRO_LBL_ANALOG_LEFT_X "Left Analog X"
 #define RETRO_LBL_ANALOG_LEFT_Y "Left Analog Y"
 #define RETRO_LBL_ANALOG_RIGHT_X "Right Analog X"

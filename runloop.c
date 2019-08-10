@@ -806,8 +806,6 @@ static INLINE retro_input_t input_keys_pressed(void)
    if (!driver->input || !driver->input_data)
       return 0;
 
-   global->turbo_count++;
-
    driver->block_libretro_input = check_block_hotkey(
          input_driver_key_pressed(RARCH_ENABLE_HOTKEY));
 
@@ -817,15 +815,6 @@ static INLINE retro_input_t input_keys_pressed(void)
             settings->input.analog_dpad_mode[i]);
       input_push_analog_dpad(settings->input.autoconf_binds[i],
             settings->input.analog_dpad_mode[i]);
-
-      global->turbo_frame_enable[i] = 0;
-   }
-
-   if (!driver->block_libretro_input)
-   {
-      for (i = 0; i < settings->input.max_users; i++)
-         global->turbo_frame_enable[i] = input_driver_state(binds, 
-               i, RETRO_DEVICE_JOYPAD, 0, RARCH_TURBO_ENABLE);
    }
 
    ret = input_driver_keys_pressed();

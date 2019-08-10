@@ -193,8 +193,6 @@ static void get_binds(config_file_t *conf, config_file_t *auto_conf,
    for (i = 0, timeout_cnt = 0; input_config_bind_map[i].valid; i++, timeout_cnt = 0)
    {
       int j;
-      if (i == RARCH_TURBO_ENABLE)
-         continue;
 
       unsigned meta_level = input_config_bind_map[i].meta;
       if (meta_level > g_meta_level)

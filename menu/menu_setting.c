@@ -3342,14 +3342,6 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "in a button press.\n"
                " Possible values are [0.0, 1.0].");
          break;
-      case MENU_LABEL_INPUT_TURBO_PERIOD:
-         snprintf(s, len, 
-               " -- Turbo period.\n"
-               " \n"
-               "Describes speed of which turbo-enabled\n"
-               "buttons toggle."
-               );
-         break;
       case MENU_LABEL_INPUT_AUTODETECT_ENABLE:
          snprintf(s, len,
                " -- Enable input auto-detection.\n"
@@ -3366,18 +3358,6 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                " -- Allow or disallow location services \n"
                "access by cores.");
-         break;
-      case MENU_LABEL_TURBO:
-         snprintf(s, len,
-               " -- Turbo enable.\n"
-               " \n"
-               "Holding the turbo while pressing another \n"
-               "button will let the button enter a turbo \n"
-               "mode where the button state is modulated \n"
-               "with a periodic signal. \n"
-               " \n"
-               "The modulation stops when the button \n"
-               "itself (not turbo button) is released.");
          break;
       case MENU_LABEL_OSK_ENABLE:
          snprintf(s, len,
@@ -6412,7 +6392,7 @@ static bool setting_append_list_input_options(
    START_SUB_GROUP(
          list,
          list_info,
-         "Turbo/Deadzone",
+         "Deadzone/Rumble",
          group_info.name,
          subgroup_info,
          parent_group);
@@ -6445,30 +6425,6 @@ static bool setting_append_list_input_options(
             general_write_handler,
             general_read_handler);
    }
-
-   CONFIG_UINT(
-         settings->input.turbo_period,
-         "input_turbo_period",
-         "Turbo Period",
-         turbo_period,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 1, 0, 1, true, false);
-
-   CONFIG_UINT(
-         settings->input.turbo_duty_cycle,
-         "input_duty_cycle",
-         "Duty Cycle",
-         turbo_duty_cycle,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 1, 0, 1, true, false);
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);

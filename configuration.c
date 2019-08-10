@@ -681,8 +681,6 @@ static void config_set_defaults(void)
 
    settings->input.axis_threshold                  = axis_threshold;
    settings->input.netplay_client_swap_input       = netplay_client_swap_input;
-   settings->input.turbo_period                    = turbo_period;
-   settings->input.turbo_duty_cycle                = turbo_duty_cycle;
    
    settings->input.autodetect_enable               = input_autodetect_enable;
    *settings->input.keyboard_layout                = '\0';
@@ -1679,9 +1677,6 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, network_cmd_enable, "network_cmd_enable");
    CONFIG_GET_INT_BASE(conf, settings, network_cmd_port, "network_cmd_port");
    CONFIG_GET_BOOL_BASE(conf, settings, stdin_cmd_enable, "stdin_cmd_enable");
-
-   CONFIG_GET_INT_BASE(conf, settings, input.turbo_period, "input_turbo_period");
-   CONFIG_GET_INT_BASE(conf, settings, input.turbo_duty_cycle, "input_duty_cycle");
 
    CONFIG_GET_BOOL_BASE(conf, settings, input.autodetect_enable, "input_autodetect_enable");
    CONFIG_GET_PATH_BASE(conf, settings, input.autoconfig_dir, "joypad_autoconfig_dir");

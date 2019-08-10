@@ -691,10 +691,6 @@ static const unsigned libretro_log_level = 3;
  * How far an axis must be tilted to result in a button press. */
 static const float axis_threshold = 0.5;
 
-/* Describes speed of which turbo-enabled buttons toggle. */
-static const unsigned turbo_period = 6;
-static const unsigned turbo_duty_cycle = 3;
-
 /* Enable input auto-detection. Will attempt to autoconfigure
  * gamepads, plug-and-play style. */
 static const bool input_autodetect_enable = true;
@@ -769,7 +765,6 @@ static const struct retro_keybind retro_keybinds_1[] = {
    { true, RARCH_ANALOG_RIGHT_Y_PLUS,     RETRO_LBL_ANALOG_RIGHT_Y_PLUS,   RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_ANALOG_RIGHT_Y_MINUS,    RETRO_LBL_ANALOG_RIGHT_Y_MINUS,  RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
 
-   { true, RARCH_TURBO_ENABLE,            RETRO_LBL_TURBO_ENABLE,          RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_TOGGLE_HOTKEYS,          RETRO_LBL_TOGGLE_HOTKEYS,        RETROK_SCROLLOCK, NO_BTN, 0, AXIS_NONE },
    
    { true, RARCH_ENABLE_HOTKEY,           RETRO_LBL_ENABLE_HOTKEY,         RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
@@ -834,7 +829,6 @@ static const struct retro_keybind retro_keybinds_rest[] = {
    { true, RARCH_ANALOG_RIGHT_X_MINUS,    RETRO_LBL_ANALOG_RIGHT_X_MINUS,  RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_ANALOG_RIGHT_Y_PLUS,     RETRO_LBL_ANALOG_RIGHT_Y_PLUS,   RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_ANALOG_RIGHT_Y_MINUS,    RETRO_LBL_ANALOG_RIGHT_Y_MINUS,  RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
-   { true, RARCH_TURBO_ENABLE,            RETRO_LBL_TURBO_ENABLE,          RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
 };
 
 #endif

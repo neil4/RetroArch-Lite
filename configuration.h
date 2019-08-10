@@ -281,9 +281,6 @@ typedef struct settings
       bool autodetect_enable;
       bool netplay_client_swap_input;
 
-      unsigned turbo_period;
-      unsigned turbo_duty_cycle;
-
       bool overlay_enable;
       char overlay[PATH_MAX_LENGTH];
       unsigned overlay_scope;

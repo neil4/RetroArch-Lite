@@ -183,13 +183,10 @@ extern "C" {
 
 #define MENU_LABEL_SLOWMOTION_RATIO                                            0x626b3ffeU
 #define MENU_LABEL_INPUT_AXIS_THRESHOLD                                        0xe95c2095U
-#define MENU_LABEL_INPUT_TURBO_PERIOD                                          0xf7a97482U
 #define MENU_LABEL_INPUT_AUTODETECT_ENABLE                                     0xb1e07facU
 
 #define MENU_LABEL_CAMERA_ALLOW                                                0xc14d302cU
 #define MENU_LABEL_LOCATION_ALLOW                                              0xf089275cU
-
-#define MENU_LABEL_TURBO                                                       0x107434f1U
 
 #define MENU_LABEL_VIDEO_SHADER_DEFAULT_FILTER                                 0x4468cb1bU
 #define MENU_LABEL_VIDEO_SHADER_FILTER_PASS                                    0x1906c38dU

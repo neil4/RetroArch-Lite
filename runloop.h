@@ -230,12 +230,6 @@ typedef struct global
    bool sram_save_disable;
    bool use_sram;
 
-
-   /* Turbo support. */
-   bool turbo_frame_enable[MAX_USERS];
-   uint16_t turbo_enable[MAX_USERS];
-   unsigned turbo_count;
-
    /* Autosave support. */
    autosave_t **autosave;
    unsigned num_autosave;
