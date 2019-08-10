@@ -199,7 +199,7 @@ static preempt_t *preempt_new()
 }
 
 /**
- * preempt_pre_frame:   
+ * preempt_pre_frame:
  * @preempt         : pointer to preempt object
  *
  * Pre-frame for preempt.
@@ -209,27 +209,13 @@ void preempt_pre_frame(preempt_t *preempt)
 {
    input_poll_preframe();
    
-   if (preempt->in_replay) /* replays start here */
+   if (preempt->in_replay)
+   {
       pretro_unserialize(preempt->buffer[preempt->start_ptr],
                          preempt->state_size);
-   else
-      pretro_serialize(preempt->buffer[preempt->av_ptr],
-                       preempt->state_size);
-   /* todo: disable autosave during replay? */
-}
-
-/**
- * preempt_post_frame:   
- * @preempt          : pointer to preempt object
- *
- * Post-frame for preempt.
- * Call this after running retro_run().
- **/
-void preempt_post_frame(preempt_t *preempt)
-{
-   if (preempt->in_replay)
-   {  /* Normal retro_run has already replayed the first frame */
+      pretro_run();
       preempt->replay_ptr = PREEMPT_NEXT_PTR(preempt->start_ptr);
+
       while (preempt->replay_ptr != preempt->av_ptr)
       {
          pretro_serialize(preempt->buffer[preempt->replay_ptr],
@@ -238,11 +224,21 @@ void preempt_post_frame(preempt_t *preempt)
          preempt->replay_ptr = PREEMPT_NEXT_PTR(preempt->replay_ptr);
       }
       preempt->in_replay = false;
-      pretro_serialize(preempt->buffer[preempt->replay_ptr],
-                       preempt->state_size);
-      pretro_run();
    }
    
+   pretro_serialize(preempt->buffer[preempt->av_ptr],
+                    preempt->state_size);
+}
+
+/**
+ * preempt_post_frame:
+ * @preempt          : pointer to preempt object
+ *
+ * Post-frame for preempt.
+ * Call this after running retro_run().
+ **/
+void preempt_post_frame(preempt_t *preempt)
+{
    preempt->start_ptr = PREEMPT_NEXT_PTR(preempt->start_ptr);
    preempt->av_ptr = PREEMPT_NEXT_PTR(preempt->av_ptr);
 }
