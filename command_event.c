@@ -1205,7 +1205,7 @@ bool event_command(enum event_command cmd)
          break;
       case EVENT_CMD_OVERLAY_POPULATE_8WAY:
 #ifdef HAVE_OVERLAY
-         populate_8way_vals();
+         input_overlay_populate_8way_vals();
 #endif
          break;         
       case EVENT_CMD_DRIVERS_DEINIT:

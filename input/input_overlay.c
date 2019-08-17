@@ -371,8 +371,8 @@ static void input_overlay_desc_adjust_aspect_and_vertical(struct overlay_desc *d
    }
 }
 
-void get_slope_limits( const float diagonal_sensitivity,
-                       float* high_slope, float* low_slope )
+void input_overlay_get_slope_limits( const float diagonal_sensitivity,
+                                     float* high_slope, float* low_slope )
 {
    /* Update the slope values to be used in eight_way_state. */
    
@@ -395,11 +395,11 @@ void get_slope_limits( const float diagonal_sensitivity,
 }
 
 /**
- * populate_8way_vals:
+ * input_overlay_populate_8way_vals:
  *
  * Populate all values to be used in eight_way_state
  **/
-void populate_8way_vals()
+void input_overlay_populate_8way_vals()
 {
    static bool const_vals_populated = false;
    settings_t* settings             = config_get_ptr();
@@ -455,10 +455,10 @@ void populate_8way_vals()
    float dpad_slope_high, dpad_slope_low;
    float buttons_slope_high, buttons_slope_low;
    
-   get_slope_limits(settings->input.dpad_diagonal_sensitivity,
-                    &dpad_slope_high, &dpad_slope_low);
-   get_slope_limits(settings->input.abxy_diagonal_sensitivity,
-                    &buttons_slope_high, &buttons_slope_low);
+   input_overlay_get_slope_limits(settings->input.dpad_diagonal_sensitivity,
+                                  &dpad_slope_high, &dpad_slope_low);
+   input_overlay_get_slope_limits(settings->input.abxy_diagonal_sensitivity,
+                                  &buttons_slope_high, &buttons_slope_low);
    
    eight_way_vals[DPAD_AREA].slope_high = dpad_slope_high;
    eight_way_vals[DPAD_AREA].slope_low = dpad_slope_low;
@@ -1322,7 +1322,7 @@ input_overlay_t *input_overlay_new(const char *path, bool enable,
 
    input_overlay_load_overlays_init(ol);
    
-   populate_8way_vals();
+   input_overlay_populate_8way_vals();
 
    return ol;
 
@@ -1721,6 +1721,35 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
 
 
 /**
+ * input_overlay_undo_meta_overlap
+ * @param out                 : overlay state for a single pointer
+ *
+ * Disallows simultaneous use of meta keys with other controls. Meta keys take
+ * priority unless other controls were already active.
+ */
+static inline void input_overlay_undo_meta_overlap(input_overlay_state_t* out)
+{
+   input_overlay_state_t* old_state;
+   uint64_t active_meta = out->buttons & META_KEY_MASK;
+   uint64_t active_other = out->buttons & ~META_KEY_MASK;
+   
+   if (active_meta && (active_other || (uint64_t)*out->analog))
+   {
+      old_state = &driver_get_ptr()->old_overlay_state;
+
+      if ( (active_other & old_state->buttons)
+           || ((uint32_t)out->analog[0] && (uint32_t)old_state->analog[0])
+           || ((uint32_t)out->analog[2] && (uint32_t)old_state->analog[2]) )
+        out->buttons = active_other;
+      else
+      {
+         out->buttons = active_meta;
+         memset(out->analog, 0, sizeof(4*sizeof(int16_t)));
+      }
+   }
+}
+
+/**
  * inside_hitbox:
  * @desc                  : Overlay descriptor handle.
  * @x                     : X coordinate value.
@@ -1772,7 +1801,6 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
 {
    size_t i;
    float x, y;
-   input_overlay_state_t* old_state;
 
    memset(out, 0, sizeof(*out));
 
@@ -1807,24 +1835,6 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
 
       if (desc->type == OVERLAY_TYPE_BUTTONS)
       {
-         if (desc->key_mask & (UINT64_C(1) << RARCH_FAST_FORWARD_HOLD_KEY))
-         {  /* disallow overlap with other controls */
-            out->buttons = desc->key_mask;
-            break;
-         }
-         if (desc->key_mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
-         {  /* disallow any use with other controls */
-            old_state = &driver_get_ptr()->old_overlay_state;
-            if (old_state->buttons != UINT64_C(0)
-                || (uint64_t)*old_state->analog != UINT64_C(0))
-               continue;
-            else
-            {
-               out->buttons = desc->key_mask;
-               break;
-            }
-         }
-         
          out->buttons |= desc->key_mask;
          translate_highlevel_mask(desc, out, x, y);
       }
@@ -1864,6 +1874,8 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
             break;
       }
    }
+   
+   input_overlay_undo_meta_overlap(out);
 }
 
 /**

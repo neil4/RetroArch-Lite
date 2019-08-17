@@ -430,11 +430,11 @@ void input_overlays_update_aspect_and_vertical(input_overlay_t *ol);
 void input_overlay_next(input_overlay_t *ol, float opacity);
 
 /**
- * populate_8way_vals:
+ * input_overlay_populate_8way_vals:
  *
  * Convert diagonal sensitivity to slope values for 8way_state functions
  **/
-void populate_8way_vals();
+void input_overlay_populate_8way_vals();
 
 /* Repurpose lightgun id values unusable as state bits */
 #define RARCH_LIGHTGUN_BIT_RELOAD RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN
