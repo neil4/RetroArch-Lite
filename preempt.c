@@ -176,7 +176,6 @@ static void preempt_free(preempt_t *preempt)
 
 /**
  * preempt_new:
- * @cb        : set by retro_set_default_callbacks
  *
  * Returns: new preempt handle.
  **/

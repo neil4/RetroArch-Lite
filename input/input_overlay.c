@@ -45,7 +45,6 @@ enum
    RARCH_LIGHTGUN_AUX_A,
    RARCH_LIGHTGUN_AUX_B,
    RARCH_LIGHTGUN_AUX_C,
-   RARCH_LIGHTGUN_PAUSE,
    RARCH_LIGHTGUN_START,
    RARCH_LIGHTGUN_SELECT,
    RARCH_LIGHTGUN_DPAD_UP,
@@ -89,7 +88,6 @@ static ellipse_px_t ellipse;
 static uint8_t pointer_index;
 
 struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_END] = {
-   { "9:19",          0.47368421f },
    { "1:2",           0.5f },
    { "9:16",          0.5625f },
    { "10:16",         0.625f },
@@ -98,21 +96,20 @@ struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_EN
    { "16:10",         1.6f },
    { "16:9",          1.77777778f },
    { "2:1",           2.0f },
-   { "19:9",          2.11111111f },
    { "Auto",          1.0 },
 };
 
 static struct overlay_eight_way_vals eight_way_vals[NUM_EIGHT_WAY_TYPES];
 
-/* Below: need 2 additional elements for duplicated (obsolete) values */
-const struct input_bind_map input_highlevel_config_bind_map[RARCH_HIGHLEVEL_END_NULL+2] = {
+/* Below: need 3 additional elements for duplicated (obsolete) values */
+const struct input_bind_map input_highlevel_config_bind_map[RARCH_HIGHLEVEL_END_NULL+3] = {
       DECLARE_BIND(lightgun_trigger, RARCH_LIGHTGUN_TRIGGER, "Lightgun trigger"),
       DECLARE_BIND(lightgun_cursor,  RARCH_LIGHTGUN_AUX_A, "Lightgun cursor"),
       DECLARE_BIND(lightgun_aux_a,   RARCH_LIGHTGUN_AUX_A, "Lightgun aux A"),
       DECLARE_BIND(lightgun_turbo,   RARCH_LIGHTGUN_AUX_B, "Lightgun turbo"),
       DECLARE_BIND(lightgun_aux_b,   RARCH_LIGHTGUN_AUX_B, "Lightgun aux B"),
       DECLARE_BIND(lightgun_aux_c,   RARCH_LIGHTGUN_AUX_C, "Lightgun aux C"),
-      DECLARE_BIND(lightgun_pause,   RARCH_LIGHTGUN_PAUSE, "Lightgun pause"),
+      DECLARE_BIND(lightgun_pause,   RARCH_LIGHTGUN_START, "Lightgun pause"),
       DECLARE_BIND(lightgun_start,   RARCH_LIGHTGUN_START, "Lightgun start"),
       DECLARE_BIND(lightgun_select,  RARCH_LIGHTGUN_SELECT, "Lightgun select"),
       DECLARE_BIND(lightgun_reload,  RARCH_LIGHTGUN_RELOAD, "Lightgun reload"),
@@ -1573,7 +1570,6 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
       | (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER)
       | (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A)
       | (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B)
-      | (UINT64_C(1) << RARCH_LIGHTGUN_PAUSE)
       | (UINT64_C(1) << RARCH_LIGHTGUN_START)
       | (UINT64_C(1) << RARCH_LIGHTGUN_SELECT)
       | (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C)
@@ -1637,11 +1633,8 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
       case (UINT64_C(1) << RARCH_LIGHTGUN_SELECT):
          out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_SELECT);
          break;
-      case (UINT64_C(1) << RARCH_LIGHTGUN_START):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_START);
-         break;
-      case (UINT64_C(1) << RARCH_LIGHTGUN_PAUSE):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_PAUSE);
+      case (UINT64_C(1) << RARCH_LIGHTGUN_START): /* set start & pause */
+         out->lightgun_buttons |= (3<<RETRO_DEVICE_ID_LIGHTGUN_PAUSE);
          break;
       case (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER):
          out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_TRIGGER);
@@ -1667,9 +1660,7 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
          if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_SELECT ) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_SELECT);
          if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_START ) )
-            out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_START);
-         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_PAUSE) )
-            out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_PAUSE);
+            out->lightgun_buttons |= (3<<RETRO_DEVICE_ID_LIGHTGUN_PAUSE);
          if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER ) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_TRIGGER);
          if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_RELOAD ) )

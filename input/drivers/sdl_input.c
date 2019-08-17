@@ -220,9 +220,9 @@ static int16_t sdl_lightgun_device_state(sdl_input_t *sdl, unsigned id)
          return coord_y;
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
          return sdl->mouse_l && !sdl->mouse_r;
-      case RETRO_DEVICE_ID_LIGHTGUN_CURSOR:
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_A: /* cursor */
          return sdl->mouse_m && !sdl->mouse_r;
-      case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
          return sdl->mouse_m && sdl->mouse_r; 
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
          return abs(coord_y) == 0x7fff;
