@@ -106,7 +106,7 @@ public final class DownloadableCoresFragment extends ListFragment
       coreList.setAdapter(sAdapter);
       
       SharedPreferences prefs = UserPreferences.getPreferences(getContext());
-      DownloadableCore.sortBySystem = prefs.getBoolean("SortDownloadableCoresBySystem", false);
+      DownloadableCore.sortBySystem = prefs.getBoolean("SortDownloadableCoresBySystem", true);
       
       if (newAdapter)
          new PopulateCoresListOperation(sAdapter).execute();

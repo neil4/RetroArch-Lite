@@ -473,6 +473,8 @@ static bool show_overlay_menu = true;
 #endif
 static float overlay_opacity = 0.4f;
 static const unsigned input_vibrate_time = 5;
+static const float dpad_diagonal_sensitivity = 80.0f;
+static const float abxy_diagonal_sensitivity = 50.0f;
 #endif
 static bool show_frame_throttle_menu = true;
 #ifdef HAVE_NETPLAY

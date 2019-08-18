@@ -687,8 +687,8 @@ static void config_set_defaults(void)
 
 #ifdef HAVE_OVERLAY
    settings->input.overlay_opacity                 = overlay_opacity;
-   settings->input.dpad_diagonal_sensitivity       = 75.0f;
-   settings->input.abxy_diagonal_sensitivity       = 50.0f;
+   settings->input.dpad_diagonal_sensitivity       = dpad_diagonal_sensitivity;
+   settings->input.abxy_diagonal_sensitivity       = abxy_diagonal_sensitivity;
    settings->input.touch_ellipse_magnify           = 1.0f;
    settings->input.touch_ellipse_multitouch_boost  = 1.0f;
    settings->input.vibrate_time                    = input_vibrate_time;
