@@ -85,7 +85,7 @@ typedef struct ellipse_px
 } ellipse_px_t;
 
 static ellipse_px_t ellipse;
-static uint8_t pointer_index;
+static uint8_t overlay_ptr_idx;
 
 struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_END] = {
    { "1:2",           0.5f },
@@ -154,7 +154,7 @@ void reset_ellipse(uint8_t idx)
 
 void set_overlay_pointer_index(uint8_t idx)
 {
-   pointer_index = idx;
+   overlay_ptr_idx = idx;
 }
 
 
@@ -1468,13 +1468,13 @@ static inline uint64_t eight_way_ellipse_coverage(struct overlay_eight_way_vals*
    uint64_t state = UINT64_C(0);
    
    /* for pointer tools */
-   if (ellipse.major_px[pointer_index] == 0)
+   if (ellipse.major_px[overlay_ptr_idx] == 0)
       return four_way_direction(vals, x_ellipse_offset, y_ellipse_offset);
    
    /* normalize radii by screen height to keep aspect ratio */
    video_driver_get_size(&screen_width, &screen_height);
-   radius_major = ellipse.major_px[pointer_index] / (2*screen_height);
-   radius_minor = ellipse.minor_px[pointer_index] / (2*screen_height);
+   radius_major = ellipse.major_px[overlay_ptr_idx] / (2*screen_height);
+   radius_minor = ellipse.minor_px[overlay_ptr_idx] / (2*screen_height);
    
    /* hacks for inaccurate touchscreens */
    boost = settings->input.touch_ellipse_magnify;
@@ -1483,9 +1483,9 @@ static inline uint64_t eight_way_ellipse_coverage(struct overlay_eight_way_vals*
       boost *= settings->input.touch_ellipse_multitouch_boost;
    
    /* get axis endpoints */
-   major_angle = ellipse.orientation[pointer_index] > 0 ?
-      ((float)M_PI/2 - ellipse.orientation[pointer_index])
-      : ((float)(-M_PI)/2 - ellipse.orientation[pointer_index]);
+   major_angle = ellipse.orientation[overlay_ptr_idx] > 0 ?
+      ((float)M_PI/2 - ellipse.orientation[overlay_ptr_idx])
+      : ((float)(-M_PI)/2 - ellipse.orientation[overlay_ptr_idx]);
    sin_major = sin(major_angle);
    cos_major = cos(major_angle);
    sin_minor = major_angle > 0 ? cos_major : -cos_major;
@@ -1645,25 +1645,25 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
       default:  /* overlapping buttons */
          if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_A);
-         if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_AUX_B ) )
+         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_B);
-         if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_AUX_C ) )
+         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_C);
-         if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP ) )
+         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP);
-         if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN ) )
+         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN);
-         if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT ) )
+         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
-         if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT ) )
+         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT);
-         if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_SELECT ) )
+         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_SELECT) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_SELECT);
-         if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_START ) )
+         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_START) )
             out->lightgun_buttons |= (3<<RETRO_DEVICE_ID_LIGHTGUN_PAUSE);
-         if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER ) )
+         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER) )
             out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_TRIGGER);
-         if ( mask & ( UINT64_C(1) << RARCH_LIGHTGUN_RELOAD ) )
+         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD) )
             out->lightgun_buttons |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
       }
    }

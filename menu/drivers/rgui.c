@@ -81,29 +81,29 @@ struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS] = {
    { "Star Field", RGUI_PARTICLE_EFFECT_STARFIELD },
 };
 
-static wallpaper_t wallpaper = {NULL, {0}};
-static char loaded_theme[PATH_MAX_LENGTH];
+static wallpaper_t rgui_wallpaper = {NULL, {0}};
+static char rgui_loaded_theme[PATH_MAX_LENGTH];
 static bool rgui_wallpaper_valid;
 
 /* theme colors (argb32)*/
-static uint32_t rgui_hover_color;
-static uint32_t rgui_normal_color;
-static uint32_t rgui_title_color;
-static uint32_t rgui_bg_dark_color;
-static uint32_t rgui_bg_light_color;
-static uint32_t rgui_border_dark_color;
-static uint32_t rgui_border_light_color;
-static uint32_t rgui_particle_color;
+static uint32_t rgui_hover_32b;
+static uint32_t rgui_normal_32b;
+static uint32_t rgui_title_32b;
+static uint32_t rgui_bg_dark_32b;
+static uint32_t rgui_bg_light_32b;
+static uint32_t rgui_border_dark_32b;
+static uint32_t rgui_border_light_32b;
+static uint32_t rgui_particle_32b;
 
 /* in-use colors (rgba4444) */
-static uint16_t hover_color;
-static uint16_t normal_color;
-static uint16_t title_color;
-static uint16_t bg_dark_color;
-static uint16_t bg_light_color;
-static uint16_t border_dark_color;
-static uint16_t border_light_color;
-static uint16_t particle_color;
+static uint16_t rgui_hover_16b;
+static uint16_t rgui_normal_16b;
+static uint16_t rgui_title_16b;
+static uint16_t rgui_bg_dark_16b;
+static uint16_t rgui_bg_light_16b;
+static uint16_t rgui_border_dark_16b;
+static uint16_t rgui_border_light_16b;
+static uint16_t rgui_particle_16b;
 
 static uint8_t thick_bg_pattern;
 static uint8_t thick_bd_pattern;
@@ -122,26 +122,26 @@ static INLINE uint16_t argb32_to_rgba4444(uint32_t col)
 
 static void rgui_update_colors()
 {
-   hover_color = argb32_to_rgba4444(rgui_hover_color);
-   normal_color = argb32_to_rgba4444(rgui_normal_color);
-   title_color = argb32_to_rgba4444(rgui_title_color);
-   bg_dark_color = argb32_to_rgba4444(rgui_bg_dark_color);
-   bg_light_color = argb32_to_rgba4444(rgui_bg_light_color);
-   border_dark_color = argb32_to_rgba4444(rgui_border_dark_color);
-   border_light_color = argb32_to_rgba4444(rgui_border_light_color);
-   particle_color = argb32_to_rgba4444(rgui_particle_color);
+   rgui_hover_16b = argb32_to_rgba4444(rgui_hover_32b);
+   rgui_normal_16b = argb32_to_rgba4444(rgui_normal_32b);
+   rgui_title_16b = argb32_to_rgba4444(rgui_title_32b);
+   rgui_bg_dark_16b = argb32_to_rgba4444(rgui_bg_dark_32b);
+   rgui_bg_light_16b = argb32_to_rgba4444(rgui_bg_light_32b);
+   rgui_border_dark_16b = argb32_to_rgba4444(rgui_border_dark_32b);
+   rgui_border_light_16b = argb32_to_rgba4444(rgui_border_light_32b);
+   rgui_particle_16b = argb32_to_rgba4444(rgui_particle_32b);
 }
 
 static void rgui_set_default_colors()
 {
-   rgui_hover_color = rgui_hover_color_default;
-   rgui_normal_color = rgui_normal_color_default;
-   rgui_title_color = rgui_title_color_default;
-   rgui_bg_dark_color = rgui_bg_dark_color_default;
-   rgui_bg_light_color = rgui_bg_light_color_default;
-   rgui_border_dark_color = rgui_border_dark_color_default;
-   rgui_border_light_color = rgui_border_light_color_default;
-   rgui_particle_color = rgui_particle_color_default;
+   rgui_hover_32b = rgui_hover_32b_default;
+   rgui_normal_32b = rgui_normal_32b_default;
+   rgui_title_32b = rgui_title_32b_default;
+   rgui_bg_dark_32b = rgui_bg_dark_32b_default;
+   rgui_bg_light_32b = rgui_bg_light_32b_default;
+   rgui_border_dark_32b = rgui_border_dark_32b_default;
+   rgui_border_light_32b = rgui_border_light_32b_default;
+   rgui_particle_32b = rgui_particle_32b_default;
    
    rgui_update_colors();
 }
@@ -164,13 +164,13 @@ static void fill_rect(menu_framebuf_t *frame_buf,
 static INLINE uint16_t rgui_bg_filler(unsigned x, unsigned y)
 {
    unsigned select = ((x >> thick_bg_pattern) + (y >> thick_bg_pattern)) & 1;
-   return (select == 0) ? bg_dark_color : bg_light_color;
+   return (select == 0) ? rgui_bg_dark_16b : rgui_bg_light_16b;
 }
 
 static INLINE uint16_t rgui_border_filler(unsigned x, unsigned y)
 {
    unsigned select = ((x >> thick_bd_pattern) + (y >> thick_bd_pattern)) & 1;
-   return (select == 0) ? border_dark_color : border_light_color;
+   return (select == 0) ? rgui_border_dark_16b : rgui_border_light_16b;
 }
 
 /* Returns true if particle is on screen */
@@ -380,7 +380,7 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                /* Draw particle */
                on_screen = rgui_draw_particle(data, fb_width, fb_height,
                                  (int)particle->a, (int)particle->b,
-                                 particle_size, particle_size, particle_color);
+                                 particle_size, particle_size, rgui_particle_16b);
                
                /* Reset particle if it has fallen off screen */
                if (!on_screen)
@@ -415,7 +415,7 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                /* Draw particle */
                on_screen = rgui_draw_particle(data, fb_width, fb_height,
                                  (int)particle->a, (int)particle->b,
-                                 2, (unsigned)particle->c, particle_color);
+                                 2, (unsigned)particle->c, rgui_particle_16b);
                
                /* Update y pos */
                particle->b += particle->d;
@@ -458,7 +458,7 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                
                /* Draw particle */
                rgui_draw_particle(data, fb_width, fb_height,
-                     x, y, particle_size, particle_size, particle_color);
+                     x, y, particle_size, particle_size, rgui_particle_16b);
                
                /* Update particle speed */
                r_speed     = particle->c;
@@ -518,7 +518,7 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                
                /* Draw particle */
                on_screen = rgui_draw_particle(data, fb_width, fb_height,
-                                 x, y, particle_size, particle_size, particle_color);
+                                 x, y, particle_size, particle_size, rgui_particle_16b);
                
                /* Update depth */
                particle->c -= particle->d;
@@ -567,14 +567,14 @@ static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
       return;
 
    /* Parse config file. */
-   config_get_hex(conf, "rgui_entry_normal_color", &rgui_normal_color);
-   config_get_hex(conf, "rgui_entry_hover_color", &rgui_hover_color);
-   config_get_hex(conf, "rgui_title_color", &rgui_title_color);
-   config_get_hex(conf, "rgui_bg_dark_color", &rgui_bg_dark_color);
-   config_get_hex(conf, "rgui_bg_light_color", &rgui_bg_light_color);
-   config_get_hex(conf, "rgui_border_dark_color", &rgui_border_dark_color);
-   config_get_hex(conf, "rgui_border_light_color", &rgui_border_light_color);
-   config_get_hex(conf, "rgui_particle_color", &rgui_particle_color);
+   config_get_hex(conf, "rgui_entry_normal_color", &rgui_normal_32b);
+   config_get_hex(conf, "rgui_entry_hover_color", &rgui_hover_32b);
+   config_get_hex(conf, "rgui_title_color", &rgui_title_32b);
+   config_get_hex(conf, "rgui_bg_dark_color", &rgui_bg_dark_32b);
+   config_get_hex(conf, "rgui_bg_light_color", &rgui_bg_light_32b);
+   config_get_hex(conf, "rgui_border_dark_color", &rgui_border_dark_32b);
+   config_get_hex(conf, "rgui_border_light_color", &rgui_border_light_32b);
+   config_get_hex(conf, "rgui_particle_color", &rgui_particle_32b);
    config_get_array(conf, "rgui_wallpaper", wallpaper_file, PATH_MAX_LENGTH);
 
    rgui_update_colors();
@@ -592,7 +592,7 @@ static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
       fill_rect(frame_buf, 0, frame_buf->height, frame_buf->width, 4,
                 rgui_bg_filler);
 
-   strlcpy(loaded_theme, settings->menu.theme, PATH_MAX_LENGTH);
+   strlcpy(rgui_loaded_theme, settings->menu.theme, PATH_MAX_LENGTH);
    
    if (conf)
       config_file_free(conf);
@@ -608,7 +608,7 @@ static void rgui_adjust_wallpaper_alpha()
    alpha = (uint16_t)(settings->menu.wallpaper_opacity * 0xf);
    
    for (i = 0; i < RENDER_WIDTH * RENDER_HEIGHT; i++)
-      wallpaper.data[i] = (wallpaper.data[i] & 0xfff0) | alpha;
+      rgui_wallpaper.data[i] = (rgui_wallpaper.data[i] & 0xfff0) | alpha;
 }
 
 static inline void rgui_check_update(settings_t *settings,
@@ -621,10 +621,10 @@ static inline void rgui_check_update(settings_t *settings,
       thick_bg_pattern = settings->menu.rgui_thick_bg_checkerboard ? 1 : 0;
       thick_bd_pattern = settings->menu.rgui_thick_bd_checkerboard ? 1 : 0;
       
-      if (strncmp(loaded_theme, settings->menu.theme, PATH_MAX_LENGTH))
+      if (strncmp(rgui_loaded_theme, settings->menu.theme, PATH_MAX_LENGTH))
       {
          rgui_load_theme(settings, frame_buf);
-         strlcpy(loaded_theme, settings->menu.theme, PATH_MAX_LENGTH);
+         strlcpy(rgui_loaded_theme, settings->menu.theme, PATH_MAX_LENGTH);
       }
       else
       {
@@ -782,7 +782,8 @@ static void rgui_render_wallpaper(menu_framebuf_t *frame_buf)
       }
 
       /* Copy wallpaper to framebuffer */
-      memcpy(frame_buf->data, wallpaper.data, RENDER_WIDTH * RENDER_HEIGHT * sizeof(uint16_t));
+      memcpy(frame_buf->data, rgui_wallpaper.data,
+             RENDER_WIDTH * RENDER_HEIGHT * sizeof(uint16_t));
 
       return;
    }
@@ -901,7 +902,7 @@ static void rgui_render_messagebox(const char *message)
       int offset_x    = FONT_WIDTH_STRIDE * (glyphs_width - strlen(msg)) / 2;
       int offset_y    = FONT_HEIGHT_STRIDE * i;
       blit_line(menu, x + 8 + offset_x, y + 8 + offset_y, msg,
-                normal_color);
+                rgui_normal_16b);
    }
 
 end:
@@ -1009,11 +1010,11 @@ static void rgui_render(void)
    if (menu_entries_show_back())
       blit_line(menu,
             RGUI_TERM_START_X, RGUI_TERM_START_X,
-            "BACK", title_color);
+            "BACK", rgui_title_16b);
 
    blit_line(menu,
          RGUI_TERM_START_X + (RGUI_TERM_WIDTH - strlen(title_buf)) * FONT_WIDTH_STRIDE / 2,
-         RGUI_TERM_START_X, title_buf, title_color);
+         RGUI_TERM_START_X, title_buf, rgui_title_16b);
 
    if (settings->menu.core_enable)
    {
@@ -1021,7 +1022,7 @@ static void rgui_render(void)
       blit_line(menu,
             RGUI_TERM_START_X,
             (RGUI_TERM_HEIGHT * FONT_HEIGHT_STRIDE) +
-            RGUI_TERM_START_Y + 2, title_msg, hover_color);
+            RGUI_TERM_START_Y + 2, title_msg, rgui_hover_16b);
    }
 
    if (settings->menu.timedate_enable)
@@ -1031,7 +1032,7 @@ static void rgui_render(void)
       blit_line(menu,
             RGUI_TERM_WIDTH * FONT_WIDTH_STRIDE - RGUI_TERM_START_X,
             (RGUI_TERM_HEIGHT * FONT_HEIGHT_STRIDE) +
-            RGUI_TERM_START_Y + 2, timedate, hover_color);
+            RGUI_TERM_START_Y + 2, timedate, rgui_hover_16b);
    }
 
    x = RGUI_TERM_START_X;
@@ -1075,7 +1076,7 @@ static void rgui_render(void)
             type_str_buf);
 
       blit_line(menu, x, y, message,
-                entry_selected ? hover_color : normal_color);
+                entry_selected ? rgui_hover_16b : rgui_normal_16b);
    }
 
 #ifdef GEKKO
@@ -1289,7 +1290,7 @@ static void process_wallpaper(struct texture_image *image)
    {
       for (y = 0; y < RENDER_HEIGHT; y++)
       {
-         wallpaper.data[x + (y * RENDER_WIDTH)] =
+         rgui_wallpaper.data[x + (y * RENDER_WIDTH)] =
             argb32_to_rgba4444(image->pixels[x + (y * RENDER_WIDTH)]);
       }
    }

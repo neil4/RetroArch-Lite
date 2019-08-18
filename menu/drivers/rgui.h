@@ -16,14 +16,14 @@
 #define RGUI_H
 
 /* default colors (clean green) */
-#define rgui_hover_color_default 0xFF64FF64
-#define rgui_normal_color_default 0xFFFFFFFF
-#define rgui_title_color_default 0xFF64FF64
-#define rgui_bg_dark_color_default 0xC0303030
-#define rgui_bg_light_color_default 0xC0303030
-#define rgui_border_dark_color_default 0xC0408040
-#define rgui_border_light_color_default 0xC0408040
-#define rgui_particle_color_default 0xC0879E87
+#define rgui_hover_32b_default 0xFF64FF64
+#define rgui_normal_32b_default 0xFFFFFFFF
+#define rgui_title_32b_default 0xFF64FF64
+#define rgui_bg_dark_32b_default 0xC0303030
+#define rgui_bg_light_32b_default 0xC0303030
+#define rgui_border_dark_32b_default 0xC0408040
+#define rgui_border_light_32b_default 0xC0408040
+#define rgui_particle_32b_default 0xC0879E87
 
 enum rgui_particle_animation_effect
 {
