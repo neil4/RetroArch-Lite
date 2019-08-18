@@ -39,6 +39,7 @@ typedef struct sdl_input
    int mouse_x, mouse_y;
    int mouse_abs_x, mouse_abs_y;
    int mouse_l, mouse_r, mouse_m, mouse_wu, mouse_wd, mouse_wl, mouse_wr;
+   int lightgun_x, lightgun_y;
 } sdl_input_t;
 
 static void *sdl_input_init(void)
@@ -199,25 +200,12 @@ static int16_t sdl_pointer_device_state(sdl_input_t *sdl,
 
 static int16_t sdl_lightgun_device_state(sdl_input_t *sdl, unsigned id)
 {
-   static int coord_x, coord_y;
-   struct video_viewport vp = {0};
-   
    switch (id)
    {
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
-         if (!video_driver_viewport_info(&vp))
-            break;
-         coord_x = (2 * sdl->mouse_abs_x * 0x7fff) / (int)vp.width - 0x7fff;
-         if (coord_x < -0x7fff) coord_x = -0x7fff;
-         else if (coord_x > 0x7fff) coord_x = 0x7fff;
-         return coord_x;
+         return sdl->lightgun_x;
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
-         if (!video_driver_viewport_info(&vp))
-            break;
-         coord_y = (2 * sdl->mouse_abs_y * 0x7fff) / (int)vp.height - 0x7fff;
-         if (coord_y < -0x7fff) coord_y = -0x7fff;
-         else if (coord_y > 0x7fff) coord_y = 0x7fff;
-         return coord_y;
+         return sdl->lightgun_y;
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
          return sdl->mouse_l && !sdl->mouse_r;
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A: /* cursor */
@@ -225,9 +213,9 @@ static int16_t sdl_lightgun_device_state(sdl_input_t *sdl, unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
          return sdl->mouse_m && sdl->mouse_r; 
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
-         return abs(coord_y) == 0x7fff;
+         return abs(sdl->lightgun_y) == 0x7fff;
       case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
-         return sdl->mouse_l && (abs(coord_y) == 0x7fff);
+         return sdl->mouse_l && (abs(sdl->lightgun_y) == 0x7fff);
       case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
          return sdl->mouse_l && sdl->mouse_r;
@@ -320,8 +308,20 @@ static const input_device_driver_t *sdl_get_joypad_driver(void *data)
 static void sdl_poll_mouse(sdl_input_t *sdl)
 {
    Uint8 btn = SDL_GetRelativeMouseState(&sdl->mouse_x, &sdl->mouse_y);
+   struct video_viewport vp;
 
    SDL_GetMouseState(&sdl->mouse_abs_x, &sdl->mouse_abs_y);
+
+   if (video_driver_viewport_info(&vp))
+   {
+      sdl->lightgun_x = (2 * sdl->mouse_abs_x * 0x7fff) / (int)vp.width - 0x7fff;
+      sdl->lightgun_x = max(sdl->lightgun_x, -0x7fff);
+      sdl->lightgun_x = min(sdl->lightgun_x, 0x7fff);
+
+      sdl->lightgun_y = (2 * sdl->mouse_abs_y * 0x7fff) / (int)vp.height - 0x7fff;
+      sdl->lightgun_y = max(sdl->lightgun_y, -0x7fff);
+      sdl->lightgun_y = min(sdl->lightgun_y, 0x7fff);
+   }
 
    sdl->mouse_l  = SDL_BUTTON(SDL_BUTTON_LEFT)      & btn ? 1 : 0;
    sdl->mouse_r  = SDL_BUTTON(SDL_BUTTON_RIGHT)     & btn ? 1 : 0;

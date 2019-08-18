@@ -42,6 +42,7 @@ typedef struct x11_input
    bool mouse_l, mouse_r, mouse_m, mouse_wu, mouse_wd;
    int mouse_x, mouse_y;
    int mouse_last_x, mouse_last_y;
+   int lightgun_x, lightgun_y;
 
    bool grab_mouse;
 } x11_input_t;
@@ -198,25 +199,12 @@ static int16_t x_pointer_state(x11_input_t *x11,
 
 static int16_t x_lightgun_mouse_state(x11_input_t *x11, unsigned id)
 {
-   static int coord_x, coord_y;
-   struct video_viewport vp = {0};
-   
    switch (id)
    {
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
-         if (!video_driver_viewport_info(&vp))
-            break;
-         coord_x = (2 * x11->mouse_x * 0x7fff) / (int)vp.width - 0x7fff;
-         if (coord_x < -0x7fff) coord_x = -0x7fff;
-         else if (coord_x > 0x7fff) coord_x = 0x7fff;
-         return coord_x;
+         return x11->lightgun_x;
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
-         if (!video_driver_viewport_info(&vp))
-            break;
-         coord_y = (2 * x11->mouse_y * 0x7fff) / (int)vp.height - 0x7fff;
-         if (coord_y < -0x7fff) coord_y = -0x7fff;
-         else if (coord_y > 0x7fff) coord_y = 0x7fff;
-         return coord_y;
+         return x11->lightgun_y;
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
          return x11->mouse_l && !x11->mouse_r;
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A: /* cursor */
@@ -224,9 +212,9 @@ static int16_t x_lightgun_mouse_state(x11_input_t *x11, unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
          return x11->mouse_m && x11->mouse_r;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
-         return abs(coord_y) == 0x7fff;
+         return abs(x11->lightgun_y) == 0x7fff;
       case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
-         return x11->mouse_l && (abs(coord_y) == 0x7fff);
+         return x11->mouse_l && (abs(x11->lightgun_y) == 0x7fff);
       case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
          return x11->mouse_l && x11->mouse_r;
@@ -320,6 +308,7 @@ static void x_input_poll_mouse(x11_input_t *x11)
    unsigned mask;
    int root_x, root_y, win_x, win_y;
    Window root_win, child_win;
+   struct video_viewport vp;
 
    x11->mouse_last_x = x11->mouse_x;
    x11->mouse_last_y = x11->mouse_y;
@@ -335,7 +324,18 @@ static void x_input_poll_mouse(x11_input_t *x11)
    x11->mouse_y  = win_y;
    x11->mouse_l  = mask & Button1Mask; 
    x11->mouse_m  = mask & Button2Mask; 
-   x11->mouse_r  = mask & Button3Mask; 
+   x11->mouse_r  = mask & Button3Mask;
+
+   if (video_driver_viewport_info(&vp))
+   {
+      x11->lightgun_x = (2 * x11->mouse_x * 0x7fff) / (int)vp.width - 0x7fff;
+      x11->lightgun_x = max(x11->lightgun_x, -0x7fff);
+      x11->lightgun_x = min(x11->lightgun_x, 0x7fff);
+
+      x11->lightgun_y = (2 * x11->mouse_y * 0x7fff) / (int)vp.height - 0x7fff;
+      x11->lightgun_y = max(x11->lightgun_y, -0x7fff);
+      x11->lightgun_y = min(x11->lightgun_y, 0x7fff);
+   }
 
    /* Somewhat hacky, but seem to do the job. */
    if (x11->grab_mouse && video_driver_focus())
