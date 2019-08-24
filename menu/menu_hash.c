@@ -339,7 +339,9 @@ static const char *menu_hash_to_str_english(uint32_t hash)
 
 const char *menu_hash_to_str(uint32_t hash)
 {
+#if 0
    const char *ret = NULL;
+#endif
    settings_t *settings = config_get_ptr();
 
    if (!settings)
