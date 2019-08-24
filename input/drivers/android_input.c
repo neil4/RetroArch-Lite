@@ -674,7 +674,7 @@ static INLINE void android_input_poll_event_type_key(
 
    if ((keycode == AKEYCODE_VOLUME_UP || keycode == AKEYCODE_VOLUME_DOWN))
       *handled = 0;
-   else if (keycode == AKEYCODE_BACK)
+   else if (keycode == AKEYCODE_BACK && source == AINPUT_SOURCE_KEYBOARD)
    {
       if (action == AKEY_EVENT_ACTION_DOWN)
          global->lifecycle_state |= (1ULL << RARCH_MENU_TOGGLE);
@@ -699,7 +699,6 @@ static int android_input_get_id_port(android_input_t *android, int id,
 }
 
 
-
 /* Returns the index inside android->pad_state */
 static int android_input_get_id_index_from_name(android_input_t *android,
       const char *name)
@@ -714,8 +713,6 @@ static int android_input_get_id_index_from_name(android_input_t *android,
    return -1;
 }
 
-static int zeus_id = -1;
-static int zeus_second_id = -1;
 
 static void handle_hotplug(android_input_t *android,
       struct android_app *android_app, unsigned *port, unsigned id,
@@ -743,33 +740,13 @@ static void handle_hotplug(android_input_t *android,
       return;
    }
 
-   /* FIXME: Ugly hack, see other FIXME note below. */
-   if (strstr(device_name, "keypad-game-zeus") ||
-         strstr(device_name, "keypad-zeus"))
-   {
-      if (zeus_id < 0)
-      {
-         RARCH_LOG("zeus_pad 1 detected: %u\n", id);
-         zeus_id = id;
-      }
-      else
-      {
-         RARCH_LOG("zeus_pad 2 detected: %u\n", id);
-         zeus_second_id = id;
-      }
-      strlcpy(name_buf, "Xperia Play", sizeof(name_buf));
-   }
    /* followed by a 4 (hex) char HW id */
-   else if (strstr(device_name, "iControlPad-"))
+   if (strstr(device_name, "iControlPad-"))
       strlcpy(name_buf, "iControlPad HID Joystick profile", sizeof(name_buf));
    else if (strstr(device_name, "TTT THT Arcade console 2P USB Play"))
    {
-      /* FIXME - need to do a similar thing here as we did for nVidia Shield
-       * and Xperia Play. We need to keep 'count' of the amount of similar (grouped)
-       * devices.
-       *
-       * For Xperia Play - count similar devices and bind them to the same 'user'
-       * port
+      /* FIXME - need to do a similar thing here as we did for nVidia Shield.
+       * We need to keep 'count' of the amount of similar (grouped) devices.
        *
        * For nVidia Shield - see above
        *
@@ -840,10 +817,6 @@ static void handle_hotplug(android_input_t *android,
       strlcpy(name_buf, "JXD S5110B", sizeof(name_buf));
    else if (strstr(device_name, "tincore_adc_joystick"))
       strlcpy(name_buf, "JXD S5110B (Skelrom)", sizeof(name_buf));
-   else if (strstr(device_name, "keypad-zeus") ||
-         (strstr(device_name, "keypad-game-zeus"))
-         )
-      strlcpy(name_buf, "Xperia Play", sizeof(name_buf));
    else if (strstr(device_name, "USB Gamepad"))
       strlcpy(name_buf, "Thrust Predator", sizeof(name_buf));
    else if (strstr(device_name, "ADC joystick"))
@@ -876,7 +849,7 @@ static void handle_hotplug(android_input_t *android,
    else if (strstr(android_app->current_ime, "com.hexad.bluezime"))
       strlcpy(name_buf, android_app->current_ime, sizeof(name_buf));
 
-   if (source == AINPUT_SOURCE_KEYBOARD && strcmp(name_buf, "Xperia Play"))
+   if (source == AINPUT_SOURCE_KEYBOARD)
       strlcpy(name_buf, "RetroKeyboard", sizeof(name_buf));
 
    if (name_buf[0] != '\0')
@@ -902,16 +875,6 @@ static void handle_hotplug(android_input_t *android,
    android->pads_connected++;
 }
 
-static int android_input_get_id(android_input_t *android, AInputEvent *event)
-{
-   int id = AInputEvent_getDeviceId(event);
-
-   /* Needs to be cleaned up */
-   if (id == zeus_second_id)
-      id = zeus_id;
-
-   return id;
-}
 
 static void android_input_handle_input(void *data)
 {
@@ -928,7 +891,7 @@ static void android_input_handle_input(void *data)
          int predispatched = AInputQueue_preDispatchEvent(android_app->inputQueue, event);
          int source = AInputEvent_getSource(event);
          int type_event = AInputEvent_getType(event);
-         int id = android_input_get_id(android, event);
+         int id = AInputEvent_getDeviceId(event);
          int port = android_input_get_id_port(android, id, source);
 
          if (port < 0)
