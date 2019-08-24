@@ -17,6 +17,7 @@
 #include "input_common.h"
 #include "input_autodetect.h"
 #include <file/dir_list.h>
+#include <file/file_path.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -164,9 +165,13 @@ static bool input_autoconfigure_joypad_from_conf_dir(
 {
    size_t i;
    int ret = 0;
+   char dir[PATH_MAX_LENGTH];
    settings_t *settings = config_get_ptr();
-   struct string_list *list = settings ? dir_list_new(
-         settings->input.autoconfig_dir, "cfg", false) : NULL;
+
+   fill_pathname_join(dir, settings->input.autoconfig_dir,
+                           settings->input.joypad_driver,
+                           PATH_MAX_LENGTH);
+   struct string_list *list = settings ? dir_list_new(dir, "cfg", false) : NULL;
 
    if (!list)
       return false;
@@ -178,7 +183,6 @@ static bool input_autoconfigure_joypad_from_conf_dir(
 	  
 	  if (ret == 1)
 		  break;
-
    }
 
    string_list_free(list);

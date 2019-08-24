@@ -1679,7 +1679,9 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, stdin_cmd_enable, "stdin_cmd_enable");
 
    CONFIG_GET_BOOL_BASE(conf, settings, input.autodetect_enable, "input_autodetect_enable");
+#ifndef ANDROID
    CONFIG_GET_PATH_BASE(conf, settings, input.autoconfig_dir, "joypad_autoconfig_dir");
+#endif
 
    if (!global->has_set_username)
       CONFIG_GET_PATH_BASE(conf, settings, username, "netplay_nickname");
