@@ -223,36 +223,13 @@ static int16_t x_lightgun_mouse_state(x11_input_t *x11, unsigned id)
    return 0;
 }
 
-static int16_t x_lightgun_overlay_state(unsigned id)
-{
-   driver_t *driver         = driver_get_ptr();
-   global_t *global         = global_get_ptr();
-   
-   switch(id)
-   {
-      case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
-         return driver->overlay_state.lightgun_x;
-      case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
-         return driver->overlay_state.lightgun_y;
-      case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
-      case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
-         return (driver->overlay_state.lightgun_buttons
-                 & (1<<RARCH_LIGHTGUN_BIT_RELOAD));
-      case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
-         if (global->overlay_lightgun_autotrigger)
-            return driver->overlay_state.lightgun_ptr_active;
-      default:
-         return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
-   }
-   return 0;
-}
-
 static int16_t x_input_state(void *data,
       const struct retro_keybind **binds, unsigned port,
       unsigned device, unsigned idx, unsigned id)
 {
    int16_t ret;
-   x11_input_t *x11 = (x11_input_t*)data;
+   x11_input_t *x11     = (x11_input_t*)data;
+   settings_t *settings = config_get_ptr();
 
    switch (device)
    {
@@ -280,9 +257,9 @@ static int16_t x_input_state(void *data,
 
       case RETRO_DEVICE_LIGHTGUN:
 #ifdef HAVE_OVERLAY
-            if (settings->input.overlay_enable)
-               return x_lightgun_overlay_state(x11, id);
-            else
+         if (settings->input.overlay_enable)
+            break;
+         else
 #endif
          return x_lightgun_mouse_state(id);
    }

@@ -227,7 +227,8 @@ static int16_t sdl_lightgun_device_state(sdl_input_t *sdl, unsigned id)
 static int16_t sdl_input_state(void *data_, const struct retro_keybind **binds,
       unsigned port, unsigned device, unsigned idx, unsigned id)
 {
-   sdl_input_t *data = (sdl_input_t*)data_;
+   settings_t *settings = config_get_ptr();
+   sdl_input_t *data    = (sdl_input_t*)data_;
 
    switch (device)
    {
@@ -243,6 +244,11 @@ static int16_t sdl_input_state(void *data_, const struct retro_keybind **binds,
       case RETRO_DEVICE_KEYBOARD:
          return sdl_keyboard_device_state(data, id);
       case RETRO_DEVICE_LIGHTGUN:
+#ifdef HAVE_OVERLAY
+         if (settings->input.overlay_enable)
+            break;
+         else
+#endif
          return sdl_lightgun_device_state(data, id);
    }
 

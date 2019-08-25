@@ -188,34 +188,56 @@ static int16_t input_state(unsigned port, unsigned device,
          res = input_driver_state(libretro_input_binds, port, device, idx, id);
 
 #ifdef HAVE_OVERLAY
-      if (port == 0)
+      if (settings->input.overlay_enable)
       {
-         switch (device)
+         if (port == 0)
          {
-            case RETRO_DEVICE_JOYPAD:
-               if (driver->overlay_state.buttons & (UINT64_C(1) << id))
-                  res |= 1;
-               break;
-            case RETRO_DEVICE_KEYBOARD:
-               if (id < RETROK_LAST)
-               {
-                  if (OVERLAY_GET_KEY(&driver->overlay_state, id))
+            switch (device)
+            {
+               case RETRO_DEVICE_JOYPAD:
+                  if (driver->overlay_state.buttons & (UINT64_C(1) << id))
                      res |= 1;
-               }
-               break;
-            case RETRO_DEVICE_ANALOG:
-               if (idx < 2 && id < 2)  /* axes only */
-               {
-                  unsigned base = 0;
-                  
-                  if (idx == RETRO_DEVICE_INDEX_ANALOG_RIGHT)
-                     base = 2;
-                  if (id == RETRO_DEVICE_ID_ANALOG_Y)
-                     base += 1;
-                  if (driver->overlay_state.analog[base])
-                     res = driver->overlay_state.analog[base];
-               }
-               break;
+                  break;
+               case RETRO_DEVICE_KEYBOARD:
+                  if (id < RETROK_LAST)
+                  {
+                     if (OVERLAY_GET_KEY(&driver->overlay_state, id))
+                        res |= 1;
+                  }
+                  break;
+               case RETRO_DEVICE_ANALOG:
+                  if (idx < 2 && id < 2)  /* axes only */
+                  {
+                     unsigned base = 0;
+
+                     if (idx == RETRO_DEVICE_INDEX_ANALOG_RIGHT)
+                        base = 2;
+                     if (id == RETRO_DEVICE_ID_ANALOG_Y)
+                        base += 1;
+                     if (driver->overlay_state.analog[base])
+                        res = driver->overlay_state.analog[base];
+                  }
+                  break;
+            }
+         }
+         if (device == RETRO_DEVICE_LIGHTGUN)
+         {
+            switch(id)
+            {
+               case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
+                  return driver->overlay_state.lightgun_x;
+               case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
+                  return driver->overlay_state.lightgun_y;
+               case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
+               case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
+                  return (driver->overlay_state.lightgun_buttons
+                          & (1<<RARCH_LIGHTGUN_BIT_RELOAD));
+               case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
+                  if (global->overlay_lightgun_autotrigger)
+                     return driver->overlay_state.lightgun_ptr_active;
+               default:
+                  return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
+            }
          }
       }
 #endif

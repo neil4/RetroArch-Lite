@@ -1029,24 +1029,6 @@ static int16_t android_input_state(void *data,
                return android->pointer_count;
          }
          break;
-      case RETRO_DEVICE_LIGHTGUN:
-         switch(id)
-         {
-            case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
-               return driver->overlay_state.lightgun_x;
-            case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
-               return driver->overlay_state.lightgun_y;
-            case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
-            case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
-               return (driver->overlay_state.lightgun_buttons
-                       & (1<<RARCH_LIGHTGUN_BIT_RELOAD));
-            case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
-               if (global->overlay_lightgun_autotrigger)
-                  return driver->overlay_state.lightgun_ptr_active;
-            default:
-               return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
-         }
-         break;
    }
 
    return 0;
