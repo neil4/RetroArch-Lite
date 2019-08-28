@@ -1828,6 +1828,9 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
       {
          out->buttons |= desc->key_mask;
          translate_highlevel_mask(desc, out, x, y);
+
+         if (desc->key_mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
+            ol->next_index = desc->next_index;
       }
       else if (desc->type == OVERLAY_TYPE_KEYBOARD)
       {
