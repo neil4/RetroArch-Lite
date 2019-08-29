@@ -851,6 +851,118 @@ const struct rarch_key_map rarch_key_map_linux[] = {
 };
 #endif
 
+#ifdef ANDROID
+const struct rarch_key_map rarch_key_map_android[] = {
+   { AKEYCODE_DEL, RETROK_BACKSPACE },
+   { AKEYCODE_TAB, RETROK_TAB },
+   { AKEYCODE_CLEAR, RETROK_CLEAR },
+   { AKEYCODE_ENTER, RETROK_RETURN },
+   { AKEYCODE_BREAK, RETROK_PAUSE },
+   { AKEYCODE_ESCAPE, RETROK_ESCAPE },
+   { AKEYCODE_SPACE, RETROK_SPACE },
+   { AKEYCODE_APOSTROPHE, RETROK_QUOTE },
+   { AKEYCODE_NUMPAD_LEFT_PAREN, RETROK_LEFTPAREN },
+   { AKEYCODE_NUMPAD_RIGHT_PAREN, RETROK_RIGHTPAREN },
+   { AKEYCODE_NUMPAD_MULTIPLY, RETROK_ASTERISK },
+   { AKEYCODE_NUMPAD_ADD, RETROK_PLUS },
+   { AKEYCODE_COMMA, RETROK_COMMA },
+   { AKEYCODE_MINUS, RETROK_MINUS },
+   { AKEYCODE_PERIOD, RETROK_PERIOD },
+   { AKEYCODE_SLASH, RETROK_SLASH },
+   { AKEYCODE_0, RETROK_0 },
+   { AKEYCODE_1, RETROK_1 },
+   { AKEYCODE_2, RETROK_2 },
+   { AKEYCODE_3, RETROK_3 },
+   { AKEYCODE_4, RETROK_4 },
+   { AKEYCODE_5, RETROK_5 },
+   { AKEYCODE_6, RETROK_6 },
+   { AKEYCODE_7, RETROK_7 },
+   { AKEYCODE_8, RETROK_8 },
+   { AKEYCODE_9, RETROK_9 },
+   { AKEYCODE_SEMICOLON, RETROK_SEMICOLON },
+   { AKEYCODE_EQUALS, RETROK_EQUALS },
+   { AKEYCODE_LEFT_BRACKET, RETROK_LEFTBRACKET },
+   { AKEYCODE_BACKSLASH, RETROK_BACKSLASH },
+   { AKEYCODE_RIGHT_BRACKET, RETROK_RIGHTBRACKET },
+   { AKEYCODE_GRAVE, RETROK_BACKQUOTE },
+   { AKEYCODE_A, RETROK_a },
+   { AKEYCODE_B, RETROK_b },
+   { AKEYCODE_C, RETROK_c },
+   { AKEYCODE_D, RETROK_d },
+   { AKEYCODE_E, RETROK_e },
+   { AKEYCODE_F, RETROK_f },
+   { AKEYCODE_G, RETROK_g },
+   { AKEYCODE_H, RETROK_h },
+   { AKEYCODE_I, RETROK_i },
+   { AKEYCODE_J, RETROK_j },
+   { AKEYCODE_K, RETROK_k },
+   { AKEYCODE_L, RETROK_l },
+   { AKEYCODE_M, RETROK_m },
+   { AKEYCODE_N, RETROK_n },
+   { AKEYCODE_O, RETROK_o },
+   { AKEYCODE_P, RETROK_p },
+   { AKEYCODE_Q, RETROK_q },
+   { AKEYCODE_R, RETROK_r },
+   { AKEYCODE_S, RETROK_s },
+   { AKEYCODE_T, RETROK_t },
+   { AKEYCODE_U, RETROK_u },
+   { AKEYCODE_V, RETROK_v },
+   { AKEYCODE_W, RETROK_w },
+   { AKEYCODE_X, RETROK_x },
+   { AKEYCODE_Y, RETROK_y },
+   { AKEYCODE_Z, RETROK_z },
+   { AKEYCODE_FORWARD_DEL, RETROK_DELETE },
+   { AKEYCODE_NUMPAD_0, RETROK_KP0 },
+   { AKEYCODE_NUMPAD_1, RETROK_KP1 },
+   { AKEYCODE_NUMPAD_2, RETROK_KP2 },
+   { AKEYCODE_NUMPAD_3, RETROK_KP3 },
+   { AKEYCODE_NUMPAD_4, RETROK_KP4 },
+   { AKEYCODE_NUMPAD_5, RETROK_KP5 },
+   { AKEYCODE_NUMPAD_6, RETROK_KP6 },
+   { AKEYCODE_NUMPAD_7, RETROK_KP7 },
+   { AKEYCODE_NUMPAD_8, RETROK_KP8 },
+   { AKEYCODE_NUMPAD_9, RETROK_KP9 },
+   { AKEYCODE_NUMPAD_DOT, RETROK_KP_PERIOD },
+   { AKEYCODE_NUMPAD_DIVIDE, RETROK_KP_DIVIDE },
+   { AKEYCODE_NUMPAD_MULTIPLY, RETROK_KP_MULTIPLY },
+   { AKEYCODE_NUMPAD_SUBTRACT, RETROK_KP_MINUS },
+   { AKEYCODE_NUMPAD_ADD, RETROK_KP_PLUS },
+   { AKEYCODE_NUMPAD_ENTER, RETROK_KP_ENTER },
+   { AKEYCODE_NUMPAD_EQUALS, RETROK_KP_EQUALS },
+   { AKEYCODE_DPAD_UP, RETROK_UP },
+   { AKEYCODE_DPAD_DOWN, RETROK_DOWN },
+   { AKEYCODE_DPAD_RIGHT, RETROK_RIGHT },
+   { AKEYCODE_DPAD_LEFT, RETROK_LEFT },
+   { AKEYCODE_INSERT, RETROK_INSERT },
+   { AKEYCODE_MOVE_HOME, RETROK_HOME },
+   { AKEYCODE_MOVE_END, RETROK_END },
+   { AKEYCODE_PAGE_UP, RETROK_PAGEUP },
+   { AKEYCODE_PAGE_DOWN, RETROK_PAGEDOWN },
+   { AKEYCODE_F1, RETROK_F1 },
+   { AKEYCODE_F2, RETROK_F2 },
+   { AKEYCODE_F3, RETROK_F3 },
+   { AKEYCODE_F4, RETROK_F4 },
+   { AKEYCODE_F5, RETROK_F5 },
+   { AKEYCODE_F6, RETROK_F6 },
+   { AKEYCODE_F7, RETROK_F7 },
+   { AKEYCODE_F8, RETROK_F8 },
+   { AKEYCODE_F9, RETROK_F9 },
+   { AKEYCODE_F10, RETROK_F10 },
+   { AKEYCODE_F11, RETROK_F11 },
+   { AKEYCODE_F12, RETROK_F12 },
+   { AKEYCODE_NUM_LOCK, RETROK_NUMLOCK },
+   { AKEYCODE_CAPS_LOCK, RETROK_CAPSLOCK },
+   { AKEYCODE_SCROLL_LOCK, RETROK_SCROLLOCK },
+   { AKEYCODE_SHIFT_LEFT, RETROK_RSHIFT },
+   { AKEYCODE_SHIFT_RIGHT, RETROK_LSHIFT },
+   { AKEYCODE_CTRL_RIGHT, RETROK_RCTRL },
+   { AKEYCODE_CTRL_LEFT, RETROK_LCTRL },
+   { AKEYCODE_ALT_RIGHT, RETROK_RALT },
+   { AKEYCODE_ALT_LEFT, RETROK_LALT },
+   { 0, RETROK_UNKNOWN },
+};
+#endif
+
 #ifdef __APPLE__
 const struct rarch_key_map rarch_key_map_apple_hid[] = {
    { KEY_Delete, RETROK_BACKSPACE },
@@ -998,6 +1110,8 @@ const struct rarch_key_map rarch_key_map_apple_hid[] = {
 #endif
 
 static enum retro_key rarch_keysym_lut[RETROK_LAST];
+static unsigned* rarch_keysym_rlut;
+static unsigned rarch_keysym_rlut_size;
 
 /**
  * input_keymaps_init_keyboard_lut:
@@ -1007,10 +1121,29 @@ static enum retro_key rarch_keysym_lut[RETROK_LAST];
  **/
 void input_keymaps_init_keyboard_lut(const struct rarch_key_map *map)
 {
+   const struct rarch_key_map *map_start = map;
    memset(rarch_keysym_lut, 0, sizeof(rarch_keysym_lut));
+   rarch_keysym_rlut_size = 0;
 
    for (; map->rk != RETROK_UNKNOWN; map++)
+   {
       rarch_keysym_lut[map->rk] = (enum retro_key)map->sym;
+      if (map->sym > rarch_keysym_rlut_size)
+         rarch_keysym_rlut_size = map->sym;
+   }
+
+   if (rarch_keysym_rlut_size < 65536)
+   {
+      if (rarch_keysym_rlut)
+         free(rarch_keysym_rlut);
+
+      rarch_keysym_rlut = calloc(++rarch_keysym_rlut_size, sizeof(unsigned));
+
+      for (map = map_start; map->rk != RETROK_UNKNOWN; map++)
+         rarch_keysym_rlut[map->sym] = (enum retro_key)map->rk;
+   }
+   else
+      rarch_keysym_rlut_size = 0;
 }
 
 /**
@@ -1025,6 +1158,9 @@ void input_keymaps_init_keyboard_lut(const struct rarch_key_map *map)
 enum retro_key input_keymaps_translate_keysym_to_rk(unsigned sym)
 {
    unsigned i;
+
+   if (rarch_keysym_rlut && sym < rarch_keysym_rlut_size)
+      return (enum retro_key)rarch_keysym_rlut[sym];
 
    for (i = 0; i < ARRAY_SIZE(rarch_keysym_lut); i++)
    {

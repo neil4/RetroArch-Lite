@@ -77,6 +77,8 @@ enum
 
 #define MAX_AXIS 10
 
+#define android_keyboard_port_input_pressed(binds, id) (BIT_GET(android->pad_state[android->kbd_port], rarch_keysym_lut[(binds)[(id)].key]))
+
 typedef struct state_device
 {
    int id;
@@ -87,6 +89,7 @@ typedef struct state_device
 typedef struct android_input
 {
    bool blocked;
+   unsigned kbd_port;
    unsigned pads_connected;
    state_device_t pad_states[MAX_PADS];
    uint8_t pad_state[MAX_PADS][(LAST_KEYCODE + 7) / 8];
@@ -533,6 +536,8 @@ static void *android_input_init(void)
    android->pads_connected = 0;
    android->joypad = input_joypad_init_driver(settings->input.joypad_driver, android);
 
+   input_keymaps_init_keyboard_lut(rarch_key_map_android);
+
    frontend_android_get_version_sdk(&sdk);
 
    RARCH_LOG("sdk version: %d\n", sdk);
@@ -653,10 +658,47 @@ static INLINE int android_input_poll_event_type_motion(
    return 0;
 }
 
+/* Calls input_keyboard_event if keyboard input is valid.
+ * Returns true if this port's gamepad input should be blocked.
+ */
+static INLINE bool android_input_keyboard_event(
+      android_input_t *android, AInputEvent *event, int port, int keycode)
+{
+   int keydown  = (AKeyEvent_getAction(event) == AKEY_EVENT_ACTION_DOWN);
+   unsigned rk  = input_keymaps_translate_keysym_to_rk(keycode);
+   uint32_t c   = rk;
+   uint16_t mod = 0;
+   int meta     = AKeyEvent_getMetaState(event);
+
+   /* Evidently can't rely on source == AINPUT_SOURCE_KEYBOARD
+    * So, allow any device to send keyboard input, and ignore unknown keys. */
+   if (rk == RETROK_UNKNOWN)
+      return false;
+   android->kbd_port = port;
+
+   if (rk > RETROK_KP_EQUALS)
+      c = 0;
+
+   if (meta & AMETA_ALT_ON)
+      mod |= RETROKMOD_ALT;
+   if (meta & AMETA_CTRL_ON)
+      mod |= RETROKMOD_CTRL;
+   if (meta & AMETA_SHIFT_ON)
+   {
+      mod |= RETROKMOD_SHIFT;
+      /* todo: !@#$%^&*()_+{}|:"<>? */
+      if (rk >= RETROK_a && rk <= RETROK_z)
+         c -= 32;
+   }
+
+   input_keyboard_event(keydown, rk, c, mod, RETRO_DEVICE_KEYBOARD);
+
+   return menu_input_get_ptr()->keyboard.display;
+}
+
 static INLINE void android_input_poll_event_type_key(
-      android_input_t *android, struct android_app *android_app,
-      AInputEvent *event, int port, int keycode, int source,
-      int type_event, int *handled)
+      android_input_t *android, AInputEvent *event,
+      int port, int keycode, int source, bool block_pad, int *handled)
 {
    uint8_t *buf = android->pad_state[port];
    int action  = AKeyEvent_getAction(event);
@@ -669,7 +711,7 @@ static INLINE void android_input_poll_event_type_key(
     */
    if (action == AKEY_EVENT_ACTION_UP)
       BIT_CLEAR(buf, keycode);
-   else if (action == AKEY_EVENT_ACTION_DOWN)
+   else if (action == AKEY_EVENT_ACTION_DOWN && !block_pad)
       BIT_SET(buf, keycode);
 
    if ((keycode == AKEYCODE_VOLUME_UP || keycode == AKEYCODE_VOLUME_DOWN))
@@ -698,7 +740,6 @@ static int android_input_get_id_port(android_input_t *android, int id,
    return -1;
 }
 
-
 /* Returns the index inside android->pad_state */
 static int android_input_get_id_index_from_name(android_input_t *android,
       const char *name)
@@ -712,7 +753,6 @@ static int android_input_get_id_index_from_name(android_input_t *android,
 
    return -1;
 }
-
 
 static void handle_hotplug(android_input_t *android,
       struct android_app *android_app, unsigned *port, unsigned id,
@@ -849,9 +889,6 @@ static void handle_hotplug(android_input_t *android,
    else if (strstr(android_app->current_ime, "com.hexad.bluezime"))
       strlcpy(name_buf, android_app->current_ime, sizeof(name_buf));
 
-   if (source == AINPUT_SOURCE_KEYBOARD)
-      strlcpy(name_buf, "RetroKeyboard", sizeof(name_buf));
-
    if (name_buf[0] != '\0')
    {
       strlcpy(settings->input.device_names[*port],
@@ -893,6 +930,7 @@ static void android_input_handle_input(void *data)
          int type_event = AInputEvent_getType(event);
          int id = AInputEvent_getDeviceId(event);
          int port = android_input_get_id_port(android, id, source);
+         bool block_pad;
 
          if (port < 0)
             handle_hotplug(android, android_app,
@@ -907,8 +945,13 @@ static void android_input_handle_input(void *data)
             case AINPUT_EVENT_TYPE_KEY:
                {
                   int keycode = AKeyEvent_getKeyCode(event);
-                  android_input_poll_event_type_key(android, android_app,
-                        event, port, keycode, source, type_event, &handled);
+
+                  if (!predispatched)
+                  {
+                     block_pad = android_input_keyboard_event(android, event, port, keycode);
+                     android_input_poll_event_type_key(android, event, port,
+                              keycode, source, block_pad, &handled);
+                  }
                }
                break;
          }
@@ -951,7 +994,7 @@ static void android_input_poll(void *data)
    frame.downs = 0;
    frame.any_events = false;
    
-   while ((ident = ALooper_pollAll( runloop->is_paused ? -1 : 0,
+   while ((ident = ALooper_pollAll( runloop->is_idle ? -1 : 0,
                                     NULL, NULL, NULL )) >= 0)
    {
       switch (ident)
@@ -993,8 +1036,6 @@ static int16_t android_input_state(void *data,
       unsigned idx, unsigned id)
 {
    android_input_t *android = (android_input_t*)data;
-   driver_t *driver         = driver_get_ptr();
-   global_t *global         = global_get_ptr();
    
    switch (device)
    {
@@ -1003,6 +1044,10 @@ static int16_t android_input_state(void *data,
       case RETRO_DEVICE_ANALOG:
          return input_joypad_analog(android->joypad, port, idx, id,
                binds[port]);
+      case RETRO_DEVICE_KEYBOARD:
+         return (id < RETROK_LAST)
+                && BIT_GET(android->pad_state[android->kbd_port],
+                           rarch_keysym_lut[id]);
       case RETRO_DEVICE_POINTER:
          switch (id)
          {
@@ -1044,9 +1089,9 @@ static bool android_input_key_pressed(void *data, int key)
    if (!android)
       return false;
 
-   return ((global->lifecycle_state | driver->overlay_state.buttons)
-         & (1ULL << key)) || input_joypad_pressed(android->joypad,
-         0, settings->input.binds[0], key);
+   return ((global->lifecycle_state | driver->overlay_state.buttons) & (1ULL << key))
+          || input_joypad_pressed (android->joypad, 0, settings->input.binds[0], key)
+          || (!android->blocked && android_keyboard_port_input_pressed(settings->input.binds[0], key));
 }
 
 static void android_input_free_input(void *data)
@@ -1069,7 +1114,8 @@ static uint64_t android_input_get_capabilities(void *data)
    return 
       (1 << RETRO_DEVICE_JOYPAD)  |
       (1 << RETRO_DEVICE_POINTER) |
-      (1 << RETRO_DEVICE_ANALOG);
+      (1 << RETRO_DEVICE_ANALOG)  |
+      (1 << RETRO_DEVICE_KEYBOARD);
 }
 
 static void android_input_enable_sensor_manager(void *data)
