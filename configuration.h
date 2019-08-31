@@ -33,7 +33,7 @@ extern "C" {
 
 /* All config related settings go here. */
 
-// Higher scopes are more specific and mask lower scopes
+/* Higher scopes are more specific and mask lower scopes */
 enum setting_scope
 {
    GLOBAL = 0,
@@ -208,7 +208,7 @@ typedef struct settings
 #endif
       bool swap_ok_cancel;
    } menu;
-#endif // #ifdef HAVE_MENU
+#endif /* #ifdef HAVE_MENU */
 
    struct
    {
@@ -294,10 +294,9 @@ typedef struct settings
       bool overlay_adjust_vertical_lock_edges;
       unsigned overlay_adjust_vert_horiz_scope;
       
-      float dpad_diagonal_sensitivity;  // diagonal-to-normal ratio (percentage)
+      float dpad_diagonal_sensitivity;  /* diagonal-to-normal ratio (percentage) */
       float abxy_diagonal_sensitivity;
-      float touch_ellipse_magnify;  // hack for inaccurate touch areas
-      float touch_ellipse_multitouch_boost;  // hack for touch area shrink on multitouch
+      float touch_ellipse_magnify;  /* hack for inaccurate touchscreens */
       unsigned dpad_method;
       unsigned abxy_method;
       unsigned dpad_abxy_config_scope;

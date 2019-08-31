@@ -690,7 +690,6 @@ static void config_set_defaults(void)
    settings->input.dpad_diagonal_sensitivity       = dpad_diagonal_sensitivity;
    settings->input.abxy_diagonal_sensitivity       = abxy_diagonal_sensitivity;
    settings->input.touch_ellipse_magnify           = 1.0f;
-   settings->input.touch_ellipse_multitouch_boost  = 1.0f;
    settings->input.vibrate_time                    = input_vibrate_time;
    settings->input.overlay_enable                  = true;
    settings->input.overlay_scale                   = 1.0f;
@@ -1626,7 +1625,6 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_INT_BASE(conf, settings, input.abxy_method, "input_abxy_method");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.abxy_diagonal_sensitivity, "input_abxy_diagonal_sensitivity");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.touch_ellipse_magnify, "input_touch_ellipse_magnify");
-   CONFIG_GET_FLOAT_BASE(conf, settings, input.touch_ellipse_multitouch_boost, "input_touch_ellipse_multitouch_boost");
    
    CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_adjust_aspect, "input_overlay_adjust_aspect");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_bisect_aspect_ratio, "input_overlay_bisect_aspect_ratio");
@@ -1679,9 +1677,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, stdin_cmd_enable, "stdin_cmd_enable");
 
    CONFIG_GET_BOOL_BASE(conf, settings, input.autodetect_enable, "input_autodetect_enable");
-#ifndef ANDROID
    CONFIG_GET_PATH_BASE(conf, settings, input.autoconfig_dir, "joypad_autoconfig_dir");
-#endif
 
    if (!global->has_set_username)
       CONFIG_GET_PATH_BASE(conf, settings, username, "netplay_nickname");
@@ -2258,8 +2254,6 @@ bool config_save_file(const char *path)
 
    config_set_float(conf, "input_touch_ellipse_magnify",
                     settings->input.touch_ellipse_magnify);
-   config_set_float(conf, "input_touch_ellipse_multitouch_boost",
-                    settings->input.touch_ellipse_multitouch_boost);
    
    if ( settings->input.overlay_adjust_vert_horiz_scope == GLOBAL )
    {

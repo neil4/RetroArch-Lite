@@ -570,7 +570,6 @@ static INLINE int android_input_poll_event_type_motion(
    if (source & ~(AINPUT_SOURCE_TOUCHSCREEN | AINPUT_SOURCE_MOUSE | AINPUT_SOURCE_STYLUS))
       return 1;
 
-   frame.any_events = true;
    getaction = AMotionEvent_getAction(event);
    action = getaction & AMOTION_EVENT_ACTION_MASK;
    motion_ptr = getaction >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
@@ -755,8 +754,7 @@ static int android_input_get_id_index_from_name(android_input_t *android,
 }
 
 static void handle_hotplug(android_input_t *android,
-      struct android_app *android_app, unsigned *port, unsigned id,
-      int source)
+      struct android_app *android_app, unsigned *port, unsigned id)
 {
    char device_name[256]        = {0};
    char name_buf[256]           = {0};
@@ -814,7 +812,7 @@ static void handle_hotplug(android_input_t *android,
          strlcpy(name_buf, "SideWinder Classic", sizeof(name_buf));
       else if (strstr(device_name, "X-Box 360")
             || strstr(device_name, "X-Box"))
-         strlcpy(name_buf, "XBox 360", sizeof(name_buf));
+         strlcpy(name_buf, "XBox 360 Controller", sizeof(name_buf));
    }
    else if (strstr(device_name, "WiseGroup"))
    {
@@ -933,8 +931,7 @@ static void android_input_handle_input(void *data)
          bool block_pad;
 
          if (port < 0)
-            handle_hotplug(android, android_app,
-                  &android->pads_connected, id, source);
+            handle_hotplug(android, android_app, &android->pads_connected, id);
 
          switch (type_event)
          {

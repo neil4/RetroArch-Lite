@@ -285,7 +285,7 @@ static void x_input_poll_mouse(x11_input_t *x11)
    unsigned mask;
    int root_x, root_y, win_x, win_y;
    Window root_win, child_win;
-   struct video_viewport vp;
+   struct video_viewport vp = {0};
 
    x11->mouse_last_x = x11->mouse_x;
    x11->mouse_last_y = x11->mouse_y;
@@ -318,9 +318,6 @@ static void x_input_poll_mouse(x11_input_t *x11)
    if (x11->grab_mouse && video_driver_focus())
    {
       int mid_w, mid_h;
-      struct video_viewport vp = {0};
-
-      video_driver_viewport_info(&vp);
 
       mid_w = vp.full_width >> 1;
       mid_h = vp.full_height >> 1;

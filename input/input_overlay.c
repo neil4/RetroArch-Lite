@@ -1470,17 +1470,14 @@ static inline uint64_t eight_way_ellipse_coverage(struct overlay_eight_way_vals*
    /* for pointer tools */
    if (ellipse.major_px[overlay_ptr_idx] == 0)
       return four_way_direction(vals, x_ellipse_offset, y_ellipse_offset);
-   
+
+   /* hack for inaccurate touchscreens */
+   boost = settings->input.touch_ellipse_magnify;
+
    /* normalize radii by screen height to keep aspect ratio */
    video_driver_get_size(&screen_width, &screen_height);
-   radius_major = ellipse.major_px[overlay_ptr_idx] / (2*screen_height);
-   radius_minor = ellipse.minor_px[overlay_ptr_idx] / (2*screen_height);
-   
-   /* hacks for inaccurate touchscreens */
-   boost = settings->input.touch_ellipse_magnify;
-   if (input_driver_state(NULL, 0, RARCH_DEVICE_POINTER_SCREEN,
-                          1, RETRO_DEVICE_ID_POINTER_PRESSED))
-      boost *= settings->input.touch_ellipse_multitouch_boost;
+   radius_major = boost * ellipse.major_px[overlay_ptr_idx] / (2*screen_height);
+   radius_minor = boost * ellipse.minor_px[overlay_ptr_idx] / (2*screen_height);
    
    /* get axis endpoints */
    major_angle = ellipse.orientation[overlay_ptr_idx] > 0 ?
@@ -1491,10 +1488,10 @@ static inline uint64_t eight_way_ellipse_coverage(struct overlay_eight_way_vals*
    sin_minor = major_angle > 0 ? cos_major : -cos_major;
    cos_minor = major_angle > 0 ? -sin_major : sin_major;
    
-   x_major_offset = boost * radius_major * cos_major;
-   y_major_offset = boost * radius_major * sin_major;
-   x_minor_offset = boost * radius_minor * cos_minor;
-   y_minor_offset = boost * radius_minor * sin_minor;
+   x_major_offset = radius_major * cos_major;
+   y_major_offset = radius_major * sin_major;
+   x_minor_offset = radius_minor * cos_minor;
+   y_minor_offset = radius_minor * sin_minor;
    
    /* major axis endpoint 1 */
    x_offset = x_ellipse_offset + x_major_offset;
