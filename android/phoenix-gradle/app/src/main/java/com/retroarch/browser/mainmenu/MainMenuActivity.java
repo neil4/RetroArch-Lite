@@ -61,14 +61,14 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       super.onCreate(savedInstanceState);
 
       extractAssets();
-      
+
       // Load the main menu layout
       setContentView(R.layout.line_list);
       createList();
 
       // Bind audio stream to hardware controls.
       setVolumeControlStream(AudioManager.STREAM_MUSIC);
-      
+
       if (android.os.Build.VERSION.SDK_INT >= 21)
       {
          getPermissions( new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -77,7 +77,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
                                        Manifest.permission.CAMERA});
       }
    }
-   
+
    protected void getPermissions( final String[] permission_strings )
    {
       boolean any_denied = false;
@@ -184,7 +184,6 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
   
    public void itemClick(AdapterView<?> parent, View view, int position, long id)
    {
-      // Load Core
       final ModuleWrapper item = adapter.getItem(position);
       libretroPath = item.getUnderlyingFile().getAbsolutePath();
       libretroName = InstalledCoresFragment.sanitizedLibretroName(libretroPath);
@@ -363,6 +362,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       retro.putExtra("CONFIGFILE", UserPreferences.getDefaultConfigPath(this));
       retro.putExtra("IME", currentIme);
       retro.putExtra("DATADIR", getApplicationInfo().dataDir);
+      retro.putExtra("EXTDIR", UserPreferences.defaultBaseDir);
 
       startActivity(retro);
 
@@ -374,11 +374,12 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
    @Override
    public void onResume()
    {
+      super.onResume();
+
       if (retro != null)
          startActivity(retro);
       else
          createList();  // assume a core was added/updated/removed
-      super.onResume();
    }
 
 }

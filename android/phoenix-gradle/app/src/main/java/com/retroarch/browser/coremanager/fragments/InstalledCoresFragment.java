@@ -230,18 +230,17 @@ public final class InstalledCoresFragment extends ListFragment
          @Override
          public void onClick(DialogInterface dialog, int which)
          {
-            final String default_base = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RetroArchLite";
-            final String default_config = default_base + "/config";
-            final String default_save = default_base + "/save";
-            final String default_state = default_base + "/state";
+            final String defaultConfig = UserPreferences.defaultBaseDir + "/config";
+            final String defaultSave = UserPreferences.defaultBaseDir + "/save";
+            final String defaultState = UserPreferences.defaultBaseDir + "/state";
 
             final SharedPreferences prefs = getPreferences(getContext());
             String cfg_dir = prefs.getBoolean("config_directory_enable", false) ?
-                       prefs.getString("rgui_config_directory", default_config) : default_config;
+                       prefs.getString("rgui_config_directory", defaultConfig) : defaultConfig;
             String save_dir = prefs.getBoolean("savefile_directory_enable", false) ?
-                  prefs.getString("savefile_directory", default_save) : default_save;
+                  prefs.getString("savefile_directory", defaultSave) : defaultSave;
             String state_dir = prefs.getBoolean("savestate_directory_enable", false) ?
-                  prefs.getString("savestate_directory", default_state) : default_state;
+                  prefs.getString("savestate_directory", defaultState) : defaultState;
                         
             String libretro_name = sanitizedLibretroName(item.getUnderlyingFile().getName());
             String core_cfg_dir = cfg_dir + '/' + libretro_name;

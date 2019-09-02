@@ -399,25 +399,10 @@ static void frontend_android_get_version_sdk(int32_t *sdk)
   }
 }
 
-static bool device_is_xperia_play(const char *name)
-{
-   if (
-         !strcmp(name, "R800x") ||
-         !strcmp(name, "R800at") ||
-         !strcmp(name, "R800i") ||
-         !strcmp(name, "R800a") ||
-         !strcmp(name, "SO-01D")
-         )
-      return true;
-
-   return false;
-}
-
 static bool device_is_game_console(const char *name)
 {
    if (
          !strcmp(name, "OUYA Console") ||
-         device_is_xperia_play(name) ||
          !strcmp(name, "GAMEMID_BT") ||
          !strcmp(name, "S7800") ||
          !strcmp(name, "SHIELD")
@@ -434,6 +419,7 @@ static void frontend_android_get_environment_settings(int *argc,
    int32_t major, minor, rel;
    char device_model[PROP_VALUE_MAX] = {0};
    char device_id[PROP_VALUE_MAX]    = {0};
+   char path[PATH_MAX_LENGTH];
    struct rarch_main_wrap      *args = NULL;
    JNIEnv                       *env = NULL;
    jobject                       obj = NULL;
@@ -553,25 +539,25 @@ static void frontend_android_get_environment_settings(int *argc,
 
    if (android_app->getStringExtra && jstr)
    {
-      static char path[PATH_MAX_LENGTH];
+      static char rom_path[PATH_MAX_LENGTH];
       const char *argv = NULL;
 
-      *path = '\0';
+      *rom_path = '\0';
       argv = (*env)->GetStringUTFChars(env, jstr, 0);
 
       if (argv && *argv)
-         strlcpy(path, argv, sizeof(path));
+         strlcpy(rom_path, argv, sizeof(rom_path));
       (*env)->ReleaseStringUTFChars(env, jstr, argv);
 
-      if (*path)
+      if (*rom_path)
       {
-         RARCH_LOG("Auto-start game %s.\n", path);
+         RARCH_LOG("Auto-start game %s.\n", rom_path);
          if (args)
-            args->content_path = path;
-         strlcpy(global->fullpath, path, PATH_MAX_LENGTH);
+            args->content_path = rom_path;
+         strlcpy(global->fullpath, rom_path, PATH_MAX_LENGTH);
          global->max_scope = NUM_SETTING_SCOPES-1;
          
-         strlcpy(g_defaults.content_dir, path, PATH_MAX_LENGTH );
+         strlcpy(g_defaults.content_dir, rom_path, PATH_MAX_LENGTH);
          path_basedir(g_defaults.content_dir);
          global->content_dir_override = true;
       }
@@ -584,13 +570,12 @@ static void frontend_android_get_environment_settings(int *argc,
       global->max_scope = THIS_CORE;
    }
 
-   /* Paths. */
+   /* Internal Paths. */
    CALL_OBJ_METHOD_PARAM(env, jstr, obj, android_app->getStringExtra,
          (*env)->NewStringUTF(env, "DATADIR"));
 
    if (android_app->getStringExtra && jstr)
    {
-      static char path[PATH_MAX_LENGTH];
       const char *argv = NULL;
 
       *path = '\0';
@@ -607,28 +592,54 @@ static void frontend_android_get_environment_settings(int *argc,
          {
             fill_pathname_join(g_defaults.assets_dir, path,
                   "assets", sizeof(g_defaults.assets_dir));
-            fill_pathname_join(g_defaults.savestate_dir, path,
-                  "savestates", sizeof(g_defaults.savestate_dir));
             fill_pathname_join(g_defaults.extraction_dir, path,
                   "tmp", sizeof(g_defaults.extraction_dir));
-            fill_pathname_join(g_defaults.sram_dir, path,
-                  "savefiles", sizeof(g_defaults.sram_dir));
-            fill_pathname_join(g_defaults.system_dir, path,
-                  "system", sizeof(g_defaults.system_dir));
             fill_pathname_join(g_defaults.shader_dir, path,
                   "shaders_glsl", sizeof(g_defaults.shader_dir));
             fill_pathname_join(g_defaults.overlay_dir, path,
                   "overlays", sizeof(g_defaults.overlay_dir));
             fill_pathname_join(g_defaults.osk_overlay_dir, path,
                   "overlays/keyboards", sizeof(g_defaults.osk_overlay_dir));
-            fill_pathname_join(g_defaults.autoconfig_dir,
-                  path, "autoconfig", sizeof(g_defaults.autoconfig_dir));
-            fill_pathname_join(g_defaults.audio_filter_dir,
-                  path, "audio_filters", sizeof(g_defaults.audio_filter_dir));
-            fill_pathname_join(g_defaults.video_filter_dir,
-                  path, "video_filters", sizeof(g_defaults.video_filter_dir));
-            fill_pathname_join(g_defaults.menu_theme_dir,
-                  path, "themes_rgui", sizeof(g_defaults.menu_theme_dir));
+            fill_pathname_join(g_defaults.autoconfig_dir, path,
+                  "autoconfig", sizeof(g_defaults.autoconfig_dir));
+            fill_pathname_join(g_defaults.audio_filter_dir, path,
+                  "audio_filters", sizeof(g_defaults.audio_filter_dir));
+            fill_pathname_join(g_defaults.video_filter_dir, path,
+                  "video_filters", sizeof(g_defaults.video_filter_dir));
+            fill_pathname_join(g_defaults.menu_theme_dir, path,
+                  "themes_rgui", sizeof(g_defaults.menu_theme_dir));
+         }
+      }
+   }
+
+   /* External Paths. */
+   CALL_OBJ_METHOD_PARAM(env, jstr, obj, android_app->getStringExtra,
+         (*env)->NewStringUTF(env, "EXTDIR"));
+
+   if (android_app->getStringExtra && jstr)
+   {
+      const char *argv = NULL;
+
+      *path = '\0';
+      argv = (*env)->GetStringUTFChars(env, jstr, 0);
+
+      if (argv && *argv)
+         strlcpy(path, argv, sizeof(path));
+      (*env)->ReleaseStringUTFChars(env, jstr, argv);
+
+      if (*path)
+      {
+         RARCH_LOG("Ext Storage path: [%s].\n", path);
+         if (args && *path)
+         {
+            fill_pathname_join(g_defaults.savestate_dir, path,
+                  "savestates", sizeof(g_defaults.savestate_dir));
+            fill_pathname_join(g_defaults.sram_dir, path,
+                  "savefiles", sizeof(g_defaults.sram_dir));
+            fill_pathname_join(g_defaults.system_dir, path,
+                  "system", sizeof(g_defaults.system_dir));
+            fill_pathname_join(g_defaults.menu_config_dir, path,
+                  "config", sizeof(g_defaults.menu_config_dir));
          }
       }
    }
@@ -638,14 +649,7 @@ static void frontend_android_get_environment_settings(int *argc,
 
    g_defaults.settings.video_threaded_enable = false;
 
-   // Set automatic default values per device
-   if (device_is_xperia_play(device_model))
-   {
-      g_defaults.settings.out_latency = 128;
-      g_defaults.settings.video_refresh_rate = 59.19132938771038;
-      g_defaults.settings.video_threaded_enable = false;
-   }
-   else if (!strcmp(device_model, "GAMEMID_BT"))
+   if (!strcmp(device_model, "GAMEMID_BT"))
       g_defaults.settings.out_latency = 160;
    else if (!strcmp(device_model, "SHIELD"))
       g_defaults.settings.video_refresh_rate = 60.0;
@@ -748,9 +752,7 @@ static int frontend_android_get_rating(void)
 
    RARCH_LOG("ro.product.model: (%s).\n", device_model);
 
-   if (device_is_xperia_play(device_model))
-      return 6;
-   else if (!strcmp(device_model, "GT-I9505"))
+   if (!strcmp(device_model, "GT-I9505"))
       return 12;
    else if (!strcmp(device_model, "SHIELD"))
       return 13;

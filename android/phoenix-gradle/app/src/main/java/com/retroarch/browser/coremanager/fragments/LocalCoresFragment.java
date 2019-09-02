@@ -59,7 +59,7 @@ public final class LocalCoresFragment extends ListFragment
    }
 
    private String localCoresDir;
-   public static String defaultLocalCoresDir = Environment.getExternalStorageDirectory().getPath() + "/RetroArchLite/cores32";
+   public static String defaultLocalCoresDir = UserPreferences.defaultBaseDir + "/cores32";
    
    private ListView coreList = null;
    private OnCoreDownloadedListener coreDownloadedListener = null;

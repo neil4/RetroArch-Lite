@@ -382,7 +382,7 @@ public final class DownloadableCoresFragment extends ListFragment
          super.onPreExecute();
 
 			dlg.setMessage(String.format(ctx.getString(R.string.downloading_msg), coreName));
-         dlg.setCancelable(false);
+         dlg.setCancelable(true);
          dlg.setCanceledOnTouchOutside(false);
          dlg.setIndeterminate(false);
          dlg.setMax(100);
@@ -396,6 +396,8 @@ public final class DownloadableCoresFragment extends ListFragment
          InputStream input = null;
          OutputStream output = null;
          HttpURLConnection connection = null;
+         final File zipPath = new File(ctx.getApplicationInfo().dataDir + "/cores/", params[1]);
+
          try
          {
             URL url = new URL(params[0]);
@@ -410,7 +412,6 @@ public final class DownloadableCoresFragment extends ListFragment
 
             // Set up the streams
             final int fileLen = connection.getContentLength();
-            final File zipPath = new File(ctx.getApplicationInfo().dataDir + "/cores/", params[1]);
             input = new BufferedInputStream(connection.getInputStream(), 8192);
             output = new FileOutputStream(zipPath);
             
@@ -423,6 +424,11 @@ public final class DownloadableCoresFragment extends ListFragment
             int countBytes;
             while ((countBytes = input.read(buffer)) != -1)
             {
+               if (!dlg.isShowing()) {
+                  cancel(true);
+                  break;
+               }
+
                totalDownloaded += countBytes;
                if (fileLen > 0)
                   publishProgress((int) (totalDownloaded * 100 / fileLen));
@@ -432,18 +438,24 @@ public final class DownloadableCoresFragment extends ListFragment
             input.close();
             output.close();
 
-            unzipCore(zipPath);
-            
-            { // Update info file for downloaded core
-               String infoUrlPath = BUILDBOT_INFO_URL + params[1].replace("_android.so.zip", ".info");
+            if (!isCancelled()) {
+               unzipCore(zipPath);
+
+               // Update info file for downloaded core
+               String infoUrlPath = BUILDBOT_INFO_URL
+                                    + params[1].replace("_android.so.zip", ".info");
+               File outputPath = new File(ctx.getApplicationInfo().dataDir + "/info/",
+                     infoUrlPath.substring(infoUrlPath.lastIndexOf('/') + 1));
+
                url = new URL(infoUrlPath);
-               File outputPath = new File(ctx.getApplicationInfo().dataDir + "/info/", infoUrlPath.substring(infoUrlPath.lastIndexOf('/') + 1));
                final BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
                final StringBuilder sb = new StringBuilder();
                BufferedWriter bw = new BufferedWriter(new FileWriter(outputPath));
+
                String str;
                while ((str = br.readLine()) != null)
                   sb.append(str).append("\n");
+
                br.close();
                bw.append(sb);
                bw.close();
@@ -457,6 +469,9 @@ public final class DownloadableCoresFragment extends ListFragment
          {
             try
             {
+               if (zipPath.exists())  // normally deleted in unzipCore
+                  zipPath.delete();
+
                if (output != null)
                   output.close();
 
@@ -495,6 +510,13 @@ public final class DownloadableCoresFragment extends ListFragment
             coreDownloadedListener.onCoreDownloaded();
          
          Toast.makeText(this.ctx, this.coreName + (overwrite ? " updated." : " installed."),
+                        Toast.LENGTH_LONG).show();
+      }
+
+      @Override
+      protected void onCancelled(Void result)
+      {
+         Toast.makeText(this.ctx, this.coreName + " download canceled.",
                         Toast.LENGTH_LONG).show();
       }
    }

@@ -23,6 +23,7 @@ public final class UserPreferences
 {
 	// Logging tag.
 	private static final String TAG = "UserPreferences";
+	public static final String defaultBaseDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RetroArchLite";
    
 	// Disallow explicit instantiation.
 	private UserPreferences()
@@ -86,13 +87,11 @@ public final class UserPreferences
       ConfigFile config = new ConfigFile(config_path);
       Log.i(TAG, "Writing config to: " + config_path);
 
-      final String default_base = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RetroArchLite";
-      final String default_save = default_base + "/save";
-      final String default_sys = default_base + "/system";
-      final String default_config = default_base + "/config";  // content configs, core options, and remaps
-      final String default_state = default_base + "/state";
-      final String dataDir = ctx.getApplicationInfo().dataDir;
-      final String coreDir = dataDir + "/cores/";
+      final String defaultSave = UserPreferences.defaultBaseDir + "/save";
+      final String defaultSys = UserPreferences.defaultBaseDir + "/system";
+      final String defaultConfig = UserPreferences.defaultBaseDir + "/config";  // content configs, core options, and remaps
+      final String defaultState = UserPreferences.defaultBaseDir + "/state";
+      final String coreDir = ctx.getApplicationInfo().dataDir + "/cores/";
 
       final SharedPreferences prefs = getPreferences(ctx);
 		
@@ -104,7 +103,7 @@ public final class UserPreferences
       // Audio, Video
       //
 		config.setInt("audio_out_rate", getOptimalSamplingRate(ctx));
-      if (Build.VERSION.SDK_INT >= 17 && prefs.getBoolean("audio_latency_auto", true))
+      if (prefs.getBoolean("audio_latency_auto", true))
          config.setInt("audio_block_frames", getLowLatencyBufferSize(ctx));
       else
          config.setInt("audio_latency", Integer.parseInt(prefs.getString("audio_latency", "64")));
@@ -112,26 +111,26 @@ public final class UserPreferences
       
       // Save, State, System, & Config paths
       //
-      String save_dir = prefs.getBoolean("savefile_directory_enable", false) ?
-                        prefs.getString("savefile_directory", default_save) : default_save;
-      config.setString("savefile_directory", save_dir);
-      new File(save_dir).mkdirs();
+      String saveDir = prefs.getBoolean("savefile_directory_enable", false) ?
+                       prefs.getString("savefile_directory", defaultSave) : defaultSave;
+      config.setString("savefile_directory", saveDir);
+      new File(saveDir).mkdirs();
        
-      String state_dir = prefs.getBoolean("savestate_directory_enable", false) ?
-                         prefs.getString("savestate_directory", default_state) : default_state;
-      config.setString("savestate_directory", state_dir);
-      new File(state_dir).mkdirs();
+      String stateDir = prefs.getBoolean("savestate_directory_enable", false) ?
+                        prefs.getString("savestate_directory", defaultState) : defaultState;
+      config.setString("savestate_directory", stateDir);
+      new File(stateDir).mkdirs();
 
-      String sys_dir = prefs.getBoolean("system_directory_enable", false) ?
-                       prefs.getString("system_directory", default_sys) : default_sys;
-      config.setString("system_directory", sys_dir);
-      new File(sys_dir).mkdirs();
+      String sysDir = prefs.getBoolean("system_directory_enable", false) ?
+				          prefs.getString("system_directory", defaultSys) : defaultSys;
+      config.setString("system_directory", sysDir);
+      new File(sysDir).mkdirs();
       
-      String cfg_dir = prefs.getBoolean("config_directory_enable", false) ?
-                       prefs.getString("rgui_config_directory", default_config) : default_config;
-      config.setString("rgui_config_directory", cfg_dir);
-      config.setString("input_remapping_directory", cfg_dir);
-      new File(cfg_dir).mkdirs();
+      String cfgDir = prefs.getBoolean("config_directory_enable", false) ?
+                      prefs.getString("rgui_config_directory", defaultConfig) : defaultConfig;
+      config.setString("rgui_config_directory", cfgDir);
+      config.setString("input_remapping_directory", cfgDir);
+      new File(cfgDir).mkdirs();
       
       // Input
       //
@@ -213,7 +212,6 @@ public final class UserPreferences
 	 * 
 	 * @return the optimal sampling rate for low-latency audio playback in Hz.
 	 */
-	@TargetApi(17)
 	private static int getLowLatencyOptimalSamplingRate(Context ctx)
 	{
 		AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
@@ -229,7 +227,6 @@ public final class UserPreferences
 	 * 
 	 * @return the optimal output buffer size in decimal PCM frames.
 	 */
-	@TargetApi(17)
 	private static int getLowLatencyBufferSize(Context ctx)
 	{
 		AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
@@ -241,12 +238,8 @@ public final class UserPreferences
 
 	/**
 	 * Gets the optimal audio sampling rate.
-	 * <p>
-	 * On Android 4.2+ devices this will retrieve the optimal low-latency sampling rate,
+	 * This will retrieve the optimal low-latency sampling rate,
 	 * since Android 4.2 adds support for low latency audio in general.
-	 * <p>
-	 * On other devices, it simply returns the regular optimal sampling rate
-	 * as returned by the hardware.
 	 * 
 	 * @param ctx The current {@link Context}.
 	 * 
@@ -254,11 +247,7 @@ public final class UserPreferences
 	 */
 	private static int getOptimalSamplingRate(Context ctx)
 	{
-		int ret;
-		if (Build.VERSION.SDK_INT >= 17)
-			ret = getLowLatencyOptimalSamplingRate(ctx);
-		else
-			ret = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
+		int ret = getLowLatencyOptimalSamplingRate(ctx);
 
 		Log.i(TAG, "Using sampling rate: " + ret + " Hz");
 		return ret;
