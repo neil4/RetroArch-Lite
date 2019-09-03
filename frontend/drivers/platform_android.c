@@ -633,9 +633,9 @@ static void frontend_android_get_environment_settings(int *argc,
          if (args && *path)
          {
             fill_pathname_join(g_defaults.savestate_dir, path,
-                  "savestates", sizeof(g_defaults.savestate_dir));
+                  "state", sizeof(g_defaults.savestate_dir));
             fill_pathname_join(g_defaults.sram_dir, path,
-                  "savefiles", sizeof(g_defaults.sram_dir));
+                  "save", sizeof(g_defaults.sram_dir));
             fill_pathname_join(g_defaults.system_dir, path,
                   "system", sizeof(g_defaults.system_dir));
             fill_pathname_join(g_defaults.menu_config_dir, path,
