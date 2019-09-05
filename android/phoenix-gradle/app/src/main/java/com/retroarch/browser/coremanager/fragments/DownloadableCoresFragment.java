@@ -381,7 +381,7 @@ public final class DownloadableCoresFragment extends ListFragment
       {
          super.onPreExecute();
 
-			dlg.setMessage(String.format(ctx.getString(R.string.downloading_msg), coreName));
+         dlg.setMessage(String.format(ctx.getString(R.string.downloading_msg), coreName));
          dlg.setCancelable(true);
          dlg.setCanceledOnTouchOutside(false);
          dlg.setIndeterminate(false);

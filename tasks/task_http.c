@@ -32,8 +32,6 @@
 #define CB_CORE_UPDATER_LIST     0x32fd4f01U
 #define CB_CORE_INFO_DOWNLOAD    0x92551e94U
 
-extern char download_filename[NAME_MAX_LENGTH];
-
 int cb_core_updater_list(void *data_, size_t len);
 
 #ifdef HAVE_ZLIB
@@ -86,19 +84,20 @@ static int cb_core_updater_download(void *data, size_t len)
    char buf[PATH_MAX_LENGTH]         = {0};
    settings_t              *settings = config_get_ptr();
    global_t                  *global = global_get_ptr();
+   data_runloop_t           *runloop = rarch_main_data_get_ptr();
    char* substr;
 
    if (!data)
       return -1;
 
    fill_pathname_join(output_path, settings->libretro_directory,
-         download_filename, sizeof(output_path));
+         runloop->http.msg_filename, sizeof(output_path));
 
    if (!write_file(output_path, data, len))
       return -1;
    
    snprintf(buf, sizeof(buf), "Download complete: %s.",
-         download_filename);
+         runloop->http.msg_filename);
 
    rarch_main_msg_queue_push(buf, 1, 90, true);
 
@@ -116,7 +115,7 @@ static int cb_core_updater_download(void *data, size_t len)
    core_info_list_free(global->core_info);
    global->core_info = core_info_list_new(INSTALLED_CORES);
    
-   strlcpy(buf, download_filename, NAME_MAX_LENGTH);
+   strlcpy(buf, runloop->http.msg_filename, NAME_MAX_LENGTH);
    substr = strstr(buf,"_libretro");
    if (substr)
       *substr = '\0';
@@ -132,23 +131,24 @@ static int cb_core_info_download(void *data, size_t len)
    char buf[PATH_MAX_LENGTH]         = {0};
    settings_t *settings              = config_get_ptr();
    global_t *global                  = global_get_ptr();
+   data_runloop_t *runloop           = rarch_main_data_get_ptr();
 
    if (!data)
       return -1;
    
    fill_pathname_join(output_path, settings->libretro_info_path,
-         download_filename, sizeof(output_path));
+         runloop->http.msg_filename, sizeof(output_path));
 
    if (!write_file(output_path, data, len))
       return -1;
    
    snprintf(buf, sizeof(buf), "Download complete: %s.",
-         download_filename);
+         runloop->http.msg_filename);
 
    rarch_main_msg_queue_push(buf, 1, 90, true);
 
 #ifdef HAVE_ZLIB
-   file_ext = path_get_extension(download_filename);
+   file_ext = path_get_extension(runloop->http.msg_filename);
 
    if (settings->network.buildbot_auto_extract_archive
        && !strcasecmp(file_ext,"zip"))
@@ -176,22 +176,22 @@ void core_info_download_queue(const char* libretro_name)
 #ifdef HAVE_NETWORKING
    char info_path[PATH_MAX_LENGTH] = {0};
    settings_t *settings            = config_get_ptr();
+   data_runloop_t *runloop         = rarch_main_data_get_ptr();
 
    if (!libretro_name)
    {
       fill_pathname_join(info_path, settings->network.buildbot_assets_url,
                          "frontend/info.zip", PATH_MAX_LENGTH);
-      strlcpy(download_filename, "info.zip", NAME_MAX_LENGTH);
+      strlcpy(runloop->http.msg_filename, "info.zip", NAME_MAX_LENGTH);
    }
    else
    {
+      strlcpy(runloop->http.msg_filename, libretro_name, NAME_MAX_LENGTH);
+      strlcat(runloop->http.msg_filename, "_libretro.info", NAME_MAX_LENGTH);
+
       fill_pathname_join(info_path, settings->network.buildbot_assets_url,
                          "frontend/info/", PATH_MAX_LENGTH);
-      strlcat(info_path, libretro_name, PATH_MAX_LENGTH);
-      strlcat(info_path, "_libretro.info", PATH_MAX_LENGTH);
-      
-      strlcpy(download_filename, libretro_name, NAME_MAX_LENGTH);
-      strlcat(download_filename, "_libretro.info", NAME_MAX_LENGTH);
+      strlcat(info_path, runloop->http.msg_filename, PATH_MAX_LENGTH);
    }
 
    rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, info_path,
@@ -249,12 +249,12 @@ static bool rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
    char msg[32];
    char *data = (char*)net_http_data(http->handle, &len, false);
 
-   strlcpy(download_filename, http->connection.filename, NAME_MAX_LENGTH);
+   strlcpy(http->msg_filename, http->connection.filename, NAME_MAX_LENGTH);
    if (!http->cb || http->cb(data, len) < 0)
    {
       rv = false;
       /* Notify user unless this is a missing info file, which is common */
-      if (strcmp("info", path_get_extension(download_filename)))
+      if (strcmp("info", path_get_extension(http->msg_filename)))
       {
          if (http->handle)
             snprintf(msg, sizeof(msg),
@@ -402,7 +402,7 @@ static int rarch_main_data_http_iterate_transfer(void *data)
       if (tot > 0)
       {
          snprintf(tmp, sizeof(tmp), "Download progress: %d%%", percent);
-         data_runloop_osd_msg(tmp, sizeof(tmp)); 
+         rarch_main_msg_queue_push(tmp, 1, 10, true);
          in_progress = true;
          return 1;
       }
@@ -413,7 +413,7 @@ static int rarch_main_data_http_iterate_transfer(void *data)
          else if (stall_frames++ > 60)
          {
             snprintf(tmp, sizeof(tmp), "Waiting for Connection...");
-            data_runloop_osd_msg(tmp, sizeof(tmp));
+            rarch_main_msg_queue_push(tmp, 1, 10, true);
          }
          in_progress = false;
          return -1;

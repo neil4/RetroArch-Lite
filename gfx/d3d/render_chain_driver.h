@@ -74,7 +74,7 @@ extern renderchain_driver_t xdk_renderchain;
 extern renderchain_driver_t null_renderchain;
 
 bool renderchain_init_first(const renderchain_driver_t **renderchain_driver,
-	void **renderchain_handle);
+   void **renderchain_handle);
 
 #ifdef __cplusplus
 }

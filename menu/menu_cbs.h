@@ -25,14 +25,8 @@
 extern "C" {
 #endif
 
-/* FIXME - Externs, refactor */
-extern size_t hack_shader_pass;
-#ifdef HAVE_NETWORKING
-extern char download_filename[NAME_MAX_LENGTH];
-#endif
 
 /* Function callbacks */
-
 int core_setting_right(unsigned type, const char *label,
       bool wraparound);
 

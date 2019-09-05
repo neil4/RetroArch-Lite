@@ -117,13 +117,13 @@ int main(void)
       return 0;
 
    strlcpy(path, s, sizeof(path));
-   strlcat(path, ":/", sizeof(path));	
+   strlcat(path, ":/", sizeof(path));
 
    load_dir(path);
 
    for (;;)
    {
-      usb_do_poll();		
+      usb_do_poll();
       get_controller_data(&pad, 0);
 
       if (pad.s1_y > STICK_THRESHOLD || pad.up)
@@ -220,7 +220,7 @@ int main(void)
 
       do
       {
-         usb_do_poll();		
+         usb_do_poll();
          get_controller_data(&pad, 0);
       } while (pad.a || pad.b || pad.back || pad.s1_y > STICK_THRESHOLD || pad.s1_y < -STICK_THRESHOLD);
    }

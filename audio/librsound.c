@@ -1434,76 +1434,76 @@ int rsd_exec(rsound_t *rsound)
 /* ioctl()-ish param setting :D */
 int rsd_set_param(rsound_t *rd, enum rsd_settings option, void* param)
 {
-	assert(rd != NULL);
-	assert(param != NULL);
-	int retval = 0;
+   assert(rd != NULL);
+   assert(param != NULL);
+   int retval = 0;
 
-	switch(option)
-	{
-		case RSD_SAMPLERATE:
-			if ( *(int*)param > 0 )
-			{
-				rd->rate = *((int*)param);
-				break;
-			}
-			else
-				retval = -1;
-			break;
-		case RSD_CHANNELS:
-			if ( *(int*)param > 0 )
-			{
-				rd->channels = *((int*)param);
-				break;
-			}
-			else
-				retval = -1;
-			break;
-		case RSD_HOST:
-			if ( rd->host != NULL )
-				free(rd->host);
-			rd->host = strdup((char*)param);
-			break;
-		case RSD_PORT:
-			if ( rd->port != NULL )
-				free(rd->port);
-			rd->port = strdup((char*)param);
-			break;
-		case RSD_BUFSIZE:
-			if ( *(int*)param > 0 )
-			{
-				rd->buffer_size = *((int*)param);
-				break;
-			}
-			else
-				retval = -1;
-			break;
-		case RSD_LATENCY:
-			rd->max_latency = *((int*)param);
-			break;
+   switch(option)
+   {
+      case RSD_SAMPLERATE:
+         if ( *(int*)param > 0 )
+         {
+            rd->rate = *((int*)param);
+            break;
+         }
+         else
+            retval = -1;
+         break;
+      case RSD_CHANNELS:
+         if ( *(int*)param > 0 )
+         {
+            rd->channels = *((int*)param);
+            break;
+         }
+         else
+            retval = -1;
+         break;
+      case RSD_HOST:
+         if ( rd->host != NULL )
+            free(rd->host);
+         rd->host = strdup((char*)param);
+         break;
+      case RSD_PORT:
+         if ( rd->port != NULL )
+            free(rd->port);
+         rd->port = strdup((char*)param);
+         break;
+      case RSD_BUFSIZE:
+         if ( *(int*)param > 0 )
+         {
+            rd->buffer_size = *((int*)param);
+            break;
+         }
+         else
+            retval = -1;
+         break;
+      case RSD_LATENCY:
+         rd->max_latency = *((int*)param);
+         break;
 
-			// Checks if format is valid.   
-		case RSD_FORMAT:
-			rd->format = (uint16_t)(*((int*)param));
-			rd->samplesize = rsnd_format_to_samplesize(rd->format);
+         // Checks if format is valid.
+      case RSD_FORMAT:
+         rd->format = (uint16_t)(*((int*)param));
+         rd->samplesize = rsnd_format_to_samplesize(rd->format);
 
-			if ( rd->samplesize == -1 )
-			{
-				rd->format = RSD_S16_LE;
-				rd->samplesize = rsnd_format_to_samplesize(RSD_S16_LE);
-				*((int*)param) = (int)RSD_S16_LE;
-			}
-			break;
+         if ( rd->samplesize == -1 )
+         {
+            rd->format = RSD_S16_LE;
+            rd->samplesize = rsnd_format_to_samplesize(RSD_S16_LE);
+            *((int*)param) = (int)RSD_S16_LE;
+         }
+         break;
 
-		case RSD_IDENTITY:
-			strlcpy(rd->identity, param, sizeof(rd->identity));
-			rd->identity[sizeof(rd->identity)-1] = '\0';
-			break;
+      case RSD_IDENTITY:
+         strlcpy(rd->identity, param, sizeof(rd->identity));
+         rd->identity[sizeof(rd->identity)-1] = '\0';
+         break;
 
-		default:
-			retval = -1;
-	}
+      default:
+         retval = -1;
+   }
 
-	return retval;
+   return retval;
 }
 
 void rsd_delay_wait(rsound_t *rd)

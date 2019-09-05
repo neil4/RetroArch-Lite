@@ -28,9 +28,6 @@
 #include "menu/menu_input.h"
 #endif
 
-extern char download_filename[NAME_MAX_LENGTH];
-static char data_runloop_msg[PATH_MAX_LENGTH];
-
 static struct data_runloop *g_data_runloop;
 
 data_runloop_t *rarch_main_data_get_ptr(void)
@@ -136,13 +133,6 @@ void rarch_main_data_iterate(void)
 #ifdef HAVE_RPNG
    rarch_main_data_nbio_image_upload_iterate(runloop);
 #endif
-
-   if (data_runloop_msg[0] != '\0')
-   {
-      rarch_main_msg_queue_push(data_runloop_msg, 1, 10, true);
-      data_runloop_msg[0] = '\0';
-   }
-
 #ifdef HAVE_MENU
    menu_entries_refresh(MENU_ACTION_REFRESH);
 #endif
@@ -206,7 +196,7 @@ void rarch_main_data_msg_queue_push(unsigned type,
       case DATA_TYPE_HTTP:
          queue = runloop->http.msg_queue;
          snprintf(new_msg, sizeof(new_msg), "%s|%s|%s", msg, msg2,
-                                                        download_filename);
+                  runloop->http.msg_filename);
          break;
 #endif
 #ifdef HAVE_OVERLAY
@@ -222,9 +212,4 @@ void rarch_main_data_msg_queue_push(unsigned type,
    if (flush)
       msg_queue_clear(queue);
    msg_queue_push(queue, new_msg, prio, duration);
-}
-
-void data_runloop_osd_msg(const char *msg, size_t len)
-{
-   strlcpy(data_runloop_msg, msg, len);
 }

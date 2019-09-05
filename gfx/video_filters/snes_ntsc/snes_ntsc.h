@@ -29,7 +29,7 @@ typedef struct snes_ntsc_setup_t
 	double bleed;      /* color bleed (color resolution reduction) */
 	int merge_fields;  /* if 1, merges even and odd fields together to reduce flicker */
 	float const* decoder_matrix; /* optional RGB decoder matrix, 6 elements */
-	
+
 	unsigned long const* bsnes_colortbl; /* undocumented; set to 0 */
 } snes_ntsc_setup_t;
 
@@ -49,8 +49,8 @@ and output RGB depth is set by SNES_NTSC_OUT_DEPTH. Both default to 16-bit RGB.
 In_row_width is the number of pixels to get to the next input row. Out_pitch
 is the number of *bytes* to get to the next output row. */
 void snes_ntsc_blit( snes_ntsc_t const* ntsc, SNES_NTSC_IN_T const* input,
-		long in_row_width, int burst_phase, int in_width, int in_height,
-		void* rgb_out, long out_pitch, int first, int last);
+      long in_row_width, int burst_phase, int in_width, int in_height,
+      void* rgb_out, long out_pitch, int first, int last);
 
 #if 0
 void snes_ntsc_blit_hires( snes_ntsc_t const* ntsc, SNES_NTSC_IN_T const* input,

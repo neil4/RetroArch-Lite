@@ -59,25 +59,25 @@ struct argb_t
 };
 
 typedef void (*fetch_scanline_t) (bits_image_t   *image,
-				  int             x,
-				  int             y,
-				  int             width,
-				  uint32_t       *buffer,
-				  const uint32_t *mask);
+               int             x,
+               int             y,
+               int             width,
+               uint32_t       *buffer,
+               const uint32_t *mask);
 
 typedef uint32_t (*fetch_pixel_32_t) (bits_image_t *image,
-				      int           x,
-				      int           y);
+                  int           x,
+                  int           y);
 
 typedef argb_t (*fetch_pixel_float_t) (bits_image_t *image,
-				       int           x,
-				       int           y);
+                     int           x,
+                     int           y);
 
 typedef void (*store_scanline_t) (bits_image_t *  image,
-				  int             x,
-				  int             y,
-				  int             width,
-				  const uint32_t *values);
+               int             x,
+               int             y,
+               int             width,
+               const uint32_t *values);
 
 typedef enum
 {
@@ -95,14 +95,13 @@ struct image_common
     image_type_t                type;
     int32_t                     ref_count;
     pixman_region32_t           clip_region;
-    int32_t			alpha_count;	    /* How many times this image is being used as an alpha map */
+    int32_t                     alpha_count;       /* How many times this image is being used as an alpha map */
     pixman_bool_t               have_clip_region;   /* FALSE if there is no clip */
-    pixman_bool_t               client_clip;        /* Whether the source clip was
-						       set by a client */
+    pixman_bool_t               client_clip;        /* Whether the source clip was set by a client */
     pixman_bool_t               clip_sources;       /* Whether the clip applies when
-						     * the image is used as a source
-						     */
-    pixman_bool_t		dirty;
+                                                     * the image is used as a source
+                                                     */
+    pixman_bool_t               dirty;
     pixman_transform_t *        transform;
     pixman_repeat_t             repeat;
     pixman_filter_t             filter;
@@ -117,8 +116,8 @@ struct image_common
     pixman_image_destroy_func_t destroy_func;
     void *                      destroy_data;
 
-    uint32_t			flags;
-    pixman_format_code_t	extended_format_code;
+    uint32_t                    flags;
+    pixman_format_code_t        extended_format_code;
 };
 
 struct solid_fill
@@ -126,15 +125,15 @@ struct solid_fill
     image_common_t common;
     pixman_color_t color;
 
-    uint32_t	   color_32;
-    argb_t	   color_float;
+    uint32_t       color_32;
+    argb_t         color_float;
 };
 
 struct gradient
 {
-    image_common_t	    common;
+    image_common_t          common;
     int                     n_stops;
-    pixman_gradient_stop_t *stops;
+    pixman_gradient_stop_t  *stops;
 };
 
 struct linear_gradient
@@ -168,7 +167,7 @@ struct conical_gradient
 {
     gradient_t           common;
     pixman_point_fixed_t center;
-    double		 angle;
+    double               angle;
 };
 
 struct bits_image
@@ -183,11 +182,11 @@ struct bits_image
     int                        rowstride;  /* in number of uint32_t's */
 
     fetch_scanline_t           fetch_scanline_32;
-    fetch_pixel_32_t	       fetch_pixel_32;
+    fetch_pixel_32_t           fetch_pixel_32;
     store_scanline_t           store_scanline_32;
 
-    fetch_scanline_t	       fetch_scanline_float;
-    fetch_pixel_float_t	       fetch_pixel_float;
+    fetch_scanline_t           fetch_scanline_float;
+    fetch_pixel_float_t        fetch_pixel_float;
     store_scanline_t           store_scanline_float;
 
     /* Used for indirect access to the bits */
@@ -210,7 +209,7 @@ union pixman_image
 typedef struct pixman_iter_t pixman_iter_t;
 typedef uint32_t *(* pixman_iter_get_scanline_t) (pixman_iter_t *iter, const uint32_t *mask);
 typedef void      (* pixman_iter_write_back_t)   (pixman_iter_t *iter);
-typedef void	  (* pixman_iter_fini_t)	 (pixman_iter_t *iter);
+typedef void      (* pixman_iter_fini_t)         (pixman_iter_t *iter);
 
 typedef enum
 {
@@ -232,37 +231,37 @@ typedef enum
      * we can treat it as if it were ARGB, which means in some cases we can
      * avoid copying it to a temporary buffer.
      */
-    ITER_LOCALIZED_ALPHA =	(1 << 2),
-    ITER_IGNORE_ALPHA =		(1 << 3),
-    ITER_IGNORE_RGB =		(1 << 4),
+    ITER_LOCALIZED_ALPHA = (1 << 2),
+    ITER_IGNORE_ALPHA =    (1 << 3),
+    ITER_IGNORE_RGB =      (1 << 4),
 
     /* These indicate whether the iterator is for a source
      * or a destination image
      */
-    ITER_SRC =			(1 << 5),
-    ITER_DEST =			(1 << 6)
+    ITER_SRC =          (1 << 5),
+    ITER_DEST =         (1 << 6)
 } iter_flags_t;
 
 struct pixman_iter_t
 {
     /* These are initialized by _pixman_implementation_{src,dest}_init */
-    pixman_image_t *		image;
-    uint32_t *			buffer;
-    int				x, y;
-    int				width;
-    int				height;
-    iter_flags_t		iter_flags;
-    uint32_t			image_flags;
+    pixman_image_t * image;
+    uint32_t       * buffer;
+    int              x, y;
+    int              width;
+    int              height;
+    iter_flags_t     iter_flags;
+    uint32_t         image_flags;
 
     /* These function pointers are initialized by the implementation */
-    pixman_iter_get_scanline_t	get_scanline;
-    pixman_iter_write_back_t	write_back;
+    pixman_iter_get_scanline_t   get_scanline;
+    pixman_iter_write_back_t  write_back;
     pixman_iter_fini_t          fini;
 
     /* These fields are scratch data that implementations can use */
-    void *			data;
-    uint8_t *			bits;
-    int				stride;
+    void *        data;
+    uint8_t *     bits;
+    int           stride;
 };
 
 typedef struct pixman_iter_info_t pixman_iter_info_t;
@@ -270,12 +269,12 @@ typedef void (* pixman_iter_initializer_t) (pixman_iter_t *iter,
                                             const pixman_iter_info_t *info);
 struct pixman_iter_info_t
 {
-    pixman_format_code_t	format;
-    uint32_t			image_flags;
-    iter_flags_t		iter_flags;
-    pixman_iter_initializer_t	initializer;
-    pixman_iter_get_scanline_t	get_scanline;
-    pixman_iter_write_back_t	write_back;
+    pixman_format_code_t   format;
+    uint32_t         image_flags;
+    iter_flags_t     iter_flags;
+    pixman_iter_initializer_t    initializer;
+    pixman_iter_get_scanline_t   get_scanline;
+    pixman_iter_write_back_t     write_back;
 };
 
 void
@@ -306,7 +305,7 @@ _pixman_bits_image_init (pixman_image_t *     image,
                          int                  height,
                          uint32_t *           bits,
                          int                  rowstride,
-			 pixman_bool_t	      clear);
+                         pixman_bool_t       clear);
 pixman_bool_t
 _pixman_image_fini (pixman_image_t *image);
 

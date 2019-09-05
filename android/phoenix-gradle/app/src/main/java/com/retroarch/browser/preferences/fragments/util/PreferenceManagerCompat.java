@@ -73,7 +73,7 @@ class PreferenceManagerCompat
      */
     static void setFragment(PreferenceManager manager, PreferenceListFragment fragment)
     {
-    	// stub
+       // stub
     }
 
     /**

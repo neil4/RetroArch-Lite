@@ -51,8 +51,6 @@ void accelerate_overlay_load();
 #endif
 
 void rarch_main_data_nbio_iterate(void *runloop);
-    
-void data_runloop_osd_msg(const char *s, size_t len);
 
 #ifdef __cplusplus
 }

@@ -28,12 +28,6 @@
 #include "../../runloop_data.h"
 #include "../../input/input_remapping.h"
 
-/* FIXME - Global variables, refactor */
-char detect_content_path[PATH_MAX_LENGTH];
-size_t hack_shader_pass = 0;
-#ifdef HAVE_NETWORKING
-char download_filename[NAME_MAX_LENGTH];
-#endif
 
 static int menu_action_setting_set_current_string_path(
       rarch_setting_t *setting, const char *dir, const char *path)
@@ -67,8 +61,8 @@ static int rarch_defer_core_wrapper(menu_displaylist_info_t *info,
          sizeof(menu->deferred_path));
 
    if (!is_carchive)
-      fill_pathname_join(detect_content_path, menu_path, path,
-            sizeof(detect_content_path));
+      fill_pathname_join(menu->detect_content_path, menu_path, path,
+            sizeof(menu->detect_content_path));
 
    switch (ret)
    {
@@ -108,7 +102,9 @@ static int action_ok_file_load_with_detect_core_carchive(
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    menu_displaylist_info_t info = {0};
-   uint32_t hash_label      = menu_hash_calculate(label);
+   menu_handle_t *menu          = menu_driver_get_ptr();
+   uint32_t hash_label          = menu_hash_calculate(label);
+   char* detect_content_path    = menu->detect_content_path;
 
    strlcat(detect_content_path, "#", sizeof(detect_content_path));
    strlcat(detect_content_path, path, sizeof(detect_content_path));
@@ -130,8 +126,9 @@ static int action_ok_file_load_detect_core(const char *path,
 {
    settings_t *settings     = config_get_ptr();
    global_t *global         = global_get_ptr();
+   menu_handle_t *menu      = menu_driver_get_ptr();
 
-   strlcpy(global->fullpath, detect_content_path, sizeof(global->fullpath));
+   strlcpy(global->fullpath, menu->detect_content_path, sizeof(global->fullpath));
    strlcpy(settings->libretro, path, sizeof(settings->libretro));
    event_command(EVENT_CMD_LOAD_CORE);
    menu_common_load_content(false);
@@ -170,9 +167,9 @@ static int action_ok_shader_pass_load(const char *path,
    menu_list_get_last_stack(menu_list, &menu_path, NULL,
          NULL, NULL);
 
-   fill_pathname_join(menu->shader->pass[hack_shader_pass].source.path,
+   fill_pathname_join(menu->shader->pass[menu->shader->pass_idx].source.path,
          menu_path, path,
-         sizeof(menu->shader->pass[hack_shader_pass].source.path));
+         sizeof(menu->shader->pass[menu->shader->pass_idx].source.path));
 
    /* This will reset any changed parameters. */
    video_shader_resolve_parameters(NULL, menu->shader);
@@ -184,20 +181,17 @@ static int action_ok_shader_pass_load(const char *path,
 #endif
 }
 
-#ifdef HAVE_SHADER_MANAGER
-extern size_t hack_shader_pass;
-#endif
-
 static int action_ok_shader_pass(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    menu_displaylist_info_t info = {0};
-   hack_shader_pass             = type - MENU_SETTINGS_SHADER_PASS_0;
    menu_handle_t *menu          = menu_driver_get_ptr();
    menu_list_t *menu_list       = menu_list_get_ptr();
    settings_t *settings         = config_get_ptr();
    if (!menu || !menu_list)
       return -1;
+
+   menu->shader->pass_idx       = type - MENU_SETTINGS_SHADER_PASS_0;
 
    info.list          = menu_list->menu_stack;
    info.type          = type;
@@ -1064,6 +1058,7 @@ static int action_ok_core_updater_download(const char *path,
    char *pch;
    settings_t *settings            = config_get_ptr();
    global_t *global                = global_get_ptr();
+   data_runloop_t *runloop         = rarch_main_data_get_ptr();
    
    strlcpy(buf, path, PATH_MAX_LENGTH);
    pch = strstr(buf, "_libretro");
@@ -1080,7 +1075,8 @@ static int action_ok_core_updater_download(const char *path,
    fill_pathname_join(core_path, settings->network.buildbot_url,
          path, sizeof(core_path));
 
-   strlcpy(download_filename, path, sizeof(download_filename));
+   strlcpy(runloop->http.msg_filename, path,
+           sizeof(runloop->http.msg_filename));
    snprintf(buf, sizeof(buf),
          "%s %s.",
          menu_hash_to_str(MENU_LABEL_VALUE_STARTING_DOWNLOAD),

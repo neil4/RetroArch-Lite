@@ -33,7 +33,7 @@ static const char *stock_hlsl_program =
       ")\n"
       "{\n"
       "  oPosition = mul(modelViewProj, position);\n"
-	   "  oColor = color;\n"
+      "  oColor = color;\n"
       "  otexCoord = texCoord;\n"
       "}\n"
       "\n"
@@ -47,12 +47,12 @@ static const char *stock_hlsl_program =
       "  float2 video_size;\n"
       "  float2 texture_size;\n"
       "  float2 output_size;\n"
-	   "  float frame_count;\n"
-	   "  float frame_direction;\n"
-	   "  float frame_rotation;\n"
+      "  float frame_count;\n"
+      "  float frame_direction;\n"
+      "  float frame_rotation;\n"
       "};\n"
       "\n"
-      "output main_fragment(float2 texCoord : TEXCOORD0,\n" 
+      "output main_fragment(float2 texCoord : TEXCOORD0,\n"
       "uniform sampler2D decal : TEXUNIT0, uniform input IN)\n"
       "{\n"
       "  output OUT;\n"
@@ -64,17 +64,17 @@ struct hlsl_program
 {
    LPDIRECT3DVERTEXSHADER vprg;
    LPDIRECT3DPIXELSHADER fprg;
-   D3DXHANDLE	vid_size_f;
-   D3DXHANDLE	tex_size_f;
-   D3DXHANDLE	out_size_f;
-   D3DXHANDLE   frame_cnt_f;
-   D3DXHANDLE   frame_dir_f;
-   D3DXHANDLE	vid_size_v;
-   D3DXHANDLE	tex_size_v;
-   D3DXHANDLE	out_size_v;
-   D3DXHANDLE   frame_cnt_v;
-   D3DXHANDLE   frame_dir_v;
-   D3DXHANDLE   mvp;
+   D3DXHANDLE  vid_size_f;
+   D3DXHANDLE  tex_size_f;
+   D3DXHANDLE  out_size_f;
+   D3DXHANDLE  frame_cnt_f;
+   D3DXHANDLE  frame_dir_f;
+   D3DXHANDLE  vid_size_v;
+   D3DXHANDLE  tex_size_v;
+   D3DXHANDLE  out_size_v;
+   D3DXHANDLE  frame_cnt_v;
+   D3DXHANDLE  frame_dir_v;
+   D3DXHANDLE  mvp;
    LPD3DXCONSTANTTABLE v_ctable;
    LPD3DXCONSTANTTABLE f_ctable;
    XMMATRIX mvp_val;   /* TODO: Move to D3DXMATRIX here */
@@ -145,7 +145,7 @@ static void hlsl_set_params(void *data, unsigned width, unsigned height,
 }
 
 static bool load_program(hlsl_shader_data_t *hlsl,
-	void *data, unsigned idx, const char *prog, bool path_is_file)
+      void *data, unsigned idx, const char *prog, bool path_is_file)
 {
    d3d_video_t *d3d = (d3d_video_t*)data;
    LPDIRECT3DDEVICE d3d_device_ptr = (LPDIRECT3DDEVICE)d3d->dev;
@@ -227,7 +227,7 @@ static void set_program_attributes(hlsl_shader_data_t *hlsl, unsigned i)
 }
 
 static bool load_shader(hlsl_shader_data_t *hlsl,
-	void *data, const char *cgp_path, unsigned i)
+      void *data, const char *cgp_path, unsigned i)
 {
    char path_buf[PATH_MAX_LENGTH] = {0};
 
@@ -257,7 +257,7 @@ static bool load_plain(hlsl_shader_data_t *hlsl, void *data, const char *path)
    {
       RARCH_LOG("Loading Cg/HLSL file: %s\n", path);
       strlcpy(hlsl->cg_shader->pass[0].source.path,
-		  path, sizeof(hlsl->cg_shader->pass[0].source.path));
+            path, sizeof(hlsl->cg_shader->pass[0].source.path));
       if (!load_program(hlsl, data, 1, path, true))
          return false;
    }
@@ -277,10 +277,10 @@ static void hlsl_deinit_progs(hlsl_shader_data_t *hlsl)
    {
       if (hlsl->prg[i].fprg && hlsl->prg[i].fprg != hlsl->prg[0].fprg)
          hlsl->prg[i].fprg->Release();
-	  hlsl->prg[i].fprg = NULL;
+     hlsl->prg[i].fprg = NULL;
       if (hlsl->prg[i].vprg && hlsl->prg[i].vprg != hlsl->prg[0].vprg)
          hlsl->prg[i].vprg->Release();
-	  hlsl->prg[i].vprg = NULL;
+     hlsl->prg[i].vprg = NULL;
    }
 
    if (hlsl->prg[0].fprg)
@@ -355,11 +355,11 @@ static bool hlsl_init(void *data, const char *path)
 {
    d3d_video_t *d3d = (d3d_video_t*)data;
    hlsl_shader_data_t *hlsl = (hlsl_shader_data_t*)
-	   calloc(1, sizeof(hlsl_shader_data_t));
+         calloc(1, sizeof(hlsl_shader_data_t));
    driver_t *driver = driver_get_ptr();
 
    if (!hlsl)
-	   return false;
+      return false;
 
    if (path && !strcmp(path_get_extension(path), ".cgp"))
    {
@@ -384,7 +384,7 @@ static bool hlsl_init(void *data, const char *path)
 
 error:
    if (hlsl)
-	   free(hlsl);
+      free(hlsl);
    return false;
 }
 
@@ -399,7 +399,7 @@ static void hlsl_deinit(void)
    hlsl_deinit_state(hlsl);
 
    if (driver->video_shader_data)
-	   free(driver->video_shader_data);
+      free(driver->video_shader_data);
    driver->video_shader_data = NULL;
 }
 
@@ -464,8 +464,8 @@ static bool hlsl_set_mvp(void *data, const math_matrix_4x4 *mat)
    if(hlsl && hlsl->prg[hlsl->active_idx].mvp)
    {
       hlsl->prg[hlsl->active_idx].v_ctable->SetMatrix(d3d_device_ptr,
-		  hlsl->prg[hlsl->active_idx].mvp,
-		  (D3DXMATRIX*)&hlsl->prg[hlsl->active_idx].mvp_val);
+            hlsl->prg[hlsl->active_idx].mvp,
+            (D3DXMATRIX*)&hlsl->prg[hlsl->active_idx].mvp_val);
       return true;
    }
    return false;

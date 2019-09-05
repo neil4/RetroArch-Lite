@@ -5,16 +5,16 @@ package com.retroarch.browser;
  */
 public final class NativeInterface
 {
-	static
-	{
-		System.loadLibrary("retroarch-jni");
-	}
+   static
+   {
+      System.loadLibrary("retroarch-jni");
+   }
 
-	// Disallow explicit instantiation.
-	private NativeInterface()
-	{
-	}
+   // Disallow explicit instantiation.
+   private NativeInterface()
+   {
+   }
 
-	public static native boolean extractArchiveTo(String archive,
-			String subDirectory, String destinationFolder);
+   public static native boolean extractArchiveTo(String archive,
+                                                 String subDirectory, String destinationFolder);
 }

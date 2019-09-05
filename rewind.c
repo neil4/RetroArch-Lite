@@ -309,7 +309,7 @@ static INLINE size_t find_change(const uint16_t *a, const uint16_t *b)
 {
    const __m128i *a128 = (const __m128i*)a;
    const __m128i *b128 = (const __m128i*)b;
-	
+
    for (;;)
    {
       __m128i v0    = _mm_loadu_si128(a128);
@@ -321,7 +321,7 @@ static INLINE size_t find_change(const uint16_t *a, const uint16_t *b)
       {
          size_t ret = (((uint8_t*)a128 - (uint8_t*)a) |
                (compat_ctz(~mask))) >> 1;
-			return ret | (a[ret] == b[ret]);
+         return ret | (a[ret] == b[ret]);
       }
 
       a128++;
@@ -343,7 +343,7 @@ static INLINE size_t find_change(const uint16_t *a, const uint16_t *b)
    {
       const size_t *a_big = (const size_t*)a;
       const size_t *b_big = (const size_t*)b;
-		
+
       while (*a_big == *b_big)
       {
          a_big++;
@@ -351,7 +351,7 @@ static INLINE size_t find_change(const uint16_t *a, const uint16_t *b)
       }
       a = (const uint16_t*)a_big;
       b = (const uint16_t*)b_big;
-		
+
       while (*a == *b)
       {
          a++;
@@ -384,7 +384,7 @@ static INLINE size_t find_same(const uint16_t *a, const uint16_t *b)
        * of the outer loop, as well as in the decompressor.) */
       const uint32_t *a_big = (const uint32_t*)a;
       const uint32_t *b_big = (const uint32_t*)b;
-		
+
       while (*a_big != *b_big)
       {
          a_big++;
@@ -392,7 +392,7 @@ static INLINE size_t find_same(const uint16_t *a, const uint16_t *b)
       }
       a = (const uint16_t*)a_big;
       b = (const uint16_t*)b_big;
-		
+
       if (a != a_org && a[-1] == b[-1])
       {
          a--;

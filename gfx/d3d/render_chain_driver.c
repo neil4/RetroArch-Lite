@@ -27,7 +27,7 @@ static const renderchain_driver_t *renderchain_drivers[] = {
 };
 
 bool renderchain_init_first(const renderchain_driver_t **renderchain_driver,
-	void **renderchain_handle)
+      void **renderchain_handle)
 {
    unsigned i;
 

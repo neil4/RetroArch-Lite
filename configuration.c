@@ -265,9 +265,9 @@ const char *config_get_default_input(void)
       case INPUT_COCOA:
          return "cocoa";
       case INPUT_QNX:
-      	 return "qnx_input";
+          return "qnx_input";
       case INPUT_RWEBINPUT:
-      	 return "rwebinput";
+          return "rwebinput";
       default:
          break;
    }
@@ -738,7 +738,7 @@ static void config_set_defaults(void)
 
    *global->record.output_dir = '\0';
    *global->record.config_dir = '\0';
-;
+
    *settings->cheat_database = '\0';
    *settings->cheat_settings_path = '\0';
    *settings->resampler_directory = '\0';
@@ -1632,6 +1632,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    if (settings->input.overlay_aspect_ratio_index >= OVERLAY_ASPECT_RATIO_END)
          settings->input.overlay_aspect_ratio_index = OVERLAY_ASPECT_RATIO_END-1;
    CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_adjust_vertical, "input_overlay_adjust_vertical");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_adjust_horizontal, "input_overlay_adjust_horizontal");
    CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_adjust_vertical_lock_edges, "input_overlay_adjust_vertical_lock_edges");
 
    CONFIG_GET_INT_BASE(conf, settings, input.vibrate_time, "input_vibrate_time");
@@ -2267,6 +2268,8 @@ bool config_save_file(const char *path)
             settings->input.overlay_adjust_vertical);
       config_set_bool(conf, "input_overlay_adjust_vertical_lock_edges",
             settings->input.overlay_adjust_vertical_lock_edges);
+      config_set_float(conf, "input_overlay_adjust_horizontal",
+            settings->input.overlay_adjust_horizontal);
    }
 
    config_set_float(conf, "input_vibrate_time", settings->input.vibrate_time);
@@ -2572,6 +2575,8 @@ static void scoped_config_file_save(unsigned scope)
             settings->input.overlay_adjust_vertical);
       config_set_bool(conf, "input_overlay_adjust_vertical_lock_edges",
             settings->input.overlay_adjust_vertical_lock_edges);
+      config_set_float(conf, "input_overlay_adjust_horizontal",
+            settings->input.overlay_adjust_horizontal);
    }
    else if (settings->input.overlay_adjust_vert_horiz_scope < scope)
    {
@@ -2761,6 +2766,7 @@ void config_backup_restore_globals()
 #ifdef HAVE_OVERLAY
    static float input_overlay_opacity;
    static float input_overlay_adjust_vertical;
+   static float input_overlay_adjust_horizontal;
    static char input_overlay[PATH_MAX_LENGTH];
    static bool input_overlay_enable;
    static unsigned input_dpad_method;
@@ -2905,6 +2911,7 @@ void config_backup_restore_globals()
       settings->input.overlay_bisect_aspect_ratio = input_overlay_bisect_aspect_ratio;
       settings->input.overlay_adjust_vertical = input_overlay_adjust_vertical;
       settings->input.overlay_adjust_vertical_lock_edges = input_overlay_adjust_vertical_lock_edges;
+      settings->input.overlay_adjust_horizontal = input_overlay_adjust_horizontal;
    }
    else
    {  /* back up */
@@ -2913,6 +2920,7 @@ void config_backup_restore_globals()
       input_overlay_bisect_aspect_ratio = settings->input.overlay_bisect_aspect_ratio;
       input_overlay_adjust_vertical = settings->input.overlay_adjust_vertical;
       input_overlay_adjust_vertical_lock_edges = settings->input.overlay_adjust_vertical_lock_edges;
+      input_overlay_adjust_horizontal = settings->input.overlay_adjust_horizontal;
    }
    
    if (settings->input.overlay_opacity_scope != GLOBAL)
@@ -3148,6 +3156,7 @@ static void scoped_config_file_load(unsigned scope)
          settings->input.overlay_aspect_ratio_index = OVERLAY_ASPECT_RATIO_END-1;
       config_get_float(conf, "input_overlay_adjust_vertical", &settings->input.overlay_adjust_vertical);
       config_get_bool(conf, "input_overlay_adjust_vertical_lock_edges", &settings->input.overlay_adjust_vertical_lock_edges);
+      config_get_float(conf, "input_overlay_adjust_horizontal", &settings->input.overlay_adjust_horizontal);
    }
    if (config_get_float(conf, "input_overlay_opacity", &settings->input.overlay_opacity))
       settings->input.overlay_opacity_scope = scope;

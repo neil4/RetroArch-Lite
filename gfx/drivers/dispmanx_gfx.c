@@ -49,7 +49,7 @@ struct dispmanx_page
 
    /* This field will allow us to access the 
     * main _dispvars struct from the vsync CB function */
-   struct dispmanx_video *dispvars;	
+   struct dispmanx_video *dispvars;
 };
 
 struct dispmanx_surface
@@ -106,7 +106,7 @@ struct dispmanx_video
    unsigned int dispmanx_height;
 
    /* For threading */
-   scond_t *vsync_condition;	
+   scond_t *vsync_condition;
    slock_t *vsync_cond_mutex;
    slock_t *pending_mutex;
    unsigned int pageflip_pending;
@@ -135,9 +135,9 @@ static struct dispmanx_page *dispmanx_get_free_page(void *data, struct dispmanx_
       /* If no page is free at the moment,
        * wait until a free page is freed by vsync CB. */
       if (!page) {
-	 slock_lock(_dispvars->vsync_cond_mutex);
-	 scond_wait(_dispvars->vsync_condition, _dispvars->vsync_cond_mutex);
-	 slock_unlock(_dispvars->vsync_cond_mutex);
+         slock_lock(_dispvars->vsync_cond_mutex);
+         scond_wait(_dispvars->vsync_condition, _dispvars->vsync_cond_mutex);
+         slock_unlock(_dispvars->vsync_cond_mutex);
       }
    }
    
@@ -173,7 +173,7 @@ static void dispmanx_vsync_callback(DISPMANX_UPDATE_HANDLE_T u, void *data)
     * a false positive in the pending_mutex test in update_main. */ 
    slock_lock(page->dispvars->pending_mutex);
    
-   page->dispvars->pageflip_pending--;	
+   page->dispvars->pageflip_pending--;
    scond_signal(page->dispvars->vsync_condition);
   
    slock_unlock(page->dispvars->pending_mutex);
@@ -181,7 +181,7 @@ static void dispmanx_vsync_callback(DISPMANX_UPDATE_HANDLE_T u, void *data)
 
 static void dispmanx_surface_free(void *data, struct dispmanx_surface *surface)
 {
-   int i;	
+   int i;
    struct dispmanx_video *_dispvars = data;
    
    for (i = 0; i < surface->numpages; i++) { 
@@ -194,7 +194,7 @@ static void dispmanx_surface_free(void *data, struct dispmanx_surface *surface)
    
    _dispvars->update = vc_dispmanx_update_start(0);
    vc_dispmanx_element_remove(_dispvars->update, surface->element);
-   vc_dispmanx_update_submit_sync(_dispvars->update);		
+   vc_dispmanx_update_submit_sync(_dispvars->update);
 
    surface->setup = false;
 }
@@ -225,7 +225,7 @@ static void dispmanx_surface_setup(void *data, int width, int height, int pitch,
     * the "visible" width, for cores with things between scanlines. */
    int visible_width = pitch / surface->bpp;
  
-   dst_width  = _dispvars->dispmanx_height * aspect;	
+   dst_width  = _dispvars->dispmanx_height * aspect;
    dst_height = _dispvars->dispmanx_height;
    
    /* If we obtain a scaled image width that is bigger than the physical screen width,
@@ -238,7 +238,7 @@ static void dispmanx_surface_setup(void *data, int width, int height, int pitch,
 
    /* We configure the rects now. */
    vc_dispmanx_rect_set(&surface->dst_rect, dst_xpos, dst_ypos, dst_width, dst_height);
-   vc_dispmanx_rect_set(&surface->bmp_rect, 0, 0, width, height);	
+   vc_dispmanx_rect_set(&surface->bmp_rect, 0, 0, width, height);
    vc_dispmanx_rect_set(&surface->src_rect, 0, 0, width << 16, height << 16);	
 
    for (i = 0; i < surface->numpages; i++) {
@@ -255,7 +255,7 @@ static void dispmanx_surface_setup(void *data, int width, int height, int pitch,
       &surface->src_rect, DISPMANX_PROTECTION_NONE,
       &surface->alpha, 0, (DISPMANX_TRANSFORM_T)0);
 
-   vc_dispmanx_update_submit_sync(_dispvars->update);		
+   vc_dispmanx_update_submit_sync(_dispvars->update);
 
    surface->setup = true;
 }
@@ -321,7 +321,7 @@ static void dispmanx_surface_update(void *data, const void *frame, struct dispma
    vc_dispmanx_update_submit(_dispvars->update, dispmanx_vsync_callback, (void*)page);
 
    slock_lock(_dispvars->pending_mutex);
-   _dispvars->pageflip_pending++;	
+   _dispvars->pageflip_pending++;
    slock_unlock(_dispvars->pending_mutex);
 }
 

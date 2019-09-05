@@ -1377,7 +1377,7 @@ void rarch_main_set_state(unsigned cmd)
          video_driver_set_texture_enable(false, false);
          break;
       case RARCH_ACTION_STATE_QUIT:
-	     if (global)
+         if (global)
             global->system.shutdown = true;
          rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
          break;

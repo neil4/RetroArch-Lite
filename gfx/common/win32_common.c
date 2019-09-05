@@ -37,24 +37,24 @@ static bool win32_browser(
       const char *title,
       const char *initial_dir)
 {
-	OPENFILENAME ofn;
+   OPENFILENAME ofn;
 
-	memset((void*)&ofn, 0, sizeof(OPENFILENAME));
+   memset((void*)&ofn, 0, sizeof(OPENFILENAME));
 
-	ofn.lStructSize     = sizeof(OPENFILENAME);
-	ofn.hwndOwner       = owner;
-	ofn.lpstrFilter     = extensions;
-	ofn.lpstrFile       = filename;
-	ofn.lpstrTitle      = title;
-	ofn.lpstrInitialDir = TEXT(initial_dir);
-	ofn.lpstrDefExt     = "";
-	ofn.nMaxFile        = PATH_MAX;
-	ofn.Flags           = OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+   ofn.lStructSize     = sizeof(OPENFILENAME);
+   ofn.hwndOwner       = owner;
+   ofn.lpstrFilter     = extensions;
+   ofn.lpstrFile       = filename;
+   ofn.lpstrTitle      = title;
+   ofn.lpstrInitialDir = TEXT(initial_dir);
+   ofn.lpstrDefExt     = "";
+   ofn.nMaxFile        = PATH_MAX;
+   ofn.Flags           = OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
 
-	if (!GetOpenFileName(&ofn))
-		return false;
+   if (!GetOpenFileName(&ofn))
+      return false;
 
-	return true;
+   return true;
 }
 
 LRESULT win32_menu_loop(HWND owner, WPARAM wparam)
@@ -67,7 +67,7 @@ LRESULT win32_menu_loop(HWND owner, WPARAM wparam)
 
    (void)global;
 
-	switch (mode)
+   switch (mode)
    {
       case ID_M_LOAD_CONTENT:
          if (!*settings->libretro)
@@ -175,18 +175,18 @@ LRESULT win32_menu_loop(HWND owner, WPARAM wparam)
          break;
    }
 
-	if (cmd != EVENT_CMD_NONE)
-		event_command(cmd);
+   if (cmd != EVENT_CMD_NONE)
+      event_command(cmd);
 
-	if (do_wm_close)
-		PostMessage(owner, WM_CLOSE, 0, 0);
-	
-	return 0L;
+   if (do_wm_close)
+      PostMessage(owner, WM_CLOSE, 0, 0);
+
+   return 0L;
 }
 #endif
 
 bool win32_get_metrics(void *data,
-	enum display_metric_types type, float *value)
+   enum display_metric_types type, float *value)
 {
 #ifdef _XBOX
    return false;

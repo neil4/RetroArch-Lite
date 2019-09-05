@@ -279,7 +279,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
             g_resized = true;
          }
          return 0;
-	  case WM_COMMAND:
+      case WM_COMMAND:
          if (settings->ui.menubar_enable)
          {
             LRESULT ret = win32_menu_loop(g_hwnd, wparam);
@@ -655,7 +655,7 @@ static gfx_ctx_proc_t gfx_ctx_wgl_get_proc_address(const char *symbol)
 }
 
 static bool gfx_ctx_wgl_get_metrics(void *data,
-	enum display_metric_types type, float *value)
+   enum display_metric_types type, float *value)
 {
    return win32_get_metrics(data, type, value);
 }

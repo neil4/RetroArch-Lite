@@ -52,6 +52,7 @@ typedef struct
 
    bool defer_core;
    char deferred_path[PATH_MAX_LENGTH];
+   char detect_content_path[PATH_MAX_LENGTH];
 
    /* Menu display */
    menu_display_t display;

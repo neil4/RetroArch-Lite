@@ -21,68 +21,68 @@ import java.io.File;
  */
 public final class UserPreferences
 {
-	// Logging tag.
-	private static final String TAG = "UserPreferences";
-	public static final String defaultBaseDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RetroArchLite";
+   // Logging tag.
+   private static final String TAG = "UserPreferences";
+   public static final String defaultBaseDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/RetroArchLite";
    
-	// Disallow explicit instantiation.
-	private UserPreferences()
-	{
-	}
+   // Disallow explicit instantiation.
+   private UserPreferences()
+   {
+   }
 
-	/**
-	 * Retrieves the path to the default location of the libretro config.
-	 * 
-	 * @param ctx the current {@link Context}
-	 * 
-	 * @return the path to the default location of the libretro config.
-	 */
-	public static String getDefaultConfigPath(Context ctx)
-	{
+   /**
+    * Retrieves the path to the default location of the libretro config.
+    *
+    * @param ctx the current {@link Context}
+    *
+    * @return the path to the default location of the libretro config.
+    */
+   public static String getDefaultConfigPath(Context ctx)
+   {
       return ctx.getApplicationInfo().dataDir + "/retroarch.cfg";
-	}
+   }
 
-	/**
-	 * Re-reads the configuration file into the {@link SharedPreferences}
-	 * instance that contains all of the settings for the front-end.
-	 * 
-	 * @param ctx the current {@link Context}.
-	 */
-	public static void readbackConfigFile(Context ctx)
-	{
-		String path = getDefaultConfigPath(ctx);
-		ConfigFile config = new ConfigFile(path);
+   /**
+    * Re-reads the configuration file into the {@link SharedPreferences}
+    * instance that contains all of the settings for the front-end.
+    *
+    * @param ctx the current {@link Context}.
+    */
+   public static void readbackConfigFile(Context ctx)
+   {
+      String path = getDefaultConfigPath(ctx);
+      ConfigFile config = new ConfigFile(path);
 
-		Log.i(TAG, "Config readback from: " + path);
-		
-		SharedPreferences prefs = getPreferences(ctx);
-		SharedPreferences.Editor edit = prefs.edit();
+      Log.i(TAG, "Config readback from: " + path);
 
-		// Audio Settings.
+      SharedPreferences prefs = getPreferences(ctx);
+      SharedPreferences.Editor edit = prefs.edit();
+
+      // Audio Settings.
       readbackString(config, edit, "audio_latency");
 
-		// Input Settings
-		readbackString(config, edit, "input_overlay");
-		readbackBool(config, edit, "input_overlay_enable");
-		readbackBool(config, edit, "input_autodetect_enable");
+      // Input Settings
+      readbackString(config, edit, "input_overlay");
+      readbackBool(config, edit, "input_overlay_enable");
+      readbackBool(config, edit, "input_autodetect_enable");
 
-		// Video Settings
-		readbackString(config, edit, "video_refresh_rate");
+      // Video Settings
+      readbackString(config, edit, "video_refresh_rate");
       
       // Menu Settings
       readbackBool(config, edit, "mame_titles");
 
-		edit.commit();
-	}
+      edit.commit();
+   }
 
-	/**
-	 * Updates the libretro configuration file
-	 * with new values if settings have changed.
-	 * 
-	 * @param ctx the current {@link Context}.
-	 */
-	public static void updateConfigFile(Context ctx)
-	{
+   /**
+    * Updates the libretro configuration file
+    * with new values if settings have changed.
+    *
+    * @param ctx the current {@link Context}.
+    */
+   public static void updateConfigFile(Context ctx)
+   {
       final String config_path = getDefaultConfigPath(ctx);  // main config
       ConfigFile config = new ConfigFile(config_path);
       Log.i(TAG, "Writing config to: " + config_path);
@@ -94,7 +94,7 @@ public final class UserPreferences
       final String coreDir = ctx.getApplicationInfo().dataDir + "/cores/";
 
       final SharedPreferences prefs = getPreferences(ctx);
-		
+
       // Internal directories
       //
       config.setString("libretro_directory", coreDir);
@@ -102,7 +102,7 @@ public final class UserPreferences
       
       // Audio, Video
       //
-		config.setInt("audio_out_rate", getOptimalSamplingRate(ctx));
+      config.setInt("audio_out_rate", getOptimalSamplingRate(ctx));
       if (prefs.getBoolean("audio_latency_auto", true))
          config.setInt("audio_block_frames", getLowLatencyBufferSize(ctx));
       else
@@ -122,7 +122,7 @@ public final class UserPreferences
       new File(stateDir).mkdirs();
 
       String sysDir = prefs.getBoolean("system_directory_enable", false) ?
-				          prefs.getString("system_directory", defaultSys) : defaultSys;
+                      prefs.getString("system_directory", defaultSys) : defaultSys;
       config.setString("system_directory", sysDir);
       new File(sysDir).mkdirs();
       
@@ -149,107 +149,107 @@ public final class UserPreferences
       {
          Log.e(TAG, "Failed to save config file to: " + config_path);
       }
-	}
+   }
 
-	public static void readbackString(ConfigFile cfg, SharedPreferences.Editor edit, String key)
-	{
-		if (cfg.keyExists(key))
-			edit.putString(key, cfg.getString(key));
-		else
-			edit.remove(key);
-	}
+   public static void readbackString(ConfigFile cfg, SharedPreferences.Editor edit, String key)
+   {
+      if (cfg.keyExists(key))
+         edit.putString(key, cfg.getString(key));
+      else
+         edit.remove(key);
+   }
 
-	private static void readbackBool(ConfigFile cfg, SharedPreferences.Editor edit, String key)
-	{
-		if (cfg.keyExists(key))
-			edit.putBoolean(key, cfg.getBoolean(key));
-		else
-			edit.remove(key);
-	}
+   private static void readbackBool(ConfigFile cfg, SharedPreferences.Editor edit, String key)
+   {
+      if (cfg.keyExists(key))
+         edit.putBoolean(key, cfg.getBoolean(key));
+      else
+         edit.remove(key);
+   }
 
-	private static void readbackDouble(ConfigFile cfg, SharedPreferences.Editor edit, String key)
-	{
-		if (cfg.keyExists(key))
-			edit.putFloat(key, (float)cfg.getDouble(key));
-		else
-			edit.remove(key);
-	}
+   private static void readbackDouble(ConfigFile cfg, SharedPreferences.Editor edit, String key)
+   {
+      if (cfg.keyExists(key))
+         edit.putFloat(key, (float)cfg.getDouble(key));
+      else
+         edit.remove(key);
+   }
 
-	private static void readbackFloat(ConfigFile cfg, SharedPreferences.Editor edit, String key)
-	{
-		if (cfg.keyExists(key))
-			edit.putFloat(key, cfg.getFloat(key));
-		else
-			edit.remove(key);
-	}
+   private static void readbackFloat(ConfigFile cfg, SharedPreferences.Editor edit, String key)
+   {
+      if (cfg.keyExists(key))
+         edit.putFloat(key, cfg.getFloat(key));
+      else
+         edit.remove(key);
+   }
 
    /*
-	private static void readbackInt(ConfigFile cfg, SharedPreferences.Editor edit, String key)
-	{
-		if (cfg.keyExists(key))
-			edit.putInt(key, cfg.getInt(key));
-		else
-			edit.remove(key);
-	}
+   private static void readbackInt(ConfigFile cfg, SharedPreferences.Editor edit, String key)
+   {
+      if (cfg.keyExists(key))
+         edit.putInt(key, cfg.getInt(key));
+      else
+         edit.remove(key);
+   }
    */
    
-	/**
-	 * Gets a {@link SharedPreferences} instance containing current settings.
-	 * 
-	 * @param ctx the current {@link Context}.
-	 * 
-	 * @return A SharedPreference instance containing current settings.
-	 */
-	public static SharedPreferences getPreferences(Context ctx)
-	{
-		return PreferenceManager.getDefaultSharedPreferences(ctx);
-	}
+   /**
+    * Gets a {@link SharedPreferences} instance containing current settings.
+    *
+    * @param ctx the current {@link Context}.
+    *
+    * @return A SharedPreference instance containing current settings.
+    */
+   public static SharedPreferences getPreferences(Context ctx)
+   {
+      return PreferenceManager.getDefaultSharedPreferences(ctx);
+   }
 
-	/**
-	 * Gets the optimal sampling rate for low-latency audio playback.
-	 * 
-	 * @param ctx the current {@link Context}.
-	 * 
-	 * @return the optimal sampling rate for low-latency audio playback in Hz.
-	 */
-	private static int getLowLatencyOptimalSamplingRate(Context ctx)
-	{
-		AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+   /**
+    * Gets the optimal sampling rate for low-latency audio playback.
+    *
+    * @param ctx the current {@link Context}.
+    *
+    * @return the optimal sampling rate for low-latency audio playback in Hz.
+    */
+   private static int getLowLatencyOptimalSamplingRate(Context ctx)
+   {
+      AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
 
-		return Integer.parseInt(manager
-				.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE));
-	}
+      return Integer.parseInt(manager
+            .getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE));
+   }
 
-	/**
-	 * Gets the optimal buffer size for low-latency audio playback.
-	 * 
-	 * @param ctx the current {@link Context}.
-	 * 
-	 * @return the optimal output buffer size in decimal PCM frames.
-	 */
-	private static int getLowLatencyBufferSize(Context ctx)
-	{
-		AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
-		int buffersize = Integer.parseInt(manager
-				.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER));
-		Log.i(TAG, "Queried ideal buffer size (frames): " + buffersize);
-		return buffersize;
-	}
+   /**
+    * Gets the optimal buffer size for low-latency audio playback.
+    *
+    * @param ctx the current {@link Context}.
+    *
+    * @return the optimal output buffer size in decimal PCM frames.
+    */
+   private static int getLowLatencyBufferSize(Context ctx)
+   {
+      AudioManager manager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+      int buffersize = Integer.parseInt(manager
+            .getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER));
+      Log.i(TAG, "Queried ideal buffer size (frames): " + buffersize);
+      return buffersize;
+   }
 
-	/**
-	 * Gets the optimal audio sampling rate.
-	 * This will retrieve the optimal low-latency sampling rate,
-	 * since Android 4.2 adds support for low latency audio in general.
-	 * 
-	 * @param ctx The current {@link Context}.
-	 * 
-	 * @return the optimal audio sampling rate in Hz.
-	 */
-	private static int getOptimalSamplingRate(Context ctx)
-	{
-		int ret = getLowLatencyOptimalSamplingRate(ctx);
+   /**
+    * Gets the optimal audio sampling rate.
+    * This will retrieve the optimal low-latency sampling rate,
+    * since Android 4.2 adds support for low latency audio in general.
+    *
+    * @param ctx The current {@link Context}.
+    *
+    * @return the optimal audio sampling rate in Hz.
+    */
+   private static int getOptimalSamplingRate(Context ctx)
+   {
+      int ret = getLowLatencyOptimalSamplingRate(ctx);
 
-		Log.i(TAG, "Using sampling rate: " + ret + " Hz");
-		return ret;
-	}
+      Log.i(TAG, "Using sampling rate: " + ret + " Hz");
+      return ret;
+   }
 }

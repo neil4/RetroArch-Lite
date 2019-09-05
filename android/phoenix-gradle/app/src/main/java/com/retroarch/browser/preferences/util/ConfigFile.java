@@ -127,158 +127,158 @@ public final class ConfigFile
    }
 
    /**
-	 * Checks if a key exists in the {@link HashMap}
-	 * backing this ConfigFile instance.
-	 * 
-	 * @param key The key to check for.
-	 * 
-	 * @return true if the key exists in the HashMap backing
-	 *         this ConfigFile; false if it doesn't.
-	 */
-	public boolean keyExists(String key)
-	{
-		return map.containsKey(key);
-	}
+    * Checks if a key exists in the {@link HashMap}
+    * backing this ConfigFile instance.
+    *
+    * @param key The key to check for.
+    *
+    * @return true if the key exists in the HashMap backing
+    *         this ConfigFile; false if it doesn't.
+    */
+   public boolean keyExists(String key)
+   {
+      return map.containsKey(key);
+   }
 
-	/**
-	 * Sets a key to the given String value.
-	 * 
-	 * @param key   The key to set the String value to.
-	 * @param value The String value to set to the key.
-	 */
-	public void setString(String key, String value)
-	{
-		map.put(key, value);
-	}
+   /**
+    * Sets a key to the given String value.
+    *
+    * @param key   The key to set the String value to.
+    * @param value The String value to set to the key.
+    */
+   public void setString(String key, String value)
+   {
+      map.put(key, value);
+   }
 
-	/**
-	 * Sets a key to the given boolean value.
-	 * 
-	 * @param key   The key to set the boolean value to.
-	 * @param value The boolean value to set to the key.
-	 */
-	public void setBoolean(String key, boolean value)
-	{
-		map.put(key, Boolean.toString(value));
-	}
+   /**
+    * Sets a key to the given boolean value.
+    *
+    * @param key   The key to set the boolean value to.
+    * @param value The boolean value to set to the key.
+    */
+   public void setBoolean(String key, boolean value)
+   {
+      map.put(key, Boolean.toString(value));
+   }
 
-	/**
-	 * Sets a key to the given Integer value.
-	 * 
-	 * @param key   The key to set the Integer value to.
-	 * @param value The Integer value to set to the key.
-	 */
-	public void setInt(String key, int value)
-	{
-		map.put(key, Integer.toString(value));
-	}
+   /**
+    * Sets a key to the given Integer value.
+    *
+    * @param key   The key to set the Integer value to.
+    * @param value The Integer value to set to the key.
+    */
+   public void setInt(String key, int value)
+   {
+      map.put(key, Integer.toString(value));
+   }
 
-	/**
-	 * Sets a key to the given double value.
-	 * 
-	 * @param key   The key to set the double value to.
-	 * @param value The double value to set to the key.
-	 */
-	public void setDouble(String key, double value)
-	{
-		map.put(key, Double.toString(value));
-	}
-	
-	/**
-	 * Sets a key to the given float value.
-	 * 
-	 * @param key   The key to set the float value to.
-	 * @param value The float value to set to the key.
-	 */
-	public void setFloat(String key, float value)
-	{
-		map.put(key, Float.toString(value));
-	}
+   /**
+    * Sets a key to the given double value.
+    *
+    * @param key   The key to set the double value to.
+    * @param value The double value to set to the key.
+    */
+   public void setDouble(String key, double value)
+   {
+      map.put(key, Double.toString(value));
+   }
 
-	/**
-	 * Gets the String value associated with the given key.
-	 * 
-	 * @param key The key to get the String value from.
-	 * 
-	 * @return the String object associated with the given key.
-	 */
-	public String getString(String key)
-	{
-		String ret = map.get(key);
+   /**
+    * Sets a key to the given float value.
+    *
+    * @param key   The key to set the float value to.
+    * @param value The float value to set to the key.
+    */
+   public void setFloat(String key, float value)
+   {
+      map.put(key, Float.toString(value));
+   }
 
-		if (ret != null)
-			return ret;
-		else
-			return null;
-	}
+   /**
+    * Gets the String value associated with the given key.
+    *
+    * @param key The key to get the String value from.
+    *
+    * @return the String object associated with the given key.
+    */
+   public String getString(String key)
+   {
+      String ret = map.get(key);
 
-	/**
-	 * Gets the Integer value associated with the given key.
-	 * 
-	 * @param key The key to get the Integer value from.
-	 * 
-	 * @return the Integer value associated with the given key.
-	 */
-	public int getInt(String key)
-	{
-		String str = getString(key);
+      if (ret != null)
+         return ret;
+      else
+         return null;
+   }
 
-		if (str != null)
-			return Integer.parseInt(str);
-		else
-			throw new IllegalArgumentException("Config key '" + key + "' is invalid.");
-	}
+   /**
+    * Gets the Integer value associated with the given key.
+    *
+    * @param key The key to get the Integer value from.
+    *
+    * @return the Integer value associated with the given key.
+    */
+   public int getInt(String key)
+   {
+      String str = getString(key);
 
-	/**
-	 * Gets the double value associated with the given key.
-	 * 
-	 * @param key The key to get the double value from.
-	 * 
-	 * @return the double value associated with the given key.
-	 */
-	public double getDouble(String key)
-	{
-		String str = getString(key);
+      if (str != null)
+         return Integer.parseInt(str);
+      else
+         throw new IllegalArgumentException("Config key '" + key + "' is invalid.");
+   }
 
-		if (str != null)
-			return Double.parseDouble(str);
-		else
-			throw new IllegalArgumentException("Config key '" + key + "' is invalid.");
-	}
+   /**
+    * Gets the double value associated with the given key.
+    *
+    * @param key The key to get the double value from.
+    *
+    * @return the double value associated with the given key.
+    */
+   public double getDouble(String key)
+   {
+      String str = getString(key);
 
-	/**
-	 * Gets the float value associated with the given key.
-	 * 
-	 * @param key The key to get the float value from.
-	 * 
-	 * @return the float value associated with the given key.
-	 */
-	public float getFloat(String key)
-	{
-		String str = getString(key);
+      if (str != null)
+         return Double.parseDouble(str);
+      else
+         throw new IllegalArgumentException("Config key '" + key + "' is invalid.");
+   }
 
-		if (str != null)
-			return Float.parseFloat(str);
-		else
-			throw new IllegalArgumentException("Config key '" + key + "' is invalid.");
-	}
+   /**
+    * Gets the float value associated with the given key.
+    *
+    * @param key The key to get the float value from.
+    *
+    * @return the float value associated with the given key.
+    */
+   public float getFloat(String key)
+   {
+      String str = getString(key);
 
-	/**
-	 * Gets the boolean value associated with the given key.
-	 * 
-	 * @param key The key to get the boolean value from.
-	 * 
-	 * @return the boolean value associated with the given key.
-	 */
-	public boolean getBoolean(String key)
-	{
-		String str = getString(key);
+      if (str != null)
+         return Float.parseFloat(str);
+      else
+         throw new IllegalArgumentException("Config key '" + key + "' is invalid.");
+   }
 
-		if (str != null)
-			return Boolean.parseBoolean(str);
-		else
-			throw new IllegalArgumentException("Config key '" + key + "' is invalid.");
-	}
+   /**
+    * Gets the boolean value associated with the given key.
+    *
+    * @param key The key to get the boolean value from.
+    *
+    * @return the boolean value associated with the given key.
+    */
+   public boolean getBoolean(String key)
+   {
+      String str = getString(key);
+
+      if (str != null)
+         return Boolean.parseBoolean(str);
+      else
+         throw new IllegalArgumentException("Config key '" + key + "' is invalid.");
+   }
    
    public boolean removeKeysWithPrefix(String s)
    {

@@ -6,15 +6,15 @@ import com.retroarch.browser.preferences.util.UserPreferences;
 
 public class RetroActivity extends RetroActivityLocation
 {
-	@Override
-	public void onLowMemory()
-	{
-	}
+   @Override
+   public void onLowMemory()
+   {
+   }
 
-	@Override
-	public void onTrimMemory(int level)
-	{
-	}
+   @Override
+   public void onTrimMemory(int level)
+   {
+   }
    
    @Override
    public void onResume() {

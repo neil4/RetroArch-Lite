@@ -32,8 +32,6 @@
 #include "../../input/input_autodetect.h"
 #include "../../performance.h"
 
-extern char detect_content_path[PATH_MAX_LENGTH];
-
 static int archive_open(void)
 {
    char cat_path[PATH_MAX_LENGTH] = {0};
@@ -45,6 +43,7 @@ static int archive_open(void)
    size_t entry_idx               = 0;
    menu_navigation_t *nav         = menu_navigation_get_ptr();
    menu_list_t *menu_list         = menu_list_get_ptr();
+   menu_handle_t *menu            = menu_driver_get_ptr();
 
    if (!menu_list || !nav)
       return -1;
@@ -62,8 +61,8 @@ static int archive_open(void)
 
    fill_pathname_join(cat_path, menu_path, path, sizeof(cat_path));
 
-   fill_pathname_join(detect_content_path, menu_path, path,
-         sizeof(detect_content_path));
+   fill_pathname_join(menu->detect_content_path, menu_path, path,
+         sizeof(menu->detect_content_path));
 
    info.list          = menu_list->menu_stack;
    info.type          = type;
@@ -104,8 +103,8 @@ static int archive_load(void)
    ret = rarch_defer_core(global->core_info, menu_path, path, menu_label,
          menu->deferred_path, sizeof(menu->deferred_path));
 
-   fill_pathname_join(detect_content_path, menu_path, path,
-         sizeof(detect_content_path));
+   fill_pathname_join(menu->detect_content_path, menu_path, path,
+         sizeof(menu->detect_content_path));
 
    switch (ret)
    {

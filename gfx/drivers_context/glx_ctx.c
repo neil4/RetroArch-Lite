@@ -787,7 +787,7 @@ static void gfx_ctx_glx_bind_hw_render(void *data, bool enable)
 }
 
 static bool gfx_ctx_glx_get_metrics(void *data,
-	enum display_metric_types type, float *value)
+   enum display_metric_types type, float *value)
 {
    return x11_get_metrics(data, type, value);
 }

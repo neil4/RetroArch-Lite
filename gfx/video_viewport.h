@@ -78,9 +78,9 @@ extern char rotation_lut[4][32];
 
 /* ABGR color format defines */
 
-#define WHITE		  0xffffffffu
+#define WHITE       0xffffffffu
 #define RED         0xff0000ffu
-#define GREEN		  0xff00ff00u
+#define GREEN       0xff00ff00u
 #define BLUE        0xffff0000u
 #define YELLOW      0xff00ffffu
 #define PURPLE      0xffff00ffu

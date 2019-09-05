@@ -25,15 +25,15 @@
 
 bool string_is_empty(const char *data)
 {
-	char **str = NULL;
+   char **str = NULL;
 
-	if (!data)
-		return true;
+   if (!data)
+      return true;
 
-	str = (char**)&data;
-	if (**str == '\0')
-		return true;
-	return false;
+   str = (char**)&data;
+   if (**str == '\0')
+      return true;
+   return false;
 }
 
 char *string_to_upper(char *s)

@@ -16,7 +16,7 @@ typedef struct
    int ge_callback_id;
 
    GuSwapBuffersCallback swapBuffersCallback;
-   int swapBuffersBehaviour;	
+   int swapBuffersBehaviour;
 } GuSettings;
 
 typedef struct
@@ -62,31 +62,31 @@ typedef struct
 {
    /* row 0 */
 
-   unsigned char enable;	/* Light enable */
-   unsigned char type;	   /* Light type   */
-   unsigned char xpos;	   /* X position   */
-   unsigned char ypos;	   /* Y position   */
+   unsigned char enable;   /* Light enable */
+   unsigned char type;     /* Light type   */
+   unsigned char xpos;     /* X position   */
+   unsigned char ypos;     /* Y position   */
 
    /* row 1 */
 
-   unsigned char zpos;	// Z position
-   unsigned char xdir;	// X direction
-   unsigned char ydir;	// Y direction
-   unsigned char zdir;	// Z direction
+   unsigned char zpos;  // Z position
+   unsigned char xdir;  // X direction
+   unsigned char ydir;  // Y direction
+   unsigned char zdir;  // Z direction
 
    /* row 2 */
 
-   unsigned char ambient;	// Ambient color
-   unsigned char diffuse;	// Diffuse color
-   unsigned char specular;	// Specular color
-   unsigned char constant;	// Constant attenuation
+   unsigned char ambient;  // Ambient color
+   unsigned char diffuse;  // Diffuse color
+   unsigned char specular; // Specular color
+   unsigned char constant; // Constant attenuation
 
    /* row 3 */
 
-   unsigned char linear;	// Linear attenuation
+   unsigned char linear;   // Linear attenuation
    unsigned char quadratic;// Quadratic attenuation
-   unsigned char exponent;	// Light exponent
-   unsigned char cutoff;	// Light cutoff
+   unsigned char exponent; // Light exponent
+   unsigned char cutoff;   // Light cutoff
 } GuLightSettings;
 
 extern unsigned int gu_current_frame;
@@ -107,9 +107,9 @@ extern int gu_object_stack_depth;
 
 extern GuLightSettings light_settings[4];
 
-static int tbpcmd_tbl[8] = { 0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7 };	/* 0x30A18 */
-static int tbwcmd_tbl[8] = { 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf };	/* 0x30A38 */
-static int tsizecmd_tbl[8] = { 0xb8, 0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf };	/* 0x30A58 */
+static int tbpcmd_tbl[8] = { 0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7 };   /* 0x30A18 */
+static int tbwcmd_tbl[8] = { 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf };   /* 0x30A38 */
+static int tsizecmd_tbl[8] = { 0xb8, 0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf }; /* 0x30A58 */
 
 #define sendCommandi(cmd, argument) *(gu_list->current++) = (cmd << 24) | (argument & 0xffffff)
 

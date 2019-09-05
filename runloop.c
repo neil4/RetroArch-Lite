@@ -590,7 +590,7 @@ static int do_state_checks(event_cmd_state_t *cmd)
    else if (cmd->disk_next_pressed)
       event_command(EVENT_CMD_DISK_NEXT);
    else if (cmd->disk_prev_pressed)
-      event_command(EVENT_CMD_DISK_PREV);	  
+      event_command(EVENT_CMD_DISK_PREV);
 
    if (cmd->reset_pressed)
       event_command(EVENT_CMD_RESET);
@@ -1098,7 +1098,7 @@ static void rarch_main_cmd_get_state(event_cmd_state_t *cmd,
    cmd->rewind_pressed              = BIT64_GET(input,         RARCH_REWIND);
    cmd->netplay_flip_pressed        = BIT64_GET(trigger_input, RARCH_NETPLAY_FLIP);
    cmd->cheat_index_plus_pressed    = BIT64_GET(trigger_input, RARCH_CHEAT_INDEX_PLUS);
-   cmd->cheat_index_minus_pressed   = BIT64_GET(trigger_input,  RARCH_CHEAT_INDEX_MINUS);
+   cmd->cheat_index_minus_pressed   = BIT64_GET(trigger_input, RARCH_CHEAT_INDEX_MINUS);
    cmd->cheat_toggle_pressed        = BIT64_GET(trigger_input, RARCH_CHEAT_TOGGLE);
    cmd->hotkeys_toggle_pressed      = BIT64_GET(trigger_input, RARCH_TOGGLE_HOTKEYS);
 }

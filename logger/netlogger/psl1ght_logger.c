@@ -40,8 +40,8 @@
 int s;
 struct sockaddr_in server;
 
-#define INITSTRING	"Logging Started\n"
-#define BYESTRING	"Logging Stopped\n"
+#define INITSTRING   "Logging Started\n"
+#define BYESTRING "Logging Stopped\n"
 
 void logger_init (void)
 {

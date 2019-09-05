@@ -117,7 +117,7 @@ static void null_renderchain_add_state_tracker(void *data, void *tracker_data)
 }
 
 static void null_renderchain_convert_geometry(
-	  void *data, const void *info_data,
+      void *data, const void *info_data,
       unsigned *out_width, unsigned *out_height,
       unsigned width, unsigned height,
       void *final_viewport_data)

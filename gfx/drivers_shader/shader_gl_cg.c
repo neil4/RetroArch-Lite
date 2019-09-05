@@ -63,12 +63,12 @@ static const char *stock_cg_program =
       "};"
       "void main_vertex"
       "("
-      "	out float4 oPosition : POSITION,"
+      "  out float4 oPosition : POSITION,"
       "  input IN,"
       "  out vertex_data vert"
       ")"
       "{"
-      "	oPosition = mul(IN.mvp_matrix, IN.vertex_coord);"
+      "  oPosition = mul(IN.mvp_matrix, IN.vertex_coord);"
       "  vert = vertex_data(IN.tex_coord, IN.color);"
       "}"
       ""
@@ -335,7 +335,7 @@ static void gl_cg_set_params(void *data, unsigned width, unsigned height,
       }
 
       vparam = cgGetNamedParameter(cg->prg[cg->active_idx].vprg,
-		  cg->cg_shader->lut[i].id);
+            cg->cg_shader->lut[i].id);
 
       if (vparam)
       {

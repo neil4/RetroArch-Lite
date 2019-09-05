@@ -137,6 +137,7 @@ struct video_shader
    char prefix[64];
 
    unsigned passes;
+   unsigned pass_idx;
    struct video_shader_pass pass[GFX_MAX_SHADERS];
 
    unsigned luts;

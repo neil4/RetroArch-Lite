@@ -282,7 +282,6 @@ static int action_start_shader_action_preset_parameter(unsigned type, const char
 static int action_start_shader_pass(unsigned type, const char *label)
 {
 #ifdef HAVE_SHADER_MANAGER
-   hack_shader_pass = type - MENU_SETTINGS_SHADER_PASS_0;
    struct video_shader *shader = NULL;
    struct video_shader_pass *shader_pass = NULL;
    menu_handle_t *menu = menu_driver_get_ptr();
@@ -290,9 +289,10 @@ static int action_start_shader_pass(unsigned type, const char *label)
       return -1;
 
    shader = menu->shader;
+   menu->shader->pass_idx = type - MENU_SETTINGS_SHADER_PASS_0;
 
    if (shader)
-      shader_pass = &shader->pass[hack_shader_pass];
+      shader_pass = &shader->pass[menu->shader->pass_idx];
 
    if (shader_pass)
       *shader_pass->source.path = '\0';

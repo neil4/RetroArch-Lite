@@ -157,7 +157,7 @@ int ZEXPORT inflateReset2(z_streamp strm, int windowBits)
 
    /* get the state */
    if (strm == Z_NULL || strm->state == Z_NULL)
-	   return Z_STREAM_ERROR;
+      return Z_STREAM_ERROR;
    state = (struct inflate_state FAR *)strm->state;
 
    /* extract wrap request from windowBits parameter */
@@ -1465,7 +1465,7 @@ int ZEXPORT inflateUndermine(z_streamp strm, int subvert)
    struct inflate_state FAR *state = NULL;
 
    if (strm == Z_NULL || strm->state == Z_NULL)
-	   return Z_STREAM_ERROR;
+      return Z_STREAM_ERROR;
    state = (struct inflate_state FAR *)strm->state;
    state->sane = !subvert;
 #ifdef INFLATE_ALLOW_INVALID_DISTANCE_TOOFAR_ARRR
@@ -1481,7 +1481,7 @@ long ZEXPORT inflateMark(z_streamp strm)
    struct inflate_state FAR *state = NULL;
 
    if (strm == Z_NULL || strm->state == Z_NULL)
-	   return -1L << 16;
+      return -1L << 16;
    state = (struct inflate_state FAR *)strm->state;
    return ((long)(state->back) << 16) +
       (state->mode == COPY ? state->length :

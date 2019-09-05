@@ -198,8 +198,8 @@ static bool gfx_ctx_qnx_init(void *data)
    {
       if (screen_create_window(&screen_win, screen_ctx))
       {
-	     RARCH_ERR("screen_create_window failed:.\n");
-	     goto error;
+        RARCH_ERR("screen_create_window failed:.\n");
+        goto error;
       }
    }
 
