@@ -366,6 +366,15 @@ static void input_overlay_desc_adjust_aspect_and_vertical(struct overlay_desc *d
          desc->y = dist;
       }
    }
+
+   /* adjust horizontal */
+   desc->x += settings->input.overlay_adjust_horizontal;
+
+   /* make sure the button isn't entirely pushed off screen */
+   if ( desc->x > 1.0f )
+      desc->x = 1.0f;
+   else if ( desc->x < 0.0f)
+      desc->x = 0.0f;
 }
 
 void input_overlay_get_slope_limits( const float diagonal_sensitivity,

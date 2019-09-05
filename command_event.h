@@ -71,7 +71,7 @@ enum event_command
    EVENT_CMD_OVERLAY_DEINIT,
    /* Sets current scale factor for overlay. */
    EVENT_CMD_OVERLAY_SET_SCALE_FACTOR,
-   EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL,
+   EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT,
    EVENT_CMD_OVERLAY_POPULATE_8WAY,
    /* Sets current alpha modulation for overlay. */
    EVENT_CMD_OVERLAY_SET_ALPHA_MOD,

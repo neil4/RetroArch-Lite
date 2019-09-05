@@ -291,6 +291,7 @@ typedef struct settings
       uint32_t overlay_aspect_ratio_index;
       float overlay_bisect_aspect_ratio;
       float overlay_adjust_vertical;
+      float overlay_adjust_horizontal;
       bool overlay_adjust_vertical_lock_edges;
       unsigned overlay_adjust_vert_horiz_scope;
       

@@ -1192,7 +1192,7 @@ bool event_command(enum event_command cmd)
                settings->input.overlay_scale);
 #endif
          break;
-      case EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_VERTICAL:
+      case EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT:
 #ifdef HAVE_OVERLAY
          input_overlays_update_aspect_and_vertical(driver->overlay);
 #endif
