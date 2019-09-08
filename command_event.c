@@ -1194,7 +1194,7 @@ bool event_command(enum event_command cmd)
          break;
       case EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT:
 #ifdef HAVE_OVERLAY
-         input_overlays_update_aspect_and_vertical(driver->overlay);
+         input_overlays_update_aspect_and_shift(driver->overlay);
 #endif
          break;
       case EVENT_CMD_OVERLAY_SET_ALPHA_MOD:

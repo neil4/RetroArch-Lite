@@ -73,6 +73,7 @@ typedef struct overlay_adjust_data
    float y_aspect_factor;
    float y_center_shift;
    float display_aspect;
+   bool updated_needed;
 } overlay_adjust_data_t;
 
 static overlay_adjust_data_t adj;
@@ -325,6 +326,7 @@ static void input_overlay_desc_update_hitbox(struct overlay_desc *desc)
 static void input_overlay_desc_adjust_aspect_and_vertical(struct overlay_desc *desc)
 {
    settings_t* settings = config_get_ptr();
+   global_t  *global    = global_get_ptr();
    
    if (!desc)
       return;
@@ -368,7 +370,8 @@ static void input_overlay_desc_adjust_aspect_and_vertical(struct overlay_desc *d
    }
 
    /* adjust horizontal */
-   desc->x += settings->input.overlay_adjust_horizontal;
+   desc->x += settings->input.overlay_adjust_horizontal
+              * (global->overlay_reverse_horiz_shift ? -1.0f : 1.0f);
 
    /* make sure the button isn't entirely pushed off screen */
    if ( desc->x > 1.0f )
@@ -564,11 +567,11 @@ static void input_overlay_update_aspect_and_vertical_vals(input_overlay_t *ol,
    }
 }
 
-void input_overlays_update_aspect_and_vertical(input_overlay_t *ol)
+void input_overlays_update_aspect_and_shift(input_overlay_t *ol)
 {
    size_t i;
 
-   if (!ol || !ol->overlays)
+   if (!ol || !ol->active)
       return;
 
    for (i = 0; i < ol->size; i++)
@@ -1979,6 +1982,12 @@ void input_overlay_poll_clear(input_overlay_t *ol, float opacity)
       desc->delta_y = 0.0f;
       input_overlay_update_desc_geom(ol, desc);
    }
+   
+   if (adj.updated_needed)
+   {
+      event_command(EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
+      adj.updated_needed = false;
+   }
 }
 
 /**
@@ -2157,4 +2166,9 @@ void input_overlay_set_alpha_mod(input_overlay_t *ol, float mod)
 bool input_overlay_lightgun_active()
 {
    return lightgun_active;
+}
+
+void input_overlay_notify_video_updated()
+{
+   adj.updated_needed = true;
 }

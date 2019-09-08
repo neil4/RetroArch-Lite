@@ -43,6 +43,7 @@ struct android_app
    int msgread;
    int msgwrite;
    int running;
+   jint screenRotation;
    unsigned accelerometer_event_rate;
    const ASensor* accelerometerSensor;
    uint64_t sensor_state_mask;
@@ -57,6 +58,7 @@ struct android_app
    jmethodID getPendingIntentLibretroPath;
    jmethodID getPendingIntentFullPath;
    jmethodID getPendingIntentIME;
+   jmethodID getRotation;
 };
 
 enum

@@ -479,7 +479,10 @@ static bool sdl2_gfx_frame(void *data, const void *frame, unsigned width,
    driver_t *driver  = driver_get_ptr();
 
    if (vid->should_resize)
+   {
       sdl_refresh_viewport(vid);
+      input_overlay_notify_video_updated();
+   }
 
    if (frame)
    {

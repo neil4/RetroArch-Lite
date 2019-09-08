@@ -39,4 +39,9 @@ public class RetroActivity extends RetroActivityLocation
    {
       UserPreferences.readbackConfigFile(this);
    }
+
+   public int getRotation()
+   {
+      return getWindowManager().getDefaultDisplay().getRotation();
+   }
 }

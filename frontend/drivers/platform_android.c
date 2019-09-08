@@ -697,6 +697,7 @@ static void frontend_android_init(void *data)
    jclass                    class = NULL;
    jobject                     obj = NULL;
    struct android_app* android_app = (struct android_app*)data;
+   jmethodID        vol_control_id;
 
    if (!android_app)
       return;
@@ -737,12 +738,20 @@ static void frontend_android_init(void *data)
          "getIntent", "()Landroid/content/Intent;");
    GET_METHOD_ID(env, android_app->onRetroArchExit, class,
          "onRetroArchExit", "()V");
+   GET_METHOD_ID(env, android_app->getRotation, class,
+         "getRotation", "()I");
+   GET_METHOD_ID(env, vol_control_id, class,
+         "setVolumeControlStream", "(I)V" );
    CALL_OBJ_METHOD(env, obj, android_app->activity->clazz,
          android_app->getIntent);
 
    GET_OBJECT_CLASS(env, class, obj);
    GET_METHOD_ID(env, android_app->getStringExtra, class,
          "getStringExtra", "(Ljava/lang/String;)Ljava/lang/String;");
+
+   /* set volume control to media */
+   CALL_VOID_METHOD_PARAM(env, android_app->activity->clazz,
+         vol_control_id, (jint)3);
 }
 
 static int frontend_android_get_rating(void)

@@ -89,7 +89,7 @@ typedef struct state_device
 typedef struct android_input
 {
    bool blocked;
-   unsigned kbd_port;
+   int kbd_port;
    unsigned pads_connected;
    state_device_t pad_states[MAX_PADS];
    uint8_t pad_state[MAX_PADS][(LAST_KEYCODE + 7) / 8];
@@ -115,6 +115,7 @@ typedef struct android_input_poll_scratchpad
 
 static android_input_poll_scratchpad_t frame;
 static pthread_cond_t vibrate_flag;
+static pthread_cond_t rotation_flag;
 
 static void frontend_android_get_version_sdk(int32_t *sdk);
 
@@ -450,11 +451,56 @@ static void engine_handle_cmd(void)
    }
 }
 
-/* Used for vibration and setting media volume control */
-static void *jni_thread_func(void* data)
+/* On Android 9, 180-degree screen rotations no longer trigger onConfigurationChanged.
+ */
+static void *jni_update_rotation_thread(void* data)
 {
+   global_t *global = global_get_ptr();
+   JavaVM* p_jvm    = g_android->activity->vm;
+   JNIEnv* p_jenv;
+   pthread_mutex_t rotation_mutex;
+   static jint old_rotation;
+
    (void)data;
-   
+
+   if (!g_android->getRotation)
+   {
+      RARCH_ERR("jni_update_rotation_thread: getRotation is NULL. Exiting...\n");
+      return NULL;
+   }
+
+   jint status = (*p_jvm)->AttachCurrentThreadAsDaemon(p_jvm, &p_jenv, 0);
+   if (status < 0)
+   {
+      RARCH_ERR("jni_update_rotation_thread: Failed to attach current thread.\n");
+      return NULL;
+   }
+
+   /* Sit and wait for rotation_flag.*/
+   for (;;)
+   {
+      pthread_cond_wait(&rotation_flag, &rotation_mutex);
+
+      CALL_INT_METHOD( p_jenv, g_android->screenRotation,
+                       g_android->activity->clazz, g_android->getRotation );
+
+      if (g_android->screenRotation != old_rotation)
+      {
+         global->overlay_reverse_horiz_shift = (g_android->screenRotation >= 2);
+         old_rotation = g_android->screenRotation;
+         input_overlay_notify_video_updated();
+      }
+      rarch_sleep(250);
+   }
+}
+
+static void android_update_rotation()
+{
+   pthread_cond_signal(&rotation_flag);
+}
+
+static void *jni_vibrate_thread(void* data)
+{
    settings_t* settings = config_get_ptr();
    jobject jobj = g_android->activity->clazz;
    JavaVM* p_jvm = g_android->activity->vm;
@@ -465,30 +511,19 @@ static void *jni_thread_func(void* data)
    jclass activity_class;
    jmethodID getSystemService_id;
    jmethodID vibrate_method_id;
-   jmethodID vol_control_id;
-   pthread_mutex_t g_vibrate_mutex;
-   
+   pthread_mutex_t vibrate_mutex;
+
+   (void)data;
+
    jint status = (*p_jvm)->AttachCurrentThreadAsDaemon(p_jvm, &p_jenv, 0);
    if (status < 0)
    {
-      RARCH_ERR("jni_thread_func: Failed to attach current thread.\n");
+      RARCH_ERR("jni_vibrate_thread: Failed to attach current thread.\n");
       return NULL;
    }
    GET_OBJECT_CLASS( p_jenv, activity_class, jobj )
    
-  /*
-   * set volume control to media
-   */
-   GET_METHOD_ID( p_jenv,
-                  vol_control_id,
-                  activity_class,
-                  "setVolumeControlStream",
-                  "(I)V" )
-   CALL_VOID_METHOD_PARAM( p_jenv, jobj, vol_control_id, (jint)3 )
-   
-   /*
-    * setup timed vibrate method
-    */
+   /* setup timed vibrate method */
    GET_METHOD_ID( p_jenv,
                   getSystemService_id,
                   activity_class,
@@ -506,12 +541,12 @@ static void *jni_thread_func(void* data)
                   "vibrate",
                   "(J)V" )
    
-   pthread_mutex_init(&g_vibrate_mutex, NULL);
+   pthread_mutex_init(&vibrate_mutex, NULL);
    
    /* Sit and wait for vibrate_flag.*/
    for (;;)
    {
-      pthread_cond_wait(&vibrate_flag, &g_vibrate_mutex);
+      pthread_cond_wait(&vibrate_flag, &vibrate_mutex);
       CALL_VOID_METHOD_PARAM( p_jenv,
                               vibrator_service,
                               vibrate_method_id,
@@ -519,7 +554,7 @@ static void *jni_thread_func(void* data)
    }
 }
 
-void android_input_vibrate()
+static void android_input_vibrate()
 {
    pthread_cond_signal(&vibrate_flag);
 }
@@ -527,6 +562,8 @@ void android_input_vibrate()
 static void *android_input_init(void)
 {  
    int32_t sdk;
+   static pthread_t vibe_thread_id = 0;
+   static pthread_t rot_thread_id = 0;
    settings_t *settings = config_get_ptr();
    android_input_t *android = (android_input_t*)calloc(1, sizeof(*android));
 
@@ -547,10 +584,11 @@ static void *android_input_init(void)
    else
       engine_lookup_name = android_input_lookup_name_prekitkat;
 
-   /* Start the JNI thread if it isn't running. */
-   static pthread_t jni_thread_id = 0;
-   if (!jni_thread_id)
-      pthread_create(&jni_thread_id, NULL, jni_thread_func, NULL);
+   /* Start listener threads if they aren't running. */
+   if (!vibe_thread_id)
+      pthread_create(&vibe_thread_id, NULL, jni_vibrate_thread, NULL);
+   if (!rot_thread_id)
+      pthread_create(&rot_thread_id, NULL, jni_update_rotation_thread, NULL);
 	  
    return android;
 }
@@ -663,7 +701,7 @@ static INLINE int android_input_poll_event_type_motion(
 static INLINE bool android_input_keyboard_event(
       android_input_t *android, AInputEvent *event, int port, int keycode)
 {
-   int keydown  = (AKeyEvent_getAction(event) == AKEY_EVENT_ACTION_DOWN);
+   bool keydown = (AKeyEvent_getAction(event) == AKEY_EVENT_ACTION_DOWN);
    unsigned rk  = input_keymaps_translate_keysym_to_rk(keycode);
    uint32_t c   = rk;
    uint16_t mod = 0;
@@ -1011,6 +1049,9 @@ static void android_input_poll(void *data)
    /* reset pointer_count if no active pointers */
    if (!frame.any_events && frame.last_known_action == AMOTION_EVENT_ACTION_UP)
       android->pointer_count = 0;
+   
+   android_update_rotation();
+   
 }
 
 bool android_run_events(void *data)

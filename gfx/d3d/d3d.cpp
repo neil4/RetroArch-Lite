@@ -1664,6 +1664,8 @@ static bool d3d_frame(void *data, const void *frame,
             d3d->renderchain_data, &d3d->final_viewport);
 
       d3d->should_resize = false;
+
+      input_overlay_notify_video_updated();
    }
 
    /* render_chain() only clears out viewport,

@@ -253,6 +253,7 @@ static void android_gfx_ctx_swap_buffers(void *data)
 static void android_gfx_ctx_check_window(void *data, bool *quit,
       bool *resize, unsigned *width, unsigned *height, unsigned frame_count)
 {
+   unsigned temp_width, temp_height;
    unsigned new_width, new_height;
    global_t *global = global_get_ptr();
 
@@ -260,9 +261,10 @@ static void android_gfx_ctx_check_window(void *data, bool *quit,
 
    *quit = false;
 
+   video_driver_get_size(&temp_width, &temp_height);
    android_gfx_ctx_get_video_size(data, &new_width, &new_height);
 
-   if (new_width != *width || new_height != *height)
+   if (new_width != temp_width || new_height != temp_height)
    {
       *width  = new_width;
       *height = new_height;

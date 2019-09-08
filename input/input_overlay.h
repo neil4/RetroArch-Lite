@@ -411,12 +411,12 @@ void input_overlay_set_alpha_mod(input_overlay_t *ol, float mod);
 void input_overlay_set_scale_factor(input_overlay_t *ol, float scale);
 
 /**
- * input_overlays_update_aspect_and_vertical:
+ * input_overlays_update_aspect_and_shift:
  * @ol                    : Overlay handle.
  *
- * Updates loaded overlays to current aspect ratio and vertical offset settings.
+ * Updates loaded overlays to current aspect ratio and shift settings.
  **/
-void input_overlays_update_aspect_and_vertical(input_overlay_t *ol);
+void input_overlays_update_aspect_and_shift(input_overlay_t *ol);
 
 /**
  * input_overlay_next:
@@ -438,6 +438,8 @@ void input_overlay_populate_8way_vals();
 #define RARCH_LIGHTGUN_BIT_RELOAD RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN
 
 bool input_overlay_lightgun_active();
+
+void input_overlay_notify_video_updated();
 
 #ifdef __cplusplus
 }
