@@ -649,7 +649,11 @@ static bool event_init_core(void)
 {
    global_t *global     = global_get_ptr();
    driver_t *driver     = driver_get_ptr();
-   
+
+   /* Reset video format to libretro's default if this is not a dummy core. */
+   if (!global->libretro_dummy)
+      video_driver_set_pixel_format(RETRO_PIXEL_FORMAT_0RGB1555);
+
    pretro_set_environment(rarch_environment_cb);
 
    /* per-core saves: reset redirection paths */
