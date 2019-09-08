@@ -180,7 +180,7 @@ struct overlay_desc
    bool updated;
    bool movable;
    
-   /* values as-read from cfg, before vertical or aspect adjustments */
+   /* values as-read from cfg, before shift or aspect adjustments */
    float x_orig;
    float y_orig;
    float range_x_orig;

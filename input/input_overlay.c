@@ -323,7 +323,7 @@ static void input_overlay_desc_update_hitbox(struct overlay_desc *desc)
    desc->range_y_mod = desc->range_y_hitbox;
 }
 
-static void input_overlay_desc_adjust_aspect_and_vertical(struct overlay_desc *desc)
+static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc)
 {
    settings_t* settings = config_get_ptr();
    global_t  *global    = global_get_ptr();
@@ -547,8 +547,8 @@ void input_overlay_set_scale_factor(input_overlay_t *ol, float scale)
    input_overlay_set_vertex_geom(ol);
 }
 
-static void input_overlay_update_aspect_and_vertical_vals(input_overlay_t *ol,
-                                                          unsigned i)
+static void input_overlay_update_aspect_and_shift_vals(input_overlay_t *ol,
+                                                       unsigned i)
 {
    size_t j;
    struct overlay_desc* desc;
@@ -562,7 +562,7 @@ static void input_overlay_update_aspect_and_vertical_vals(input_overlay_t *ol,
    {
       desc = &ol->overlays[i].descs[j];
       if (!ol->overlays[i].fullscreen_image)
-         input_overlay_desc_adjust_aspect_and_vertical(desc);
+         input_overlay_desc_adjust_aspect_and_shift(desc);
       input_overlay_desc_update_hitbox(desc);
    }
 }
@@ -575,7 +575,7 @@ void input_overlays_update_aspect_and_shift(input_overlay_t *ol)
       return;
 
    for (i = 0; i < ol->size; i++)
-      input_overlay_update_aspect_and_vertical_vals(ol, i);
+      input_overlay_update_aspect_and_shift_vals(ol, i);
 
    input_overlay_set_vertex_geom(ol);
 }
@@ -1064,7 +1064,7 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
             input_overlay_load_overlays_resolve_iterate(ol);
          if (!driver_get_ptr()->osk_enable)
          {
-            input_overlay_update_aspect_and_vertical_vals(ol, ol->pos);
+            input_overlay_update_aspect_and_shift_vals(ol, ol->pos);
             input_overlay_set_vertex_geom(ol);
          }
          ol->pos += 1;
@@ -1985,7 +1985,7 @@ void input_overlay_poll_clear(input_overlay_t *ol, float opacity)
    
    if (adj.updated_needed)
    {
-      event_command(EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
+      input_overlays_update_aspect_and_shift(ol);
       adj.updated_needed = false;
    }
 }
