@@ -42,18 +42,14 @@ extern "C" {
  * for the overlay interface.
  */
    
-enum overlay_eight_way_type
+enum overlay_eightway_type
 {
    DPAD_AREA = 0,
-   ANALOG_DPAD_AREA,
    ABXY_AREA,
-   ABRL_AREA,
-   ABRL2_AREA,
-   AB_AREA,
    NUM_EIGHT_WAY_TYPES
 };
 
-struct overlay_eight_way_vals
+struct overlay_eightway_vals
 {
    uint64_t up;
    uint64_t right;
@@ -63,10 +59,10 @@ struct overlay_eight_way_vals
    uint64_t down_right;
    uint64_t down_left;
    uint64_t up_left;
-   float slope_high;
-   float slope_low;
+   float* p_slope_high;
+   float* p_slope_low;
 };
-   
+
 enum overlay_aspect_ratio
 {
    OVERLAY_ASPECT_RATIO_1_2 = 0,
@@ -90,7 +86,7 @@ struct overlay_aspect_ratio_elem
 
 extern struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_END];
 
-enum eight_way_method
+enum eightway_method
 {
    VECTOR = 0,
    TOUCH_AREA,
@@ -176,6 +172,8 @@ struct overlay_desc
    float reach_right, reach_left, reach_up, reach_down;
    float x_hitbox, y_hitbox;
    float range_x_hitbox, range_y_hitbox;
+   
+   struct overlay_eightway_vals* eightway_vals;
    
    bool updated;
    bool movable;
@@ -428,11 +426,11 @@ void input_overlays_update_aspect_and_shift(input_overlay_t *ol);
 void input_overlay_next(input_overlay_t *ol, float opacity);
 
 /**
- * input_overlay_populate_8way_vals:
+ * input_overlay_update_eightway_diag_sens:
  *
  * Convert diagonal sensitivity to slope values for 8way_state functions
  **/
-void input_overlay_populate_8way_vals();
+void input_overlay_update_eightway_diag_sens();
 
 /* Repurpose lightgun id values unusable as state bits */
 #define RARCH_LIGHTGUN_BIT_RELOAD RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN

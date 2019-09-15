@@ -52,16 +52,28 @@ enum
    RARCH_LIGHTGUN_DPAD_LEFT,
    RARCH_LIGHTGUN_DPAD_RIGHT,
    RARCH_LIGHTGUN_RELOAD,
+
    RARCH_JOYPAD_DPAD_AREA,
-   RARCH_ANALOG_DPAD_AREA,
    RARCH_JOYPAD_ABXY_AREA,
-   RARCH_JOYPAD_ABRL_AREA,
-   RARCH_JOYPAD_ABRL2_AREA,
-   RARCH_JOYPAD_AB_AREA,
-   
+
    RARCH_HIGHLEVEL_END,
    RARCH_HIGHLEVEL_END_NULL
 };
+
+#define OVERLAY_EIGHTWAY_MASK ( (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA) \
+                                | (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA) )
+
+#define OVERLAY_LIGHTGUN_MASK ( (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD) \
+                                | (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER) \
+                                | (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A) \
+                                | (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B) \
+                                | (UINT64_C(1) << RARCH_LIGHTGUN_START) \
+                                | (UINT64_C(1) << RARCH_LIGHTGUN_SELECT) \
+                                | (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C) \
+                                | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP) \
+                                | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN) \
+                                | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT) \
+                                | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT) )
 
 static bool lightgun_active;
 
@@ -100,7 +112,8 @@ struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_EN
    { "Auto",          1.0 },
 };
 
-static struct overlay_eight_way_vals eight_way_vals[NUM_EIGHT_WAY_TYPES];
+static float overlay_eightway_dpad_slope_high, overlay_eightway_dpad_slope_low;
+static float overlay_eightway_abxy_slope_high, overlay_eightway_abxy_slope_low;
 
 /* Below: need 3 additional elements for duplicated (obsolete) values */
 const struct input_bind_map input_highlevel_config_bind_map[RARCH_HIGHLEVEL_END_NULL+3] = {
@@ -119,11 +132,7 @@ const struct input_bind_map input_highlevel_config_bind_map[RARCH_HIGHLEVEL_END_
       DECLARE_BIND(lightgun_left,    RARCH_LIGHTGUN_DPAD_LEFT, "Lightgun D-pad left"),
       DECLARE_BIND(lightgun_right,   RARCH_LIGHTGUN_DPAD_RIGHT, "Lightgun D-pad right"),
       DECLARE_BIND(dpad_area,        RARCH_JOYPAD_DPAD_AREA, "D-pad area"),
-      DECLARE_BIND(analog_dpad_area, RARCH_ANALOG_DPAD_AREA, "Analog D-pad area"),
-      DECLARE_BIND(abxy_area,        RARCH_JOYPAD_ABXY_AREA, "ABXY area"),
-      DECLARE_BIND(abrl_area,        RARCH_JOYPAD_ABRL_AREA, "ABRL area"),
-      DECLARE_BIND(abrl2_area,       RARCH_JOYPAD_ABRL2_AREA, "ABRL2 area"),
-      DECLARE_BIND(ab_area,          RARCH_JOYPAD_AB_AREA, "AB area")
+      DECLARE_BIND(abxy_area,        RARCH_JOYPAD_ABXY_AREA, "ABXY area")
 };
 
 
@@ -133,7 +142,7 @@ const struct input_bind_map input_highlevel_config_bind_map[RARCH_HIGHLEVEL_END_
  * @param major_px major axis in pixels
  * @param minor_px minor axis in pixels
  * 
- * Stores values for eight_way_state
+ * Stores values for eightway_state
  */
 void set_ellipse(uint8_t idx,
                  const float orientation,
@@ -380,17 +389,17 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
       desc->x = 0.0f;
 }
 
-void input_overlay_get_slope_limits( const float diagonal_sensitivity,
-                                     float* high_slope, float* low_slope )
+static void input_overlay_get_slope_limits(const float diagonal_sensitivity,
+                                           float* high_slope, float* low_slope)
 {
-   /* Update the slope values to be used in eight_way_state. */
+   /* Update the slope values to be used in eightway_state. */
    
    /* Sensitivity is the ratio (as a percentage) of diagonals to normals.
     * 100% means 8-way symmetry; zero means no diagonals.
     * Convert to fraction of max diagonal angle, 45deg
     */
    float fraction = 2.0f * diagonal_sensitivity
-                         / ( 100.0f + diagonal_sensitivity );
+                         / (100.0f + diagonal_sensitivity);
    
    float high_angle  /* 67.5 deg max */
    = ( fraction * (0.375*M_PI)
@@ -404,83 +413,93 @@ void input_overlay_get_slope_limits( const float diagonal_sensitivity,
 }
 
 /**
- * input_overlay_populate_8way_vals:
+ * input_overlay_update_eightway_diag_sens:
  *
- * Populate all values to be used in eight_way_state
+ * Updates diagonal sensitivity for all eightway_vals
  **/
-void input_overlay_populate_8way_vals()
+void input_overlay_update_eightway_diag_sens()
 {
-   static bool const_vals_populated = false;
-   settings_t* settings             = config_get_ptr();
-   
-   if ( !const_vals_populated )
+   settings_t* settings = config_get_ptr();
+
+   input_overlay_get_slope_limits(settings->input.dpad_diagonal_sensitivity,
+                                  &overlay_eightway_dpad_slope_high,
+                                  &overlay_eightway_dpad_slope_low);
+   input_overlay_get_slope_limits(settings->input.abxy_diagonal_sensitivity,
+                                  &overlay_eightway_abxy_slope_high,
+                                  &overlay_eightway_abxy_slope_low);
+}
+
+static void input_overlay_desc_populate_eightway_vals(config_file_t *ol_conf,
+      struct overlay_desc *desc, unsigned ol_idx, unsigned desc_idx)
+{
+   struct overlay_eightway_vals* vals;
+   char conf_key[64] = {0};
+   char *str, *tok;
+   char *save = NULL;
+
+   desc->eightway_vals = calloc(1, sizeof(struct overlay_eightway_vals));
+   vals = desc->eightway_vals;
+
+   if (desc->highlevel_mask == (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA))
    {
-      eight_way_vals[DPAD_AREA].up = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_UP;
-      eight_way_vals[DPAD_AREA].down = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_DOWN;
-      eight_way_vals[DPAD_AREA].left = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_LEFT;
-      eight_way_vals[DPAD_AREA].right = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_RIGHT;
+      vals->up = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_UP;
+      vals->down = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_DOWN;
+      vals->left = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_LEFT;
+      vals->right = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_RIGHT;
+      vals->p_slope_high = &overlay_eightway_dpad_slope_high;
+      vals->p_slope_low = &overlay_eightway_dpad_slope_low;
+   }
+   else if (desc->highlevel_mask == (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA))
+   {
+      vals->up = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_X;
+      vals->down = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_B;
+      vals->left = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_Y;
+      vals->right = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_A;
+      vals->p_slope_high = &overlay_eightway_abxy_slope_high;
+      vals->p_slope_low = &overlay_eightway_abxy_slope_low;
+   }
 
-      eight_way_vals[ANALOG_DPAD_AREA].up = UINT64_C(1)<<RARCH_ANALOG_LEFT_Y_MINUS;
-      eight_way_vals[ANALOG_DPAD_AREA].down = UINT64_C(1)<<RARCH_ANALOG_LEFT_Y_PLUS;
-      eight_way_vals[ANALOG_DPAD_AREA].left = UINT64_C(1)<<RARCH_ANALOG_LEFT_X_MINUS;
-      eight_way_vals[ANALOG_DPAD_AREA].right = UINT64_C(1)<<RARCH_ANALOG_LEFT_X_PLUS;
-
-      eight_way_vals[ABXY_AREA].up = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_X;
-      eight_way_vals[ABXY_AREA].down = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_B;
-      eight_way_vals[ABXY_AREA].left = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_Y;
-      eight_way_vals[ABXY_AREA].right = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_A;
-
-      eight_way_vals[ABRL_AREA].up = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_R;
-      eight_way_vals[ABRL_AREA].down = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_B;
-      eight_way_vals[ABRL_AREA].left = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_L;
-      eight_way_vals[ABRL_AREA].right = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_A;
-      
-      eight_way_vals[ABRL2_AREA].up = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_L;
-      eight_way_vals[ABRL2_AREA].down = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_A;
-      eight_way_vals[ABRL2_AREA].left = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_B;
-      eight_way_vals[ABRL2_AREA].right = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_R;
-
-      eight_way_vals[AB_AREA].up = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_B;
-      eight_way_vals[AB_AREA].down = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_A;
-      eight_way_vals[AB_AREA].left = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_B;
-      eight_way_vals[AB_AREA].right = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_A;
-      
-      int i;
-      for ( i = 0; i < NUM_EIGHT_WAY_TYPES; i++ )
-      {
-         eight_way_vals[i].up_left = eight_way_vals[i].up
-                                     | eight_way_vals[i].left;
-         eight_way_vals[i].up_right = eight_way_vals[i].up 
-                                      | eight_way_vals[i].right;
-         eight_way_vals[i].down_left = eight_way_vals[i].down
-                                       | eight_way_vals[i].left;
-         eight_way_vals[i].down_right = eight_way_vals[i].down
-                                        | eight_way_vals[i].right;
-      }
-      
-      const_vals_populated = true;
+   /* redefined vals can be specified in config file */
+   snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_up", ol_idx, desc_idx);
+   if (config_get_string(ol_conf, conf_key, &str))
+   {
+      vals->up = 0;
+      for (tok = strtok_r(str, "|", &save); tok; tok = strtok_r(NULL, "|", &save))
+         vals->up |= UINT64_C(1) << input_translate_str_to_bind_id(tok);
+      free(str);
    }
    
-   float dpad_slope_high, dpad_slope_low;
-   float buttons_slope_high, buttons_slope_low;
+   snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_down", ol_idx, desc_idx);
+   if (config_get_string(ol_conf, conf_key, &str))
+   {
+      vals->down = 0;
+      for (tok = strtok_r(str, "|", &save); tok; tok = strtok_r(NULL, "|", &save))
+         vals->down |= UINT64_C(1) << input_translate_str_to_bind_id(tok);
+      free(str);
+   }
+
+   snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_right", ol_idx, desc_idx);
+   if (config_get_string(ol_conf, conf_key, &str))
+   {
+      vals->right = 0;
+      for (tok = strtok_r(str, "|", &save); tok; tok = strtok_r(NULL, "|", &save))
+         vals->right |= UINT64_C(1) << input_translate_str_to_bind_id(tok);
+      free(str);
+   }
    
-   input_overlay_get_slope_limits(settings->input.dpad_diagonal_sensitivity,
-                                  &dpad_slope_high, &dpad_slope_low);
-   input_overlay_get_slope_limits(settings->input.abxy_diagonal_sensitivity,
-                                  &buttons_slope_high, &buttons_slope_low);
-   
-   eight_way_vals[DPAD_AREA].slope_high = dpad_slope_high;
-   eight_way_vals[DPAD_AREA].slope_low = dpad_slope_low;
-   eight_way_vals[ANALOG_DPAD_AREA].slope_high = dpad_slope_high;
-   eight_way_vals[ANALOG_DPAD_AREA].slope_low = dpad_slope_low;
-   eight_way_vals[ABXY_AREA].slope_high = buttons_slope_high;
-   eight_way_vals[ABXY_AREA].slope_low = buttons_slope_low;
-   eight_way_vals[ABRL_AREA].slope_high = buttons_slope_high;
-   eight_way_vals[ABRL_AREA].slope_low = buttons_slope_low;
-   eight_way_vals[ABRL2_AREA].slope_high = buttons_slope_high;
-   eight_way_vals[ABRL2_AREA].slope_low = buttons_slope_low;
-   eight_way_vals[AB_AREA].slope_high = buttons_slope_high;
-   eight_way_vals[AB_AREA].slope_low = buttons_slope_low;
+   snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_left", ol_idx, desc_idx);
+   if (config_get_string(ol_conf, conf_key, &str))
+   {
+      vals->left = 0;
+      for (tok = strtok_r(str, "|", &save); tok; tok = strtok_r(NULL, "|", &save))
+         vals->left |= UINT64_C(1) << input_translate_str_to_bind_id(tok);
+      free(str);
+   }
+
+   vals->up_left = vals->up | vals->left;
+   vals->up_right = vals->up | vals->right;
+   vals->down_left = vals->down | vals->left;
+   vals->down_right = vals->down | vals->right;
 }
 
 /**
@@ -490,7 +509,7 @@ void input_overlay_populate_8way_vals()
  * Translate string representation to "high level" bind ID
  * High level IDs eventually translate to low level IDs
  *
- * Returns: Bind ID value on success, otherwise RARCH_BIND_LIST_END on not found.
+ * Returns: Bind ID value on success, otherwise RARCH_HIGHLEVEL_END on not found.
  **/
 static unsigned input_translate_str_to_highlevel_bind_id(const char *str)
 {
@@ -589,6 +608,9 @@ static void input_overlay_free_overlay(struct overlay *overlay)
 
    for (i = 0; i < overlay->size; i++)
       texture_image_free(&overlay->descs[i].image);
+
+   if (overlay->descs->eightway_vals)
+      free(overlay->descs->eightway_vals);
 
    free(overlay->load_images);
    free(overlay->descs);
@@ -859,6 +881,9 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    desc->delta_x = 0.0f;
    desc->delta_y = 0.0f;
    config_get_bool(ol->conf, conf_key, &desc->movable);
+   
+   if ((desc->highlevel_mask & OVERLAY_EIGHTWAY_MASK) != 0)
+      input_overlay_desc_populate_eightway_vals(ol->conf, desc, ol_idx, desc_idx);
 
    input_overlay->pos ++;
 
@@ -1330,8 +1355,8 @@ input_overlay_t *input_overlay_new(const char *path, bool enable,
    ol->pos                   = 0;
 
    input_overlay_load_overlays_init(ol);
-   
-   input_overlay_populate_8way_vals();
+
+   input_overlay_update_eightway_diag_sens();
 
    return ol;
 
@@ -1356,15 +1381,15 @@ void input_overlay_enable(input_overlay_t *ol, bool enable)
 }
 
 /**
- * eight_way_direction
+ * eightway_direction
  * @param vals for an eight-way area descriptor
  * @param x_offset relative to 8-way center, normalized as fraction of screen height
  * @param y_offset relative to 8-way center, normalized as fraction of screen height
  * @return input state representing the offset direction as @vals
  */
-static inline uint64_t eight_way_direction(struct overlay_eight_way_vals* vals,
-                                           float x_offset,
-                                           const float y_offset)
+static inline uint64_t eightway_direction(struct overlay_eightway_vals* vals,
+                                          float x_offset,
+                                          const float y_offset)
 {
    if (x_offset == 0.0f)
      x_offset = 0.000001f;
@@ -1374,17 +1399,17 @@ static inline uint64_t eight_way_direction(struct overlay_eight_way_vals* vals,
    {
       if (y_offset > 0.0f)
       { /* Q1 */
-         if (abs_slope > vals->slope_high)
+         if (abs_slope > *vals->p_slope_high)
             return vals->up;
-         else if (abs_slope < vals->slope_low)
+         else if (abs_slope < *vals->p_slope_low)
             return vals->right;
          else return vals->up_right;
       }
       else
       { /* Q4 */
-         if (abs_slope > vals->slope_high)
+         if (abs_slope > *vals->p_slope_high)
             return vals->down;
-         else if (abs_slope < vals->slope_low)
+         else if (abs_slope < *vals->p_slope_low)
             return vals->right;
          else return vals->down_right;
       }
@@ -1393,17 +1418,17 @@ static inline uint64_t eight_way_direction(struct overlay_eight_way_vals* vals,
    {
       if (y_offset > 0.0f)
       { /* Q2 */
-         if (abs_slope > vals->slope_high)
+         if (abs_slope > *vals->p_slope_high)
             return vals->up;
-         else if (abs_slope < vals->slope_low)
+         else if (abs_slope < *vals->p_slope_low)
             return vals->left;
          else return vals->up_left;
       }
       else
       { /* Q3 */
-         if (abs_slope > vals->slope_high)
+         if (abs_slope > *vals->p_slope_high)
             return vals->down;
-         else if (abs_slope < vals->slope_low)
+         else if (abs_slope < *vals->p_slope_low)
             return vals->left;
          else return vals->down_left;
       }
@@ -1412,7 +1437,7 @@ static inline uint64_t eight_way_direction(struct overlay_eight_way_vals* vals,
    return UINT64_C(0);
 }
 
-static inline uint64_t four_way_direction(struct overlay_eight_way_vals* vals,
+static inline uint64_t four_way_direction(struct overlay_eightway_vals* vals,
                                           float x_offset,
                                           const float y_offset)
 {
@@ -1455,7 +1480,7 @@ static inline uint64_t four_way_direction(struct overlay_eight_way_vals* vals,
 }
 
 /**
- * eight_way_ellipse_coverage:
+ * eightway_ellipse_coverage:
  * @param vals for an eight-way area descriptor
  * @param x_ellipse_offset relative to 8-way center, normalized as fraction of screen height
  * @param y_ellipse_offset relative to 8-way center, normalized as fraction of screen height
@@ -1464,7 +1489,7 @@ static inline uint64_t four_way_direction(struct overlay_eight_way_vals* vals,
  * Requires the input driver to call set_ellipse during poll.
  * Approximates ellipse as a diamond and checks vertex overlap with @vals.
  */
-static inline uint64_t eight_way_ellipse_coverage(struct overlay_eight_way_vals* vals,
+static inline uint64_t eightway_ellipse_coverage(struct overlay_eightway_vals* vals,
                                                   const float x_ellipse_offset,
                                                   const float y_ellipse_offset)
 {
@@ -1529,21 +1554,21 @@ static inline uint64_t eight_way_ellipse_coverage(struct overlay_eight_way_vals*
 }
 
 /**
- * eight_way_state:
+ * eightway_state:
  * @desc_ptr              : Overlay descriptor handle.
- * @type                  : Type of eight-way area. See overlay_eight_way_type enum
+ * @type                  : DPAD_AREA or ABXY_AREA
  * @x                     : X coordinate value.
  * @y                     : Y coordinate value.
  *
  * Returns the low level input state based on @x, @y, and ellipse_px valuess
  **/
-static inline uint64_t eight_way_state(const struct overlay_desc *desc_ptr,
+static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
                                        unsigned area_type,
                                        const float x, const float y)
 {
    settings_t* settings = config_get_ptr();
    uint64_t state = 0;
-   struct overlay_eight_way_vals* vals = &eight_way_vals[area_type];
+   struct overlay_eightway_vals* vals = desc_ptr->eightway_vals;
    
    float x_offset = (x - desc_ptr->x) * adj.display_aspect;
    float y_offset = (desc_ptr->y - y);
@@ -1551,10 +1576,10 @@ static inline uint64_t eight_way_state(const struct overlay_desc *desc_ptr,
                      settings->input.dpad_method : settings->input.abxy_method;
    
    if (method != TOUCH_AREA)
-      state |= eight_way_direction(vals, x_offset, y_offset);
+      state |= eightway_direction(vals, x_offset, y_offset);
    
    if (method != VECTOR)
-      state |= eight_way_ellipse_coverage(vals, x_offset, y_offset);
+      state |= eightway_ellipse_coverage(vals, x_offset, y_offset);
    
    return state;
 }
@@ -1570,35 +1595,17 @@ static inline uint64_t eight_way_state(const struct overlay_desc *desc_ptr,
  * For now, "high level" means multi-button areas and lightgun buttons
  *
  **/
-void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
-                              input_overlay_state_t *out,
-                              const float x, const float y)
+static void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
+                                     input_overlay_state_t *out,
+                                     const float x, const float y)
 {
-   const static uint64_t lightgun_mask
-      = (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD)
-      | (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER)
-      | (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A)
-      | (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B)
-      | (UINT64_C(1) << RARCH_LIGHTGUN_START)
-      | (UINT64_C(1) << RARCH_LIGHTGUN_SELECT)
-      | (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C)
-      | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP)
-      | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN)
-      | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT)
-      | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT);
-   const static uint64_t multibutton_mask
-      = (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA)
-      | (UINT64_C(1) << RARCH_ANALOG_DPAD_AREA)
-      | (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA)
-      | (UINT64_C(1) << RARCH_JOYPAD_ABRL_AREA)
-      | (UINT64_C(1) << RARCH_JOYPAD_ABRL2_AREA)
-      | (UINT64_C(1) << RARCH_JOYPAD_AB_AREA);
-   
    uint64_t mask = desc_ptr->highlevel_mask;
+   if (!mask)
+      return;
    
-   if ( lightgun_active )
+   if (lightgun_active)
    {
-      switch (mask & lightgun_mask)
+      switch (mask & OVERLAY_LIGHTGUN_MASK)
       {  /* expected cases */
       case (UINT64_C(0)):
          break;
@@ -1676,47 +1683,11 @@ void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
             out->lightgun_buttons |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
       }
    }
-
-   switch (mask & multibutton_mask)
-   {  /* expected cases */
-   case (UINT64_C(0)):
-      break;
-   case (UINT64_C(1) << RARCH_ANALOG_DPAD_AREA):
-      out->buttons |= eight_way_state(desc_ptr, ANALOG_DPAD_AREA, x, y);
-      break;
-   case (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA):
-      out->buttons |= eight_way_state(desc_ptr, DPAD_AREA, x, y);
-      break;
-   case ((UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA) | (UINT64_C(1) << RARCH_ANALOG_DPAD_AREA)):
-      out->buttons |= eight_way_state(desc_ptr, ANALOG_DPAD_AREA, x, y)
-                      | eight_way_state(desc_ptr, DPAD_AREA, x, y);
-      break;
-   case (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA):
-      out->buttons |= eight_way_state(desc_ptr, ABXY_AREA, x, y);
-      break;
-   case (UINT64_C(1) << RARCH_JOYPAD_ABRL_AREA):
-      out->buttons |= eight_way_state(desc_ptr, ABRL_AREA, x, y);
-      break;
-   case (UINT64_C(1) << RARCH_JOYPAD_ABRL2_AREA):
-      out->buttons |= eight_way_state(desc_ptr, ABRL2_AREA, x, y);
-      break;
-   case (UINT64_C(1) << RARCH_JOYPAD_AB_AREA):
-      out->buttons |= eight_way_state(desc_ptr, AB_AREA, x, y);
-      break;
-   default:  /* overlapping buttons */
-      if ( mask & ( UINT64_C(1) << RARCH_ANALOG_DPAD_AREA ) )
-         out->buttons |= eight_way_state(desc_ptr, ANALOG_DPAD_AREA, x, y);
-      if ( mask & ( UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA ) )
-         out->buttons |= eight_way_state(desc_ptr, DPAD_AREA, x, y);
-      if ( mask & ( UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA ) )
-         out->buttons |= eight_way_state(desc_ptr, ABXY_AREA, x, y);
-      if ( mask & ( UINT64_C(1) << RARCH_JOYPAD_ABRL_AREA ) )
-         out->buttons |= eight_way_state(desc_ptr, ABRL_AREA, x, y);
-      if ( mask & ( UINT64_C(1) << RARCH_JOYPAD_ABRL2_AREA ) )
-         out->buttons |= eight_way_state(desc_ptr, ABRL2_AREA, x, y);
-      if ( mask & (UINT64_C(1) << RARCH_JOYPAD_AB_AREA ) )
-         out->buttons |= eight_way_state(desc_ptr, AB_AREA, x, y);
-   }
+   
+   if (mask & (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA))
+      out->buttons |= eightway_state(desc_ptr, DPAD_AREA, x, y);
+   else if (mask & (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA))
+      out->buttons |= eightway_state(desc_ptr, ABXY_AREA, x, y);
 }
 
 

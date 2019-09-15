@@ -1207,9 +1207,9 @@ bool event_command(enum event_command cmd)
                settings->input.overlay_opacity);
 #endif
          break;
-      case EVENT_CMD_OVERLAY_POPULATE_8WAY:
+      case EVENT_CMD_OVERLAY_UPDATE_EIGHTWAY_DIAG_SENS:
 #ifdef HAVE_OVERLAY
-         input_overlay_populate_8way_vals();
+         input_overlay_update_eightway_diag_sens();
 #endif
          break;         
       case EVENT_CMD_DRIVERS_DEINIT:

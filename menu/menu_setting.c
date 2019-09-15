@@ -6538,7 +6538,7 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(
          list,
          list_info,
-         EVENT_CMD_OVERLAY_POPULATE_8WAY);
+         EVENT_CMD_OVERLAY_UPDATE_EIGHTWAY_DIAG_SENS);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_IS_DEFERRED);
    
    CONFIG_UINT(
@@ -6574,7 +6574,7 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(
          list,
          list_info,
-         EVENT_CMD_OVERLAY_POPULATE_8WAY);
+         EVENT_CMD_OVERLAY_UPDATE_EIGHTWAY_DIAG_SENS);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    
    CONFIG_UINT(

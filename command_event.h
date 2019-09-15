@@ -72,7 +72,7 @@ enum event_command
    /* Sets current scale factor for overlay. */
    EVENT_CMD_OVERLAY_SET_SCALE_FACTOR,
    EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT,
-   EVENT_CMD_OVERLAY_POPULATE_8WAY,
+   EVENT_CMD_OVERLAY_UPDATE_EIGHTWAY_DIAG_SENS,
    /* Sets current alpha modulation for overlay. */
    EVENT_CMD_OVERLAY_SET_ALPHA_MOD,
    /* Cycle to next overlay. */
