@@ -1224,10 +1224,7 @@ int rarch_main_iterate(void)
 #ifdef HAVE_NETPLAY
    if (driver->netplay_data)
       netplay_post_frame((netplay_t*)driver->netplay_data);
-   else
 #endif
-   if (driver->preempt_data)
-      preempt_post_frame((preempt_t*)driver->preempt_data);
 
 #if defined(HAVE_THREADS)
    unlock_autosave();

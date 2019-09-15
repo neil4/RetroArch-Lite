@@ -51,15 +51,6 @@ size_t audio_sample_batch_preempt(const int16_t *data, size_t frames);
  **/
 void preempt_pre_frame(preempt_t *preempt);
 
-/**
- * preempt_post_frame:   
- * @preempt          : pointer to preempt object
- *
- * Post-frame for preempt.
- * Call this after running retro_run().
- **/
-void preempt_post_frame(preempt_t *preempt);
-
 void deinit_preempt(void);
 
 /**
