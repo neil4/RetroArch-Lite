@@ -430,7 +430,7 @@ static int action_start_core_delete(unsigned type, const char *label)
    
    info.list          = menu_list->menu_stack;
    info.directory_ptr = nav->selection_ptr;
-   strlcpy(info.label, "core_delete_confirm", sizeof(info.label));
+   strlcpy(info.label, "confirm_core_deletion", sizeof(info.label));
 
    ret = menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
 
