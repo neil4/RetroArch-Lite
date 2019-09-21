@@ -644,7 +644,10 @@ static int16_t netplay_input_state(netplay_t *netplay, bool port, unsigned devic
          curr_input_state = netplay->buffer[ptr].real_input_state;
    }
 
-   return ((1 << id) & curr_input_state) ? 1 : 0;
+   if (id == RETRO_DEVICE_ID_JOYPAD_MASK)
+      return curr_input_state;
+   else
+      return ((1 << id) & curr_input_state) ? 1 : 0;
 }
 
 int16_t input_state_net(unsigned port, unsigned device,
