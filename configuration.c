@@ -2561,6 +2561,7 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "input_dpad_diagonal_sensitivity");
       config_remove_entry(conf, "input_abxy_diagonal_sensitivity");
       config_remove_entry(conf, "input_abxy_method");
+      config_remove_entry(conf, "input_dpad_method");
    }
 
    if (settings->input.overlay_adjust_vert_horiz_scope == scope)
@@ -2585,6 +2586,7 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "input_overlay_bisect_aspect_ratio");
       config_remove_entry(conf, "input_overlay_adjust_vertical");
       config_remove_entry(conf, "input_overlay_adjust_vertical_lock_edges");
+      config_remove_entry(conf, "input_overlay_adjust_horizontal");
    }
    
    if (settings->input.overlay_opacity_scope == scope)
@@ -2696,6 +2698,9 @@ static void scoped_config_file_save(unsigned scope)
    {
       config_remove_entry(conf, "menu_theme");
       config_remove_entry(conf, "menu_wallpaper_opacity");
+#ifdef HAVE_RGUI
+      config_remove_entry(conf, "rgui_particle_effect");
+#endif
    }
 #endif
    
