@@ -46,7 +46,7 @@
                   android:screenOrientation="sensorLandscape"
                   android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale"
                   android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-                  android:launchMode="singleTask">
+                  android:launchMode="singleInstance">
             <meta-data android:name="android.app.lib_name" android:value="retroarch-activity" />
             <meta-data android:name="android.app.func_name" android:value="ANativeActivity_onCreate" />
         </activity>
