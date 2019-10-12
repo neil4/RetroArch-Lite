@@ -1505,12 +1505,14 @@ static bool gl_frame(void *data, const void *frame,
 {
    unsigned width, height;
    gl_t                    *gl = (gl_t*)data;
+#if !defined(RARCH_MOBILE)
    runloop_t *runloop          = rarch_main_get_ptr();
+#endif
    driver_t *driver            = driver_get_ptr();
    settings_t *settings        = config_get_ptr();
    uint64_t frame_count        = video_driver_get_frame_count();
    const struct font_renderer *font_driver = driver ? driver->font_osd_driver : NULL;
-   
+
    if (!gl)
       return false;
 
@@ -1688,6 +1690,7 @@ static bool gl_frame(void *data, const void *frame,
 #endif
 #endif
 #endif
+#if !defined(RARCH_MOBILE)
    /* Disable BFI during fast forward, slow-motion,
     * and pause to prevent flicker. */
    if (settings->video.black_frame_insertion &&
@@ -1697,6 +1700,7 @@ static bool gl_frame(void *data, const void *frame,
       gfx_ctx_swap_buffers(gl);
       glClear(GL_COLOR_BUFFER_BIT);
    }
+#endif
 
    gfx_ctx_swap_buffers(gl);
 
