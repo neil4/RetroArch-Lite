@@ -85,7 +85,7 @@ typedef struct overlay_adjust_data
    float y_aspect_factor;
    float y_center_shift;
    float display_aspect;
-   bool updated_needed;
+   bool update_needed;
 } overlay_adjust_data_t;
 
 static overlay_adjust_data_t adj;
@@ -1772,6 +1772,7 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
 {
    size_t i;
    float x, y;
+   bool ignore_other = false;
 
    memset(out, 0, sizeof(*out));
 
@@ -1802,6 +1803,11 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
       if (!inside_hitbox(desc, x, y))
          continue;
 
+      /* Ignore overlapping controls when a hitbox is extended */
+      ignore_other = (desc->range_x_mod > desc->range_x_hitbox);
+      if (ignore_other)
+         memset(out,0,sizeof(*out));
+
       desc->updated = true;
 
       if (desc->type == OVERLAY_TYPE_BUTTONS)
@@ -1819,11 +1825,6 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
       }
       else
       {
-         /* Ignore anything overlapping an analog area when its hitbox is extended */
-         bool ignore_other = (desc->range_x_mod > desc->range_x_hitbox);
-         if (ignore_other)
-            memset(out,0,sizeof(*out));
-         
          float x_dist    = x - desc->x;
          float y_dist    = y - desc->y;
          float x_val     = x_dist / desc->range_x;
@@ -1843,10 +1844,10 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
             desc->delta_y = clamp_float(y_dist, -desc->range_y, desc->range_y)
                * ol->active->mod_h;
          }
-         
-         if (ignore_other)
-            break;
       }
+
+      if (ignore_other)
+         break;
    }
    
    input_overlay_undo_meta_overlap(out);
@@ -1954,10 +1955,10 @@ void input_overlay_poll_clear(input_overlay_t *ol, float opacity)
       input_overlay_update_desc_geom(ol, desc);
    }
    
-   if (adj.updated_needed)
+   if (adj.update_needed)
    {
       input_overlays_update_aspect_and_shift(ol);
-      adj.updated_needed = false;
+      adj.update_needed = false;
    }
 }
 
@@ -2141,5 +2142,5 @@ bool input_overlay_lightgun_active()
 
 void input_overlay_notify_video_updated()
 {
-   adj.updated_needed = true;
+   adj.update_needed = true;
 }
