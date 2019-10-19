@@ -1770,7 +1770,7 @@ static bool inside_hitbox(const struct overlay_desc *desc, float x, float y)
 void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
                         int16_t norm_x, int16_t norm_y)
 {
-   size_t i;
+   size_t i, j;
    float x, y;
    bool ignore_other = false;
 
@@ -1806,7 +1806,11 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
       /* Ignore overlapping controls when a hitbox is extended */
       ignore_other = (desc->range_x_mod > desc->range_x_hitbox);
       if (ignore_other)
+      {
          memset(out,0,sizeof(*out));
+         for (j = 0; j < i; j++)
+            ol->active->descs[j].updated = false;
+      }
 
       desc->updated = true;
 

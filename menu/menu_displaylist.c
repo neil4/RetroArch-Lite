@@ -1319,7 +1319,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
             if (opts > 0)
             {
                menu_list_push(info->list,
-                  "Use ROM Options File",
+                  "Create ROM Options File",
                   menu_hash_to_str(MENU_LABEL_OPTIONS_FILE_SAVE_GAME),
                   MENU_SETTING_ACTION, 0, 0);
             }
