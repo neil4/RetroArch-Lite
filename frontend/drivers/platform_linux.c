@@ -484,5 +484,7 @@ const frontend_ctx_driver_t frontend_ctx_linux = {
    frontend_linux_get_architecture,
    frontend_linux_get_powerstate,
    NULL,                         /* parse_drive_list */
+   NULL,                         /* attach_console */
+   NULL,                         /* detach_console */
    "linux",
 };

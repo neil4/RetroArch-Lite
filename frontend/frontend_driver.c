@@ -119,3 +119,19 @@ int frontend_driver_parse_drive_list(void *data)
 }
 #endif
 
+void frontend_driver_attach_console(void)
+{
+   const frontend_ctx_driver_t *frontend = frontend_get_ptr();
+   if (!frontend || !frontend->attach_console)
+      return;
+   frontend->attach_console();
+}
+
+void frontend_driver_detach_console(void)
+{
+   const frontend_ctx_driver_t *frontend = frontend_get_ptr();
+   if (!frontend || !frontend->detach_console)
+      return;
+   frontend->detach_console();
+}
+

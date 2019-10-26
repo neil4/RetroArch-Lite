@@ -2024,7 +2024,8 @@ static void setting_get_string_representation_uint_libretro_log_level(void *data
       "0 (Debug)",
       "1 (Info)",
       "2 (Warning)",
-      "3 (Error)"
+      "3 (Error)",
+      "4 (None)"
    };
    rarch_setting_t *setting = (rarch_setting_t*)data;
 
@@ -3733,6 +3734,10 @@ static void general_write_handler(void *data)
       case MENU_LABEL_LOG_VERBOSITY:
          global->verbosity         = *setting->value.boolean;
          global->has_set_verbosity = *setting->value.boolean;
+         if (global->verbosity)
+            frontend_driver_attach_console();
+         else
+            frontend_driver_detach_console();
          break;
       case MENU_LABEL_VIDEO_SMOOTH:
          video_driver_set_filtering(1, settings->video.smooth);
@@ -4630,7 +4635,7 @@ static bool setting_append_list_logging_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 3, 1.0, true, true);
+   menu_settings_list_current_add_range(list, list_info, 0, 4, 1.0, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_libretro_log_level;
 
@@ -6609,7 +6614,7 @@ static bool setting_append_list_overlay_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.2f, true, true);
+   menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.1f, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_magnify_contact_area;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);

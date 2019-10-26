@@ -125,7 +125,7 @@ ifeq ($(DEBUG), 1)
 else
    CFLAGS += -O3 -ffast-math
    CXXFLAGS += -O3 -ffast-math
-   LDCXXFLAGS += -s
+   LDCXXFLAGS += -s -Wl,-subsystem,windows
 endif
 
 CFLAGS += -Wall -Wno-unused-result -Wno-unused-variable -I.

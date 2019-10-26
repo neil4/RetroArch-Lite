@@ -601,5 +601,7 @@ const frontend_ctx_driver_t frontend_ctx_darwin = {
    frontend_darwin_get_architecture,
    frontend_darwin_get_powerstate,
    frontend_darwin_parse_drive_list,
+   NULL,                         /* attach_console */
+   NULL,                         /* detach_console */
    "darwin",
 };

@@ -1602,6 +1602,10 @@ static bool config_load_file(const char *path, bool set_defaults)
 
    if (!global->has_set_verbosity)
       CONFIG_GET_BOOL_BASE(conf, global, verbosity, "log_verbosity");
+   if (global->verbosity)
+      frontend_driver_attach_console();
+   else
+      frontend_driver_detach_console();
 
    CONFIG_GET_BOOL_BASE(conf, global, perfcnt_enable, "perfcnt_enable");
 

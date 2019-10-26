@@ -624,6 +624,7 @@ static void parse_input(int argc, char *argv[])
          case 'v':
             global->verbosity = true;
             global->has_set_verbosity = true;
+            frontend_driver_attach_console();
             break;
 
          case 'N':

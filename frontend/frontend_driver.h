@@ -70,6 +70,8 @@ typedef struct frontend_ctx_driver
    enum frontend_architecture (*get_architecture)(void);
    enum frontend_powerstate (*get_powerstate)(int *seconds, int *percent);
    int  (*parse_drive_list)(void*);
+   void (*attach_console)(void);
+   void (*detach_console)(void);
 
    const char *ident;
 
@@ -110,6 +112,10 @@ const frontend_ctx_driver_t *frontend_get_ptr(void);
 const frontend_ctx_driver_t *frontend_ctx_init_first(void);
 
 int frontend_driver_parse_drive_list(void *data);
+
+void frontend_driver_attach_console(void);
+
+void frontend_driver_detach_console(void);
 
 #ifdef __cplusplus
 }
