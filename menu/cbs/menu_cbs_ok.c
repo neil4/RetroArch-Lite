@@ -759,13 +759,16 @@ static int action_ok_options_file_save_game(const char *path,
       /* trim to relevant options only */
       core_options_conf_reload(global->system.core_options);
       if (core_option_flush(global->system.core_options))
+      {
          rarch_main_msg_queue_push("ROM Options file created successfully", 1, 100, true);
+         options_touched = false;
+      }
       else
       {
          rarch_main_msg_queue_push("Error creating options file", 1, 100, true);
          core_option_get_core_conf_path(opt_path);
-         core_options_conf_reload(global->system.core_options);
       }
+      core_options_conf_reload(global->system.core_options);
    }
 
    return 0;

@@ -197,7 +197,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
          contentBrowser = null;  // rebuild contentBrowser here
          contentBrowser = DirectoryFragment.newInstance(item.getText(), item.getSupportedExtensions());
          
-         // Assume no content if no file extentions
+         // Assume no content if no file extensions
          if (contentBrowser == null)
          {
             onDirectoryFragmentClosed("");

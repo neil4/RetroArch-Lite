@@ -836,7 +836,7 @@ void config_file_dump(config_file_t *conf, FILE *file)
    list = (struct config_entry_list*)conf->entries;
    while (list)
    {
-      // Don't write empty values
+      /* Don't write empty values */
       if (!list->readonly && strcmp(list->value,""))
          fprintf(file, "%s = \"%s\"\n", list->key, list->value);
       list = list->next;
