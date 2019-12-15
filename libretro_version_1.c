@@ -413,6 +413,12 @@ static INLINE void input_poll_overlay(input_overlay_t *overlay_device, float opa
       }
 
       default:
+         if (menu_driver_alive())
+         {
+            driver->overlay_state.buttons
+               |= menu_analog_dpad_state(driver->overlay_state.analog[0],
+                                         driver->overlay_state.analog[1]);
+         }
          break;
    }
 

@@ -100,6 +100,14 @@ typedef struct ellipse_px
 static ellipse_px_t ellipse;
 static uint8_t overlay_ptr_idx;
 
+const struct overlay_eightway_vals menu_analog_vals = {
+   UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_UP,
+   UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_RIGHT,
+   UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_DOWN,
+   UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_LEFT,
+   0, 0, 0, 0, NULL, NULL
+};
+
 struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_END] = {
    { "1:2",           0.5f },
    { "9:16",          0.5625f },
@@ -1387,7 +1395,7 @@ void input_overlay_enable(input_overlay_t *ol, bool enable)
  * @param y_offset relative to 8-way center, normalized as fraction of screen height
  * @return input state representing the offset direction as @vals
  */
-static inline uint64_t eightway_direction(struct overlay_eightway_vals* vals,
+static inline uint64_t eightway_direction(const struct overlay_eightway_vals* vals,
                                           float x_offset,
                                           const float y_offset)
 {
@@ -1437,9 +1445,9 @@ static inline uint64_t eightway_direction(struct overlay_eightway_vals* vals,
    return UINT64_C(0);
 }
 
-static inline uint64_t four_way_direction(struct overlay_eightway_vals* vals,
-                                          float x_offset,
-                                          const float y_offset)
+static inline uint64_t fourway_direction(const struct overlay_eightway_vals* vals,
+                                         float x_offset,
+                                         const float y_offset)
 {
    if (x_offset == 0.0f)
      x_offset = 0.000001f;
@@ -1489,9 +1497,9 @@ static inline uint64_t four_way_direction(struct overlay_eightway_vals* vals,
  * Requires the input driver to call set_ellipse during poll.
  * Approximates ellipse as a diamond and checks vertex overlap with @vals.
  */
-static inline uint64_t eightway_ellipse_coverage(struct overlay_eightway_vals* vals,
-                                                  const float x_ellipse_offset,
-                                                  const float y_ellipse_offset)
+static inline uint64_t eightway_ellipse_coverage(const struct overlay_eightway_vals* vals,
+                                                 const float x_ellipse_offset,
+                                                 const float y_ellipse_offset)
 {
    settings_t* settings = config_get_ptr();
    float radius_major, radius_minor;
@@ -1506,7 +1514,7 @@ static inline uint64_t eightway_ellipse_coverage(struct overlay_eightway_vals* v
    
    /* for pointer tools */
    if (ellipse.major_px[overlay_ptr_idx] == 0)
-      return four_way_direction(vals, x_ellipse_offset, y_ellipse_offset);
+      return fourway_direction(vals, x_ellipse_offset, y_ellipse_offset);
 
    /* hack for inaccurate touchscreens */
    boost = settings->input.touch_ellipse_magnify;
@@ -1533,22 +1541,22 @@ static inline uint64_t eightway_ellipse_coverage(struct overlay_eightway_vals* v
    /* major axis endpoint 1 */
    x_offset = x_ellipse_offset + x_major_offset;
    y_offset = y_ellipse_offset + y_major_offset;
-   state |= four_way_direction(vals, x_offset, y_offset);
+   state |= fourway_direction(vals, x_offset, y_offset);
    
    /* major axis endpoint 2 */
    x_offset = x_ellipse_offset - x_major_offset;
    y_offset = y_ellipse_offset - y_major_offset;
-   state |= four_way_direction(vals, x_offset, y_offset);
+   state |= fourway_direction(vals, x_offset, y_offset);
 
    /* minor axis endpoint 1 */
    x_offset = x_ellipse_offset + x_minor_offset;
    y_offset = y_ellipse_offset + y_minor_offset;
-   state |= four_way_direction(vals, x_offset, y_offset);
+   state |= fourway_direction(vals, x_offset, y_offset);
 
    /* minor axis endpoint 2 */
    x_offset = x_ellipse_offset - x_minor_offset;
    y_offset = y_ellipse_offset - y_minor_offset;
-   state |= four_way_direction(vals, x_offset, y_offset);
+   state |= fourway_direction(vals, x_offset, y_offset);
    
    return state;
 }
@@ -1568,7 +1576,7 @@ static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
 {
    settings_t* settings = config_get_ptr();
    uint64_t state = 0;
-   struct overlay_eightway_vals* vals = desc_ptr->eightway_vals;
+   const struct overlay_eightway_vals* vals = desc_ptr->eightway_vals;
    
    float x_offset = (x - desc_ptr->x) * adj.display_aspect;
    float y_offset = (desc_ptr->y - y);
@@ -2137,6 +2145,21 @@ void input_overlay_set_alpha_mod(input_overlay_t *ol, float mod)
 
    for (i = 0; i < ol->active->load_images_size; i++)
       ol->iface->set_alpha(ol->iface_data, i, mod);
+}
+
+/**
+ * menu_analog_dpad_state:
+ * @analog_x             : x axis value [-0x7fff, 0x7fff]
+ * @analog_y             : y axis value [-0x7fff, 0x7fff]
+ *
+ * Returns 4-way Dpad state from analog axes for menu navigation.
+ **/
+uint64_t menu_analog_dpad_state(const int16_t analog_x, const int16_t analog_y)
+{
+   if (abs(analog_x) < 0x3000 && abs(analog_y) < 0x3000)
+      return 0;
+
+   return fourway_direction(&menu_analog_vals, analog_x, -analog_y);
 }
 
 bool input_overlay_lightgun_active()

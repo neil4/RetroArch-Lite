@@ -432,6 +432,15 @@ void input_overlay_next(input_overlay_t *ol, float opacity);
  **/
 void input_overlay_update_eightway_diag_sens();
 
+/**
+ * menu_analog_dpad_state:
+ * @analog_x             : x axis value [-0x7fff, 0x7fff]
+ * @analog_y             : y axis value [-0x7fff, 0x7fff]
+ *
+ * Returns 4-way Dpad state from analog axes for menu navigation.
+ **/
+uint64_t menu_analog_dpad_state(const int16_t analog_x, const int16_t analog_y);
+
 /* Repurpose lightgun id values unusable as state bits */
 #define RARCH_LIGHTGUN_BIT_RELOAD RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN
 
