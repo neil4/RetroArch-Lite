@@ -1763,6 +1763,30 @@ static bool inside_hitbox(const struct overlay_desc *desc, float x, float y)
    return false;
 }
 
+static bool inside_orig_hitbox(const struct overlay_desc *desc, float x, float y)
+{
+   if (!desc)
+      return false;
+
+   switch (desc->hitbox)
+   {
+      case OVERLAY_HITBOX_RADIAL:
+      {
+         /* Ellipse. */
+         float x_dist = (x - desc->x_hitbox) / desc->range_x;
+         float y_dist = (y - desc->y_hitbox) / desc->range_y;
+         float sq_dist = x_dist * x_dist + y_dist * y_dist;
+         return (sq_dist <= 1.0f);
+      }
+
+      case OVERLAY_HITBOX_RECT:
+         return (fabs(x - desc->x_hitbox) <= desc->range_x) &&
+            (fabs(y - desc->y_hitbox) <= desc->range_y);
+   }
+
+   return false;
+}
+
 /**
  * input_overlay_poll:
  * @ol                    : Overlay handle.
@@ -1811,8 +1835,11 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
       if (!inside_hitbox(desc, x, y))
          continue;
 
-      /* Ignore overlapping controls when a hitbox is extended */
-      ignore_other = (desc->range_x_mod > desc->range_x_hitbox);
+      /* Ignore overlapping controls for extended hitboxes */
+      if (desc->range_x_mod > desc->range_x_hitbox
+          && desc->type && !inside_orig_hitbox(desc, x, y))
+         ignore_other = true;
+
       if (ignore_other)
       {
          memset(out,0,sizeof(*out));
