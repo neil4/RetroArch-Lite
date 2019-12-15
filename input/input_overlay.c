@@ -299,7 +299,7 @@ static void update_aspect_x_y_globals(struct overlay *ol)
    {  /* get values to adjust overlay aspect, re-center x, and then bisect */
       adj.x_aspect_factor = overlay_aspect / adj.display_aspect;
       adj.x_center_shift = (1.0f - adj.x_aspect_factor) / 2.0f;
-      if (bisect_aspect > overlay_aspect * 1.01)
+      if (bisect_aspect > overlay_aspect)
       {
          adj.x_bisect_shift = (bisect_aspect/adj.display_aspect
                                + ( (1.0f - bisect_aspect/adj.display_aspect)

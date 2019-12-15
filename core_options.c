@@ -395,7 +395,7 @@ void core_option_get_core_conf_path(char *path)
                                               : NULL;
    char directory[PATH_MAX_LENGTH] = {0};
    
-   if (!settings || !*core_name)
+   if (!settings || !global || !*core_name)
       return;
    
    fill_pathname_join(directory, settings->menu_config_directory,
@@ -419,7 +419,7 @@ bool core_option_get_game_conf_path(char *path)
    const char *game_name           = global ? path_basename(global->basename)
                                               : NULL;
    
-   if (!global || !settings)
+   if (!settings || !global || !*core_name || !*game_name)
       return false;
 
    fill_pathname_join(directory, settings->menu_config_directory,

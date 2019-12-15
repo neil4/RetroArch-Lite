@@ -6631,7 +6631,7 @@ static bool setting_append_list_overlay_options(
             parent_group,
             general_write_handler,
             general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 0, 30, 1, true, true);
+      menu_settings_list_current_add_range(list, list_info, 0, 50, 1, true, true);
       menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
       (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_millisec;
@@ -6978,7 +6978,7 @@ static bool setting_append_list_menu_options(
       CONFIG_BOOL(
          settings->menu.rgui_thick_bg_checkerboard,
          "rgui_thick_background_checkerboard",
-         "Thicken BG pattern",
+         "Thick Background Pattern",
          false,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -6993,7 +6993,7 @@ static bool setting_append_list_menu_options(
       CONFIG_BOOL(
          settings->menu.rgui_thick_bd_checkerboard,
          "rgui_thick_border_checkerboard",
-         "Thicken Border pattern",
+         "Thick Border Pattern",
          false,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),

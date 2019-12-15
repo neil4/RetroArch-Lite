@@ -624,11 +624,12 @@ static INLINE int android_input_poll_event_type_motion(
    {
       keydown = ( action == AMOTION_EVENT_ACTION_DOWN
                   || action == AMOTION_EVENT_ACTION_POINTER_DOWN );
-      keyup = ( action == AMOTION_EVENT_ACTION_UP
-                || action == AMOTION_EVENT_ACTION_POINTER_UP
-                || action == AMOTION_EVENT_ACTION_CANCEL
-                || (source == AINPUT_SOURCE_MOUSE
-                    && (action != AMOTION_EVENT_ACTION_DOWN)) );
+      keyup = !keydown
+              && ( action == AMOTION_EVENT_ACTION_UP
+                   || action == AMOTION_EVENT_ACTION_POINTER_UP
+                   || action == AMOTION_EVENT_ACTION_CANCEL
+                   || (source == AINPUT_SOURCE_MOUSE
+                       && (action != AMOTION_EVENT_ACTION_DOWN)) );
       
       if ( action == AMOTION_EVENT_ACTION_HOVER_MOVE
            || action == AMOTION_EVENT_ACTION_HOVER_ENTER

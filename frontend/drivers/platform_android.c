@@ -230,11 +230,7 @@ static void android_app_entry(void *data)
    char *argv[1];
    int argc = 0;
 
-   if (rarch_main(argc, argv, data) != 0)
-      goto end;
-
-end:
-   exit(0);
+   rarch_main(argc, argv, data);
 }
 
 /*
