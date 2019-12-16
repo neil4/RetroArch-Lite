@@ -67,6 +67,8 @@
 static settings_t *g_config = NULL;
 struct defaults g_defaults;
 
+static config_file_t* scoped_conf[NUM_SETTING_SCOPES];
+
 struct enum_lut scope_lut[NUM_SETTING_SCOPES] = {
    { "Global", GLOBAL },
    { "This Core", THIS_CORE },
@@ -2469,7 +2471,7 @@ static void scoped_config_file_save(unsigned scope)
    char fullpath[PATH_MAX_LENGTH]   = {0};
    global_t *global                 = global_get_ptr();
    settings_t *settings             = config_get_ptr();
-   config_file_t* conf              = NULL;
+   config_file_t* conf              = scoped_conf[scope];
    unsigned i;
    
    if (!global || !settings || !settings->config_save_on_exit)
@@ -2483,12 +2485,17 @@ static void scoped_config_file_save(unsigned scope)
                       global->libretro_name, PATH_MAX_LENGTH);
    fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
    
-   /* Read config if it exists. Unscoped settings will be removed */
-   conf = config_file_new(fullpath);
+   /* Edit existing config if it exists. Unscoped settings will be removed. */
    if (!conf)
-      conf = config_file_new(NULL);
-   if (!conf)
-      return;
+   {
+      conf = config_file_new(fullpath);
+      if (!conf)
+      {
+         conf = config_file_new(NULL);
+         if (!conf)
+            return;
+      }
+   }
 
    /* Populate config
     * Higher scopes are more specific and mask lower scopes */
@@ -2740,6 +2747,7 @@ static void scoped_config_file_save(unsigned scope)
    
    /* Cleanup */
    config_file_free(conf);
+   scoped_conf[scope] = NULL;
 }
 
 void scoped_config_files_save()
@@ -3099,7 +3107,7 @@ static void scoped_config_file_load(unsigned scope)
    char fullpath[PATH_MAX_LENGTH]   = {0};
    global_t *global                 = global_get_ptr();
    settings_t *settings             = config_get_ptr();
-   config_file_t* conf              = NULL;
+   config_file_t* conf              = scoped_conf[scope];
    unsigned i;
    
    if (!global || !settings)
@@ -3113,9 +3121,14 @@ static void scoped_config_file_load(unsigned scope)
                       global->libretro_name, PATH_MAX_LENGTH);
    fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
    
+   if (conf)
+      config_file_free(conf);
    conf = config_file_new(fullpath);
    if (!conf)
+   {
+      scoped_conf[scope] = NULL;
       return;
+   }
    
    /* Override values if found in scoped config, and update scope in those cases */
    if (config_get_bool(conf, "audio_sync", &settings->audio.sync))
@@ -3255,7 +3268,8 @@ static void scoped_config_file_load(unsigned scope)
                           "rewind_buffer_size");
    }
 
-   config_file_free(conf);
+   /* Leave config in memory until scoped_config_file_save is called. */
+   scoped_conf[scope] = conf;
 }
 
 void scoped_config_files_load_auto()
