@@ -83,6 +83,9 @@ void accelerate_overlay_load()
    data_runloop_t *runloop = rarch_main_data_get_ptr();
    unsigned watchdog       = 1024;
 
+   if (!driver->overlay)
+      return;
+
    while ( driver->overlay->state != OVERLAY_STATUS_ALIVE
            && driver->overlay->state != OVERLAY_STATUS_DEFERRED_ERROR
            && driver->overlay->state != OVERLAY_STATUS_NONE
