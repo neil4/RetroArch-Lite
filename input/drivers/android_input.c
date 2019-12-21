@@ -1030,8 +1030,8 @@ static void android_input_poll(void *data)
    frame.downs = 0;
    frame.any_events = false;
    
-   while ((ident = ALooper_pollAll( runloop->is_idle ? -1 : 0,
-                                    NULL, NULL, NULL )) >= 0)
+   while ((ident = ALooper_pollAll(runloop->is_idle ? 1000 : 0,
+                                   NULL, NULL, NULL)) >= 0)
    {
       switch (ident)
       {
