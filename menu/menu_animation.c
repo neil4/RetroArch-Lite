@@ -605,6 +605,9 @@ void menu_animation_ticker_line(char *s, size_t len, uint64_t idx,
       return;
    }
 
+   if (!len)
+      return;
+
    if (!selected)
    {
       strlcpy(s, str, len + 1 - 3);
