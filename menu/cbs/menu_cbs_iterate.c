@@ -467,6 +467,42 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
    return 0;
 }
 
+static void delete_shader_preset(menu_list_t *menu_list)
+{
+   char file_path[PATH_MAX_LENGTH] = {0};
+   const char *menu_dir            = NULL;
+   const char *menu_label          = NULL;
+   settings_t *settings            = config_get_ptr();
+   menu_entry_t entry;
+   size_t selected;
+
+   /* get dir */
+   menu_list_get_last_stack(menu_list, &menu_dir, &menu_label, NULL, NULL);
+
+   /* get filename */
+   selected = menu_navigation_get_current_selection();
+   selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
+   menu_entry_get(&entry, selected, NULL, false);
+
+   fill_pathname_join(file_path, menu_dir, entry.path, PATH_MAX_LENGTH);
+
+   /* delete file */
+   if (remove(file_path))
+      rarch_main_msg_queue_push("Error deleting shader preset", 1, 100, true);
+   else
+   {
+      rarch_main_msg_queue_push("Deleted shader preset", 1, 100, true);
+      menu_entries_set_refresh();
+      if (!strcmp(file_path, settings->video.shader_path))
+      {
+         settings->video.shader_path[0] = '\0';
+         scoped_settings_touched = true;
+         settings_touched = true;
+         event_command(EVENT_CMD_REINIT);
+      }
+   }
+}
+
 static void delete_core_file(menu_list_t *menu_list)
 {
    char core_path[PATH_MAX_LENGTH] = {0};
@@ -474,8 +510,6 @@ static void delete_core_file(menu_list_t *menu_list)
    const char *menu_label          = NULL;
    menu_entry_t entry;
    size_t selected;
-   
-   menu_list_pop_stack(menu_list);
    
    /* get dir */
    menu_list_get_last_stack(menu_list, &menu_dir, &menu_label, NULL, NULL);
@@ -497,7 +531,8 @@ static void delete_core_file(menu_list_t *menu_list)
    }
 }
 
-static bool menu_input_core_delete_hold(char *s, size_t len, menu_list_t *menu_list)
+static bool menu_input_file_delete_hold(char *s, size_t len,
+                                        menu_list_t *menu_list, char* type)
 {
    settings_t *settings = config_get_ptr();
    int timeout          = 0;
@@ -512,12 +547,13 @@ static bool menu_input_core_delete_hold(char *s, size_t len, menu_list_t *menu_l
       if (timeout > 0)
       {
          snprintf(s, len, "Hold for %d"
-                          "\nto DELETE this core.", timeout);
+                          "\nto DELETE this %s.", timeout, type);
          menu_driver_render_messagebox(s);
          return false;
       }
       else
       {
+         menu_list_pop_stack(menu_list);
          end_time = 0;
          return true;  /* trigger deletion */
       }
@@ -539,6 +575,7 @@ enum action_iterate_type
    ITERATE_TYPE_VIEWPORT,
    ITERATE_TYPE_BIND,
    ITERATE_TYPE_CONFIRM_CORE_DELETE,
+   ITERATE_TYPE_CONFIRM_SHADER_PRESET_DELETE,
 };
 
 static enum action_iterate_type action_iterate_type(uint32_t hash)
@@ -562,6 +599,8 @@ static enum action_iterate_type action_iterate_type(uint32_t hash)
          return ITERATE_TYPE_BIND;
       case MENU_LABEL_CONFIRM_CORE_DELETION:
          return ITERATE_TYPE_CONFIRM_CORE_DELETE;
+      case MENU_LABEL_CONFIRM_SHADER_PRESET_DELETION:
+         return ITERATE_TYPE_CONFIRM_SHADER_PRESET_DELETE;
    }
 
    return ITERATE_TYPE_DEFAULT;
@@ -622,8 +661,12 @@ static int action_iterate_main(const char *label, unsigned action)
          do_pop_stack    = true;
          break;
       case ITERATE_TYPE_CONFIRM_CORE_DELETE:
-         if (menu_input_core_delete_hold(msg, sizeof(msg), menu_list))
+         if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list, "core"))
             delete_core_file(menu_list);
+         break;
+      case ITERATE_TYPE_CONFIRM_SHADER_PRESET_DELETE:
+         if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list, "preset"))
+            delete_shader_preset(menu_list);
          break;
       case ITERATE_TYPE_DEFAULT:
          selected = menu_navigation_get_current_selection();

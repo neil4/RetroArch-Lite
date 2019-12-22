@@ -292,6 +292,7 @@ extern "C" {
 #define MENU_LABEL_CUSTOM_RATIO                                                0xf038731eU
 #define MENU_LABEL_VALUE_CUSTOM_RATIO                                          0x3c94b73fU
 #define MENU_LABEL_CONFIRM_CORE_DELETION                                       0x111b482eU
+#define MENU_LABEL_CONFIRM_SHADER_PRESET_DELETION                              0xd43a4c8eU
 #define MENU_LABEL_HELP                                                        0x7c97d2eeU
 #define MENU_LABEL_VALUE_HELP                                                  0x7c8646ceU
 #define MENU_LABEL_INPUT_OVERLAY                                               0x24e24796U

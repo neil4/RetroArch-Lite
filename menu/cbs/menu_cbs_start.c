@@ -162,47 +162,21 @@ static int action_start_shader_preset(unsigned type, const char *label)
 
 static int action_start_shader_preset_delete(unsigned type, const char *label)
 {
-   settings_t *settings = config_get_ptr();
-   const char              *menu_dir = NULL;
-   char preset_path[PATH_MAX_LENGTH] = {0};
-   menu_handle_t               *menu = menu_driver_get_ptr();
-   menu_list_t            *menu_list = menu_list_get_ptr();
-   menu_entry_t entry;
-   size_t selected;
-   
-   if (!settings || !menu || !menu_list)
+   menu_displaylist_info_t info = {0};
+   int ret                  = 0;
+   menu_list_t   *menu_list = menu_list_get_ptr();
+   menu_navigation_t *nav   = menu_navigation_get_ptr();
+
+   if (!menu_list)
       return -1;
-
-   (void)preset_path;
-   (void)menu_dir;
-   (void)menu_list;
    
-   /* get directory */
-   menu_list_get_last_stack(menu_list, &menu_dir, NULL, NULL, NULL);
-   
-   /* get filename */
-   selected = menu_navigation_get_current_selection();
-   selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
-   menu_entry_get(&entry, selected, NULL, false);
+   info.list          = menu_list->menu_stack;
+   info.directory_ptr = nav->selection_ptr;
+   strlcpy(info.label, "confirm_shader_preset_deletion", sizeof(info.label));
 
-   fill_pathname_join(preset_path, menu_dir, entry.path, PATH_MAX_LENGTH);
+   ret = menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
 
-   if (remove(preset_path))
-      rarch_main_msg_queue_push("Error deleting shader preset", 1, 100, true);
-   else
-   {
-      rarch_main_msg_queue_push("Deleted shader preset", 1, 100, true);
-      menu_entries_set_refresh();
-      if (!strcmp(preset_path, settings->video.shader_path))
-      {
-         settings->video.shader_path[0] = '\0';
-         scoped_settings_touched = true;
-         settings_touched = true;
-         event_command(EVENT_CMD_REINIT);
-      }
-   }
-   
-   return 0;
+   return ret;
 }
 
 static int action_start_performance_counters_core(unsigned type, const char *label)
