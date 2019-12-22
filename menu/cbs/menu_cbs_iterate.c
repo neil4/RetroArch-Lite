@@ -658,9 +658,7 @@ static int action_iterate_main(const char *label, unsigned action)
          break;
    }
 
-   did_messagebox = did_messagebox != do_messagebox;
-
-   if (did_messagebox)
+   if (did_messagebox && !do_messagebox)
       menu_display_fb_set_dirty();
 
    if (do_messagebox)
@@ -675,6 +673,8 @@ static int action_iterate_main(const char *label, unsigned action)
 
    if (do_render)
       menu_driver_render();
+
+   did_messagebox = do_messagebox;
 
    return ret;
 }
