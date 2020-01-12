@@ -160,6 +160,15 @@ static int menu_displaylist_parse_core_info(menu_displaylist_info_t *info)
       return 0;
    }
 
+   if (global->content_is_init && *global->fullpath)
+   {
+      strlcpy(tmp, "Loaded ROM", sizeof(tmp));
+      strlcat(tmp, ": ", sizeof(tmp));
+      strlcat(tmp, path_basename(global->fullpath), sizeof(tmp));
+      menu_list_push(info->list, tmp, "info",
+            MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
+   }
+
    strlcpy(tmp, "Core name", sizeof(tmp));
    strlcat(tmp, ": ", sizeof(tmp));
    if (core_info->core_name)

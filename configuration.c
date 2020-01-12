@@ -2497,6 +2497,8 @@ static void scoped_config_file_save(unsigned scope)
       }
    }
 
+   RARCH_LOG("Saving scoped config at path: \"%s\"\n", fullpath);
+
    /* Populate config
     * Higher scopes are more specific and mask lower scopes */
    if (settings->audio.sync_scope == scope)
@@ -3129,7 +3131,9 @@ static void scoped_config_file_load(unsigned scope)
       scoped_conf[scope] = NULL;
       return;
    }
-   
+
+   RARCH_LOG("Loading scoped config from: %s.\n", fullpath);
+
    /* Override values if found in scoped config, and update scope in those cases */
    if (config_get_bool(conf, "audio_sync", &settings->audio.sync))
       settings->audio.sync_scope = scope;

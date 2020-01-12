@@ -2600,27 +2600,22 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_LOAD_CONTENT:
          snprintf(s, len,
-               " -- Load Content. \n"
+               "-- Load ROM.  \n"
                "Browse for content. \n"
                " \n"
-               "To load content, you need a \n"
-               "libretro core to use, and a \n"
-               "content file. \n"
-               " \n"
                "To control where the menu starts \n"
-               " to browse for content, set  \n"
-               "Browser Directory. If not set,  \n"
-               "it will start in root. \n"
+               "to browse for content, set  \n"
+               "Default ROM Directory or Core \n"
+               "ROM Directory. If neither is \n"
+               "set, it will start in root. \n"
                " \n"
                "The browser will filter out \n"
-               "extensions for the last core set \n"
-               "in 'Core', and use that core when \n"
-               "content is loaded."
+               "extensions for the loaded core. "
                );
          break;
       case MENU_LABEL_CORE_LIST:
          snprintf(s, len,
-               " -- Load Core. \n"
+               "-- Load Core.  \n"
                " \n"
                "Browse for a libretro core \n"
                "implementation. Where the browser \n"
