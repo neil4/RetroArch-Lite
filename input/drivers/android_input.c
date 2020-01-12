@@ -413,10 +413,6 @@ static void engine_handle_cmd(void)
          /* The window is being hidden or closed, clean it up. */
          /* terminate display/EGL context here */
 
-#if 0
-         RARCH_WARN("Window is terminated outside PAUSED state.\n");
-#endif
-
          android_app->window = NULL;
          scond_broadcast(android_app->cond);
          slock_unlock(android_app->mutex);
@@ -475,6 +471,9 @@ static void *jni_update_rotation_thread(void* data)
       RARCH_ERR("jni_update_rotation_thread: Failed to attach current thread.\n");
       return NULL;
    }
+
+   pthread_mutex_init(&rotation_mutex, NULL);
+   pthread_mutex_lock(&rotation_mutex);
 
    /* Sit and wait for rotation_flag.*/
    for (;;)
@@ -540,8 +539,9 @@ static void *jni_vibrate_thread(void* data)
                   vibrator_class,
                   "vibrate",
                   "(J)V" )
-   
+
    pthread_mutex_init(&vibrate_mutex, NULL);
+   pthread_mutex_lock(&vibrate_mutex);
    
    /* Sit and wait for vibrate_flag.*/
    for (;;)
@@ -1030,7 +1030,7 @@ static void android_input_poll(void *data)
    frame.downs = 0;
    frame.any_events = false;
    
-   while ((ident = ALooper_pollAll(runloop->is_idle ? 1000 : 0,
+   while ((ident = ALooper_pollAll(runloop->is_idle ? -1 : 0,
                                    NULL, NULL, NULL)) >= 0)
    {
       switch (ident)
@@ -1052,7 +1052,6 @@ static void android_input_poll(void *data)
       android->pointer_count = 0;
    
    android_update_rotation();
-   
 }
 
 bool android_run_events(void *data)
