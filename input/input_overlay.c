@@ -277,10 +277,7 @@ static void update_aspect_x_y_globals(struct overlay *ol)
    adj.x_bisect_shift       = 0.0f;
    adj.y_aspect_factor      = 1.0f;
    adj.y_center_shift       = 0.0f;
-   
-   if (settings->input.overlay_adjust_aspect == false)
-      return;
-   
+
    video_driver_get_size(&screen_width, &screen_height);
    adj.display_aspect = (float)screen_width / screen_height;
 
@@ -344,12 +341,14 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
 {
    settings_t* settings = config_get_ptr();
    global_t  *global    = global_get_ptr();
-   float upper_bound = 0.5f + (0.5f * (1.0f / settings->input.overlay_scale));
-   float lower_bound = 0.5f - (0.5f * (1.0f / settings->input.overlay_scale));
+   float upper_bound, lower_bound;
    
-   if (!desc)
+   if (!desc || settings->input.overlay_adjust_aspect == false)
       return;
    
+   upper_bound = 0.5f + (0.5f * (1.0f / settings->input.overlay_scale));
+   lower_bound = 0.5f - (0.5f * (1.0f / settings->input.overlay_scale));
+
    /* adjust aspect */
    desc->x = desc->x_orig * adj.x_aspect_factor;
    desc->y = desc->y_orig * adj.y_aspect_factor;
