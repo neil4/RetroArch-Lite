@@ -252,6 +252,16 @@ static int menu_displaylist_parse_core_info(menu_displaylist_info_t *info)
             MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
    }
 
+   if (core_info->required_hw_api)
+   {
+      strlcpy(tmp, "Required graphics API", sizeof(tmp));
+      strlcat(tmp, ": ", sizeof(tmp));
+      string_list_join_concat(tmp, sizeof(tmp),
+            core_info->required_hw_api_list, ", ");
+      menu_list_push(info->list, tmp, "info",
+            MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
+   }
+
    if (core_info->firmware_count > 0)
    {
       core_info_list_update_missing_firmware(

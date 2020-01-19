@@ -196,27 +196,69 @@ static void create_gl_context(HWND hwnd)
 
       if (pcreate_context)
       {
-         HGLRC context = pcreate_context(g_hdc, NULL, attribs);
+         int i;
+         int gl_versions[][2] = {{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0}, {3, 3}, {3, 2}, {3, 1}, {3, 0}};
+         int gl_version_rows = ARRAY_SIZE(gl_versions);
+         int (*versions)[2];
+         int version_rows = 0;
+         HGLRC context = NULL;
 
-         if (context)
-         {
-            wglMakeCurrent(NULL, NULL);
-            wglDeleteContext(g_hrc);
-            g_hrc = context;
-            if (!wglMakeCurrent(g_hdc, g_hrc))
-               g_quit = true;
-         }
-         else
-            RARCH_ERR("[WGL]: Failed to create core context. Falling back to legacy context.\n");
+         versions = gl_versions;
+         version_rows = gl_version_rows;
 
-         if (g_use_hw_ctx)
+         /* only try higher versions when core_context is true */
+         if (!core_context)
+            version_rows = 1;
+
+         /* try versions from highest down to requested version */
+         for (i = 0; i < version_rows; i++)
          {
-            g_hw_hrc = pcreate_context(g_hdc, context, attribs);
-            if (!g_hw_hrc)
+            if (core_context)
             {
-               RARCH_ERR("[WGL]: Failed to create shared context.\n");
-               g_quit = true;
+               attribs[1] = versions[i][0];
+               attribs[3] = versions[i][1];
             }
+
+            context = pcreate_context(g_hdc, NULL, attribs);
+
+            if (context)
+            {
+               wglMakeCurrent(NULL, NULL);
+               wglDeleteContext(g_hrc);
+               g_hrc = context;
+
+               if (!wglMakeCurrent(g_hdc, g_hrc))
+               {
+                  g_quit = true;
+                  break;
+               }
+
+               if (g_use_hw_ctx)
+               {
+                  g_hw_hrc = pcreate_context(g_hdc, context, attribs);
+
+                  if (!g_hw_hrc)
+                  {
+                     RARCH_ERR("[WGL]: Failed to create shared context.\n");
+                     g_quit = true;
+                     break;
+                  }
+               }
+
+               /* found a suitable version that is high enough, we can stop now */
+               break;
+            }
+            else if (versions[i][0] == g_major && versions[i][1] == g_minor)
+            {
+               /* The requested version was tried and is not supported, go ahead and fail since everything else will be lower than that. */
+               break;
+            }
+         }
+
+         if (!context)
+         {
+            RARCH_ERR("[WGL]: Failed to create core context. Falling back to legacy context.\n");
+            g_quit = true;
          }
       }
       else

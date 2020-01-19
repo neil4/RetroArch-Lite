@@ -215,6 +215,11 @@ core_info_list_t *core_info_list_new(enum info_list_target target)
                core_info[i].notes)
             core_info[i].note_list = string_split(core_info[i].notes, "|");
 
+         if (config_get_string(core_info[i].data, "required_hw_api",
+                  &core_info[i].required_hw_api) &&
+               core_info[i].required_hw_api)
+            core_info[i].required_hw_api_list = string_split(core_info[i].required_hw_api, "|");
+
          config_get_bool(core_info[i].data, "supports_no_game",
                &core_info[i].supports_no_game);
       }
