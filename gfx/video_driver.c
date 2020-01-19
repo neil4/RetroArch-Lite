@@ -1271,12 +1271,7 @@ void video_driver_free_hw_context()
       (struct retro_hw_render_callback*)video_driver_callback();
 
    if (hw_render->context_destroy && !driver->video_cache_context)
-   {
-      // hack(?) - dismiss menu before destroying context
-      rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
       hw_render->context_destroy();
-      rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING);
-   }
 
    memset(hw_render, 0, sizeof(*hw_render));
 }

@@ -1160,6 +1160,7 @@ bool event_command(enum event_command cmd)
 #endif
          break;
       case EVENT_CMD_CORE_DEINIT:
+         event_command(EVENT_CMD_AUDIO_START);
          video_driver_free_hw_context();
          
          pretro_unload_game();
@@ -1222,7 +1223,7 @@ bool event_command(enum event_command cmd)
          uninit_drivers(DRIVER_AUDIO);
          init_drivers(DRIVER_AUDIO);
          break;
-      case EVENT_CMD_RESET_CONTEXT:           
+      case EVENT_CMD_RESET_CONTEXT:
          event_command(EVENT_CMD_DRIVERS_DEINIT);   
          event_command(EVENT_CMD_DRIVERS_INIT);
          break;
