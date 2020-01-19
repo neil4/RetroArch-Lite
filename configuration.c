@@ -2835,6 +2835,7 @@ void config_backup_restore_globals()
    {  /* restore */
       settings->audio.volume_scope = GLOBAL;
       settings->audio.volume = audio_volume;
+      audio_driver_set_volume_gain(db_to_gain(settings->audio.volume));
    }
    else
    {  /* back up */
@@ -3138,7 +3139,10 @@ static void scoped_config_file_load(unsigned scope)
    if (config_get_bool(conf, "audio_sync", &settings->audio.sync))
       settings->audio.sync_scope = scope;
    if (config_get_float(conf, "audio_volume", &settings->audio.volume))
+   {
       settings->audio.volume_scope = scope;
+      audio_driver_set_volume_gain(db_to_gain(settings->audio.volume));
+   }
    if (config_get_float(conf, "audio_max_timing_skew", &settings->audio.max_timing_skew))
       settings->audio.max_timing_skew_scope = scope;
    if (config_get_path(conf, "audio_dsp_plugin", settings->audio.dsp_plugin,
