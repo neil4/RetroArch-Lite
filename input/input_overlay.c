@@ -344,6 +344,8 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
 {
    settings_t* settings = config_get_ptr();
    global_t  *global    = global_get_ptr();
+   float upper_bound = 0.5f + (0.5f * (1.0f / settings->input.overlay_scale));
+   float lower_bound = 0.5f - (0.5f * (1.0f / settings->input.overlay_scale));
    
    if (!desc)
       return;
@@ -366,10 +368,10 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
    desc->y -= settings->input.overlay_adjust_vertical;
    
    /* make sure the button isn't pushed off screen */
-   if ( desc->y + desc->range_y > 1.0f )
-      desc->y = 1.0f - desc->range_y;
-   else if ( desc->y - desc->range_y < 0.0f)
-      desc->y = desc->range_y;
+   if ( desc->y + desc->range_y > upper_bound )
+      desc->y = upper_bound - desc->range_y;
+   else if ( desc->y - desc->range_y < lower_bound)
+      desc->y = lower_bound + desc->range_y;
    
    /* optionally clamp to edge */
    if (settings->input.overlay_adjust_vertical_lock_edges)
@@ -391,10 +393,10 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
               * (global->overlay_reverse_horiz_shift ? -1.0f : 1.0f);
 
    /* make sure the button isn't entirely pushed off screen */
-   if ( desc->x > 1.0f )
-      desc->x = 1.0f;
-   else if ( desc->x < 0.0f)
-      desc->x = 0.0f;
+   if ( desc->x > upper_bound )
+      desc->x = upper_bound;
+   else if ( desc->x < lower_bound)
+      desc->x = lower_bound;
 }
 
 static void input_overlay_get_slope_limits(const float diagonal_sensitivity,
@@ -596,13 +598,17 @@ static void input_overlay_update_aspect_and_shift_vals(input_overlay_t *ol,
 
 void input_overlays_update_aspect_and_shift(input_overlay_t *ol)
 {
+   settings_t *settings = config_get_ptr();
    size_t i;
 
    if (!ol || !ol->active)
       return;
 
    for (i = 0; i < ol->size; i++)
+   {
       input_overlay_update_aspect_and_shift_vals(ol, i);
+      input_overlay_scale(&ol->overlays[i], settings->input.overlay_scale);
+   }
 
    input_overlay_set_vertex_geom(ol);
 }
@@ -615,10 +621,11 @@ static void input_overlay_free_overlay(struct overlay *overlay)
       return;
 
    for (i = 0; i < overlay->size; i++)
+   {
       texture_image_free(&overlay->descs[i].image);
-
-   if (overlay->descs->eightway_vals)
-      free(overlay->descs->eightway_vals);
+      if (overlay->descs[i].eightway_vals)
+         free(overlay->descs[i].eightway_vals);
+   }
 
    free(overlay->load_images);
    free(overlay->descs);
@@ -1098,7 +1105,7 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
          if (!driver_get_ptr()->osk_enable)
          {
             input_overlay_update_aspect_and_shift_vals(ol, ol->pos);
-            input_overlay_set_vertex_geom(ol);
+            input_overlay_set_scale_factor(ol, ol->deferred.scale_factor);
          }
          ol->pos += 1;
          ol->loading_status = OVERLAY_IMAGE_TRANSFER_NONE;
@@ -1274,7 +1281,6 @@ bool input_overlay_new_done(input_overlay_t *ol)
       return false;
 
    input_overlay_set_alpha_mod(ol, ol->deferred.opacity);
-   input_overlay_set_scale_factor(ol, ol->deferred.scale_factor);
    ol->next_index = (ol->index + 1) % ol->size;
 
    ol->state = OVERLAY_STATUS_ALIVE;

@@ -6287,7 +6287,7 @@ static bool setting_append_list_input_options(
       snprintf(label_type[user], sizeof(label_type[user]),
                "User %u Virtual Device", user + 1);
       snprintf(label_analog[user], sizeof(label_analog[user]),
-               "User %u Analog To Dpad Type", user + 1);
+               "User %u Analog To D-Pad Type", user + 1);
       snprintf(label_bind_all[user], sizeof(label_bind_all[user]),
                "User %u Bind All", user + 1);
       snprintf(label_bind_defaults[user], sizeof(label_bind_defaults[user]),
@@ -6508,7 +6508,7 @@ static bool setting_append_list_overlay_options(
    CONFIG_UINT(
          settings->input.dpad_method,
          "input_dpad_method",
-         "Dpad Input Method",
+         "D-Pad Input Method",
          VECTOR,
          group_info.name,
          subgroup_info.name,
@@ -6580,7 +6580,7 @@ static bool setting_append_list_overlay_options(
    CONFIG_UINT(
          settings->input.dpad_abxy_config_scope,
          "input_dpad_abxy_diag_sens_scope",
-         "  Scope (Dpad & ABXY)",
+         "  Scope (D-Pad & ABXY)",
          GLOBAL,
          group_info.name,
          subgroup_info.name,
@@ -6797,7 +6797,7 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_SET_SCALE_FACTOR);
-   menu_settings_list_current_add_range(list, list_info, 0, 2, 0.01, true, true);
+   menu_settings_list_current_add_range(list, list_info, 0.5, 1.25, 0.01, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
