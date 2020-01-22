@@ -10,7 +10,7 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
   * e.g. aspect ratio, input overlay, shader preset, etc.
 * Overlay Features
   * Dpad and ABXY areas with 8-way direction input
-  * Lightgun support (use a SNES_x.cfg overlay)
+  * Lightgun support (use the SNES overlay)
 * Android Features
   * Combined 32/64-bit core lists if both apps are installed
   * Core backup & restore

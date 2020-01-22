@@ -245,7 +245,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_OVERLAY_SCALE:
          return "input_overlay_scale";
       case MENU_LABEL_VALUE_OVERLAY_SCALE:
-         return "Overlay Scale";
+         return "  Scale";
       case MENU_LABEL_VALUE_OVERLAY_PRESET:
          return "Overlay Preset";
       case MENU_LABEL_OVERLAY_PRESET:
@@ -265,7 +265,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_OVERLAY_OPACITY:
          return "input_overlay_opacity";
       case MENU_LABEL_VALUE_OVERLAY_OPACITY:
-         return "Opacity";
+         return "Overlay Opacity";
       case MENU_LABEL_MENU_THEME:
          return "menu_theme";
       case MENU_LABEL_VALUE_MENU_THEME:

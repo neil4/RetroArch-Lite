@@ -1192,14 +1192,9 @@ bool event_command(enum event_command cmd)
          audio_driver_set_nonblock_state(boolean);
          break;
       case EVENT_CMD_OVERLAY_SET_SCALE_FACTOR:
-#ifdef HAVE_OVERLAY
-         input_overlay_set_scale_factor(driver->overlay,
-               settings->input.overlay_scale);
-#endif
-         break;
       case EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT:
 #ifdef HAVE_OVERLAY
-         input_overlays_update_aspect_and_shift(driver->overlay);
+         input_overlays_update_aspect_shift_scale(driver->overlay);
 #endif
          break;
       case EVENT_CMD_OVERLAY_SET_ALPHA_MOD:

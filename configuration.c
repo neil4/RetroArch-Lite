@@ -403,6 +403,17 @@ const char *config_get_default_location(void)
    return "null";
 }
 
+void config_check_overlay_preset()
+{
+   settings_t* settings = config_get_ptr();
+   global_t* global     = global_get_ptr();
+
+   if (*settings->input.overlay && !path_file_exists(settings->input.overlay))
+      fill_pathname_join(settings->input.overlay,
+                         global->overlay_dir, "DualShock.cfg",
+                         sizeof(settings->input.overlay));
+}
+
 void update_libretro_name()
 {
    global_t* global = global_get_ptr();
@@ -1622,6 +1633,7 @@ static bool config_load_file(const char *path, bool set_defaults)
       strlcpy( global->overlay_dir, g_defaults.overlay_dir, PATH_MAX_LENGTH);
 
    CONFIG_GET_PATH_BASE(conf, settings, input.overlay, "input_overlay");
+   config_check_overlay_preset();
    CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_enable, "input_overlay_enable");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_opacity, "input_overlay_opacity");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_scale, "input_overlay_scale");
@@ -2104,7 +2116,7 @@ bool config_save_file(const char *path)
          *settings->screenshot_directory ?
          settings->screenshot_directory : "default");
    
-   if ( settings->video.aspect_ratio_idx_scope == GLOBAL )
+   if (settings->video.aspect_ratio_idx_scope == GLOBAL)
       config_set_int(conf, "aspect_ratio_index", settings->video.aspect_ratio_idx);
    
    if (settings->video.filter_shader_scope == GLOBAL)
@@ -2236,18 +2248,17 @@ bool config_save_file(const char *path)
    config_set_path(conf, "overlay_directory",
          *global->overlay_dir ? global->overlay_dir : "default");
 
-   if ( settings->input.overlay_scope == GLOBAL )
+   if (settings->input.overlay_scope == GLOBAL)
    {
       config_set_path(conf, "input_overlay", settings->input.overlay);
       config_set_bool(conf, "input_overlay_enable", settings->input.overlay_enable);
+      config_set_float(conf, "input_overlay_scale", settings->input.overlay_scale);
    }
    
-   if ( settings->input.overlay_opacity_scope == GLOBAL )
+   if (settings->input.overlay_opacity_scope == GLOBAL)
       config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
    
-   config_set_float(conf, "input_overlay_scale", settings->input.overlay_scale);
-   
-   if ( settings->input.dpad_abxy_config_scope == GLOBAL )
+   if (settings->input.dpad_abxy_config_scope == GLOBAL)
    {
       config_set_int(conf, "input_dpad_method",
                      settings->input.dpad_method);
@@ -2262,7 +2273,7 @@ bool config_save_file(const char *path)
    config_set_float(conf, "input_touch_ellipse_magnify",
                     settings->input.touch_ellipse_magnify);
    
-   if ( settings->input.overlay_adjust_vert_horiz_scope == GLOBAL )
+   if (settings->input.overlay_adjust_vert_horiz_scope == GLOBAL)
    {
       config_set_bool(conf, "input_overlay_adjust_aspect",
            settings->input.overlay_adjust_aspect);
@@ -2329,7 +2340,7 @@ bool config_save_file(const char *path)
 
    config_set_float(conf, "fastforward_ratio", settings->fastforward_ratio);
    
-   if ( settings->throttle_setting_scope == GLOBAL )
+   if (settings->throttle_setting_scope == GLOBAL)
    {
       config_set_bool(conf, "core_throttle_enable", settings->core_throttle_enable);
       config_set_bool(conf, "throttle_using_core_fps", settings->throttle_using_core_fps);
@@ -2553,11 +2564,13 @@ static void scoped_config_file_save(unsigned scope)
    {
       config_set_path(conf, "input_overlay", settings->input.overlay);
       config_set_bool(conf, "input_overlay_enable", settings->input.overlay_enable);
+      config_set_float(conf, "input_overlay_scale", settings->input.overlay_scale);
    }
    else if (settings->input.overlay_scope < scope)
    {
       config_remove_entry(conf, "input_overlay");
       config_remove_entry(conf, "input_overlay_enable");
+      config_remove_entry(conf, "input_overlay_scale");
    }
 
    if (settings->input.dpad_abxy_config_scope == scope)
@@ -2796,6 +2809,7 @@ void config_backup_restore_globals()
    static unsigned input_overlay_aspect_ratio_index;
    static float input_overlay_bisect_aspect_ratio;
    static bool input_overlay_adjust_vertical_lock_edges;
+   static float input_overlay_scale;
 #endif
    static video_viewport_t custom_vp;
    static unsigned input_max_users;
@@ -2900,11 +2914,13 @@ void config_backup_restore_globals()
       settings->input.overlay_scope = GLOBAL;
       strlcpy(settings->input.overlay, input_overlay, PATH_MAX_LENGTH);
       settings->input.overlay_enable = input_overlay_enable;
+      settings->input.overlay_scale = input_overlay_scale;
    }
    else
    {  /* back up */
       strlcpy(input_overlay, settings->input.overlay, PATH_MAX_LENGTH);
       input_overlay_enable = settings->input.overlay_enable;
+      input_overlay_scale = settings->input.overlay_scale;
    }
 
    if (settings->input.dpad_abxy_config_scope != GLOBAL)
@@ -3167,9 +3183,12 @@ static void scoped_config_file_load(unsigned scope)
    {
       if (!strcmp(settings->input.overlay, EXPLICIT_NULL))
          *settings->input.overlay = '\0';
+      config_check_overlay_preset();
       config_get_bool(conf, "input_overlay_enable", &settings->input.overlay_enable);
+      config_get_float(conf, "input_overlay_scale", &settings->input.overlay_scale);
       settings->input.overlay_scope = scope;
    }
+
    if (config_get_float(conf, "input_dpad_diagonal_sensitivity", &settings->input.dpad_diagonal_sensitivity))
    {
       settings->input.dpad_abxy_config_scope = scope;

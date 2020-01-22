@@ -191,7 +191,7 @@ static void input_overlay_scale(struct overlay *ol, float scale)
    if (!ol)
       return;
 
-   if (ol->block_scale)
+   if (ol->block_scale || ol->fullscreen_image)
       scale = 1.0f;
 
    ol->scale = scale;
@@ -268,7 +268,7 @@ static unsigned input_overlay_auto_aspect_index(struct overlay *ol)
 static void update_aspect_x_y_globals(struct overlay *ol)
 {
    unsigned screen_width, screen_height;
-   float overlay_aspect, bisect_aspect;
+   float overlay_aspect, bisect_aspect, max_bisect;
    settings_t* settings = config_get_ptr();
    
    /* initialize to defaults */
@@ -288,26 +288,28 @@ static void update_aspect_x_y_globals(struct overlay *ol)
       overlay_aspect = overlay_aspectratio_lut
                        [settings->input.overlay_aspect_ratio_index].value;
    
-   bisect_aspect = settings->input.overlay_bisect_aspect_ratio;
-   if (bisect_aspect > adj.display_aspect)
-      bisect_aspect = adj.display_aspect;
-
    if (adj.display_aspect > overlay_aspect * 1.01)
-   {  /* get values to adjust overlay aspect, re-center x, and then bisect */
+   {
       adj.x_aspect_factor = overlay_aspect / adj.display_aspect;
       adj.x_center_shift = (1.0f - adj.x_aspect_factor) / 2.0f;
-      if (bisect_aspect > overlay_aspect)
-      {
-         adj.x_bisect_shift = (bisect_aspect/adj.display_aspect
-                               + ( (1.0f - bisect_aspect/adj.display_aspect)
-                                    / 2.0f ))
-                              - (adj.x_aspect_factor + adj.x_center_shift);
-      }
    }
    else if (overlay_aspect > adj.display_aspect * 1.01)
-   {  /* overlay too wide; adjust its aspect and re-center y */
+   {
       adj.y_aspect_factor = adj.display_aspect / overlay_aspect;
       adj.y_center_shift = (1.0f - adj.y_aspect_factor) / 2.0f;
+   }
+
+   /* adjust for scale to keep bisect aspect setting relative to display */
+   bisect_aspect = settings->input.overlay_bisect_aspect_ratio
+                   / settings->input.overlay_scale;
+   max_bisect = adj.display_aspect / settings->input.overlay_scale;
+   bisect_aspect = min(bisect_aspect, max_bisect);
+   if (bisect_aspect > overlay_aspect)
+   {
+      adj.x_bisect_shift = (bisect_aspect/adj.display_aspect
+                            + ((1.0f - bisect_aspect/adj.display_aspect)
+                                / 2.0f))
+                           - (adj.x_aspect_factor + adj.x_center_shift);
    }
 }
 
@@ -341,50 +343,52 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
 {
    settings_t* settings = config_get_ptr();
    global_t  *global    = global_get_ptr();
-   float upper_bound, lower_bound;
+   float upper_bound = 0.5f + (0.5f * (1.0f / settings->input.overlay_scale));
+   float lower_bound = 0.5f - (0.5f * (1.0f / settings->input.overlay_scale));
    
-   if (!desc || settings->input.overlay_adjust_aspect == false)
+   if (!desc)
       return;
    
-   upper_bound = 0.5f + (0.5f * (1.0f / settings->input.overlay_scale));
-   lower_bound = 0.5f - (0.5f * (1.0f / settings->input.overlay_scale));
+   if (settings->input.overlay_adjust_aspect)
+   {
+      /* adjust aspect */
+      desc->x = desc->x_orig * adj.x_aspect_factor;
+      desc->y = desc->y_orig * adj.y_aspect_factor;
+      desc->range_x = desc->range_x_orig * adj.x_aspect_factor;
+      desc->range_y = desc->range_y_orig * adj.y_aspect_factor;
 
-   /* adjust aspect */
-   desc->x = desc->x_orig * adj.x_aspect_factor;
-   desc->y = desc->y_orig * adj.y_aspect_factor;
-   desc->range_x = desc->range_x_orig * adj.x_aspect_factor;
-   desc->range_y = desc->range_y_orig * adj.y_aspect_factor;
-   
-   /* re-center and bisect */
-   desc->x += adj.x_center_shift;
-   if ( desc->x > 0.5f )
-      desc->x += adj.x_bisect_shift;
-   else if ( desc->x < 0.5f )
-      desc->x -= adj.x_bisect_shift;
-   desc->y += adj.y_center_shift;
+      /* re-center and bisect */
+      desc->x += adj.x_center_shift;
+      if ( desc->x > 0.5f )
+         desc->x += adj.x_bisect_shift;
+      else if ( desc->x < 0.5f )
+         desc->x -= adj.x_bisect_shift;
+      desc->y += adj.y_center_shift;
+   }
+   else
+   {
+      desc->x = desc->x_orig;
+      desc->y = desc->y_orig;
+      desc->range_x = desc->range_x_orig;
+      desc->range_y = desc->range_y_orig;
+   }
    
    /* adjust vertical */
    desc->y -= settings->input.overlay_adjust_vertical;
    
    /* make sure the button isn't pushed off screen */
-   if ( desc->y + desc->range_y > upper_bound )
+   if (desc->y + desc->range_y > upper_bound)
       desc->y = upper_bound - desc->range_y;
-   else if ( desc->y - desc->range_y < lower_bound)
+   else if (desc->y - desc->range_y < lower_bound)
       desc->y = lower_bound + desc->range_y;
    
    /* optionally clamp to edge */
    if (settings->input.overlay_adjust_vertical_lock_edges)
    {
       if (desc->y_orig + desc->range_y_orig > 0.99f)
-      {
-         float dist = adj.y_aspect_factor * (1.0f - desc->y_orig);
-         desc->y = 1.0f - dist;
-      }
+         desc->y = upper_bound - desc->range_y;
       else if (desc->y_orig - desc->range_y_orig < 0.01f)
-      {
-         float dist = adj.y_aspect_factor * desc->y_orig;
-         desc->y = dist;
-      }
+         desc->y = lower_bound + desc->range_y;
    }
 
    /* adjust horizontal */
@@ -575,27 +579,26 @@ void input_overlay_set_scale_factor(input_overlay_t *ol, float scale)
    input_overlay_set_vertex_geom(ol);
 }
 
-static void input_overlay_update_aspect_and_shift_vals(input_overlay_t *ol,
-                                                       unsigned i)
+static void input_overlay_update_aspect_and_shift_vals(struct overlay *ol)
 {
-   size_t j;
    struct overlay_desc* desc;
+   size_t i;
 
-   if (!ol || !ol->overlays)
+   if (!ol)
       return;
 
-   update_aspect_x_y_globals(&ol->overlays[i]);
+   update_aspect_x_y_globals(ol);
 
-   for (j = 0; j < ol->overlays[i].size; j++)
+   for (i = 0; i < ol->size; i++)
    {
-      desc = &ol->overlays[i].descs[j];
-      if (!ol->overlays[i].fullscreen_image)
+      desc = &ol->descs[i];
+      if (!ol->fullscreen_image)
          input_overlay_desc_adjust_aspect_and_shift(desc);
       input_overlay_desc_update_hitbox(desc);
    }
 }
 
-void input_overlays_update_aspect_and_shift(input_overlay_t *ol)
+void input_overlays_update_aspect_shift_scale(input_overlay_t *ol)
 {
    settings_t *settings = config_get_ptr();
    size_t i;
@@ -605,7 +608,7 @@ void input_overlays_update_aspect_and_shift(input_overlay_t *ol)
 
    for (i = 0; i < ol->size; i++)
    {
-      input_overlay_update_aspect_and_shift_vals(ol, i);
+      input_overlay_update_aspect_and_shift_vals(&ol->overlays[i]);
       input_overlay_scale(&ol->overlays[i], settings->input.overlay_scale);
    }
 
@@ -1099,13 +1102,14 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
          }
          break;
       case OVERLAY_IMAGE_TRANSFER_DESC_DONE:
-         if (ol->pos == 0)
-            input_overlay_load_overlays_resolve_iterate(ol);
          if (!driver_get_ptr()->osk_enable)
          {
-            input_overlay_update_aspect_and_shift_vals(ol, ol->pos);
-            input_overlay_set_scale_factor(ol, ol->deferred.scale_factor);
+            input_overlay_update_aspect_and_shift_vals(&ol->overlays[ol->pos]);
+            input_overlay_scale(&ol->overlays[ol->pos],
+                                ol->deferred.scale_factor);
          }
+         if (ol->pos == 0)
+            input_overlay_load_overlays_resolve_iterate(ol);
          ol->pos += 1;
          ol->loading_status = OVERLAY_IMAGE_TRANSFER_NONE;
          break;
@@ -1768,30 +1772,6 @@ static bool inside_hitbox(const struct overlay_desc *desc, float x, float y)
    return false;
 }
 
-static bool inside_orig_hitbox(const struct overlay_desc *desc, float x, float y)
-{
-   if (!desc)
-      return false;
-
-   switch (desc->hitbox)
-   {
-      case OVERLAY_HITBOX_RADIAL:
-      {
-         /* Ellipse. */
-         float x_dist = (x - desc->x_hitbox) / desc->range_x_hitbox;
-         float y_dist = (y - desc->y_hitbox) / desc->range_y_hitbox;
-         float sq_dist = x_dist * x_dist + y_dist * y_dist;
-         return (sq_dist <= 1.0f);
-      }
-
-      case OVERLAY_HITBOX_RECT:
-         return (fabs(x - desc->x_hitbox) <= desc->range_x_hitbox) &&
-            (fabs(y - desc->y_hitbox) <= desc->range_y_hitbox);
-   }
-
-   return false;
-}
-
 /**
  * input_overlay_poll:
  * @ol                    : Overlay handle.
@@ -1841,8 +1821,7 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
          continue;
 
       /* Ignore overlapping controls for extended hitboxes */
-      if (desc->range_x_mod > desc->range_x_hitbox
-          && !inside_orig_hitbox(desc, x, y))
+      if (desc->range_x_mod > desc->range_x_hitbox)
          ignore_other = true;
 
       if (ignore_other)
@@ -2001,7 +1980,7 @@ void input_overlay_poll_clear(input_overlay_t *ol, float opacity)
    
    if (adj.update_needed)
    {
-      input_overlays_update_aspect_and_shift(ol);
+      input_overlays_update_aspect_shift_scale(ol);
       adj.update_needed = false;
    }
 }

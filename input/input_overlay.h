@@ -400,25 +400,16 @@ void input_overlay_poll_clear(input_overlay_t *ol, float opacity);
 void input_overlay_set_alpha_mod(input_overlay_t *ol, float mod);
 
 /**
- * input_overlay_set_scale_factor:
- * @ol                    : Overlay handle.
- * @scale                 : Factor of scale to apply.
+ * input_overlays_update_aspect_shift_scale:
+ * @ol : Overlay handle.
  *
- * Scales the overlay by a factor of scale.
+ * Updates aspect ratio, shifts, and scale.
  **/
-void input_overlay_set_scale_factor(input_overlay_t *ol, float scale);
-
-/**
- * input_overlays_update_aspect_and_shift:
- * @ol                    : Overlay handle.
- *
- * Updates loaded overlays to current aspect ratio and shift settings.
- **/
-void input_overlays_update_aspect_and_shift(input_overlay_t *ol);
+void input_overlays_update_aspect_shift_scale(input_overlay_t *ol);
 
 /**
  * input_overlay_next:
- * @ol                    : Overlay handle.
+ * @ol : Overlay handle.
  *
  * Switch to the next available overlay
  * screen.
