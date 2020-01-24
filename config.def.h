@@ -489,6 +489,13 @@ static bool show_logging_menu = false;
 static bool show_cheat_options = false;
 static bool menu_show_core_info = true;
 static bool menu_show_system_info = true;
+static bool show_configuration_menu = false;
+static bool show_user_menu = false;
+static bool show_directory_menu = true;
+static bool show_privacy_menu = false;
+static bool show_recording_menu = false;
+static bool show_core_updater_menu = false;
+static bool show_font_menu = false;
 #ifndef ANDROID
 static bool show_hotkey_menu = true;
 #else

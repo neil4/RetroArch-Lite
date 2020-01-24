@@ -4425,6 +4425,9 @@ static bool setting_append_list_configuration_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   
+   if (!settings->menu.show_configuration_menu)
+      return true;
 
    START_GROUP(group_info, "Configuration Settings", parent_group);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
@@ -4837,6 +4840,9 @@ static bool setting_append_list_recording_options(
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
+   
+   if (!settings->menu.show_recording_menu)
+      return true;
 
    START_GROUP(group_info, "Recording Settings", parent_group);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
@@ -5562,6 +5568,9 @@ static bool setting_append_list_font_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   
+   if (!settings->menu.show_font_menu)
+      return true;
 
    START_GROUP(group_info, "Onscreen Display Settings", parent_group);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
@@ -7119,6 +7128,19 @@ static bool setting_append_list_menu_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_core_updater_menu,
+         "show_core_updater_menu",
+         "Show Core Updater Settings menu",
+         show_core_updater_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 #endif
    CONFIG_BOOL(
          settings->menu.show_core_info,
@@ -7195,6 +7217,86 @@ CONFIG_BOOL(
          parent_group,
          general_write_handler,
          general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_configuration_menu,
+         "show_configuration_menu",
+         "Show Configuration menu",
+         show_configuration_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   CONFIG_BOOL(
+         settings->menu.show_user_menu,
+         "show_user_menu",
+         "Show User menu",
+         show_user_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   CONFIG_BOOL(
+         settings->menu.show_directory_menu,
+         "show_directory_menu",
+         "Show Directory menu",
+         show_directory_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+#ifdef SINGLE_CORE
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+#endif
+   CONFIG_BOOL(
+         settings->menu.show_privacy_menu,
+         "show_privacy_menu",
+         "Show Privacy menu",
+         show_privacy_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   CONFIG_BOOL(
+         settings->menu.show_recording_menu,
+         "show_recording_menu",
+         "Show Recording menu",
+         show_recording_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   CONFIG_BOOL(
+         settings->menu.show_font_menu,
+         "show_font_menu",
+         "Show Font menu",
+         show_font_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    
    if (!driver->netplay_data)
    {
@@ -7288,7 +7390,6 @@ CONFIG_BOOL(
          general_write_handler,
          general_read_handler);
    
-   
    CONFIG_BOOL(
          settings->menu.mame_titles,
          "mame_titles",
@@ -7300,7 +7401,22 @@ CONFIG_BOOL(
          subgroup_info.name,
          parent_group,
          general_write_handler,
-         general_read_handler);  
+         general_read_handler);
+   
+   CONFIG_UINT(
+         settings->archive.mode,
+         "archive_mode",
+         "Browser: Archive Mode",
+         0,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 2, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_archive_mode;
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    
    CONFIG_BOOL(
          settings->menu_show_start_screen,
@@ -7474,42 +7590,6 @@ static bool setting_append_list_ui_options(
    return true;
 }
 
-static bool setting_append_list_archive_options(
-      rarch_setting_t **list,
-      rarch_setting_info_t *list_info,
-      const char *parent_group)
-{
-   rarch_setting_group_info_t group_info    = {0};
-   rarch_setting_group_info_t subgroup_info = {0};
-   settings_t *settings = config_get_ptr();
-
-   START_GROUP(group_info, "Archive Settings", parent_group);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
-
-   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-
-   CONFIG_UINT(
-         settings->archive.mode,
-         "archive_mode",
-         "Archive Mode",
-         0,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 2, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_archive_mode;
-
-   END_SUB_GROUP(list, list_info, parent_group);
-   END_GROUP(list, list_info, parent_group);
-
-   return true;
-}
-
 static bool setting_append_list_core_updater_options(
       rarch_setting_t **list,
       rarch_setting_info_t *list_info,
@@ -7519,6 +7599,9 @@ static bool setting_append_list_core_updater_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   
+   if (!settings->menu.show_core_updater_menu)
+      return true;
 
    START_GROUP(group_info, "Core Updater Settings", parent_group);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
@@ -7734,6 +7817,9 @@ static bool setting_append_list_user_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   
+   if (!settings->menu.show_user_menu)
+      return true;
 
    START_GROUP(group_info, "User Settings", parent_group);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
@@ -7791,6 +7877,9 @@ static bool setting_append_list_directory_options(
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
    global_t *global     = global_get_ptr();
+   
+   if (!settings->menu.show_directory_menu)
+      return true;
 
    START_GROUP(group_info, "Directory Settings", parent_group);
 #ifdef SINGLE_CORE
@@ -8214,6 +8303,9 @@ static bool setting_append_list_privacy_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   
+   if (!settings->menu.show_privacy_menu)
+      return true;
 
    START_GROUP(group_info, "Privacy Settings", parent_group);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
@@ -8382,13 +8474,6 @@ rarch_setting_t *menu_setting_new(unsigned mask)
    {
       if (!setting_append_list_input_options(&list, list_info, root))
          goto error;
-
-#if 0
-      unsigned user;
-      settings_t      *settings = config_get_ptr();
-      for (user = 0; user < settings->input.max_users; user++)
-         setting_append_list_input_player_options(&list, list_info, root, user);
-#endif
    }
    
    if (mask & SL_FLAG_INPUT_HOTKEY_OPTIONS)
@@ -8426,12 +8511,6 @@ rarch_setting_t *menu_setting_new(unsigned mask)
       if (!setting_append_list_privacy_options(&list, list_info, root))
          goto error;
    }
-   
-   if (mask & SL_FLAG_ARCHIVE_OPTIONS)
-   {
-      if (!setting_append_list_archive_options(&list, list_info, root))
-         goto error;
-   }
 
    if (mask & SL_FLAG_RECORDING_OPTIONS)
    {
@@ -8444,14 +8523,6 @@ rarch_setting_t *menu_setting_new(unsigned mask)
       if (!setting_append_list_logging_options(&list, list_info, root))
          goto error;
    }
-
-#if 0
-   if (mask & SL_FLAG_PATCH_OPTIONS)
-   {
-      if (!setting_append_list_patch_options(&list, list_info, root))
-         goto error;
-   }
-#endif
 
    if (mask & SL_FLAG_CORE_UPDATER_OPTIONS)
    {

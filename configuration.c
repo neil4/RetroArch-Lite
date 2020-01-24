@@ -648,6 +648,12 @@ static void config_set_defaults(void)
    settings->menu.show_core_info               = menu_show_core_info;
    settings->menu.show_system_info             = menu_show_system_info;
    settings->menu.show_cheat_options           = show_cheat_options;
+   settings->menu.show_configuration_menu      = show_configuration_menu;
+   settings->menu.show_user_menu               = show_user_menu;
+   settings->menu.show_directory_menu          = show_directory_menu;
+   settings->menu.show_privacy_menu            = show_privacy_menu;
+   settings->menu.show_recording_menu          = show_recording_menu;
+   settings->menu.show_core_updater_menu       = show_core_updater_menu;
 #endif /* #ifdef HAVE_MENU */
 
    settings->ui.companion_start_on_boot             = true;
@@ -1334,6 +1340,13 @@ static bool config_load_file(const char *path, bool set_defaults)
 #endif
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_info,  "menu_show_core_info");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_system_info,  "menu_show_system_info");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_configuration_menu,  "show_configuration_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_user_menu,  "show_user_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_directory_menu,  "show_directory_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_privacy_menu,  "show_privacy_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_recording_menu,  "show_recording_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_updater_menu,  "show_core_updater_menu");
+   CONFIG_GET_BOOL_BASE(conf, settings, menu.show_font_menu,  "show_font_menu");
    config_get_path(conf, "menu_theme_dir", settings->menu.theme_dir, sizeof(settings->menu.theme_dir));
    if (!strcmp(settings->menu.theme_dir, "default"))
       *settings->menu.theme_dir = '\0';
@@ -2237,6 +2250,13 @@ bool config_save_file(const char *path)
 #endif
    config_set_bool(conf, "menu_show_core_info", settings->menu.show_core_info);
    config_set_bool(conf, "menu_show_system_info", settings->menu.show_system_info);
+   config_set_bool(conf, "show_configuration_menu", settings->menu.show_configuration_menu);
+   config_set_bool(conf, "show_user_menu", settings->menu.show_user_menu);
+   config_set_bool(conf, "show_directory_menu", settings->menu.show_directory_menu);
+   config_set_bool(conf, "show_privacy_menu", settings->menu.show_privacy_menu);
+   config_set_bool(conf, "show_recording_menu", settings->menu.show_recording_menu);
+   config_set_bool(conf, "show_core_updater_menu", settings->menu.show_core_updater_menu);
+   config_set_bool(conf, "show_font_menu", settings->menu.show_font_menu);
 #endif /* HAVE_MENU */
 
    config_set_path(conf, "joypad_autoconfig_dir",
