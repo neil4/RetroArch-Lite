@@ -147,6 +147,7 @@ typedef struct settings
       bool rgui_thick_bg_checkerboard;
       bool rgui_thick_bd_checkerboard;
       unsigned rgui_particle_effect;
+      float rgui_particle_effect_speed_factor;
 #endif
       char theme_dir[PATH_MAX_LENGTH];
       float wallpaper_opacity;

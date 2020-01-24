@@ -623,6 +623,9 @@ static void config_set_defaults(void)
    settings->menu.wallpaper_opacity            = wallpaper_opacity;
    settings->menu.show_advanced_settings       = show_advanced_settings;
    settings->menu.ticker_speed                 = menu_ticker_speed;
+#ifdef HAVE_RGUI
+   settings->menu.rgui_particle_effect_speed_factor = 1.0f;
+#endif
 
    settings->menu.dpi.override_enable          = menu_dpi_override_enable;
    settings->menu.dpi.override_value           = menu_dpi_override_value;
@@ -1313,6 +1316,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, menu.rgui_thick_bg_checkerboard,   "rgui_thick_background_checkerboard");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.rgui_thick_bd_checkerboard,   "rgui_thick_border_checkerboard");
    CONFIG_GET_INT_BASE (conf, settings, menu.rgui_particle_effect, "rgui_particle_effect");
+   CONFIG_GET_FLOAT_BASE(conf, settings, menu.rgui_particle_effect_speed_factor, "rgui_particle_effect_speed_factor");
 #endif
    CONFIG_GET_FLOAT_BASE(conf, settings, menu.ticker_speed, "menu_ticker_speed");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.navigation.wraparound.vertical_enable,   "menu_navigation_wraparound_vertical_enable");
@@ -2098,6 +2102,7 @@ bool config_save_file(const char *path)
       config_set_path(conf, "menu_theme", settings->menu.theme);
 #ifdef HAVE_RGUI
       config_set_int(conf, "rgui_particle_effect", settings->menu.rgui_particle_effect);
+      config_set_float(conf, "rgui_particle_effect_speed_factor", settings->menu.rgui_particle_effect_speed_factor);
 #endif
    }
 #endif
@@ -2738,6 +2743,7 @@ static void scoped_config_file_save(unsigned scope)
       config_set_float(conf, "menu_wallpaper_opacity", settings->menu.wallpaper_opacity);
 #ifdef HAVE_RGUI
       config_set_int(conf, "rgui_particle_effect", settings->menu.rgui_particle_effect);
+      config_set_float(conf, "rgui_particle_effect_speed_factor", settings->menu.rgui_particle_effect_speed_factor);
 #endif
    }
    else if (settings->menu.theme_scope < scope)
@@ -2746,6 +2752,7 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "menu_wallpaper_opacity");
 #ifdef HAVE_RGUI
       config_remove_entry(conf, "rgui_particle_effect");
+      config_remove_entry(conf, "rgui_particle_effect_speed_factor");
 #endif
    }
 #endif
@@ -2849,6 +2856,7 @@ void config_backup_restore_globals()
    static float wallpaper_opacity;
 #ifdef HAVE_RGUI
    static unsigned rgui_particle_effect;
+   static float rgui_particle_effect_speed_factor;
 #endif
 #endif
    
@@ -3094,6 +3102,8 @@ void config_backup_restore_globals()
       settings->menu.wallpaper_opacity = wallpaper_opacity;
 #ifdef HAVE_RGUI
       settings->menu.rgui_particle_effect = rgui_particle_effect;
+      settings->menu.rgui_particle_effect_speed_factor
+         = rgui_particle_effect_speed_factor;
 #endif
       global->menu.theme_update_flag = true;
    }
@@ -3103,6 +3113,8 @@ void config_backup_restore_globals()
       wallpaper_opacity = settings->menu.wallpaper_opacity;
 #ifdef HAVE_RGUI
       rgui_particle_effect = settings->menu.rgui_particle_effect;
+      rgui_particle_effect_speed_factor
+         = settings->menu.rgui_particle_effect_speed_factor;
 #endif
    }
 #endif
@@ -3293,6 +3305,8 @@ static void scoped_config_file_load(unsigned scope)
 #ifdef HAVE_RGUI
       config_get_uint(conf, "rgui_particle_effect",
                       &settings->menu.rgui_particle_effect);
+      config_get_float(conf, "rgui_particle_effect_speed_factor",
+                       &settings->menu.rgui_particle_effect_speed_factor);
 #endif
       settings->menu.theme_scope = scope;
       global->menu.theme_update_flag = true;

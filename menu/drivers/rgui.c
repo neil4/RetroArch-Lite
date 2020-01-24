@@ -110,6 +110,7 @@ static uint8_t thick_bd_pattern;
 
 static unsigned particle_effect;
 static rgui_particle_t particles[NUM_PARTICLES] = {{ 0.0f }};
+static float particle_effect_speed;
 
 static INLINE uint16_t argb32_to_rgba4444(uint32_t col)
 {
@@ -360,8 +361,8 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                particle->d = (particle->d >  0.4f) ?  0.4f : particle->d;
                
                /* Update particle location */
-               particle->a = fmod(particle->a + particle->c, fb_width);
-               particle->b = fmod(particle->b + particle->d, fb_height);
+               particle->a = fmod(particle->a + particle_effect_speed * particle->c, fb_width);
+               particle->b = fmod(particle->b + particle_effect_speed * particle->d, fb_height);
                
                /* Get particle size */
                particle_size = 1;
@@ -418,7 +419,7 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                                  2, (unsigned)particle->c, rgui_particle_16b);
                
                /* Update y pos */
-               particle->b += particle->d;
+               particle->b += particle->d * particle_effect_speed;
                
                /* Reset particle if it has fallen off the bottom of the screen */
                if (!on_screen)
@@ -461,8 +462,8 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                      x, y, particle_size, particle_size, rgui_particle_16b);
                
                /* Update particle speed */
-               r_speed     = particle->c;
-               theta_speed = particle->d;
+               r_speed     = particle->c * particle_effect_speed;
+               theta_speed = particle->d * particle_effect_speed;
                if ((particle->a > 0.0f) && (particle->a < (float)fb_height))
                {
                   float base_scale_factor = ((float)fb_height - particle->a) / (float)fb_height;
@@ -521,7 +522,7 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                                  x, y, particle_size, particle_size, rgui_particle_16b);
                
                /* Update depth */
-               particle->c -= particle->d;
+               particle->c -= particle->d * particle_effect_speed;
                
                /* Reset particle if it has:
                 * - Dropped off the edge of the screen
@@ -647,6 +648,7 @@ static inline void rgui_check_update(settings_t *settings,
       }
 
       menu_update_ticker_speed();
+      particle_effect_speed = settings->menu.rgui_particle_effect_speed_factor;
 
       global->menu.theme_update_flag = false;
    }

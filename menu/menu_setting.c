@@ -6961,6 +6961,26 @@ static bool setting_append_list_menu_options(
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
 
+#ifdef HAVE_RGUI
+   if (using_rgui)
+   {
+      CONFIG_FLOAT(
+            settings->menu.rgui_particle_effect_speed_factor,
+            "rgui_particle_effect_speed_factor",
+            "Background Effect Speed",
+            1.0f,
+            "%.1fx",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0.1, 10, 0.1, true, true);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+   }
+#endif
+
    CONFIG_FLOAT(
          settings->menu.ticker_speed,
          "menu_ticker_speed",
