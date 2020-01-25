@@ -410,7 +410,7 @@ void config_check_overlay_preset()
 
    if (*settings->input.overlay && !path_file_exists(settings->input.overlay))
       fill_pathname_join(settings->input.overlay,
-                         global->overlay_dir, "SoloShock.cfg",
+                         global->overlay_dir, "DualShock.cfg",
                          sizeof(settings->input.overlay));
 }
 
@@ -843,7 +843,7 @@ static void config_set_defaults(void)
       if (!*settings->input.overlay)
             fill_pathname_join(settings->input.overlay,
                   global->overlay_dir,
-                  "SoloShock.cfg",
+                  "DualShock.cfg",
                   sizeof(settings->input.overlay));
 #endif
    }
