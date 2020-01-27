@@ -175,7 +175,7 @@ struct overlay_desc
    
    struct overlay_eightway_vals* eightway_vals;
    
-   bool updated;
+   uint16_t updated;  /* MAX_TOUCH bits; 'updated' is true if any are set */
    bool movable;
    
    /* values as-read from cfg, before shift or aspect adjustments */

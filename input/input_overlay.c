@@ -1790,6 +1790,7 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
    size_t i, j;
    float x, y;
    bool ignore_other = false;
+   struct overlay_desc *descs = ol->active->descs;
 
    memset(out, 0, sizeof(*out));
 
@@ -1813,7 +1814,7 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
 
    for (i = 0; i < ol->active->size; i++)
    {
-      struct overlay_desc *desc = &ol->active->descs[i];
+      struct overlay_desc *desc = &descs[i];
 
       if (!desc)
          continue;
@@ -1822,16 +1823,14 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
 
       /* Ignore overlapping controls for extended hitboxes */
       if (desc->range_x_mod > desc->range_x_hitbox)
-         ignore_other = true;
-
-      if (ignore_other)
       {
+         ignore_other = true;
          memset(out,0,sizeof(*out));
          for (j = 0; j < i; j++)
-            ol->active->descs[j].updated = false;
+            descs[j].updated &= ~(1 << overlay_ptr_idx);
       }
 
-      desc->updated = true;
+      desc->updated |= (1 << overlay_ptr_idx);
 
       if (desc->type == OVERLAY_TYPE_BUTTONS)
       {
@@ -1940,7 +1939,7 @@ void input_overlay_post_poll(input_overlay_t *ol, float opacity)
       }
 
       input_overlay_update_desc_geom(ol, desc);
-      desc->updated = false;
+      desc->updated = 0;
    }
 }
 
@@ -1971,7 +1970,7 @@ void input_overlay_poll_clear(input_overlay_t *ol, float opacity)
 
       desc->range_x_mod = desc->range_x_hitbox;
       desc->range_y_mod = desc->range_y_hitbox;
-      desc->updated = false;
+      desc->updated = 0;
 
       desc->delta_x = 0.0f;
       desc->delta_y = 0.0f;
