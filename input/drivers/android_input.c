@@ -669,7 +669,6 @@ static INLINE int android_input_poll_event_type_motion(
       }
    }
    
-   frame.last_known_action = action;
    android->pointer_count = frame.taps;
    
    event_ptr_count = min(AMotionEvent_getPointerCount(event), MAX_TOUCH);

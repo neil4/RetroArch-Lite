@@ -718,7 +718,7 @@ static void config_set_defaults(void)
    settings->input.overlay_adjust_aspect           = true;
    settings->input.overlay_aspect_ratio_index      = OVERLAY_ASPECT_RATIO_AUTO;
    settings->input.overlay_bisect_aspect_ratio     = 2.0f;
-   settings->input.overlay_adjust_vertical_lock_edges = true;
+   settings->input.overlay_adjust_vertical_lock_edges = false;
    settings->osk.enable                            = true;
 #endif
 

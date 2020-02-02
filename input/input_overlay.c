@@ -874,6 +874,11 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    desc->range_mod = range_mod;
    config_get_float(ol->conf, conf_key, &desc->range_mod);
    
+   snprintf(conf_key, sizeof(conf_key),
+         "overlay%u_desc%u_range_mod_exclusive", ol_idx, desc_idx);
+   desc->range_mod_exclusive = false;
+   config_get_bool(ol->conf, conf_key, &desc->range_mod_exclusive);
+   
    snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_reach_right", ol_idx, desc_idx);
    desc->reach_right = 1.0f;
    config_get_float(ol->conf, conf_key, &desc->reach_right);
@@ -1732,7 +1737,7 @@ static inline void input_overlay_undo_meta_overlap(input_overlay_state_t* out)
       else
       {
          out->buttons = active_meta;
-         memset(out->analog, 0, sizeof(4*sizeof(int16_t)));
+         memset(out->analog, 0, 4*sizeof(int16_t));
       }
    }
 }
@@ -1821,8 +1826,8 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
       if (!inside_hitbox(desc, x, y))
          continue;
 
-      /* Ignore overlapping controls for extended hitboxes */
-      if (desc->range_x_mod > desc->range_x_hitbox)
+      if (desc->range_mod_exclusive
+          && desc->range_x_mod > desc->range_x_hitbox)
       {
          ignore_other = true;
          memset(out,0,sizeof(*out));

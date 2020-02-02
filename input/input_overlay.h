@@ -177,6 +177,7 @@ struct overlay_desc
    
    uint16_t updated;  /* MAX_TOUCH bits; 'updated' is true if any are set */
    bool movable;
+   bool range_mod_exclusive;  /* ignore overlapping controls when range extended */
    
    /* values as-read from cfg, before shift or aspect adjustments */
    float x_orig;
