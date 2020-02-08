@@ -46,6 +46,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 import java.util.Collections;
 import android.content.SharedPreferences;
+
+import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.preferences.util.UserPreferences;
 
 import com.retroarchlite.R;
@@ -311,30 +313,30 @@ public final class DownloadableCoresFragment extends ListFragment
             
             // Read the core name and system name
             String[] lines = sb.toString().split("\n");
+            String infoDispName = "Unknown";
+            String infoCoreName = "Unknown";
+            String infoSysName = "Unknown";
             for (String line : lines) {
-               if (line.contains("corename")) {
-                  name = line.split("=")[1].trim().replace("\"", "");
+               if (line.startsWith("display_name")) {
+                  infoDispName = line.split("=")[1].trim().replace("\"", "");
                   break;
                }
             }
             for (String line : lines) {
-               if (line.contains("display_name")) { // displayname preferred
-                  systemName = line.split("=")[1].trim().replace("\"", "");
-                  // remove parenthesized name
-                  int i = systemName.indexOf("(");
-                  if (i > -1)
-                     systemName = systemName.substring(0, i).trim();
+               if (line.startsWith("corename")) {
+                  infoCoreName = line.split("=")[1].trim().replace("\"", "");
                   break;
                }
             }
-            if (!systemName.contains(" - ")) { // no "-" means no make; better to use systemname
-               for (String line : lines) {
-                  if (line.contains("systemname")) {
-                     systemName = line.split("=")[1].trim().replace("\"", "");
-                     break;
-                  }
+            for (String line : lines) {
+               if (line.startsWith("systemname")) {
+                  infoSysName = line.split("=")[1].trim().replace("\"", "");
+                  break;
                }
             }
+
+            name = ModuleWrapper.bestCoreTitle(infoDispName, infoCoreName);
+            systemName = ModuleWrapper.bestSysTitle(infoDispName, infoSysName);
          } // end try
          catch (FileNotFoundException fnfe)
          {

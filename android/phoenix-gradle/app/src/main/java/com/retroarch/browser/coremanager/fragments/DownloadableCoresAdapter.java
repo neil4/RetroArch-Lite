@@ -18,7 +18,7 @@ final class DownloadableCoresAdapter extends ArrayAdapter<DownloadableCore>
     * Constructor
     *
     * @param context  The current {@link Context}.
-    * @param layoutID The resource ID for a layout file containing a layout to use when instantiating views
+    * @param layoutId The resource ID for a layout file containing a layout to use when instantiating views
     */
    public DownloadableCoresAdapter(Context context, int layoutId)
    {
@@ -41,14 +41,16 @@ final class DownloadableCoresAdapter extends ArrayAdapter<DownloadableCore>
       {
          TextView title    = (TextView) convertView.findViewById(android.R.id.text1);
          TextView subtitle = (TextView) convertView.findViewById(android.R.id.text2);
-         boolean sysTitle = DownloadableCore.sortBySystem && !core.isLocal;
+         boolean sortBySys = DownloadableCore.sortBySystem && !core.isLocal;
 
          if (title != null)
-            title.setText(sysTitle ? core.getSystemName() : core.getCoreName());
+            title.setText(sortBySys ? core.getSystemName() : core.getCoreName());
 
-         if (subtitle != null)
-            subtitle.setText((sysTitle ? core.getCoreName() : core.getSystemName())
-                             + "\n" + core.getCoreURL());
+         if (subtitle != null) {
+            String url  = core.getCoreURL();
+            String sub2 = core.isLocal ? '\n' + url.substring(url.lastIndexOf('/')+1) : "";
+            subtitle.setText((sortBySys ? core.getCoreName() : core.getSystemName()) + sub2);
+         }
       }
 
       return convertView;

@@ -31,6 +31,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    private final List<String> authors;
    private final List<String> supportedExtensions;
    private final List<String> permissions;
+   private final List<String> requiredHwApi;
    private int firmwareCount = 0;
    private String firmwares;
 
@@ -89,7 +90,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          else
          {
             this.license = new ArrayList<String>();
-            this.license.add(licenses);
+            this.license.add(licenses != null ? licenses : "None");
          }
          
          final String supportedExts = infoFile.getString("supported_extensions");
@@ -100,7 +101,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          else
          {
             this.supportedExtensions = new ArrayList<String>();
-            this.supportedExtensions.add(supportedExts);
+            this.supportedExtensions.add(supportedExts != null ? supportedExts : "N/A");
          }
 
          final String emuAuthors = infoFile.getString("authors");
@@ -111,7 +112,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          else
          {
             this.authors = new ArrayList<String>();
-            this.authors.add(emuAuthors);
+            this.authors.add(emuAuthors != null ? emuAuthors : "Unknown");
          }
          
          final String permissions = infoFile.getString("permissions");
@@ -122,7 +123,18 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          else
          {
             this.permissions = new ArrayList<String>();
-            this.permissions.add(permissions);
+            this.permissions.add(permissions != null ? permissions : "None");
+         }
+
+         final String requiredHwApi = infoFile.getString("required_hw_api");
+         if (requiredHwApi != null && requiredHwApi.contains("|"))
+         {
+            this.requiredHwApi = new ArrayList<String>(Arrays.asList(requiredHwApi.split("\\|")));
+         }
+         else
+         {
+            this.requiredHwApi = new ArrayList<String>();
+            this.requiredHwApi.add(requiredHwApi != null ? requiredHwApi : "N/A");
          }
          
          // Firmware list
@@ -161,20 +173,22 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
       }
       else // No info file.
       {
-         this.displayName = "N/A";
-         this.systemName = "N/A";
-         this.manufacturer = "N/A";
+         this.displayName = "Unknown";
+         this.systemName = "Unknown";
+         this.manufacturer = "Unknown";
          this.license = new ArrayList<String>();
-         this.license.add("N/A");
+         this.license.add("Unknown");
          this.notes = "N/A";
          this.authors = new ArrayList<String>();
-         this.authors.add("N/A");
+         this.authors.add("Unknown");
          this.supportedExtensions = new ArrayList<String>();
-         this.supportedExtensions.add("N/A");
+         this.supportedExtensions.add("Unknown");
          this.coreName = coreName;
-         this.firmwares = "N/A";
+         this.requiredHwApi = new ArrayList<String>();
+         this.requiredHwApi.add("Unknown");
+         this.firmwares = "Unknown";
          this.permissions = new ArrayList<String>();
-         this.permissions.add("N/A");
+         this.permissions.add("Unknown");
       }
       
       // TODO: less stilted
@@ -280,6 +294,16 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    }
 
    /**
+    * Gets required graphics API for this core.
+    *
+    * @return required graphics API for this core
+    */
+   public List<String> getCoreRequiredHwApi()
+   {
+      return requiredHwApi;
+   }
+
+   /**
     * Gets the name of the manufacturer of the console that
     * this core emulates. (optional - in case core is an
     * emulator)
@@ -331,7 +355,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    @Override
    public String getText()
    {
-      return coreName;
+      return bestCoreTitle(displayName, coreName);
    }
    
    @Override
@@ -359,5 +383,27 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          return coreName.toLowerCase().compareTo(other.coreName.toLowerCase()); 
       else 
          throw new NullPointerException("The name of this ModuleWrapper is null");
+   }
+
+   public static String bestCoreTitle(String displayName, String coreName)
+   {
+      int i = displayName.indexOf('(');
+      int j = displayName.lastIndexOf(')');
+      if (i > -1 && j > i+1)
+         return displayName.substring(i+1, j);
+      else
+         return coreName;
+   }
+
+   public static String bestSysTitle(String displayName, String systemName)
+   {
+      if (!displayName.contains(" - "))
+         return systemName;
+
+      int i = displayName.indexOf('(');
+      if (i > 0)
+         return displayName.substring(0, i).trim();
+      else
+         return displayName;
    }
 }

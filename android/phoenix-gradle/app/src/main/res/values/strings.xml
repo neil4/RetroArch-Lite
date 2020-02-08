@@ -29,6 +29,7 @@
     <string name="core_info_manufacturer">Manufacturer</string>
     <string name="core_info_permissions">Permissions</string>
     <string name="core_info_extensions">Supported File Extensions</string>
+    <string name="core_info_required_hw_api">Required Graphics API</string>
     <string name="core_info_firmwares">Firmware</string>
     <string name="core_info_notes">Notes</string>
 
