@@ -371,7 +371,7 @@ bool core_info_does_support_file(const core_info_t *core, const char *path)
 
 const char *core_info_list_get_all_extensions(core_info_list_t *core_info_list)
 {
-   if (!core_info_list)
+   if (!core_info_list || !core_info_list->all_ext)
       return "";
    return core_info_list->all_ext;
 }
