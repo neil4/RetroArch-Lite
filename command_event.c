@@ -1219,8 +1219,17 @@ bool event_command(enum event_command cmd)
          init_drivers(DRIVER_AUDIO);
          break;
       case EVENT_CMD_RESET_CONTEXT:
-         event_command(EVENT_CMD_DRIVERS_DEINIT);   
+         if (!runloop->is_paused)
+         {
+            event_command(EVENT_CMD_AUDIO_STOP);
+            video_driver_cached_frame();
+         }
+
+         event_command(EVENT_CMD_DRIVERS_DEINIT);
          event_command(EVENT_CMD_DRIVERS_INIT);
+
+         if (!runloop->is_paused)
+            event_command(EVENT_CMD_AUDIO_START);
          break;
       case EVENT_CMD_QUIT_RETROARCH:
          rarch_main_set_state(RARCH_ACTION_STATE_FORCE_QUIT);

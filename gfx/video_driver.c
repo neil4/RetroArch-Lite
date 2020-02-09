@@ -625,7 +625,8 @@ void init_video(void)
 
    event_command(EVENT_CMD_OVERLAY_INIT);
 
-   video_driver_cached_frame_set(&dummy_pixels, 4, 4, 8);
+   if (!*settings->libretro)
+      video_driver_cached_frame_set(&dummy_pixels, 4, 4, 8);
 
 #if defined(PSP)
    video_driver_set_texture_frame(&dummy_pixels, false, 1, 1, 1.0f);
