@@ -1256,14 +1256,13 @@ bool event_command(enum event_command cmd)
          {
             RARCH_LOG("Paused.\n");
             event_command(EVENT_CMD_AUDIO_STOP);
-
-            if (settings->video.black_frame_insertion)
-               video_driver_cached_frame();
+            video_driver_cached_frame();
          }
          else
          {
             RARCH_LOG("Unpaused.\n");
             event_command(EVENT_CMD_AUDIO_START);
+            rarch_main_msg_queue_push("", 0, 1, true);
          }
          break;
       case EVENT_CMD_PAUSE_TOGGLE:
@@ -1413,13 +1412,13 @@ bool event_command(enum event_command cmd)
          update_preempt_frames();
          break;
       case EVENT_CMD_FULLSCREEN_TOGGLE:
-         settings_touched = true;
          if (!video_driver_has_windowed())
             return false;
 
          /* If we go fullscreen we drop all drivers and 
           * reinitialize to be safe. */
          settings->video.fullscreen = !settings->video.fullscreen;
+         settings_touched = true;
          event_command(EVENT_CMD_REINIT);
          break;
       case EVENT_CMD_COMMAND_DEINIT:

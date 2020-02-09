@@ -67,9 +67,17 @@ static bool check_pause(bool pause_pressed, bool frameadvance_pressed)
    enum event_command cmd   = EVENT_CMD_NONE;
    bool old_is_paused       = runloop->is_paused;
    settings_t *settings     = config_get_ptr();
+   static char msg[32];
 
    /* FRAMEADVANCE will set us into pause mode. */
-   pause_pressed |= !runloop->is_paused && frameadvance_pressed;
+   if (frameadvance_pressed)
+   {
+      pause_pressed |= !runloop->is_paused;
+      sprintf(msg, "Frame %lu", (unsigned long)video_driver_get_frame_count());
+      rarch_main_msg_queue_push(msg, 1, 0, true);
+   }
+   else if (pause_pressed && !old_is_paused)
+      rarch_main_msg_queue_push("Paused", 1, 0, true);
 
    if (settings->pause_nonactive)
       focus = video_driver_has_focus();
@@ -493,13 +501,6 @@ static int do_pause_state_checks(
 {
    runloop_t *runloop        = rarch_main_get_ptr();
    bool check_is_oneshot     = frameadvance_pressed || rewind_pressed;
-   static char msg[32];
-   
-   if (frameadvance_pressed)
-   {
-      sprintf(msg, "Frame %lu", (unsigned long)video_driver_get_frame_count());
-      rarch_main_msg_queue_push(msg, 1, 10, true);
-   }
 
    if (!runloop || !runloop->is_paused)
       return 0;
