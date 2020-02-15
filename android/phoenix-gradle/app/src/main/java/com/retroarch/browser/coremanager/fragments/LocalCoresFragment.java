@@ -1,6 +1,5 @@
 package com.retroarch.browser.coremanager.fragments;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,17 +51,17 @@ public final class LocalCoresFragment extends ListFragment
     * <p>
     * Acts like a callback so that communication between fragments is possible.
     */
-   public interface OnCoreDownloadedListener
+   public interface OnCoreCopiedListener
    {
       /** The action that will occur when a core is successfully downloaded. */
-      void onCoreDownloaded();
+      void onCoreCopied();
    }
 
    private String localCoresDir;
    public static String defaultLocalCoresDir = UserPreferences.defaultBaseDir + "/cores32";
    
    private ListView coreList = null;
-   private OnCoreDownloadedListener coreDownloadedListener = null;
+   private OnCoreCopiedListener coreCopiedListener = null;
    
    protected String systemName;
    protected DownloadableCoresAdapter adapter = null;
@@ -87,7 +86,7 @@ public final class LocalCoresFragment extends ListFragment
       adapter = new DownloadableCoresAdapter(getActivity(), android.R.layout.simple_list_item_2);
       coreList.setAdapter(adapter);
 
-      coreDownloadedListener = (OnCoreDownloadedListener) getActivity();
+      coreCopiedListener = (OnCoreCopiedListener) getActivity();
 
       PopulateCoresList();
       
@@ -118,7 +117,7 @@ public final class LocalCoresFragment extends ListFragment
       super.onListItemClick(lv, v, position, id);
       final DownloadableCore core = (DownloadableCore) lv.getItemAtPosition(position);
 
-      // Prompt the user for confirmation on downloading the core.
+      // Prompt the user for confirmation on installing the core.
       AlertDialog.Builder notification = new AlertDialog.Builder(getActivity());
       notification.setMessage(String.format(getString(R.string.backup_cores_confirm_install_msg),
                               (core.getCoreName().isEmpty() ? "this core" : core.getCoreName()) ));
@@ -128,8 +127,8 @@ public final class LocalCoresFragment extends ListFragment
          @Override
          public void onClick(DialogInterface dialog, int which)
          {
-            // Begin downloading the core.
-            new DownloadCoreOperation(getActivity(), core.getCoreName()).execute(core.getCoreURL(), core.getShortURLName());
+            // Begin copying the core.
+            new CopyCoreOperation(getActivity(), core.getCoreName()).execute(core.getShortURLName());
          }
       });
       notification.show();
@@ -256,7 +255,7 @@ public final class LocalCoresFragment extends ListFragment
 
 
    // Executed when the user confirms a core download.
-   private final class DownloadCoreOperation extends AsyncTask<String, Integer, Void>
+   private final class CopyCoreOperation extends AsyncTask<String, Integer, Void>
    {
       private final ProgressDialog dlg;
       private final Context ctx;
@@ -268,7 +267,7 @@ public final class LocalCoresFragment extends ListFragment
        * @param ctx      The current {@link Context}.
        * @param coreName The name of the core being downloaded.
        */
-      public DownloadCoreOperation(Context ctx, String coreName)
+      public CopyCoreOperation(Context ctx, String coreName)
       {
          this.dlg = new ProgressDialog(ctx);
          this.ctx = ctx;
@@ -292,60 +291,47 @@ public final class LocalCoresFragment extends ListFragment
       @Override
       protected Void doInBackground(String... params)
       {
-         InputStream input = null;
-         OutputStream output = null;
-         URLConnection connection;
+         InputStream is = null, is2 = null;
+         OutputStream os = null, os2 = null;
          zipHasInfoFile = false;
          
          try
          {
-            URL url = new URL(params[0]);
-            
-            connection = (URLConnection) url.openConnection();
-            connection.connect();
-            
             // Set up the streams
-            final File zipFile = new File(ctx.getApplicationInfo().dataDir + "/cores/", params[1]);
-            final int fileLen = connection.getContentLength();
-            input = new BufferedInputStream(connection.getInputStream(), 8192);
-            output = new FileOutputStream(zipFile);
+            File inFile = new File(localCoresDir, params[0]);
+            File outFile = new File(ctx.getApplicationInfo().dataDir + "/cores", params[0]);
+            final long fileLen = inFile.length();
+            is = new FileInputStream(inFile);
+            os = new FileOutputStream(outFile);
 
-            // "Download" and write core to storage.
+            // Write core to storage.
             //
-            long totalDownloaded = 0;
+            long copied = 0;
             byte[] buffer = new byte[4096];
-            int countBytes = 0;
-            while ((countBytes = input.read(buffer)) != -1)
+            int bufLen = 0;
+            while ((bufLen = is.read(buffer)) != -1)
             {
-               totalDownloaded += countBytes;
-               if (fileLen > 0)
-                  publishProgress((int) (totalDownloaded * 100 / fileLen));
-
-               output.write(buffer, 0, countBytes);
+               copied += bufLen;
+               publishProgress((int) (copied * 100 / fileLen));
+               os.write(buffer, 0, bufLen);
             }
-            if ( zipFile.toString().endsWith(".zip") )
-               unzipCore(zipFile);
+
+            if (outFile.toString().endsWith(".zip"))
+               unzipCore(outFile);  // also deletes zip
 
             if (!zipHasInfoFile)
             { // Install info file from the same directory, if not part of the .zip
-               String infoUrlPath = params[0].replace("_android.so.zip", ".info")
-                                             .replace("_android.so", ".info")
-                                             .replace("_android.zip", ".info");
-               if ( infoUrlPath.endsWith(".info")
-                    && new File(infoUrlPath.replace("file:", "")).exists() )
+               String infoName = params[0].replace("_android.so.zip", ".info")
+                                          .replace("_android.so", ".info")
+                                          .replace("_android.zip", ".info");
+               inFile = new File(localCoresDir, infoName);
+               if (infoName.endsWith(".info") && inFile.exists())
                {
-                  final File outInfoFile
-                        = new File( ctx.getApplicationInfo().dataDir + "/info/",
-                                   infoUrlPath.substring(infoUrlPath.lastIndexOf('/') + 1) );
-                  url = new URL(infoUrlPath);
-                  connection = (URLConnection) url.openConnection();
-                  connection.connect();
-                  input = new BufferedInputStream(connection.getInputStream(), 8192);
-                  output = new FileOutputStream(outInfoFile); 
-                  while ((countBytes = input.read(buffer)) != -1)
-                     output.write(buffer, 0, countBytes);
-                  input.close();
-                  output.close();
+                  outFile = new File(ctx.getApplicationInfo().dataDir + "/info", infoName);
+                  is2 = new FileInputStream(inFile);
+                  os2 = new FileOutputStream(outFile);
+                  while ((bufLen = is2.read(buffer)) != -1)
+                     os2.write(buffer, 0, bufLen);
                }
             }
          }
@@ -357,11 +343,14 @@ public final class LocalCoresFragment extends ListFragment
          {
             try
             {
-               if (output != null)
-                  output.close();
-
-               if (input != null)
-                  input.close();
+               if (os != null)
+                  os.close();
+               if (is != null)
+                  is.close();
+               if (os2 != null)
+                  os2.close();
+               if (is2 != null)
+                  is2.close();
             }
             catch (IOException ignored)
             {
@@ -385,10 +374,11 @@ public final class LocalCoresFragment extends ListFragment
       {
          super.onPostExecute(result);
          dlg.dismiss();
-         
+
          // Invoke callback to update the installed cores list.
-         coreDownloadedListener.onCoreDownloaded();
-         
+         if (coreCopiedListener != null)
+            coreCopiedListener.onCoreCopied();
+
          Toast.makeText(getActivity(), (this.coreName.isEmpty() ? "Core" : this.coreName) + " installed.", Toast.LENGTH_LONG).show();
       }
    }
@@ -447,7 +437,7 @@ public final class LocalCoresFragment extends ListFragment
       }
    }
    
-   // This will be the handler for long clicks on individual list items in this ListFragment.
+
    public boolean RemoveCore(int position)
    {
       final DownloadableCore core = adapter.getItem(position);

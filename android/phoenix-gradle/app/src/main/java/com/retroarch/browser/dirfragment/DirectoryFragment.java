@@ -52,17 +52,11 @@ public class DirectoryFragment extends DialogFragment
    protected File listedDirectory;
    
    public static ConfigFile mameListFile = null;
+   private boolean showMameTitles;
+
    protected static SharedPreferences Prefs = null;
-         
-   public static String MameName(String filename)
-   {
-      String lowercase = filename.toLowerCase();
-      if ( Prefs.getBoolean("mame_titles", false)
-              && mameListFile.keyExists(lowercase) )
-         return mameListFile.getString(lowercase);
-      else
-         return filename;
-   }
+
+
 
    public static final class BackStackItem implements Parcelable
    {
@@ -222,7 +216,7 @@ public class DirectoryFragment extends DialogFragment
       
       String extArray[] = new String[exts.size()];
       int i = 0;
-      for ( String ext : exts)
+      for (String ext : exts)
       {
          if (ext == null)
             return null;
@@ -235,6 +229,10 @@ public class DirectoryFragment extends DialogFragment
       return dFrag;
    }
 
+   public void setShowMameTitles(boolean showMameTitles)
+   {
+      this.showMameTitles = showMameTitles;
+   }
 
    @Override
    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -265,10 +263,9 @@ public class DirectoryFragment extends DialogFragment
                            .getString(pathSettingKey, "<Default>"),
                          Toast.LENGTH_LONG ).show();
       }
-      
-      // Read mamelist.txt
-      if (mameListFile == null)
-      {
+
+      if (showMameTitles && mameListFile == null)
+      {  // Read mamelist.txt
          String mameListPath = getContext().getApplicationInfo().dataDir
                                + "/info/mamelist.txt";
          mameListFile = new ConfigFile(mameListPath);
@@ -502,14 +499,9 @@ public class DirectoryFragment extends DialogFragment
 
             boolean allowFile = file.isDirectory() || (filterPath(path) && !isDirectoryTarget);
             if (allowFile)
-            {
-               adapter.add(new FileWrapper(file, FileWrapper.FILE, true));
-            }
+               adapter.add(new FileWrapper(file, FileWrapper.FILE, true,
+                     showMameTitles ? mameListFile : null));
          }
-         
-         if (allowedExt != null)
-            if (allowedExt.contains("cue") && allowedExt.contains("bin"))
-               PruneBinEntries();
       }
 
       // Sort items
@@ -524,31 +516,6 @@ public class DirectoryFragment extends DialogFragment
       
       // Update
       adapter.notifyDataSetChanged();
-   }
-   
-   // Remove .bin entries where same-name .cue entries exist
-   void PruneBinEntries()
-   {
-      // Even if sorted, can't assume .cue is next entry after .bin
-      for (int i = 0; i < adapter.getCount(); i++)
-      {
-         String name = adapter.getItem(i).getText().toLowerCase();
-         if ( name.endsWith(".bin") )
-         {
-            for (int j = 0; j < adapter.getCount(); j++)
-            {
-               String otherName = adapter.getItem(j).getText().toLowerCase();
-               if (j == i || !otherName.endsWith(".cue"))
-                  continue;
-               if ( otherName.replace(".cue", ".bin")
-                    .equals(name) )
-               {
-                  adapter.remove(adapter.getItem(i--));
-                  break;
-               }
-            }
-         }
-      }
    }
     
    public boolean ExtractZipWithPrompt(final String zipPath,

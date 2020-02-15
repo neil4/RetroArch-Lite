@@ -6,7 +6,6 @@
     <string name="extracting_assets_please_wait_">Extracting assets, please wait …</string>
 
     <!-- Core Selection Class -->
-    <string name="select_libretro_core">Select a libretro core</string>
     <string name="loading_data">Loading [%1$s]…</string>
 
     <!-- Core Manager -->

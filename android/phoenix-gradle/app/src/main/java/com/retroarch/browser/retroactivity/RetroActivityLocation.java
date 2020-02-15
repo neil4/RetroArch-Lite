@@ -18,8 +18,7 @@ import android.widget.Toast;
 
 /**
  * Class that implements location-based functionality for
- * the {@link RetroActivityFuture} and {@link RetroActivityPast}
- * activities.
+ * the {@link RetroActivity} activity.
  */
 public class RetroActivityLocation extends NativeActivity
 implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener

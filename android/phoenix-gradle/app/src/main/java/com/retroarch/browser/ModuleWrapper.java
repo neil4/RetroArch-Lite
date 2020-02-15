@@ -34,6 +34,8 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    private final List<String> requiredHwApi;
    private int firmwareCount = 0;
    private String firmwares;
+   private boolean is64bit;
+   private boolean showAbi;
 
    /**
     * Constructor
@@ -41,10 +43,12 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
     * @param context The current {@link Context}.
     * @param file    The {@link File} instance of the core being wrapped.
     */
-   public ModuleWrapper(Context context, File file)
+   public ModuleWrapper(Context context, File file, boolean showAbi)
    {
       this.file = file;
       SharedPreferences prefs = UserPreferences.getPreferences(context.getApplicationContext());
+      is64bit = file.getAbsolutePath().contains("/com.retroarchlite64/");
+      this.showAbi = showAbi;
 
       // Attempt to get the core's info file: dataDir/info/[core name].info
 
@@ -101,7 +105,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          else
          {
             this.supportedExtensions = new ArrayList<String>();
-            this.supportedExtensions.add(supportedExts != null ? supportedExts : "N/A");
+            this.supportedExtensions.add(supportedExts);
          }
 
          final String emuAuthors = infoFile.getString("authors");
@@ -182,23 +186,12 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          this.authors = new ArrayList<String>();
          this.authors.add("Unknown");
          this.supportedExtensions = new ArrayList<String>();
-         this.supportedExtensions.add("Unknown");
          this.coreName = coreName;
          this.requiredHwApi = new ArrayList<String>();
          this.requiredHwApi.add("Unknown");
          this.firmwares = "Unknown";
          this.permissions = new ArrayList<String>();
          this.permissions.add("Unknown");
-      }
-      
-      // TODO: less stilted
-      if (prefs.getBoolean("append_abi_to_corenames", false))  // not exactly ABI
-      {
-         String path = file.getAbsolutePath();
-         if (path.contains("/com.retroarchlite/"))
-            this.coreName += " (32-bit)";
-         else if (path.contains("/com.retroarchlite64/"))
-            this.coreName += " (64-bit)";
       }
    }
 
@@ -208,9 +201,9 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
     * @param context The current {@link Context}.
     * @param path    Path to the file to encapsulate.
     */
-   public ModuleWrapper(Context context, String path)
+   public ModuleWrapper(Context context, String path, boolean showAbi)
    {
-      this(context, new File(path));
+      this(context, new File(path), showAbi);
    }
 
    /**
@@ -355,7 +348,10 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    @Override
    public String getText()
    {
-      return bestCoreTitle(displayName, coreName);
+      if (showAbi)
+         return bestCoreTitle(displayName, coreName) + (is64bit ? " (64b)" : " (32b)");
+      else
+         return bestCoreTitle(displayName, coreName);
    }
    
    @Override

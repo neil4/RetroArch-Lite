@@ -172,7 +172,7 @@ public final class InstalledCoresFragment extends ListFragment
       // Populate the list
       final File[] libs = new File(getActivity().getApplicationInfo().dataDir, "/cores").listFiles();
       for (File lib : libs)
-         items.add(new ModuleWrapper(getActivity(), lib));
+         items.add(new ModuleWrapper(getActivity(), lib, false));
 
       // Sort the list alphabetically
       Collections.sort(items);

@@ -24,7 +24,7 @@ import com.retroarchlite.R;
  * Activity which provides the base for viewing installed cores,
  * as well as the ability to download other cores.
  */
-public final class CoreManagerActivity extends AppCompatActivity implements DownloadableCoresFragment.OnCoreDownloadedListener, LocalCoresFragment.OnCoreDownloadedListener, TabListener
+public final class CoreManagerActivity extends AppCompatActivity implements DownloadableCoresFragment.OnCoreDownloadedListener, LocalCoresFragment.OnCoreCopiedListener, TabListener
 {
    // ViewPager for the fragments
    private ViewPager viewPager;
@@ -110,9 +110,19 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
       // Do nothing. Not used.
    }
 
-   // Callback function used to update the installed cores list
    @Override
    public void onCoreDownloaded()
+   {
+      updateInstalledCoreList();
+   }
+
+   @Override
+   public void onCoreCopied()
+   {
+      updateInstalledCoreList();
+   }
+
+   private void updateInstalledCoreList()
    {
       InstalledCoresManagerFragment icmf = (InstalledCoresManagerFragment) getSupportFragmentManager().findFragmentByTag("android:switcher:" + R.id.coreviewer_viewPager + ":" + 0);
       if (icmf != null)

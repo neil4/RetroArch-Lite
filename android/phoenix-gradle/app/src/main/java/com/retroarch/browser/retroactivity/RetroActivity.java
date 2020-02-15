@@ -1,6 +1,5 @@
 package com.retroarch.browser.retroactivity;
 
-import android.os.Build;
 import android.view.View;
 import com.retroarch.browser.preferences.util.UserPreferences;
 
@@ -17,7 +16,8 @@ public class RetroActivity extends RetroActivityLocation
    }
    
    @Override
-   public void onResume() {
+   public void onResume()
+   {
       super.onResume();
 
       View thisView = getWindow().getDecorView();

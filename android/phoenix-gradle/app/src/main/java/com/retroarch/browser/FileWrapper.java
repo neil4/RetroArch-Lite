@@ -2,10 +2,10 @@ package com.retroarch.browser;
 
 import java.io.File;
 
+import com.retroarch.browser.preferences.util.ConfigFile;
 import com.retroarchlite.R;
 
 import android.graphics.drawable.Drawable;
-import com.retroarch.browser.dirfragment.DirectoryFragment;
 
 public final class FileWrapper implements IconAdapterItem, Comparable<FileWrapper> {
 
@@ -17,24 +17,37 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
    private final boolean parentItem;
    private final boolean dirSelectItem;
    private final boolean enabled;
+   private final ConfigFile nameConf;
    private final int typeIndex;
 
-   public FileWrapper(File file, int type, boolean isEnabled) {
+   public FileWrapper(File file, int type, boolean isEnabled, ConfigFile nameMap)
+   {
       this.file = file;
-
       this.parentItem    = (type == PARENT);
       this.dirSelectItem = (type == DIRSELECT);      
-      this.typeIndex     = (type == FILE) ? (FILE + (file.isDirectory() ? 0 : 1)) : type;   
-
+      this.typeIndex     = (type == FILE) ? (FILE + (file.isDirectory() ? 0 : 1)) : type;
       this.enabled = parentItem || dirSelectItem || isEnabled;
+      this.nameConf = nameMap;
+   }
+
+   public FileWrapper(File file, int type, boolean isEnabled)
+   {
+      this.file = file;
+      this.parentItem    = (type == PARENT);
+      this.dirSelectItem = (type == DIRSELECT);
+      this.typeIndex     = (type == FILE) ? (FILE + (file.isDirectory() ? 0 : 1)) : type;
+      this.enabled = parentItem || dirSelectItem || isEnabled;
+      this.nameConf = null;
    }
    
-   public FileWrapper() {
+   public FileWrapper()
+   {
       this.file = null;
       this.parentItem = false;
       this.dirSelectItem = false;
       this.typeIndex = 0;
       this.enabled = false;
+      this.nameConf = null;
    }
 
    @Override
@@ -48,8 +61,10 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
          return "[[Use this directory]]";
       else if (parentItem)
          return "[Parent Directory]";
+      else if (nameConf != null)
+         return MapName(file.getName());
       else
-         return DirectoryFragment.MameName(file.getName());
+         return file.getName();
    }
    
    @Override
@@ -58,12 +73,12 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
    }
 
    @Override
-   public int getIconResourceId() {
-      if (!parentItem && !dirSelectItem) {
+   public int getIconResourceId()
+   {
+      if (!parentItem && !dirSelectItem)
          return file.isFile() ? R.drawable.ic_file : R.drawable.ic_dir;
-      } else {
+      else
          return R.drawable.ic_dir;
-      }
    }
 
    @Override
@@ -103,18 +118,28 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
    }
 
    @Override
-   public int compareTo(FileWrapper other) {
-      if (other != null) {
-         // Who says ternary is hard to follow
-         if (isEnabled() == other.isEnabled()) {
-            return (typeIndex == other.typeIndex) ? file
-                  .compareTo(other.file)
+   public int compareTo(FileWrapper other)
+   {
+      if (other != null)
+      {
+         if (isEnabled() == other.isEnabled())
+         {
+            return (typeIndex == other.typeIndex) ? file.compareTo(other.file)
                   : ((typeIndex < other.typeIndex) ? -1 : 1);
-         } else {
-            return isEnabled() ? -1 : 1;
          }
+         else
+            return isEnabled() ? -1 : 1;
       }
 
       return -1;
+   }
+
+   public String MapName(String filename)
+   {
+      String lcName = filename.toLowerCase();
+      if (nameConf.keyExists(lcName))
+         return nameConf.getString(lcName);
+      else
+         return filename;
    }
 }

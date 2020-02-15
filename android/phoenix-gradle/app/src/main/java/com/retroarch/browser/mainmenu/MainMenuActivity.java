@@ -9,7 +9,6 @@ import android.content.ComponentName;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
@@ -43,16 +42,15 @@ import java.util.List;
 import com.retroarchlite.R;
 
 /**
- * {@link PreferenceActivity} subclass that provides all of the
+ * {@link FragmentActivity} subclass that provides all of the
  * functionality of the main menu screen.
  */
 public final class MainMenuActivity extends FragmentActivity implements OnDirectoryFragmentClosedListener
 {
-   private static final int REQUEST_DANGEROUS_PERMISSION = 112;
+   private static final int REQUEST_APP_PERMISSIONS = 88;
    private IconAdapter<ModuleWrapper> adapter;
    static String libretroPath = "";
    static String libretroName = "";
-   static DirectoryFragment contentBrowser;
    static Intent retro = null;
    
    @Override
@@ -71,37 +69,47 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
 
       if (android.os.Build.VERSION.SDK_INT >= 21)
       {
-         getPermissions( new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                       Manifest.permission.ACCESS_COARSE_LOCATION,
-                                       Manifest.permission.ACCESS_FINE_LOCATION,
-                                       Manifest.permission.CAMERA});
+         getPermissions(new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                      Manifest.permission.ACCESS_COARSE_LOCATION,
+                                      Manifest.permission.ACCESS_FINE_LOCATION});
       }
    }
 
-   protected void getPermissions( final String[] permission_strings )
+   protected void getPermissions(final String[] permissions)
    {
-      boolean any_denied = false;
-      for ( int i = 0; i < permission_strings.length; i++ )
+      boolean anyDenied = false;
+      for (int i = 0; i < permissions.length; i++)
       {
-         int permission_int = ContextCompat.checkSelfPermission(this, permission_strings[i]);
-
-         if (permission_int != PackageManager.PERMISSION_GRANTED) {
-            Log.i("RetroArch Lite", permission_strings[i] + " denied");
-            any_denied = true;
-         }
+         int code = ContextCompat.checkSelfPermission(this, permissions[i]);
+         if (code != PackageManager.PERMISSION_GRANTED)
+            anyDenied = true;
       }
-      
-      if (any_denied)
+
+      if (anyDenied)
       {
          ActivityCompat.requestPermissions(this,
-                    permission_strings,
-                    REQUEST_DANGEROUS_PERMISSION);
+               permissions, REQUEST_APP_PERMISSIONS);
       }
    }
 
-   public void setCoreTitle(String core_name)
+   @Override
+   public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
    {
-      setTitle("RetroArch : " + core_name);
+      switch (requestCode)
+      {
+         case REQUEST_APP_PERMISSIONS:
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED)
+               Log.e("RetroArch Lite",permissions[0] + " denied"); // ext storage
+            for (int i = 1; i < permissions.length; i++)
+            {
+               if(grantResults[i] != PackageManager.PERMISSION_GRANTED)
+                  Log.i("RetroArch Lite",permissions[i] + " denied");
+            }
+            break;
+         default:
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            break;
+      }
    }
 
    @Override
@@ -121,15 +129,18 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
    }
 
    @Override
-   public boolean onCreateOptionsMenu(Menu aMenu) {
+   public boolean onCreateOptionsMenu(Menu aMenu)
+   {
       super.onCreateOptionsMenu(aMenu);
       getMenuInflater().inflate(R.menu.options_menu, aMenu);
       return true;
    }
    
    @Override
-   public boolean onOptionsItemSelected(MenuItem aItem) {
-      switch (aItem.getItemId()) {
+   public boolean onOptionsItemSelected(MenuItem aItem)
+   {
+      switch (aItem.getItemId())
+      {
       case R.id.settings:
          Intent rset = new Intent(this, com.retroarch.browser.preferences.PreferenceActivity.class);
          startActivity(rset);
@@ -142,6 +153,9 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
    
    public void createList()
    {
+      SharedPreferences prefs = UserPreferences.getPreferences(getApplicationContext());
+      boolean showAbi = prefs.getBoolean("append_abi_to_corenames", false);
+
       // Inflate the ListView we're using.
       ListView coreList = (ListView) findViewById(R.id.list);
 
@@ -154,7 +168,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       final File[] libs = coreDir.listFiles();
       
       for (final File lib : libs)
-         cores.add(new ModuleWrapper(this, lib));
+         cores.add(new ModuleWrapper(this, lib, showAbi));
       
       // Populate shared core list
       //
@@ -170,7 +184,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       {
          final File[] sharedLibs = sharedCoreDir.listFiles();
          for (final File lib : sharedLibs)
-            cores.add(new ModuleWrapper(this, lib));
+            cores.add(new ModuleWrapper(this, lib, showAbi));
       }
 
       // Sort the list of cores alphabetically
@@ -194,8 +208,8 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
 
       if (!new File(libretroPath).isDirectory())
       {
-         contentBrowser = null;  // rebuild contentBrowser here
-         contentBrowser = DirectoryFragment.newInstance(item.getText(), item.getSupportedExtensions());
+         DirectoryFragment contentBrowser = DirectoryFragment.newInstance(item.getText(),
+               item.getSupportedExtensions());
          
          // Assume no content if no file extensions
          if (contentBrowser == null)
@@ -203,7 +217,8 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
             onDirectoryFragmentClosed("");
             return;
          }
-         
+
+         contentBrowser.setShowMameTitles(prefs.getBoolean("mame_titles", false));
          contentBrowser.setOnDirectoryFragmentClosedListener(this);
 
          String startPath = prefs.getString( libretroName + "_directory", "");
@@ -267,9 +282,8 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
          final String apk = getApplicationInfo().sourceDir;
 
          boolean success = NativeInterface.extractArchiveTo(apk, "assets", dataDir);
-         if (!success) {
+         if (!success)
             throw new IOException("Failed to extract assets ...");
-         }
 
          File cacheVersion = new File(dataDir, ".cacheversion");
          DataOutputStream outputCacheVersion = new DataOutputStream(new FileOutputStream(cacheVersion, false));
@@ -351,7 +365,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
          usingSharedActivity = true;
          retro = new Intent();
          retro.setComponent(new ComponentName(sharedId,
-                                              "com.retroarch.browser.retroactivity.RetroActivity"));
+               "com.retroarch.browser.retroactivity.RetroActivity"));
       }
       else
          retro = new Intent(this, RetroActivity.class);

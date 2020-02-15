@@ -316,23 +316,27 @@ public final class DownloadableCoresFragment extends ListFragment
             String infoDispName = "Unknown";
             String infoCoreName = "Unknown";
             String infoSysName = "Unknown";
-            for (String line : lines) {
-               if (line.startsWith("display_name")) {
+            boolean haveDn = false, haveCn = false, haveSn = false;
+
+            for (String line : lines)
+            {
+               if (!haveDn && line.startsWith("display_name"))
+               {
                   infoDispName = line.split("=")[1].trim().replace("\"", "");
-                  break;
+                  haveDn = true;
                }
-            }
-            for (String line : lines) {
-               if (line.startsWith("corename")) {
+               if (!haveCn && line.startsWith("corename"))
+               {
                   infoCoreName = line.split("=")[1].trim().replace("\"", "");
-                  break;
+                  haveCn = true;
                }
-            }
-            for (String line : lines) {
-               if (line.startsWith("systemname")) {
+               if (!haveSn && line.startsWith("systemname"))
+               {
                   infoSysName = line.split("=")[1].trim().replace("\"", "");
-                  break;
+                  haveSn = true;
                }
+               if (haveDn && haveCn && haveSn)
+                  break;
             }
 
             name = ModuleWrapper.bestCoreTitle(infoDispName, infoCoreName);
@@ -395,8 +399,8 @@ public final class DownloadableCoresFragment extends ListFragment
       @Override
       protected Void doInBackground(String... params)
       {
-         InputStream input = null;
-         OutputStream output = null;
+         InputStream is = null;
+         OutputStream os = null;
          HttpURLConnection connection = null;
          final File zipPath = new File(ctx.getApplicationInfo().dataDir + "/cores/", params[1]);
 
@@ -414,33 +418,33 @@ public final class DownloadableCoresFragment extends ListFragment
 
             // Set up the streams
             final int fileLen = connection.getContentLength();
-            input = new BufferedInputStream(connection.getInputStream(), 8192);
-            output = new FileOutputStream(zipPath);
+            is = new BufferedInputStream(connection.getInputStream(), 8192);
+            os = new FileOutputStream(zipPath);
             
             if (new File(zipPath.getParent(), zipPath.getName().replace(".zip", "")).exists())
                overwrite = true;
 
             // Download and write to storage.
-            long totalDownloaded = 0;
+            long downloaded = 0;
             byte[] buffer = new byte[4096];
-            int countBytes;
-            while ((countBytes = input.read(buffer)) != -1)
+            int bufLen;
+            while ((bufLen = is.read(buffer)) != -1)
             {
-               if (!dlg.isShowing()) {
+               if (!dlg.isShowing())
+               {
                   cancel(true);
                   break;
                }
 
-               totalDownloaded += countBytes;
+               downloaded += bufLen;
                if (fileLen > 0)
-                  publishProgress((int) (totalDownloaded * 100 / fileLen));
+                  publishProgress((int) (downloaded * 100 / fileLen));
 
-               output.write(buffer, 0, countBytes);
+               os.write(buffer, 0, bufLen);
             }
-            input.close();
-            output.close();
 
-            if (!isCancelled()) {
+            if (!isCancelled())
+            {
                unzipCore(zipPath);
 
                // Update info file for downloaded core
@@ -474,11 +478,11 @@ public final class DownloadableCoresFragment extends ListFragment
                if (zipPath.exists())  // normally deleted in unzipCore
                   zipPath.delete();
 
-               if (output != null)
-                  output.close();
+               if (os != null)
+                  os.close();
 
-               if (input != null)
-                  input.close();
+               if (is != null)
+                  is.close();
             }
             catch (IOException ignored)
             {
