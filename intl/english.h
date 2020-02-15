@@ -75,9 +75,9 @@
 #define RETRO_LBL_VOLUME_UP "Volume Up"
 #define RETRO_LBL_VOLUME_DOWN "Volume Down"
 #define RETRO_LBL_OVERLAY_NEXT "Next Overlay"
-#define RETRO_LBL_DISK_EJECT_TOGGLE "Disk Eject Toggle"
-#define RETRO_LBL_DISK_NEXT "Disk Swap Next"
-#define RETRO_LBL_DISK_PREV "Disk Swap Previous"
+#define RETRO_LBL_DISK_EJECT_TOGGLE "Disc Eject Toggle"
+#define RETRO_LBL_DISK_NEXT "Disc Swap Next"
+#define RETRO_LBL_DISK_PREV "Disc Swap Previous"
 #define RETRO_LBL_GRAB_MOUSE_TOGGLE "Grab mouse toggle"
 #define RETRO_LBL_MENU_TOGGLE "Menu toggle"
 

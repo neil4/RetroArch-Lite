@@ -221,12 +221,12 @@ static void event_disk_control_set_eject(bool new_state, bool print_log)
    *msg = '\0';
 
    if (control->set_eject_state(new_state))
-      snprintf(msg, sizeof(msg), "%s virtual disk tray.",
+      snprintf(msg, sizeof(msg), "%s virtual disc tray.",
             new_state ? "Ejected" : "Closed");
    else
    {
       error = true;
-      snprintf(msg, sizeof(msg), "Failed to %s virtual disk tray.",
+      snprintf(msg, sizeof(msg), "Failed to %s virtual disc tray.",
             new_state ? "eject" : "close");
    }
 
@@ -268,8 +268,9 @@ void event_disk_control_append_image(const char *path)
 
    info.path = path;
    control->replace_image_index(new_idx, &info);
+   control->set_image_index(new_idx);
 
-   snprintf(msg, sizeof(msg), "Appended disk: %s", path);
+   snprintf(msg, sizeof(msg), "Loaded disc: %s", path);
    RARCH_LOG("%s\n", msg);
    rarch_main_msg_queue_push(msg, 0, 180, true);
 
@@ -329,18 +330,18 @@ static void event_disk_control_set_index(unsigned idx)
    if (control->set_image_index(idx))
    {
       if (idx < num_disks)
-         snprintf(msg, sizeof(msg), "Setting disk %u of %u in tray.",
+         snprintf(msg, sizeof(msg), "Setting disc %u of %u in tray.",
                idx + 1, num_disks);
       else
-         strlcpy(msg, "Removed disk from tray.", sizeof(msg));
+         strlcpy(msg, "Removed disc from tray.", sizeof(msg));
    }
    else
    {
       if (idx < num_disks)
-         snprintf(msg, sizeof(msg), "Failed to set disk %u of %u.",
+         snprintf(msg, sizeof(msg), "Failed to set disc %u of %u.",
                idx + 1, num_disks);
       else
-         strlcpy(msg, "Failed to remove disk from tray.", sizeof(msg));
+         strlcpy(msg, "Failed to remove disc from tray.", sizeof(msg));
       error = true;
    }
 
@@ -369,7 +370,7 @@ static void event_check_disk_prev(
 
    if (!disk_prev_enable)
    {
-      RARCH_ERR("Got invalid disk index from libretro.\n");
+      RARCH_ERR("Got invalid disc index from libretro.\n");
       return;
    }
 
@@ -393,7 +394,7 @@ static void event_check_disk_next(
 
    if (!disk_next_enable)
    {
-      RARCH_ERR("Got invalid disk index from libretro.\n");
+      RARCH_ERR("Got invalid disc index from libretro.\n");
       return;
    }
 
@@ -1467,10 +1468,13 @@ bool event_command(enum event_command cmd)
                &global->system.disk_control;
 
             if (control)
+            {
                event_check_disk_eject(control);
+               rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
+            }
          }
          else
-            rarch_main_msg_queue_push("Core does not support Disk Options.", 1, 120, true);
+            rarch_main_msg_queue_push("Core does not support Disc Options.", 1, 120, true);
          break;
       case EVENT_CMD_DISK_NEXT:
          if (global->system.disk_control.get_num_images)
@@ -1488,7 +1492,7 @@ bool event_command(enum event_command cmd)
             event_check_disk_next(control);
          }
          else
-            rarch_main_msg_queue_push("Core does not support Disk Options.", 1, 120, true);
+            rarch_main_msg_queue_push("Core does not support Disc Options.", 1, 120, true);
          break;
       case EVENT_CMD_DISK_PREV:
          if (global->system.disk_control.get_num_images)

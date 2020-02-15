@@ -195,8 +195,6 @@ extern "C" {
 #define MENU_LABEL_VIDEO_SHADER_NUM_PASSES                                     0x79b2992fU
 #define MENU_LABEL_CHEAT_NUM_PASSES                                            0x1910eb87U
 
-#define MENU_VALUE_NO_DISK                                                     0x7d54e5cdU
-
 #define MENU_VALUE_MD5                                                         0x0b888fabU
 #define MENU_VALUE_SHA1                                                        0x7c9de632U
 #define MENU_VALUE_CRC                                                         0x0b88671dU
@@ -260,7 +258,7 @@ extern "C" {
 #define MENU_LABEL_VALUE_CORE_INFORMATION                                      0x781981b4U
 #define MENU_LABEL_VIDEO_SHADER_PARAMETERS                                     0x9895c3e5U
 #define MENU_LABEL_VIDEO_SHADER_PRESET_PARAMETERS                              0xd18158d7U
-#define MENU_LABEL_DISK_OPTIONS                                                0xc61ab5fbU
+#define MENU_LABEL_DISK_OPTIONS                                                0xe087bf5bU
 #define MENU_LABEL_VALUE_DISK_OPTIONS                                          0xbee508e5U
 #define MENU_LABEL_CORE_OPTIONS                                                0xf65e60f9U
 #define MENU_LABEL_DISK_CYCLE_TRAY_STATUS                                      0x3035cdc1U

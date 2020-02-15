@@ -524,6 +524,28 @@ static void menu_action_setting_disp_set_label_menu_more(
    strlcpy(s2, path, len2);
 }
 
+static void menu_action_setting_disp_set_label_menu_disk_tray_status(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   global_t *global     = global_get_ptr();
+   const struct retro_disk_control_callback *control =
+      (const struct retro_disk_control_callback*)
+      &global->system.disk_control;
+
+   *w = 19;
+   *s = '\0';
+   strlcpy(s2, path, len2);
+   if (!control)
+      return;
+
+   strlcpy(s, control->get_eject_state() ? "(Ejected)" : "(Closed)", len);
+}
 
 static void menu_action_setting_disp_set_label_menu_disk_index(
       file_list_t* list,
@@ -550,9 +572,9 @@ static void menu_action_setting_disp_set_label_menu_disk_index(
    current = control->get_image_index();
 
    if (current >= images)
-      strlcpy(s, menu_hash_to_str(MENU_VALUE_NO_DISK), len);
+      strlcpy(s, "No Disc", len);
    else
-      snprintf(s, len, "%u", current + 1);
+      snprintf(s, len, "%u of %u", current + 1, images);
 }
 
 static void menu_action_setting_disp_set_label_menu_video_resolution(
@@ -1027,6 +1049,7 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
          case MENU_SETTING_SUBGROUP:
          case MENU_SETTINGS_CUSTOM_VIEWPORT:
          case MENU_SETTINGS_CUSTOM_BIND_ALL:
+         case MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_IMAGE_APPEND:
          case MENU_SETTINGS_CUSTOM_BIND_DEFAULT_ALL:
             cbs->action_get_value =
                menu_action_setting_disp_set_label_menu_more;
@@ -1034,6 +1057,10 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
          case MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_INDEX:
             cbs->action_get_value =
                menu_action_setting_disp_set_label_menu_disk_index;
+            break;
+         case MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_CYCLE_TRAY_STATUS:
+            cbs->action_get_value =
+               menu_action_setting_disp_set_label_menu_disk_tray_status;
             break;
          case MENU_SETTINGS_VIDEO_RESOLUTION:
             cbs->action_get_value =

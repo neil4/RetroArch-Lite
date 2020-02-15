@@ -1258,13 +1258,13 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
       case DISPLAYLIST_OPTIONS_DISK:
          menu_list_clear(info->list);
          menu_list_push(info->list,
-               menu_hash_to_str(MENU_LABEL_VALUE_DISK_INDEX),
-               menu_hash_to_str(MENU_LABEL_DISK_INDEX),
-               MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_INDEX, 0, 0);
-         menu_list_push(info->list,
                menu_hash_to_str(MENU_LABEL_VALUE_DISK_CYCLE_TRAY_STATUS),
                menu_hash_to_str(MENU_LABEL_DISK_CYCLE_TRAY_STATUS),
                MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_CYCLE_TRAY_STATUS, 0, 0);
+         menu_list_push(info->list,
+               menu_hash_to_str(MENU_LABEL_VALUE_DISK_INDEX),
+               menu_hash_to_str(MENU_LABEL_DISK_INDEX),
+               MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_INDEX, 0, 0);
          menu_list_push(info->list,
                menu_hash_to_str(MENU_LABEL_VALUE_DISK_IMAGE_APPEND),
                menu_hash_to_str(MENU_LABEL_DISK_IMAGE_APPEND),

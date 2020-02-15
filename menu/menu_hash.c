@@ -105,9 +105,9 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_CUSTOM_BIND_ALL:
          return "custom_bind_all";
       case MENU_LABEL_DISK_OPTIONS:
-         return "core_disk_options";
+         return "core_disc_options";
       case MENU_LABEL_VALUE_DISK_OPTIONS:
-         return "Core Disk Options";
+         return "Core Disc Options";
       case MENU_LABEL_VALUE_CORE_OPTIONS:
          return "Core-Provided Options";
       case MENU_LABEL_VALUE_CORE_CHEAT_OPTIONS:
@@ -147,13 +147,13 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_DISK_INDEX:
          return "disk_index";
       case MENU_LABEL_VALUE_DISK_INDEX:
-         return "Disk Index";
+         return "Disc Index";
       case MENU_LABEL_VALUE_FRONTEND_COUNTERS:
          return "Frontend Counters";
       case MENU_LABEL_VALUE_DISK_IMAGE_APPEND:
-         return "Disk Image Append";
+         return "Load New Disc Image";
       case MENU_LABEL_VALUE_DISK_CYCLE_TRAY_STATUS:
-         return "Disk Cycle Tray Status";
+         return "Cycle Disc Tray Status";
       case MENU_LABEL_VALUE_NO_CORE_INFORMATION_AVAILABLE:
          return "No core information available.";
       case MENU_LABEL_VALUE_NO_CORE_OPTIONS_AVAILABLE:

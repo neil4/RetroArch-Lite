@@ -2041,7 +2041,7 @@ bool config_save_file(const char *path)
       config_set_path(conf,  "libretro_directory", settings->libretro_directory);
 
    if (!global->info_dir_override)
-   config_set_path(conf,  "libretro_info_path", settings->libretro_info_path);
+      config_set_path(conf,  "libretro_info_path", settings->libretro_info_path);
    config_set_path(conf,  "cheat_database_path", settings->cheat_database);
 
    config_set_bool(conf, "rewind_enable", settings->rewind_enable);

@@ -957,9 +957,7 @@ static int action_ok_disk_image_append(const char *path,
    fill_pathname_join(image, menu_path, path, sizeof(image));
    event_disk_control_append_image(image);
 
-   event_command(EVENT_CMD_RESUME);
-
-   menu_list_flush_stack(menu_list, NULL, MENU_SETTINGS);
+   menu_list_flush_stack(menu_list, NULL, MENU_SETTING_ACTION_CORE_DISK_OPTIONS);
    return -1;
 }
 
