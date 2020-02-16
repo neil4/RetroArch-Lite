@@ -67,8 +67,7 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
       installedCoresFragment = new InstalledCoresManagerFragment();
       localCoresFragment = new LocalCoresFragment();
       downloadableCoresFragment = new DownloadableCoresFragment();
-      
-      // To be safe...
+
       final String dataDir = getApplicationInfo().dataDir;
       
       File dir = new File(dataDir + "/cores/");

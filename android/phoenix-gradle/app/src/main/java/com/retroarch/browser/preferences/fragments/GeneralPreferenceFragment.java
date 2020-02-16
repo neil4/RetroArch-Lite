@@ -19,7 +19,7 @@ import com.retroarch.browser.dirfragment.DirectoryFragment;
 /**
  * A {@link PreferenceListFragment} that handles the general settings.
  */
-public final class GeneralPreferenceFragment extends PreferenceListFragment implements OnPreferenceClickListener
+public final class GeneralPreferenceFragment extends PreferenceListFragment implements OnPreferenceClickListener, DirectoryFragment.OnDirectoryFragmentClosedListener
 {
    @Override
    public void onCreate(Bundle savedInstanceState)
@@ -57,9 +57,9 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
       {
          final DirectoryFragment themeFileBrowser
                  = DirectoryFragment.newInstance("");
-         themeFileBrowser.setPathSettingKey("themes_zip");
          themeFileBrowser.addAllowedExts("zip");
          themeFileBrowser.setIsDirectoryTarget(false);
+         themeFileBrowser.setOnDirectoryFragmentClosedListener(this);
          themeFileBrowser.show(getFragmentManager(), "themeFileBrowser");
       }
       else if (prefKey.equals("restore_assets_pref"))
@@ -113,5 +113,12 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
       }
 
       return true;
+   }
+
+   @Override
+   public void onDirectoryFragmentClosed(String path)
+   {
+      DirectoryFragment.ExtractZipWithPrompt(getContext(), path,
+            getContext().getApplicationInfo().dataDir + "/themes_rgui", "themes");
    }
 }

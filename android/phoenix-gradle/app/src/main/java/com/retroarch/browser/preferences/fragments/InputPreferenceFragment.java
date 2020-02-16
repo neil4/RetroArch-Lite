@@ -1,20 +1,16 @@
 package com.retroarch.browser.preferences.fragments;
 
 import com.retroarchlite.R;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.DialogInterface;
 import com.retroarch.browser.dirfragment.DirectoryFragment;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
-import android.widget.Toast;
 
 /**
  * A {@link PreferenceListFragment} responsible for handling the input preferences.
  */
-public final class InputPreferenceFragment extends PreferenceListFragment implements OnPreferenceClickListener
+public final class InputPreferenceFragment extends PreferenceListFragment implements OnPreferenceClickListener, DirectoryFragment.OnDirectoryFragmentClosedListener
 {
    @Override
    public void onCreate(Bundle savedInstanceState)
@@ -37,13 +33,19 @@ public final class InputPreferenceFragment extends PreferenceListFragment implem
       {
          final DirectoryFragment overlayFileBrowser
                  = DirectoryFragment.newInstance("");
-         overlayFileBrowser.setPathSettingKey("overlay_zip");
          overlayFileBrowser.addAllowedExts("zip");
          overlayFileBrowser.setIsDirectoryTarget(false);
+         overlayFileBrowser.setOnDirectoryFragmentClosedListener(this);
          overlayFileBrowser.show(getFragmentManager(), "overlayFileBrowser");
       }
 
       return true;
    }
-   
+
+   @Override
+   public void onDirectoryFragmentClosed(String path)
+   {
+      DirectoryFragment.ExtractZipWithPrompt(getContext(), path,
+            getContext().getApplicationInfo().dataDir + "/overlays", "overlays");
+   }
 }

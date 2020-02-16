@@ -2,6 +2,7 @@ package com.retroarch.browser.dirfragment;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Point;
@@ -53,10 +54,6 @@ public class DirectoryFragment extends DialogFragment
    
    public static ConfigFile mameListFile = null;
    private boolean showMameTitles;
-
-   protected static SharedPreferences Prefs = null;
-
-
 
    public static final class BackStackItem implements Parcelable
    {
@@ -264,14 +261,6 @@ public class DirectoryFragment extends DialogFragment
                          Toast.LENGTH_LONG ).show();
       }
 
-      if (showMameTitles && mameListFile == null)
-      {  // Read mamelist.txt
-         String mameListPath = getContext().getApplicationInfo().dataDir
-                               + "/info/mamelist.txt";
-         mameListFile = new ConfigFile(mameListPath);
-         Prefs = UserPreferences.getPreferences(getContext());
-      }
-      
       // Setup the list
       adapter = new IconAdapter<FileWrapper>(getActivity(), R.layout.line_list_item);
       rootView.setAdapter(adapter);
@@ -280,6 +269,7 @@ public class DirectoryFragment extends DialogFragment
       if (savedInstanceState != null)
       {
          backStack = savedInstanceState.getParcelableArrayList("BACKSTACK");
+         showMameTitles = savedInstanceState.getBoolean("MAMETITLES");
       }
 
       if (backStack == null || backStack.isEmpty())
@@ -289,6 +279,13 @@ public class DirectoryFragment extends DialogFragment
             Environment.getExternalStorageDirectory().getPath() : startDirectory;
          
          backStack.add(new BackStackItem(startPath, false));
+      }
+
+      if (showMameTitles && mameListFile == null)
+      {  // Read mamelist.txt
+         String mameListPath = getContext().getApplicationInfo().dataDir
+               + "/info/mamelist.txt";
+         mameListFile = new ConfigFile(mameListPath);
       }
 
       wrapFiles();
@@ -353,6 +350,7 @@ public class DirectoryFragment extends DialogFragment
       super.onSaveInstanceState(outState);
 
       outState.putParcelableArrayList("BACKSTACK", backStack);
+      outState.putBoolean("MAMETITLES", showMameTitles);
    }
 
    private void finishWithPath(String path)
@@ -363,24 +361,9 @@ public class DirectoryFragment extends DialogFragment
       }
       else if (pathSettingKey != null && !pathSettingKey.isEmpty())
       {
-         if ( pathSettingKey.equals("shader_zip"))
-            ExtractZipWithPrompt(path,
-                    getContext().getApplicationInfo().dataDir + "/shaders_glsl",
-                    "shaders");
-         else if ( pathSettingKey.equals("overlay_zip"))
-            ExtractZipWithPrompt(path,
-                    getContext().getApplicationInfo().dataDir + "/overlays",
-                    "overlays");
-         else if ( pathSettingKey.equals("themes_zip"))
-            ExtractZipWithPrompt(path,
-                    getContext().getApplicationInfo().dataDir + "/themes_rgui",
-                    "themes");
-         else
-         {
-            SharedPreferences settings = UserPreferences.getPreferences(getActivity());
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putString(pathSettingKey, path).apply();
-         }
+         SharedPreferences settings = UserPreferences.getPreferences(getActivity());
+         SharedPreferences.Editor editor = settings.edit();
+         editor.putString(pathSettingKey, path).apply();
       }
 
       dismiss();
@@ -511,20 +494,21 @@ public class DirectoryFragment extends DialogFragment
          public int compare(FileWrapper left, FileWrapper right)
          {
             return left.compareTo(right);
-         };
+         }
       });
       
       // Update
       adapter.notifyDataSetChanged();
    }
     
-   public boolean ExtractZipWithPrompt(final String zipPath,
-                                       final String destDir,
-                                       final String quickDesc)
+   public static boolean ExtractZipWithPrompt(Context context,
+                                              final String zipPath,
+                                              final String destDir,
+                                              final String quickDesc)
    {
-      final Toast successToast = Toast.makeText(getContext(), "Zip contents extracted.", Toast.LENGTH_SHORT);
+      final Toast successToast = Toast.makeText(context, "Zip contents extracted.", Toast.LENGTH_SHORT);
 
-      AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+      AlertDialog.Builder builder = new AlertDialog.Builder(context);
       builder.setMessage("Confirm: Extract " + quickDesc + " from " + zipPath.substring(zipPath.lastIndexOf('/')+1) + "?")
          .setCancelable(true)
          .setPositiveButton("Yes",
@@ -572,9 +556,8 @@ public class DirectoryFragment extends DialogFragment
          }
 
          success = NativeInterface.extractArchiveTo(zipPath, zipSubDir, destDir);
-         if (!success) {
+         if (!success)
             throw new IOException("Failed to extract assets ...");
-         }
       }
       catch (IOException e)
       {success = false;}

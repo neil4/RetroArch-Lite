@@ -711,6 +711,8 @@ static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/androi
 static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/arm64-v8a/";
 #elif defined(ANDROID_X86)
 static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/x86/";
+#elif defined(ANDROID_X64)
+static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/x86_64/"
 #else
 static char buildbot_server_url[] = "";
 #endif

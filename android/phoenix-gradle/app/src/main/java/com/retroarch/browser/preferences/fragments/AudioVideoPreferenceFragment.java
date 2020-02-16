@@ -1,11 +1,8 @@
 package com.retroarch.browser.preferences.fragments;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.DialogInterface;
 import com.retroarchlite.R;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
-
+import com.retroarch.browser.dirfragment.DirectoryFragment.OnDirectoryFragmentClosedListener;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -19,7 +16,7 @@ import com.retroarch.browser.dirfragment.DirectoryFragment;
 /**
  * A {@link PreferenceListFragment} responsible for handling the video preferences.
  */
-public final class AudioVideoPreferenceFragment extends PreferenceListFragment implements OnPreferenceClickListener
+public final class AudioVideoPreferenceFragment extends PreferenceListFragment implements OnPreferenceClickListener, OnDirectoryFragmentClosedListener
 {
    @Override
    public void onCreate(Bundle savedInstanceState)
@@ -56,13 +53,20 @@ public final class AudioVideoPreferenceFragment extends PreferenceListFragment i
       else if (prefKey.equals("install_shaders_pref"))
       {
          final DirectoryFragment shaderFileBrowser
-                 = DirectoryFragment.newInstance("");    
-         shaderFileBrowser.setPathSettingKey("shader_zip");
+                 = DirectoryFragment.newInstance("");
          shaderFileBrowser.addAllowedExts("zip");
          shaderFileBrowser.setIsDirectoryTarget(false);
+         shaderFileBrowser.setOnDirectoryFragmentClosedListener(this);
          shaderFileBrowser.show(getFragmentManager(), "shaderFileBrowser");
       }
 
       return true;
+   }
+
+   @Override
+   public void onDirectoryFragmentClosed(String path)
+   {
+      DirectoryFragment.ExtractZipWithPrompt(getContext(), path,
+            getContext().getApplicationInfo().dataDir + "/shaders_glsl", "shaders");
    }
 }
