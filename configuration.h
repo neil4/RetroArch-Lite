@@ -518,7 +518,7 @@ void config_load(void);
 /**
  * scoped_config_files_save()
  * 
- * Saves settings scoped to the content or content directory
+ * Saves settings scoped to the content, content directory, and core
  */
 void scoped_config_files_save();
 

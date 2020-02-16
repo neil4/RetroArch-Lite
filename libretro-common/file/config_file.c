@@ -729,6 +729,8 @@ void config_set_string(config_file_t *conf, const char *key, const char *val)
 
    entry->key   = strdup(key);
    entry->value = strdup(val);
+   if (!entry->key_hash)
+      entry->key_hash = djb2_calculate(key);
 
    if (last)
       last->next = entry;
