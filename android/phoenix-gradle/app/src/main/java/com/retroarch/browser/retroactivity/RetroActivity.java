@@ -1,6 +1,7 @@
 package com.retroarch.browser.retroactivity;
 
 import android.view.View;
+import com.retroarch.browser.mainmenu.MainMenuActivity;
 import com.retroarch.browser.preferences.util.UserPreferences;
 
 public class RetroActivity extends RetroActivityLocation
@@ -19,6 +20,8 @@ public class RetroActivity extends RetroActivityLocation
    public void onResume()
    {
       super.onResume();
+
+      MainMenuActivity.retro = getIntent();
 
       View thisView = getWindow().getDecorView();
       int visibility = View.SYSTEM_UI_FLAG_FULLSCREEN

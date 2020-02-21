@@ -1,7 +1,9 @@
 package com.retroarch.browser.mainmenu;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -49,14 +51,20 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
 {
    private static final int REQUEST_APP_PERMISSIONS = 88;
    private IconAdapter<ModuleWrapper> adapter;
-   static String libretroPath = "";
-   static String libretroName = "";
-   static Intent retro = null;
-   
+   private String libretroPath = "";
+   private String libretroName = "";
+   public static Intent retro = null;
+
    @Override
    public void onCreate(Bundle savedInstanceState)
    {
       super.onCreate(savedInstanceState);
+
+      if (retro != null)
+      {
+         startActivity(retro);
+         finish();
+      }
 
       extractAssets();
 
@@ -67,29 +75,26 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       // Bind audio stream to hardware controls.
       setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
-      if (android.os.Build.VERSION.SDK_INT >= 21)
-      {
-         getPermissions(new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                      Manifest.permission.ACCESS_COARSE_LOCATION,
-                                      Manifest.permission.ACCESS_FINE_LOCATION});
-      }
+      if (android.os.Build.VERSION.SDK_INT >= 23)
+         getPermissions(this, this);
    }
 
-   protected void getPermissions(final String[] permissions)
+   public static void getPermissions(Context ctx, Activity act)
    {
+      final String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    Manifest.permission.ACCESS_FINE_LOCATION};
       boolean anyDenied = false;
+
       for (int i = 0; i < permissions.length; i++)
       {
-         int code = ContextCompat.checkSelfPermission(this, permissions[i]);
+         int code = ContextCompat.checkSelfPermission(ctx, permissions[i]);
          if (code != PackageManager.PERMISSION_GRANTED)
             anyDenied = true;
       }
 
       if (anyDenied)
-      {
-         ActivityCompat.requestPermissions(this,
-               permissions, REQUEST_APP_PERMISSIONS);
-      }
+         ActivityCompat.requestPermissions(act, permissions, REQUEST_APP_PERMISSIONS);
    }
 
    @Override
@@ -347,16 +352,17 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
    @Override
    public void onDirectoryFragmentClosed(String path)
    {
-      SharedPreferences prefs = UserPreferences.getPreferences(this);
       if (!path.isEmpty())
       {
-         SharedPreferences.Editor edit = prefs.edit();
+         SharedPreferences.Editor edit = UserPreferences.getPreferences(this).edit();
          edit.putString( libretroName + "_directory",
                          path.substring(0, path.lastIndexOf( "/" )) ).apply();
+
+         Toast.makeText(this, String.format(getString(R.string.loading_data), path),
+               Toast.LENGTH_SHORT).show();
       }
 
       String currentIme = Settings.Secure.getString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD);
-      Toast.makeText(this, String.format(getString(R.string.loading_data), path), Toast.LENGTH_SHORT).show();
       
       boolean usingSharedActivity = false;
       final String sharedId = getString(R.string.shared_app_id);
@@ -382,7 +388,8 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
 
       if (usingSharedActivity)
          retro = null;
-      
+
+      finish();
    }
    
    @Override
@@ -391,7 +398,10 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       super.onResume();
 
       if (retro != null)
+      {
          startActivity(retro);
+         finish();
+      }
       else
          createList();  // assume a core was added/updated/removed
    }

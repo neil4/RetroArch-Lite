@@ -5,6 +5,7 @@ import com.retroarch.browser.coremanager.fragments.DownloadableCoresFragment;
 import com.retroarch.browser.coremanager.fragments.LocalCoresFragment;
 import com.retroarch.browser.coremanager.fragments.InstalledCoresFragment;
 import com.retroarch.browser.coremanager.fragments.InstalledCoresManagerFragment;
+import com.retroarch.browser.mainmenu.MainMenuActivity;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -77,6 +78,9 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
       dir = new File(dataDir + "/info/");
       if (!dir.exists())
          dir.mkdir();
+
+      if (android.os.Build.VERSION.SDK_INT >= 23)
+         MainMenuActivity.getPermissions(this, this);
    }
 
 
