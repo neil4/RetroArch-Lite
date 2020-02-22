@@ -170,8 +170,13 @@ core_info_list_t *core_info_list_new(enum info_list_target target)
                &core_info[i].core_name);
          config_get_string(core_info[i].data, "systemname",
                &core_info[i].systemname);
-         config_get_string(core_info[i].data, "manufacturer",
-               &core_info[i].system_manufacturer);
+
+         if (config_get_string(core_info[i].data, "manufacturer",
+                  &core_info[i].system_manufacturer) &&
+               core_info[i].system_manufacturer)
+            core_info[i].system_manufacturer_list =
+               string_split(core_info[i].system_manufacturer, "|");
+
          config_get_uint(core_info[i].data, "firmware_count", &count);
          core_info[i].firmware_count = count;
          if (config_get_string(core_info[i].data, "supported_extensions",
@@ -269,6 +274,7 @@ void core_info_list_free(core_info_list_t *core_info_list)
       free(info->notes);
       if (info->supported_extensions_list)
          string_list_free(info->supported_extensions_list);
+      string_list_free(info->system_manufacturer_list);
       string_list_free(info->authors_list);
       string_list_free(info->note_list);
       string_list_free(info->permissions_list);

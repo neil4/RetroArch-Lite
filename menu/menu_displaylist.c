@@ -193,11 +193,12 @@ static int menu_displaylist_parse_core_info(menu_displaylist_info_t *info)
             MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
    }
 
-   if (core_info->system_manufacturer)
+   if (core_info->system_manufacturer_list)
    {
       strlcpy(tmp, "System manufacturer", sizeof(tmp));
       strlcat(tmp, ": ", sizeof(tmp));
-      strlcat(tmp, core_info->system_manufacturer, sizeof(tmp));
+      string_list_join_concat(tmp, sizeof(tmp),
+            core_info->system_manufacturer_list, ", ");
       menu_list_push(info->list, tmp, "info",
             MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
    }

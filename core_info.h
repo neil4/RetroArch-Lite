@@ -51,6 +51,7 @@ typedef struct
    char *databases;
    char *notes;
    char *required_hw_api;
+   struct string_list *system_manufacturer_list;
    struct string_list *categories_list;
    struct string_list *databases_list;
    struct string_list *note_list;   

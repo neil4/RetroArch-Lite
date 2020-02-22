@@ -24,7 +24,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    private final File file;
    private final String displayName;
    private String coreName;
-   private final String manufacturer;
+   private final List<String> manufacturer;
    private final String systemName;
    private final List<String> license;
    private final String notes;
@@ -79,13 +79,23 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          this.displayName  = (infoFile.keyExists("display_name")) ? infoFile.getString("display_name") : "N/A";
          this.coreName     = (infoFile.keyExists("corename"))     ? infoFile.getString("corename")     : "N/A";
          this.systemName   = (infoFile.keyExists("systemname"))   ? infoFile.getString("systemname")   : "N/A";
-         this.manufacturer = (infoFile.keyExists("manufacturer")) ? infoFile.getString("manufacturer") : "N/A";
          this.notes        = (infoFile.keyExists("notes"))
                              ? infoFile.getString("notes").replace("|", "\n")
                              : "N/A";
          this.firmwareCount = (infoFile.keyExists("firmware_count") ? infoFile.getInt("firmware_count") : 0);
          
-         // For licenses, extensions and authors, use '|' delimiter
+         // For manufacturer, licenses, extensions and authors, use '|' delimiter
+         final String manufacturer = infoFile.getString("manufacturer");
+         if (manufacturer != null && manufacturer.contains("|"))
+         {
+            this.manufacturer = new ArrayList<String>(Arrays.asList(manufacturer.split("\\|")));
+         }
+         else
+         {
+            this.manufacturer = new ArrayList<String>();
+            this.manufacturer.add(manufacturer != null ? manufacturer : "N/A");
+         }
+
          final String licenses = infoFile.getString("license");
          if (licenses != null && licenses.contains("|"))
          {
@@ -96,7 +106,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
             this.license = new ArrayList<String>();
             this.license.add(licenses != null ? licenses : "None");
          }
-         
+
          final String supportedExts = infoFile.getString("supported_extensions");
          if (supportedExts != null && supportedExts.contains("|"))
          {
@@ -147,11 +157,11 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
             this.firmwares = "N/A";
          else
          {
-            final String default_base = Environment.getExternalStorageDirectory()
-                                                    .getAbsolutePath() + "/RetroArchLite";
-            final String default_sys = default_base + "/system";
+            final String defaultBase = Environment.getExternalStorageDirectory()
+                                                  .getAbsolutePath() + "/RetroArchLite";
+            final String defaultSys = defaultBase + "/system";
             String sys_dir = prefs.getBoolean("system_directory_enable", false) ?
-                             prefs.getString("system_directory", default_sys) : default_sys;
+                             prefs.getString("system_directory", defaultSys) : defaultSys;
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < this.firmwareCount; i++)
             {
@@ -179,7 +189,8 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
       {
          this.displayName = "Unknown";
          this.systemName = "Unknown";
-         this.manufacturer = "Unknown";
+         this.manufacturer = new ArrayList<String>();
+         this.manufacturer.add("N/A");
          this.license = new ArrayList<String>();
          this.license.add("Unknown");
          this.notes = "N/A";
@@ -304,7 +315,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
     * @return the name of the manufacturer of the console that
     *         this core emulates. (optional)
     */
-   public String getManufacturer()
+   public List<String> getManufacturer()
    {
       return manufacturer;
    }
