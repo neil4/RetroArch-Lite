@@ -67,26 +67,33 @@ static bool check_pause(bool pause_pressed, bool frameadvance_pressed)
    enum event_command cmd   = EVENT_CMD_NONE;
    bool old_is_paused       = runloop->is_paused;
    settings_t *settings     = config_get_ptr();
+   unsigned long frame_count;
    static char msg[32];
-
-   /* FRAMEADVANCE will set us into pause mode. */
-   if (frameadvance_pressed)
-   {
-      pause_pressed |= !runloop->is_paused;
-      sprintf(msg, "Frame %lu", (unsigned long)video_driver_get_frame_count());
-      rarch_main_msg_queue_push(msg, 1, 0, true);
-   }
-   else if (pause_pressed && !old_is_paused)
-      rarch_main_msg_queue_push("Paused", 1, 0, true);
 
    if (settings->pause_nonactive)
       focus = video_driver_has_focus();
 
-   if (focus && pause_pressed)
-      cmd = EVENT_CMD_PAUSE_TOGGLE;
-   else if (focus && !old_focus)
-      cmd = EVENT_CMD_UNPAUSE;
-   else if (!focus && old_focus)
+   if (focus)
+   {
+      /* FRAMEADVANCE will set us into pause mode. */
+      if (frameadvance_pressed)
+      {
+         pause_pressed |= !old_is_paused;
+         frame_count = video_driver_get_frame_count() + (pause_pressed ? 1:0);
+         snprintf(msg, sizeof(msg), "Frame %lu", frame_count);
+         rarch_main_msg_queue_push(msg, 1, 0, true);
+      }
+
+      if (pause_pressed)
+      {
+         cmd = EVENT_CMD_PAUSE_TOGGLE;
+         if (!old_is_paused && !frameadvance_pressed)
+            rarch_main_msg_queue_push("Paused", 1, 0, true);
+      }
+      else if (!old_focus)
+         cmd = EVENT_CMD_UNPAUSE;
+   }
+   else if (old_focus)
       cmd = EVENT_CMD_PAUSE;
 
    old_focus = focus;
