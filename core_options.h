@@ -32,15 +32,15 @@ extern bool options_touched;
 typedef struct core_option_manager core_option_manager_t;
 
 /**
- * core_option_new:
- * @conf_path        : Filesystem path to write core option config file to.
- * @vars             : Pointer to variable array handle.
+ * core_options_init:
+ * @option_defs     : Pointer to option definition array handle (version 1)
+ * @vars            : Pointer to variable array handle (legacy)
  *
- * Creates and initializes a core manager handle.
+ * Creates and initializes a core manager handle. @vars is only used if
+ * @option_defs is NULL.
  *
- * Returns: handle to new core manager handle, otherwise NULL.
  **/
-core_option_manager_t *core_option_new(const char *conf_path,
+void core_options_init(const struct retro_core_option_definition *option_defs,
       const struct retro_variable *vars);
 
 /**
@@ -106,6 +106,25 @@ const char *core_option_get_desc(core_option_manager_t *opt, size_t idx);
  * Returns: Value for an option.
  **/
 const char *core_option_get_val(core_option_manager_t *opt, size_t idx);
+
+/**
+ * core_option_get_label:
+ * @opt              : options manager handle
+ * @idx              : idx identifier of the option
+ *
+ * Returns: Label for an option value.
+ **/
+const char *core_option_get_label(core_option_manager_t *opt, size_t idx);
+
+/**
+ * core_option_get_info:
+ * @s                  : output message
+ * @len                : size of @s
+ * @idx                : idx identifier of the option
+ *
+ * Gets info message text describing an option.
+ */
+void core_option_get_info(char *s, size_t len, size_t idx);
 
 /**
  * core_option_get_vals:

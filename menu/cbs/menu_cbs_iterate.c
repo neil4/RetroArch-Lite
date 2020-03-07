@@ -228,8 +228,7 @@ static int action_iterate_info(char *s, size_t len, const char *label)
       strlcpy(needle, current_setting->name, sizeof(needle));
    else if ((current_setting = menu_setting_find(list->list[selection].label)))
    {
-      if (current_setting)
-         strlcpy(needle, current_setting->name, sizeof(needle));
+      strlcpy(needle, current_setting->name, sizeof(needle));
    }
    else
    {
@@ -240,7 +239,10 @@ static int action_iterate_info(char *s, size_t len, const char *label)
          strlcpy(needle, lbl, sizeof(needle));
    }
 
-   setting_get_description(needle, s, len);
+   if (info_type >= MENU_SETTINGS_CORE_OPTION_START)
+      core_option_get_info(s, len, info_type - MENU_SETTINGS_CORE_OPTION_START);
+   else
+      setting_get_description(needle, s, len);
 
    return ret;
 }

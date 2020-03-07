@@ -23,6 +23,7 @@
 #include <compat/posix_string.h>
 #include <compat/strl.h>
 #include <retro_miscellaneous.h>
+#include <string/stdstring.h>
 
 bool options_touched = false;
 
@@ -30,7 +31,9 @@ struct core_option
 {
    char *desc;
    char *key;
+   char *info;
    struct string_list *vals;
+   struct string_list *labels;
    size_t index;
 };
 
@@ -61,7 +64,9 @@ void core_option_free(core_option_manager_t *opt)
    {
       free(opt->opts[i].desc);
       free(opt->opts[i].key);
+      free(opt->opts[i].info);
       string_list_free(opt->opts[i].vals);
+      string_list_free(opt->opts[i].labels);
    }
 
    if (opt->conf)
@@ -86,6 +91,141 @@ void core_option_get(core_option_manager_t *opt, struct retro_variable *var)
    }
 
    var->value = NULL;
+}
+
+/**
+ * core_option_copy_info_as_messagebox:
+ * @option              : Pointer to core option struct
+ * @option_def          : Pointer to core option definition
+ *
+ * Creates messagebox suitable info text in @option from the sublabel info
+ * text in @option_def.  (RA Lite doesn't have menu sublabels)
+ */
+static void core_option_copy_info_as_messagebox(struct core_option *option,
+      const struct retro_core_option_definition *option_def)
+{
+   const unsigned max_line_len = 45;
+   unsigned info_len = strlen(option_def->desc)
+                       + strlen(option_def->info) + 3;  /* +3 for :\n and \0 */
+   unsigned i, line_start, line_end;
+   char* tmp;
+
+   option->info = calloc(info_len, sizeof(char));
+
+   /* Use desc for messagebox title */
+   strlcpy(option->info, option_def->desc, info_len);
+   strlcat(option->info, ":\n", info_len);
+   strlcat(option->info, option_def->info, info_len);
+
+   line_start = strlen(option_def->desc) + 3;
+   /* Replace space with newline near each max_line_len interval */
+   for (i = line_start + max_line_len; i < info_len;)
+   {
+      while (option->info[i] != ' ' && i > line_start + max_line_len/2)
+         i--;
+
+      if (option->info[i] == ' ')
+         option->info[i] = '\n';
+      else
+      {  /* edge case: can't find a space */
+         info_len += 4;  /* +4 to insert ...\n */
+         line_end = line_start + (max_line_len - 3);
+
+         tmp = option->info;
+         option->info = calloc(info_len, sizeof(char));
+
+         strncpy(option->info, tmp, line_end);
+         strlcat(option->info, "...\n", info_len);
+         strlcat(option->info, tmp + line_end, info_len);
+         i = line_end + 4;  /* put index on '\n' */
+
+         free(tmp);
+      }
+
+      line_start = i + 1;
+      i = line_start + max_line_len;
+   }
+}
+
+/* From RA v1.8.5 core_option_manager_parse_option */
+static bool parse_option(
+      core_option_manager_t *opt, size_t idx,
+      const struct retro_core_option_definition *option_def)
+{
+   size_t i;
+   union string_list_elem_attr attr;
+   size_t num_vals                              = 0;
+   char *config_val                             = NULL;
+   struct core_option *option                   = (struct core_option*)&opt->opts[idx];
+   const struct retro_core_option_value *values = option_def->values;
+
+   if (!string_is_empty(option_def->key))
+      option->key             = strdup(option_def->key);
+
+   if (!string_is_empty(option_def->desc))
+      option->desc            = strdup(option_def->desc);
+
+   if (!string_is_empty(option_def->info))
+      core_option_copy_info_as_messagebox(option, option_def);
+
+   /* Get number of values */
+   for (;;)
+   {
+      if (string_is_empty(values[num_vals].value))
+         break;
+      num_vals++;
+   }
+
+   if (num_vals < 1)
+      return false;
+
+   /* Initialize string lists */
+   attr.i             = 0;
+   option->vals       = string_list_new();
+   option->labels     = string_list_new();
+
+   if (!option->vals || !option->labels)
+      return false;
+
+   /* Initialize default value */
+   option->index         = 0;
+
+   /* Extract value/label pairs */
+   for (i = 0; i < num_vals; i++)
+   {
+      /* We know that 'value' is valid */
+      string_list_append(option->vals, values[i].value, attr);
+
+      /* Value 'label' may be NULL */
+      if (!string_is_empty(values[i].label))
+         string_list_append(option->labels, values[i].label, attr);
+      else
+         string_list_append(option->labels, values[i].value, attr);
+
+      /* Check whether this value is the default setting */
+      if (!string_is_empty(option_def->default_value))
+      {
+         if (!strcmp(option_def->default_value, values[i].value))
+            option->index         = i;
+      }
+   }
+
+   /* Set current config value */
+   if (config_get_string(opt->conf, option->key, &config_val))
+   {
+      for (i = 0; i < option->vals->size; i++)
+      {
+         if (!strcmp(option->vals->elems[i].data, config_val))
+         {
+            option->index = i;
+            break;
+         }
+      }
+
+      free(config_val);
+   }
+
+   return true;
 }
 
 static bool parse_variable(core_option_manager_t *opt, size_t idx,
@@ -145,16 +285,20 @@ static bool parse_variable(core_option_manager_t *opt, size_t idx,
 /**
  * core_option_new:
  * @conf_path        : Filesystem path to write core option config file to.
- * @vars             : Pointer to variable array handle.
+ * @option_defs      : Pointer to option definition array handle (v1)
+ * @vars             : Pointer to variable array handle (legacy)
  *
- * Creates and initializes a core manager handle.
+ * Creates and initializes a core manager handle. @vars only used if
+ * @option_defs is NULL.
  *
  * Returns: handle to new core manager handle, otherwise NULL.
  **/
-core_option_manager_t *core_option_new(const char *conf_path,
+static core_option_manager_t *core_option_new(const char *conf_path,
+      const struct retro_core_option_definition *option_defs,
       const struct retro_variable *vars)
 {
    const struct retro_variable *var;
+   const struct retro_core_option_definition *option_def;
    size_t size                      = 0;
    core_option_manager_t *opt       = (core_option_manager_t*)
       calloc(1, sizeof(*opt));
@@ -172,8 +316,18 @@ core_option_manager_t *core_option_new(const char *conf_path,
    if (!opt->conf)
       goto error;
 
-   for (var = vars; var->key && var->value; var++)
+   if (option_defs)
+   {
+      for (option_def = option_defs;
+         option_def->key && option_def->desc && option_def->values[0].value;
+         option_def++)
       size++;
+   }
+   else if (vars) /* legacy */
+   {
+      for (var = vars; var->key && var->value; var++)
+         size++;
+   }
 
    opt->opts = (struct core_option*)calloc(size, sizeof(*opt->opts));
    if (!opt->opts)
@@ -182,10 +336,23 @@ core_option_manager_t *core_option_new(const char *conf_path,
    opt->size = size;
    size      = 0;
 
-   for (var = vars; var->key && var->value; size++, var++)
+   if (option_defs)
    {
-      if (!parse_variable(opt, size, var))
-         goto error;
+      for (option_def = option_defs;
+           option_def->key && option_def->desc && option_def->values[0].value;
+           size++, option_def++)
+      {
+         if (!parse_option(opt, size, option_def))
+            goto error;
+      }
+   }
+   else if (vars) /* legacy */
+   {
+      for (var = vars; var->key && var->value; size++, var++)
+      {
+         if (!parse_variable(opt, size, var))
+            goto error;
+      }
    }
 
    return opt;
@@ -193,6 +360,33 @@ core_option_manager_t *core_option_new(const char *conf_path,
 error:
    core_option_free(opt);
    return NULL;
+}
+
+/**
+ * core_options_init:
+ * @option_defs     : Pointer to option definition array handle (version 1)
+ * @vars            : Pointer to variable array handle (legacy)
+ *
+ * Creates and initializes a core manager handle. @vars is only used if
+ * @option_defs is NULL.
+ *
+ **/
+void core_options_init(const struct retro_core_option_definition *option_defs,
+      const struct retro_variable *vars)
+{
+   global_t *global                = global_get_ptr();
+   char conf_path[PATH_MAX_LENGTH] = {0};
+
+   if (global->system.core_options)
+   {
+      core_option_free(global->system.core_options);
+      global->system.core_options = NULL;
+   }
+
+   if (!core_option_get_game_conf_path(conf_path))
+      core_option_get_core_conf_path(conf_path);
+
+   global->system.core_options = core_option_new(conf_path, option_defs, vars);
 }
 
 /**
@@ -281,6 +475,46 @@ const char *core_option_get_val(core_option_manager_t *opt, size_t idx)
    if (!option)
       return NULL;
    return option->vals->elems[option->index].data;
+}
+
+/**
+ * core_option_get_label:
+ * @opt              : options manager handle
+ * @idx              : idx identifier of the option
+ *
+ * Gets label for an option value.
+ *
+ * Returns: Label for an option value.
+ **/
+const char *core_option_get_label(core_option_manager_t *opt, size_t idx)
+{
+   struct core_option *option = (struct core_option*)&opt->opts[idx];
+   if (!option)
+      return NULL;
+
+   if (option->labels)
+      return option->labels->elems[option->index].data;
+   else
+      return option->vals->elems[option->index].data;
+}
+
+/**
+ * core_option_get_info:
+ * @s                  : output message
+ * @len                : size of @s
+ * @idx                : idx identifier of the option
+ *
+ * Gets info message text describing an option.
+ */
+void core_option_get_info(char *s, size_t len, size_t idx)
+{
+   global_t *global = global_get_ptr();
+   struct core_option *option = &global->system.core_options->opts[idx];
+
+   if (!option || !option->info || !*option->info)
+      strlcpy(s, "-- No info on this item is available. --\n", len);
+   else
+      strlcpy(s, option->info, len);
 }
 
 /**

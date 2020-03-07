@@ -591,24 +591,23 @@ bool rarch_environment_cb(unsigned cmd, void *data)
             core_option_updated(global->system.core_options) : false;
          break;
 
+      /* SET_VARIABLES: Legacy path */
       case RETRO_ENVIRONMENT_SET_VARIABLES:
-      {
          RARCH_LOG("Environ SET_VARIABLES.\n");
+         core_options_init(NULL, data);
+         break;
 
-         if (global->system.core_options)
-         {
-            core_option_free(global->system.core_options);
-            global->system.core_options = NULL;
-         }
+      case RETRO_ENVIRONMENT_SET_CORE_OPTIONS:
+         RARCH_LOG("Environ: SET_CORE_OPTIONS.\n");
+         core_options_init(data, NULL);
+         break;
 
-         {
-            const struct retro_variable *vars = (const struct retro_variable*)data;
-            char conf_path[PATH_MAX_LENGTH] = {0};
-            if (!core_option_get_game_conf_path(conf_path))
-               core_option_get_core_conf_path(conf_path);
-            global->system.core_options = core_option_new(conf_path, vars);
-         }
-
+      case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL:
+      {  /* TODO: don't ignore core_options_intl->local */
+         RARCH_LOG("[Environ]: RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL.\n");
+         const struct retro_core_options_intl *core_options_intl
+               = ((const struct retro_core_options_intl *)data);
+         core_options_init(core_options_intl->us, NULL);
          break;
       }
 
@@ -1189,7 +1188,12 @@ bool rarch_environment_cb(unsigned cmd, void *data)
       case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
          /* return true */
          break;
-         
+
+      case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
+         /* Current API version is 1 */
+         *(unsigned *)data = 1;
+         break;
+
       case RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE:
          *(float *)data = settings->video.refresh_rate;
          break;

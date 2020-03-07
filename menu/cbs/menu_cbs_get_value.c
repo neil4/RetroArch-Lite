@@ -871,7 +871,7 @@ static void menu_action_setting_disp_set_label(file_list_t* list,
    if (type >= MENU_SETTINGS_CORE_OPTION_START)
       strlcpy(
             s,
-            core_option_get_val(global->system.core_options,
+            core_option_get_label(global->system.core_options,
                type - MENU_SETTINGS_CORE_OPTION_START),
             len);
    else
