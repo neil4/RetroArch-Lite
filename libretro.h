@@ -1,4 +1,4 @@
-/* Copyright (C) 2010-2018 The RetroArch team
+/* Copyright (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this libretro API header (libretro.h).
@@ -614,7 +614,7 @@ enum retro_mod
                                             * Afterward it may be called again for the core to communicate
                                             * updated options to the frontend, but the number of core
                                             * options must not change from the number in the initial call.
-					    *
+                                            *
                                             * 'data' points to an array of retro_variable structs
                                             * terminated by a { NULL, NULL } element.
                                             * retro_variable::key should be namespaced to not collide
@@ -881,12 +881,12 @@ enum retro_mod
                                             * types already defined in the libretro API.
                                             *
                                             * The core must pass an array of const struct retro_controller_info which
-                                            * is terminated with a blanked out struct. Each element of the 
+                                            * is terminated with a blanked out struct. Each element of the
                                             * retro_controller_info struct corresponds to the ascending port index
                                             * that is passed to retro_set_controller_port_device() when that function
                                             * is called to indicate to the core that the frontend has changed the
                                             * active device subclass. SEE ALSO: retro_set_controller_port_device()
-                                            * 
+                                            *
                                             * The ascending input port indexes provided by the core in the struct
                                             * are generally presented by frontends as ascending User # or Player #,
                                             * such as Player 1, Player 2, Player 3, etc. Which device subclasses are
@@ -898,7 +898,7 @@ enum retro_mod
                                             * User or Player, beginning with the generic Libretro device that the
                                             * subclasses are derived from. The second inner element of each entry is the
                                             * total number of subclasses that are listed in the retro_controller_description.
-                                            * 
+                                            *
                                             * NOTE: Even if special device types are set in the libretro core,
                                             * libretro should only poll input based on the base input device types.
                                             */
@@ -1104,6 +1104,187 @@ enum retro_mod
                                             * If it returns true, you can pass RETRO_DEVICE_ID_JOYPAD_MASK as 'id'
                                             * to retro_input_state_t (make sure 'device' is set to RETRO_DEVICE_JOYPAD).
                                             * It will return a bitmask of all the digital buttons.
+                                            */
+
+#define RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION 52
+                                           /* unsigned * --
+                                            * Unsigned value is the API version number of the core options
+                                            * interface supported by the frontend. If callback return false,
+                                            * API version is assumed to be 0.
+                                            *
+                                            * In legacy code, core options are set by passing an array of
+                                            * retro_variable structs to RETRO_ENVIRONMENT_SET_VARIABLES.
+                                            * This may be still be done regardless of the core options
+                                            * interface version.
+                                            *
+                                            * If version is >= 1 however, core options may instead be set by
+                                            * passing an array of retro_core_option_definition structs to
+                                            * RETRO_ENVIRONMENT_SET_CORE_OPTIONS, or a 2D array of
+                                            * retro_core_option_definition structs to RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL.
+                                            * This allows the core to additionally set option sublabel information
+                                            * and/or provide localisation support.
+                                            */
+
+#define RETRO_ENVIRONMENT_SET_CORE_OPTIONS 53
+                                           /* const struct retro_core_option_definition ** --
+                                            * Allows an implementation to signal the environment
+                                            * which variables it might want to check for later using
+                                            * GET_VARIABLE.
+                                            * This allows the frontend to present these variables to
+                                            * a user dynamically.
+                                            * This should only be called if RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION
+                                            * returns an API version of >= 1.
+                                            * This should be called instead of RETRO_ENVIRONMENT_SET_VARIABLES.
+                                            * This should be called the first time as early as
+                                            * possible (ideally in retro_set_environment).
+                                            * Afterwards it may be called again for the core to communicate
+                                            * updated options to the frontend, but the number of core
+                                            * options must not change from the number in the initial call.
+                                            *
+                                            * 'data' points to an array of retro_core_option_definition structs
+                                            * terminated by a { NULL, NULL, NULL, {{0}}, NULL } element.
+                                            * retro_core_option_definition::key should be namespaced to not collide
+                                            * with other implementations' keys. e.g. A core called
+                                            * 'foo' should use keys named as 'foo_option'.
+                                            * retro_core_option_definition::desc should contain a human readable
+                                            * description of the key.
+                                            * retro_core_option_definition::info should contain any additional human
+                                            * readable information text that a typical user may need to
+                                            * understand the functionality of the option.
+                                            * retro_core_option_definition::values is an array of retro_core_option_value
+                                            * structs terminated by a { NULL, NULL } element.
+                                            * > retro_core_option_definition::values[index].value is an expected option
+                                            *   value.
+                                            * > retro_core_option_definition::values[index].label is a human readable
+                                            *   label used when displaying the value on screen. If NULL,
+                                            *   the value itself is used.
+                                            * retro_core_option_definition::default_value is the default core option
+                                            * setting. It must match one of the expected option values in the
+                                            * retro_core_option_definition::values array. If it does not, or the
+                                            * default value is NULL, the first entry in the
+                                            * retro_core_option_definition::values array is treated as the default.
+                                            *
+                                            * The number of possible options should be very limited,
+                                            * and must be less than RETRO_NUM_CORE_OPTION_VALUES_MAX.
+                                            * i.e. it should be feasible to cycle through options
+                                            * without a keyboard.
+                                            *
+                                            * Example entry:
+                                            * {
+                                            *     "foo_option",
+                                            *     "Speed hack coprocessor X",
+                                            *     "Provides increased performance at the expense of reduced accuracy",
+                                            * 	  {
+                                            *         { "false",    NULL },
+                                            *         { "true",     NULL },
+                                            *         { "unstable", "Turbo (Unstable)" },
+                                            *         { NULL, NULL },
+                                            *     },
+                                            *     "false"
+                                            * }
+                                            *
+                                            * Only strings are operated on. The possible values will
+                                            * generally be displayed and stored as-is by the frontend.
+                                            */
+
+#define RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL 54
+                                           /* const struct retro_core_options_intl * --
+                                            * Allows an implementation to signal the environment
+                                            * which variables it might want to check for later using
+                                            * GET_VARIABLE.
+                                            * This allows the frontend to present these variables to
+                                            * a user dynamically.
+                                            * This should only be called if RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION
+                                            * returns an API version of >= 1.
+                                            * This should be called instead of RETRO_ENVIRONMENT_SET_VARIABLES.
+                                            * This should be called the first time as early as
+                                            * possible (ideally in retro_set_environment).
+                                            * Afterwards it may be called again for the core to communicate
+                                            * updated options to the frontend, but the number of core
+                                            * options must not change from the number in the initial call.
+                                            *
+                                            * This is fundamentally the same as RETRO_ENVIRONMENT_SET_CORE_OPTIONS,
+                                            * with the addition of localisation support. The description of the
+                                            * RETRO_ENVIRONMENT_SET_CORE_OPTIONS callback should be consulted
+                                            * for further details.
+                                            *
+                                            * 'data' points to a retro_core_options_intl struct.
+                                            *
+                                            * retro_core_options_intl::us is a pointer to an array of
+                                            * retro_core_option_definition structs defining the US English
+                                            * core options implementation. It must point to a valid array.
+                                            *
+                                            * retro_core_options_intl::local is a pointer to an array of
+                                            * retro_core_option_definition structs defining core options for
+                                            * the current frontend language. It may be NULL (in which case
+                                            * retro_core_options_intl::us is used by the frontend). Any items
+                                            * missing from this array will be read from retro_core_options_intl::us
+                                            * instead.
+                                            *
+                                            * NOTE: Default core option values are always taken from the
+                                            * retro_core_options_intl::us array. Any default values in
+                                            * retro_core_options_intl::local array will be ignored.
+                                            */
+
+#define RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY 55
+                                           /* struct retro_core_option_display * --
+                                            *
+                                            * Allows an implementation to signal the environment to show
+                                            * or hide a variable when displaying core options. This is
+                                            * considered a *suggestion*. The frontend is free to ignore
+                                            * this callback, and its implementation not considered mandatory.
+                                            *
+                                            * 'data' points to a retro_core_option_display struct
+                                            *
+                                            * retro_core_option_display::key is a variable identifier
+                                            * which has already been set by SET_VARIABLES/SET_CORE_OPTIONS.
+                                            *
+                                            * retro_core_option_display::visible is a boolean, specifying
+                                            * whether variable should be displayed
+                                            *
+                                            * Note that all core option variables will be set visible by
+                                            * default when calling SET_VARIABLES/SET_CORE_OPTIONS.
+                                            */
+
+#define RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER 56
+                                           /* unsigned * --
+                                            *
+                                            * Allows an implementation to ask frontend preferred hardware
+                                            * context to use. Core should use this information to deal
+                                            * with what specific context to request with SET_HW_RENDER.
+                                            *
+                                            * 'data' points to an unsigned variable
+                                            */
+
+#define RETRO_ENVIRONMENT_GET_DISK_CONTROL_INTERFACE_VERSION 57
+                                           /* unsigned * --
+                                            * Unsigned value is the API version number of the disk control
+                                            * interface supported by the frontend. If callback return false,
+                                            * API version is assumed to be 0.
+                                            *
+                                            * In legacy code, the disk control interface is defined by passing
+                                            * a struct of type retro_disk_control_callback to
+                                            * RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE.
+                                            * This may be still be done regardless of the disk control
+                                            * interface version.
+                                            *
+                                            * If version is >= 1 however, the disk control interface may
+                                            * instead be defined by passing a struct of type
+                                            * retro_disk_control_ext_callback to
+                                            * RETRO_ENVIRONMENT_SET_DISK_CONTROL_EXT_INTERFACE.
+                                            * This allows the core to provide additional information about
+                                            * disk images to the frontend and/or enables extra
+                                            * disk control functionality by the frontend.
+                                            */
+
+#define RETRO_ENVIRONMENT_SET_DISK_CONTROL_EXT_INTERFACE 58
+                                           /* const struct retro_disk_control_ext_callback * --
+                                            * Sets an interface which frontend can use to eject and insert
+                                            * disk images, and also obtain information about individual
+                                            * disk image files registered by the core.
+                                            * This is used for games which consist of multiple images and
+                                            * must be manually swapped out by the user (e.g. PSX, floppy disk
+                                            * based systems).
                                             */
 
 /* VFS functionality */
@@ -1782,6 +1963,10 @@ enum retro_sensor_action
 {
    RETRO_SENSOR_ACCELEROMETER_ENABLE = 0,
    RETRO_SENSOR_ACCELEROMETER_DISABLE,
+   RETRO_SENSOR_GYROSCOPE_ENABLE,
+   RETRO_SENSOR_GYROSCOPE_DISABLE,
+   RETRO_SENSOR_ILLUMINANCE_ENABLE,
+   RETRO_SENSOR_ILLUMINANCE_DISABLE,
 
    RETRO_SENSOR_DUMMY = INT_MAX
 };
@@ -1790,6 +1975,10 @@ enum retro_sensor_action
 #define RETRO_SENSOR_ACCELEROMETER_X 0
 #define RETRO_SENSOR_ACCELEROMETER_Y 1
 #define RETRO_SENSOR_ACCELEROMETER_Z 2
+#define RETRO_SENSOR_GYROSCOPE_X 3
+#define RETRO_SENSOR_GYROSCOPE_Y 4
+#define RETRO_SENSOR_GYROSCOPE_Z 5
+#define RETRO_SENSOR_ILLUMINANCE 6
 
 typedef bool (RETRO_CALLCONV *retro_set_sensor_state_t)(unsigned port,
       enum retro_sensor_action action, unsigned rate);
@@ -2147,7 +2336,8 @@ struct retro_keyboard_callback
    retro_keyboard_event_t callback;
 };
 
-/* Callbacks for RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE.
+/* Callbacks for RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE &
+ * RETRO_ENVIRONMENT_SET_DISK_CONTROL_EXT_INTERFACE.
  * Should be set for implementations which can swap out multiple disk
  * images in runtime.
  *
@@ -2205,6 +2395,53 @@ typedef bool (RETRO_CALLCONV *retro_replace_image_index_t)(unsigned index,
  * with replace_image_index. */
 typedef bool (RETRO_CALLCONV *retro_add_image_index_t)(void);
 
+/* Sets initial image to insert in drive when calling
+ * core_load_game().
+ * Since we cannot pass the initial index when loading
+ * content (this would require a major API change), this
+ * is set by the frontend *before* calling the core's
+ * retro_load_game()/retro_load_game_special() implementation.
+ * A core should therefore cache the index/path values and handle
+ * them inside retro_load_game()/retro_load_game_special().
+ * - If 'index' is invalid (index >= get_num_images()), the
+ *   core should ignore the set value and instead use 0
+ * - 'path' is used purely for error checking - i.e. when
+ *   content is loaded, the core should verify that the
+ *   disk specified by 'index' has the specified file path.
+ *   This is to guard against auto selecting the wrong image
+ *   if (for example) the user should modify an existing M3U
+ *   playlist. We have to let the core handle this because
+ *   set_initial_image() must be called before loading content,
+ *   i.e. the frontend cannot access image paths in advance
+ *   and thus cannot perform the error check itself.
+ *   If set path and content path do not match, the core should
+ *   ignore the set 'index' value and instead use 0
+ * Returns 'false' if index or 'path' are invalid, or core
+ * does not support this functionality
+ */
+typedef bool (RETRO_CALLCONV *retro_set_initial_image_t)(unsigned index, const char *path);
+
+/* Fetches the path of the specified disk image file.
+ * Returns 'false' if index is invalid (index >= get_num_images())
+ * or path is otherwise unavailable.
+ */
+typedef bool (RETRO_CALLCONV *retro_get_image_path_t)(unsigned index, char *path, size_t len);
+
+/* Fetches a core-provided 'label' for the specified disk
+ * image file. In the simplest case this may be a file name
+ * (without extension), but for cores with more complex
+ * content requirements information may be provided to
+ * facilitate user disk swapping - for example, a core
+ * running floppy-disk-based content may uniquely label
+ * save disks, data disks, level disks, etc. with names
+ * corresponding to in-game disk change prompts (so the
+ * frontend can provide better user guidance than a 'dumb'
+ * disk index value).
+ * Returns 'false' if index is invalid (index >= get_num_images())
+ * or label is otherwise unavailable.
+ */
+typedef bool (RETRO_CALLCONV *retro_get_image_label_t)(unsigned index, char *label, size_t len);
+
 struct retro_disk_control_callback
 {
    retro_set_eject_state_t set_eject_state;
@@ -2216,6 +2453,27 @@ struct retro_disk_control_callback
 
    retro_replace_image_index_t replace_image_index;
    retro_add_image_index_t add_image_index;
+};
+
+struct retro_disk_control_ext_callback
+{
+   retro_set_eject_state_t set_eject_state;
+   retro_get_eject_state_t get_eject_state;
+
+   retro_get_image_index_t get_image_index;
+   retro_set_image_index_t set_image_index;
+   retro_get_num_images_t  get_num_images;
+
+   retro_replace_image_index_t replace_image_index;
+   retro_add_image_index_t add_image_index;
+
+   /* NOTE: Frontend will only attempt to record/restore
+    * last used disk index if both set_initial_image()
+    * and get_image_path() are implemented */
+   retro_set_initial_image_t set_initial_image; /* Optional - may be NULL */
+
+   retro_get_image_path_t get_image_path;       /* Optional - may be NULL */
+   retro_get_image_label_t get_image_label;     /* Optional - may be NULL */
 };
 
 enum retro_pixel_format
@@ -2297,7 +2555,7 @@ struct retro_system_info
     *    - retro_game_info::data and retro_game_info::size are guaranteed
     *      to be valid
     *
-    * See also: 
+    * See also:
     *    - RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY
     *    - RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY
     */
@@ -2349,6 +2607,76 @@ struct retro_variable
 
    /* Value to be obtained. If key does not exist, it is set to NULL. */
    const char *value;
+};
+
+struct retro_core_option_display
+{
+   /* Variable to configure in RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY */
+   const char *key;
+
+   /* Specifies whether variable should be displayed
+    * when presenting core options to the user */
+   bool visible;
+};
+
+/* Maximum number of values permitted for a core option
+ * > Note: We have to set a maximum value due the limitations
+ *   of the C language - i.e. it is not possible to create an
+ *   array of structs each containing a variable sized array,
+ *   so the retro_core_option_definition values array must
+ *   have a fixed size. The size limit of 128 is a balancing
+ *   act - it needs to be large enough to support all 'sane'
+ *   core options, but setting it too large may impact low memory
+ *   platforms. In practise, if a core option has more than
+ *   128 values then the implementation is likely flawed.
+ *   To quote the above API reference:
+ *      "The number of possible options should be very limited
+ *       i.e. it should be feasible to cycle through options
+ *       without a keyboard."
+ */
+#define RETRO_NUM_CORE_OPTION_VALUES_MAX 128
+
+struct retro_core_option_value
+{
+   /* Expected option value */
+   const char *value;
+
+   /* Human-readable value label. If NULL, value itself
+    * will be displayed by the frontend */
+   const char *label;
+};
+
+struct retro_core_option_definition
+{
+   /* Variable to query in RETRO_ENVIRONMENT_GET_VARIABLE. */
+   const char *key;
+
+   /* Human-readable core option description (used as menu label) */
+   const char *desc;
+
+   /* Human-readable core option information (used as menu sublabel) */
+   const char *info;
+
+   /* Array of retro_core_option_value structs, terminated by NULL */
+   struct retro_core_option_value values[RETRO_NUM_CORE_OPTION_VALUES_MAX];
+
+   /* Default core option value. Must match one of the values
+    * in the retro_core_option_value array, otherwise will be
+    * ignored */
+   const char *default_value;
+};
+
+struct retro_core_options_intl
+{
+   /* Pointer to an array of retro_core_option_definition structs
+    * - US English implementation
+    * - Must point to a valid array */
+   struct retro_core_option_definition *us;
+
+   /* Pointer to an array of retro_core_option_definition structs
+    * - Implementation for current frontend language
+    * - May be NULL */
+   struct retro_core_option_definition *local;
 };
 
 struct retro_game_info
@@ -2523,7 +2851,7 @@ RETRO_API bool retro_unserialize(const void *data, size_t size);
 RETRO_API void retro_cheat_reset(void);
 RETRO_API void retro_cheat_set(unsigned index, bool enabled, const char *code);
 
-/* Loads a game. 
+/* Loads a game.
  * Return true to indicate successful loading and false to indicate load failure.
  */
 RETRO_API bool retro_load_game(const struct retro_game_info *game);

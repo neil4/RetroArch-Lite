@@ -2565,7 +2565,8 @@ static void scoped_config_file_save(unsigned scope)
       if (!*settings->audio.dsp_plugin)
          config_set_string(conf, "audio_dsp_plugin", EXPLICIT_NULL);
       else
-         config_set_string(conf, "audio_dsp_plugin", settings->audio.dsp_plugin);
+         config_set_string(conf, "audio_dsp_plugin",
+                           settings->audio.dsp_plugin);
    }
    else if (settings->audio.dsp_scope < scope)
       config_remove_entry(conf, "audio_dsp_plugin");
@@ -2583,7 +2584,8 @@ static void scoped_config_file_save(unsigned scope)
    if (settings->video.hard_sync_scope == scope)
    {
       config_set_bool(conf, "video_hard_sync", settings->video.hard_sync);
-      config_set_int(conf, "video_hard_sync_frames", settings->video.hard_sync_frames);
+      config_set_int(conf, "video_hard_sync_frames",
+                     settings->video.hard_sync_frames);
    }
    else if (settings->video.hard_sync_scope < scope)
    {
@@ -2595,8 +2597,10 @@ static void scoped_config_file_save(unsigned scope)
    if (settings->input.overlay_scope == scope)
    {
       config_set_path(conf, "input_overlay", settings->input.overlay);
-      config_set_bool(conf, "input_overlay_enable", settings->input.overlay_enable);
-      config_set_float(conf, "input_overlay_scale", settings->input.overlay_scale);
+      config_set_bool(conf, "input_overlay_enable",
+                      settings->input.overlay_enable);
+      config_set_float(conf, "input_overlay_scale",
+                       settings->input.overlay_scale);
    }
    else if (settings->input.overlay_scope < scope)
    {
@@ -2648,15 +2652,18 @@ static void scoped_config_file_save(unsigned scope)
    }
    
    if (settings->input.overlay_opacity_scope == scope)
-      config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
+      config_set_float(conf, "input_overlay_opacity",
+                       settings->input.overlay_opacity);
    else if (settings->input.overlay_opacity_scope < scope)
       config_remove_entry(conf, "input_overlay_opacity");
 #endif /* HAVE_OVERLAY */
 
    if (settings->throttle_setting_scope == scope)
    {
-      config_set_bool(conf, "core_throttle_enable", settings->core_throttle_enable);
-      config_set_bool(conf, "throttle_using_core_fps", settings->throttle_using_core_fps);
+      config_set_bool(conf, "core_throttle_enable",
+                      settings->core_throttle_enable);
+      config_set_bool(conf, "throttle_using_core_fps",
+                      settings->throttle_using_core_fps);
    }
    else if (settings->throttle_setting_scope < scope)
    {
@@ -2666,7 +2673,8 @@ static void scoped_config_file_save(unsigned scope)
 
    if (settings->video.aspect_ratio_idx_scope == scope)
    {
-      config_set_int(conf, "aspect_ratio_index", settings->video.aspect_ratio_idx);
+      config_set_int(conf, "aspect_ratio_index",
+                     settings->video.aspect_ratio_idx);
       const video_viewport_t *p_custom_vp
          = (const video_viewport_t*) video_viewport_get_custom();
       config_set_int(conf, "custom_viewport_width", p_custom_vp->width);
@@ -2726,7 +2734,8 @@ static void scoped_config_file_save(unsigned scope)
       if (!*settings->video.softfilter_plugin)
          config_set_path(conf, "video_filter", EXPLICIT_NULL);
       else
-         config_set_path(conf, "video_filter", settings->video.softfilter_plugin);
+         config_set_path(conf, "video_filter",
+                         settings->video.softfilter_plugin);
 
       if (!*settings->video.shader_path)
          config_set_path(conf, "video_shader", EXPLICIT_NULL);
@@ -2747,10 +2756,13 @@ static void scoped_config_file_save(unsigned scope)
       else
          config_set_path(conf, "menu_theme", settings->menu.theme);
 
-      config_set_float(conf, "menu_wallpaper_opacity", settings->menu.wallpaper_opacity);
+      config_set_float(conf, "menu_wallpaper_opacity",
+                       settings->menu.wallpaper_opacity);
 #ifdef HAVE_RGUI
-      config_set_int(conf, "rgui_particle_effect", settings->menu.rgui_particle_effect);
-      config_set_float(conf, "rgui_particle_effect_speed_factor", settings->menu.rgui_particle_effect_speed_factor);
+      config_set_int(conf, "rgui_particle_effect",
+                     settings->menu.rgui_particle_effect);
+      config_set_float(conf, "rgui_particle_effect_speed_factor",
+                       settings->menu.rgui_particle_effect_speed_factor);
 #endif
    }
    else if (settings->menu.theme_scope < scope)
@@ -2773,7 +2785,7 @@ static void scoped_config_file_save(unsigned scope)
    if (scope == THIS_CORE)
    {
       config_set_path(conf, "rgui_browser_directory",
-                      settings->core_content_directory); /* not written if empty */
+                      settings->core_content_directory);
       config_set_bool(conf, "video_shared_context",
                       settings->video.shared_context);
       config_set_bool(conf, "load_dummy_on_core_shutdown",
@@ -2977,11 +2989,13 @@ void config_backup_restore_globals()
    if (settings->input.overlay_opacity_scope != GLOBAL)
    {  /* restore */
       settings->input.overlay_opacity_scope = GLOBAL;
-      config_get_float(conf, "input_overlay_opacity", &settings->input.overlay_opacity);
+      config_get_float(conf, "input_overlay_opacity",
+                       &settings->input.overlay_opacity);
    }
    else
    {  /* back up */
-      config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
+      config_set_float(conf, "input_overlay_opacity",
+                       settings->input.overlay_opacity);
    }
 #endif /* HAVE_OVERLAY */
       
@@ -3225,7 +3239,8 @@ static void scoped_config_file_load(unsigned scope)
    if (config_get_bool(conf, "video_hard_sync", &settings->video.hard_sync))
    {
       settings->video.hard_sync_scope = scope;
-      config_get_uint(conf, "video_hard_sync_frames", &settings->video.hard_sync_frames);
+      config_get_uint(conf, "video_hard_sync_frames",
+                      &settings->video.hard_sync_frames);
    }
    if (config_get_bool(conf, "video_threaded", &settings->video.threaded))
       settings->video.threaded_scope = scope;
@@ -3246,18 +3261,24 @@ static void scoped_config_file_load(unsigned scope)
       settings->input.dpad_abxy_config_scope = scope;
       config_get_uint(conf, "input_dpad_method", &settings->input.dpad_method);
       config_get_uint(conf, "input_abxy_method", &settings->input.abxy_method);
-      config_get_float(conf, "input_abxy_diagonal_sensitivity", &settings->input.abxy_diagonal_sensitivity);
+      config_get_float(conf, "input_abxy_diagonal_sensitivity",
+                       &settings->input.abxy_diagonal_sensitivity);
    }
    if (config_get_bool(conf, "input_overlay_adjust_aspect", &settings->input.overlay_adjust_aspect))
    {
       settings->input.overlay_adjust_vert_horiz_scope = scope;
-      config_get_float(conf, "input_overlay_bisect_aspect_ratio", &settings->input.overlay_bisect_aspect_ratio);
-      config_get_uint(conf, "input_overlay_aspect_ratio_index", &settings->input.overlay_aspect_ratio_index);
+      config_get_float(conf, "input_overlay_bisect_aspect_ratio",
+                       &settings->input.overlay_bisect_aspect_ratio);
+      config_get_uint(conf, "input_overlay_aspect_ratio_index",
+                      &settings->input.overlay_aspect_ratio_index);
       if (settings->input.overlay_aspect_ratio_index >= OVERLAY_ASPECT_RATIO_END)
          settings->input.overlay_aspect_ratio_index = OVERLAY_ASPECT_RATIO_END-1;
-      config_get_float(conf, "input_overlay_adjust_vertical", &settings->input.overlay_adjust_vertical);
-      config_get_bool(conf, "input_overlay_adjust_vertical_lock_edges", &settings->input.overlay_adjust_vertical_lock_edges);
-      config_get_float(conf, "input_overlay_adjust_horizontal", &settings->input.overlay_adjust_horizontal);
+      config_get_float(conf, "input_overlay_adjust_vertical",
+                       &settings->input.overlay_adjust_vertical);
+      config_get_bool(conf, "input_overlay_adjust_vertical_lock_edges",
+                      &settings->input.overlay_adjust_vertical_lock_edges);
+      config_get_float(conf, "input_overlay_adjust_horizontal",
+                       &settings->input.overlay_adjust_horizontal);
    }
    if (config_get_float(conf, "input_overlay_opacity", &settings->input.overlay_opacity))
       settings->input.overlay_opacity_scope = scope;
@@ -3266,7 +3287,8 @@ static void scoped_config_file_load(unsigned scope)
    if (config_get_bool(conf, "core_throttle_enable", &settings->core_throttle_enable))
    {
       settings->throttle_setting_scope = scope;
-      config_get_bool(conf, "throttle_using_core_fps", &settings->throttle_using_core_fps);
+      config_get_bool(conf, "throttle_using_core_fps",
+                      &settings->throttle_using_core_fps);
    }
    if (config_get_uint(conf, "aspect_ratio_index", &settings->video.aspect_ratio_idx))
    {

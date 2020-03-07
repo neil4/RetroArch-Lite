@@ -4503,7 +4503,7 @@ static bool setting_append_list_saving_options(
    CONFIG_BOOL(
          settings->sort_savestates_enable,
          "sort_savestates_enable",
-         "Sort Saves States In Folders",
+         "Sort Savestates In Folders",
          default_sort_savestates_enable,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -4548,7 +4548,7 @@ static bool setting_append_list_saving_options(
    CONFIG_BOOL(
          settings->savestate_auto_index,
          "savestate_auto_index",
-         "Save State Auto Index",
+         "Savestate Auto Index",
          savestate_auto_index,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),

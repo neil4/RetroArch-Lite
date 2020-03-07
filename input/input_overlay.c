@@ -306,9 +306,9 @@ static void update_aspect_x_y_globals(struct overlay *ol)
    bisect_aspect = min(bisect_aspect, max_bisect);
    if (bisect_aspect > overlay_aspect)
    {
-      adj.x_bisect_shift = (bisect_aspect/adj.display_aspect
-                            + ((1.0f - bisect_aspect/adj.display_aspect)
-                                / 2.0f))
+      adj.x_bisect_shift = ( bisect_aspect/adj.display_aspect
+                             + ( (1.0f - bisect_aspect/adj.display_aspect)
+                                 / 2.0f ) )
                            - (adj.x_aspect_factor + adj.x_center_shift);
    }
 }
@@ -1585,8 +1585,8 @@ static inline uint64_t eightway_ellipse_coverage(const struct overlay_eightway_v
  * Returns the low level input state based on @x, @y, and ellipse_px valuess
  **/
 static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
-                                       unsigned area_type,
-                                       const float x, const float y)
+                                      unsigned area_type,
+                                      const float x, const float y)
 {
    settings_t* settings = config_get_ptr();
    uint64_t state = 0;
@@ -1604,6 +1604,87 @@ static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
       state |= eightway_ellipse_coverage(vals, x_offset, y_offset);
    
    return state;
+}
+
+static inline uint16_t overlay_lightgun_buttons_state(uint64_t highlevel_mask)
+{
+   uint16_t lightgun_buttons = 0;
+
+   switch (highlevel_mask & OVERLAY_LIGHTGUN_MASK)
+   {  /* expected cases */
+   case (UINT64_C(0)):
+      break;
+   case (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_A);
+      break;
+   case (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_B);
+      break;
+   case (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_C);
+      break;
+   case (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP);
+      break;
+   case ((UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP) | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT)):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP) | (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT);
+      break;
+   case ((UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP) | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT)):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP) | (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
+      break;
+   case (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN);
+      break;
+   case ((UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN) | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT)):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN) | (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
+      break;
+   case ((UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN) | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT)):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN) | (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
+      break;
+   case(UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
+      break;
+   case (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT);
+      break;
+   case (UINT64_C(1) << RARCH_LIGHTGUN_SELECT):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_SELECT);
+      break;
+   case (UINT64_C(1) << RARCH_LIGHTGUN_START): /* set start & pause */
+      lightgun_buttons = (3<<RETRO_DEVICE_ID_LIGHTGUN_PAUSE);
+      break;
+   case (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER):
+      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_TRIGGER);
+      break;
+   case (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD):
+      lightgun_buttons = (1<<RARCH_LIGHTGUN_BIT_RELOAD);
+      break;
+   default:  /* overlapping buttons */
+      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A) )
+         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_A);
+      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B) )
+         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_B);
+      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C) )
+         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_C);
+      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP) )
+         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP);
+      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN) )
+         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN);
+      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT) )
+         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
+      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT) )
+         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT);
+      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_SELECT) )
+         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_SELECT);
+      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_START) )
+         lightgun_buttons |= (3<<RETRO_DEVICE_ID_LIGHTGUN_PAUSE);
+      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER) )
+         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_TRIGGER);
+      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD) )
+         lightgun_buttons |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
+   }
+
+   return lightgun_buttons;
 }
 
 /**
@@ -1624,88 +1705,10 @@ static void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
    uint64_t mask = desc_ptr->highlevel_mask;
    if (!mask)
       return;
-   
+
    if (lightgun_active)
-   {
-      switch (mask & OVERLAY_LIGHTGUN_MASK)
-      {  /* expected cases */
-      case (UINT64_C(0)):
-         break;
-      case (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_A);
-         break;
-      case (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_B);
-         break;
-      case (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_C);
-         break;
-      case (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP);
-         break;
-      case ((UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP) | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT)):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP)
-                                  | (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT);
-         break;
-      case ((UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP) | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT)):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP)
-                                  | (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
-         break;
-      case (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN);
-         break;
-      case ((UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN) | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT)):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN)
-                                  | (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
-         break;
-      case ((UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN) | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT)):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN)
-                                  | (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
-         break;
-      case(UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
-         break;
-      case (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT);
-         break;
-      case (UINT64_C(1) << RARCH_LIGHTGUN_SELECT):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_SELECT);
-         break;
-      case (UINT64_C(1) << RARCH_LIGHTGUN_START): /* set start & pause */
-         out->lightgun_buttons |= (3<<RETRO_DEVICE_ID_LIGHTGUN_PAUSE);
-         break;
-      case (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER):
-         out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_TRIGGER);
-         break;
-      case (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD):
-         out->lightgun_buttons |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
-         break;
-      default:  /* overlapping buttons */
-         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A) )
-            out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_A);
-         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B) )
-            out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_B);
-         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C) )
-            out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_C);
-         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP) )
-            out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP);
-         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN) )
-            out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN);
-         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT) )
-            out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
-         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT) )
-            out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT);
-         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_SELECT) )
-            out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_SELECT);
-         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_START) )
-            out->lightgun_buttons |= (3<<RETRO_DEVICE_ID_LIGHTGUN_PAUSE);
-         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER) )
-            out->lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_TRIGGER);
-         if ( mask & (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD) )
-            out->lightgun_buttons |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
-      }
-   }
-   
+      out->lightgun_buttons |= overlay_lightgun_buttons_state(mask);
+
    if (mask & (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA))
       out->buttons |= eightway_state(desc_ptr, DPAD_AREA, x, y);
    else if (mask & (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA))
