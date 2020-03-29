@@ -210,6 +210,11 @@ void preempt_pre_frame(preempt_t *preempt)
    
    if (preempt->in_replay)
    {
+      if (preempt->state_size < pretro_serialize_size())
+      {
+         update_preempt_frames();
+         return;
+      }
       pretro_unserialize(preempt->buffer[preempt->start_ptr],
                          preempt->state_size);
       pretro_run();

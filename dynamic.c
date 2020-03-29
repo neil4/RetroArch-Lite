@@ -604,7 +604,7 @@ bool rarch_environment_cb(unsigned cmd, void *data)
 
       case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL:
       {  /* TODO: don't ignore core_options_intl->local */
-         RARCH_LOG("[Environ]: RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL.\n");
+         RARCH_LOG("Environ: SET_CORE_OPTIONS_INTL.\n");
          const struct retro_core_options_intl *core_options_intl
                = ((const struct retro_core_options_intl *)data);
          core_options_init(core_options_intl->us, NULL);

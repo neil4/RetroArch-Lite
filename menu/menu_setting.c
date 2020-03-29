@@ -4718,13 +4718,7 @@ static bool setting_append_list_frame_throttling_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
    
@@ -5142,13 +5136,7 @@ static bool setting_append_list_video_options(
       general_write_handler,
       general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
@@ -5300,13 +5288,7 @@ static bool setting_append_list_video_options(
       general_write_handler,
       general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
@@ -5351,13 +5333,7 @@ static bool setting_append_list_video_options(
       general_write_handler,
       general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
@@ -5390,13 +5366,7 @@ static bool setting_append_list_video_options(
       general_write_handler,
       general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
@@ -5545,13 +5515,8 @@ static bool setting_append_list_video_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         (core_loaded ? THIS_CORE : GLOBAL),
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, (core_loaded ? THIS_CORE : GLOBAL),
+         global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index; 
 
@@ -5720,13 +5685,7 @@ static bool setting_append_list_audio_options(
       general_write_handler,
       general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index; 
 
@@ -5781,13 +5740,7 @@ static bool setting_append_list_audio_options(
       general_write_handler,
       general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;  
 
@@ -5857,13 +5810,7 @@ static bool setting_append_list_audio_options(
       general_write_handler,
       general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
@@ -5941,13 +5888,7 @@ static bool setting_append_list_audio_options(
          general_write_handler,
          general_read_handler);
       menu_settings_list_current_add_range(
-            list,
-            list_info,
-            0,
-            global->max_scope,
-            1,
-            true,
-            true);
+         list, list_info, 0, global->max_scope, 1, true, true);
       (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_uint_scope_index;
 
@@ -6050,13 +5991,8 @@ static bool setting_append_list_latency_options(
             general_write_handler,
             general_read_handler);
       menu_settings_list_current_add_range(
-            list,
-            list_info,
-            (core_loaded ? THIS_CORE : GLOBAL),
-            global->max_scope,
-            1,
-            true,
-            true);
+         list, list_info, (core_loaded ? THIS_CORE : GLOBAL),
+         global->max_scope, 1, true, true);
       (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_uint_scope_index;
 
@@ -6085,13 +6021,8 @@ static bool setting_append_list_latency_options(
             general_write_handler,
             general_read_handler);
       menu_settings_list_current_add_range(
-            list,
-            list_info,
-            (core_loaded ? THIS_CORE : GLOBAL),
-            global->max_scope,
-            1,
-            true,
-            true);
+            list, list_info, (core_loaded ? THIS_CORE : GLOBAL),
+            global->max_scope, 1, true, true);
       (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_uint_scope_index;
    }
@@ -6186,13 +6117,7 @@ static bool setting_append_list_input_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
    
@@ -6388,13 +6313,8 @@ static bool setting_append_list_input_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         (core_loaded ? THIS_CORE : GLOBAL),
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, (core_loaded ? THIS_CORE : GLOBAL),
+         global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
@@ -6519,13 +6439,7 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
    
@@ -6636,13 +6550,7 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
@@ -6729,13 +6637,7 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
    
@@ -6781,13 +6683,7 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
    
@@ -6931,13 +6827,7 @@ static bool setting_append_list_menu_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         global->max_scope,
-         1,
-         true,
-         true);
+         list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
    
