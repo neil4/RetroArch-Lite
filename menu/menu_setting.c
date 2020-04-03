@@ -1853,7 +1853,7 @@ static void setting_get_string_representation_millisec(void *data,
       if (*setting->value.unsigned_integer > 0)
          sprintf(s, "%u ms", *setting->value.unsigned_integer);
       else
-         strcpy(s, "None");
+         strcpy(s, "OFF");
    }
 }
 
@@ -1978,7 +1978,7 @@ static void setting_get_string_representation_uint_analog_dpad_mode(void *data,
       char *s, size_t len)
 {
    static const char *modes[] = {
-      "None",
+      "OFF",
       "Left Analog",
       "Right Analog",
    };
@@ -6301,7 +6301,7 @@ static bool setting_append_list_input_options(
       (*list)[list_info->index - 1].action_ok      = &setting_action_ok_bind_defaults;
       (*list)[list_info->index - 1].action_cancel  = NULL;
    }
-   
+
    CONFIG_UINT(
          settings->input.libretro_device_scope,
          "input_libretro_device_scope",
@@ -6329,7 +6329,7 @@ static bool setting_append_list_input_options(
    CONFIG_FLOAT(
          settings->input.axis_threshold,
          "input_axis_threshold",
-         "Input Axis Threshold",
+         "Analog to D-Pad Axis Threshold",
          axis_threshold,
          "%.3f",
          group_info.name,

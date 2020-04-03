@@ -73,7 +73,7 @@ typedef struct
 } wallpaper_t;
 
 struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS] = {
-   { "None", RGUI_PARTICLE_EFFECT_NONE },
+   { "OFF", RGUI_PARTICLE_EFFECT_NONE },
    { "Snow (Light)", RGUI_PARTICLE_EFFECT_SNOW },
    { "Snow (Heavy)", RGUI_PARTICLE_EFFECT_SNOW_ALT },
    { "Rain", RGUI_PARTICLE_EFFECT_RAIN },
@@ -603,9 +603,13 @@ static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
 static void rgui_adjust_wallpaper_alpha()
 {
    settings_t *settings = config_get_ptr();
+   global_t *global     = global_get_ptr();
    uint16_t alpha;
    unsigned i;
    
+   if (global->libretro_dummy)
+      return;
+
    alpha = (uint16_t)(settings->menu.wallpaper_opacity * 0xf);
    
    for (i = 0; i < RENDER_WIDTH * RENDER_HEIGHT; i++)
