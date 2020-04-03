@@ -431,6 +431,9 @@ static void engine_handle_cmd(void)
                   android_app->accelerometer_event_rate);
          break;
       case APP_CMD_LOST_FOCUS:
+         runloop->is_paused = true;
+         runloop->is_idle   = true;
+
          /* Avoid draining battery while app is not being used. */
          if ((android_app->sensor_state_mask
                   & (1ULL << RETRO_SENSOR_ACCELEROMETER_ENABLE))
