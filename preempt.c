@@ -37,10 +37,7 @@ struct preempt
    /* Last-used joypad state. Replays are triggered when this changes. */
    uint16_t joypad_state[MAX_USERS];
 
-   /* Pointer to displayed frame (audio & video) */
-   size_t av_ptr;
-   /* Pointer to where replays will start.
-    * Always preempt_frames behind av_ptr */
+   /* Pointer to where replays will start */
    size_t start_ptr;
    /* Pointer to current replay frame */
    size_t replay_ptr;
@@ -71,7 +68,7 @@ static void input_poll_preframe(void)
    driver_t *driver     = driver_get_ptr();
    preempt_t *preempt   = (preempt_t*)driver->preempt_data;
    settings_t *settings = config_get_ptr();
-   static uint16_t new_joypad_state[MAX_USERS];
+   uint16_t new_joypad_state;
    unsigned i;
 
    preempt->cbs.poll_cb();
@@ -79,13 +76,13 @@ static void input_poll_preframe(void)
    /* Gather joypad states */
    for (i = 0; i < settings->input.max_users; i++)
    {
-      new_joypad_state[i] = preempt->cbs.state_cb
+      new_joypad_state = preempt->cbs.state_cb
             (i, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
 
-      if (new_joypad_state[i] != preempt->joypad_state[i])
+      if (new_joypad_state != preempt->joypad_state[i])
       {  /* Input is dirty; trigger replays */
          preempt->in_replay = true;
-         preempt->joypad_state[i] = new_joypad_state[i];
+         preempt->joypad_state[i] = new_joypad_state;
       }
    }
 }
@@ -220,7 +217,7 @@ void preempt_pre_frame(preempt_t *preempt)
       pretro_run();
       preempt->replay_ptr = PREEMPT_NEXT_PTR(preempt->start_ptr);
 
-      while (preempt->replay_ptr != preempt->av_ptr)
+      while (preempt->replay_ptr != preempt->start_ptr)
       {
          pretro_serialize(preempt->buffer[preempt->replay_ptr],
                           preempt->state_size);
@@ -230,11 +227,10 @@ void preempt_pre_frame(preempt_t *preempt)
       preempt->in_replay = false;
    }
    
-   pretro_serialize(preempt->buffer[preempt->av_ptr],
+   /* Save current state, and update start_ptr to point to oldest state. */
+   pretro_serialize(preempt->buffer[preempt->start_ptr],
                     preempt->state_size);
-   
    preempt->start_ptr = PREEMPT_NEXT_PTR(preempt->start_ptr);
-   preempt->av_ptr = PREEMPT_NEXT_PTR(preempt->av_ptr);
 }
 
 void deinit_preempt(void)
@@ -284,7 +280,7 @@ bool init_preempt(void)
 
    RARCH_LOG("Initializing Preemptive Frames.\n");
 
-   driver->preempt_data = (preempt_t*)preempt_new();
+   driver->preempt_data = preempt_new();
    if (!driver->preempt_data)
    {
       RARCH_WARN("Failed to initialize Preemptive Frames.\n");
@@ -322,7 +318,6 @@ void preempt_reset_buffer(preempt_t *preempt)
    unsigned i;
    
    preempt->start_ptr = 0;
-   preempt->av_ptr = PREEMPT_NEXT_PTR(preempt->frames - 1);
    
    pretro_serialize(preempt->buffer[0], preempt->state_size);
    

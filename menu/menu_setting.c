@@ -3488,12 +3488,10 @@ static int setting_get_description_compare_label(uint32_t label_hash,
       snprintf(s, len,
                      " -- Hides latency by rewriting history. \n"
                      " \n"
-                     "On joypad updates, recent frames are internally \n"
-                     "re-executed using the latest input. \n"
+                     "On joypad updates, recent frames are  \n"
+                     "internally rerun with the latest input. \n"
                      " \n"
-                     "- Requires savestate support from the core.  \n"
-                     "- Requires higher CPU speed to execute these \n"
-                     "  additional frames within one frame period. \n");
+                     "Requires savestate support from the core.\n");
             break;
       default:
          return -1;
