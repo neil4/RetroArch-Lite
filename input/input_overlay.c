@@ -191,7 +191,7 @@ static void input_overlay_scale(struct overlay *ol, float scale)
    if (!ol)
       return;
 
-   if (ol->block_scale || ol->fullscreen_image)
+   if (ol->block_scale || ol->fullscreen_image || driver_get_ptr()->osk_enable)
       scale = 1.0f;
 
    ol->scale = scale;
@@ -1108,11 +1108,8 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
          break;
       case OVERLAY_IMAGE_TRANSFER_DESC_DONE:
          if (!driver_get_ptr()->osk_enable)
-         {
             input_overlay_update_aspect_and_shift_vals(&ol->overlays[ol->pos]);
-            input_overlay_scale(&ol->overlays[ol->pos],
-                                ol->deferred.scale_factor);
-         }
+         input_overlay_scale(&ol->overlays[ol->pos], ol->deferred.scale_factor);
          if (ol->pos == 0)
             input_overlay_load_overlays_resolve_iterate(ol);
          ol->pos += 1;

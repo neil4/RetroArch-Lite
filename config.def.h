@@ -468,8 +468,10 @@ static float menu_ticker_speed = 1.0f;
 #ifdef HAVE_OVERLAY
 #ifndef ANDROID
 static bool show_overlay_menu = false;
+static bool input_osk_overlay_enable = true;
 #else
 static bool show_overlay_menu = true;
+static bool input_osk_overlay_enable = false;
 #endif
 static float overlay_opacity = 0.4f;
 static const unsigned input_vibrate_time = 5;

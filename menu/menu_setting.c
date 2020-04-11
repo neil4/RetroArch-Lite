@@ -6695,7 +6695,7 @@ static bool setting_append_list_overlay_options(
          settings->osk.enable,
          "input_osk_overlay_enable",
          "Enable Keyboard Overlay",
-         true,
+         input_osk_overlay_enable,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,
