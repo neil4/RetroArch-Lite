@@ -1274,7 +1274,6 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          cbs->action_ok = action_ok_core_updater_list;
          break;
       case MENU_LABEL_VIDEO_SHADER_PARAMETERS:
-      case MENU_LABEL_VIDEO_SHADER_PRESET_PARAMETERS:
          cbs->action_ok = action_ok_shader_parameters;
          break;
       case MENU_LABEL_SHADER_OPTIONS:

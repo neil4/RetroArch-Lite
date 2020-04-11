@@ -2771,8 +2771,8 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "custom hardware filters and scale factors. \n"
                " \n"
                "This option specifies the number of shader \n"
-               "passes to use. If you set this to 0, and use \n"
-               "Apply Shader Changes, you use a 'blank' shader. \n"
+               "passes to use. If you set this to 0 and use \n"
+               "'Save Preset', you use a 'blank' shader. \n"
                " \n"
                "The Default Filter option will affect the \n"
                "stretching filter.");
@@ -2781,17 +2781,12 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                "-- Shader Parameters. \n"
                " \n"
-               "Modifies current shader directly. Will not be \n"
-               "saved to a preset file.");
-         break;
-      case MENU_LABEL_VIDEO_SHADER_PRESET_PARAMETERS:
-         snprintf(s, len,
-               "-- Shader Preset Parameters. \n"
+               "Modifies current shader without saving changes. \n"
+               "Use 'Save Preset' or 'Save Preset As' to save \n"
+               "changes to a Shader Preset file. \n"
                " \n"
-               "Modifies shader preset. Changes take effect \n"
-               "only after 'Apply Shader Changes' or \n"
-               "'Shader Preset Save As'."
-               );
+               "Note: Parameter list is updated only after \n"
+               "a preset is loaded or saved. ");
          break;
       case MENU_LABEL_VIDEO_SHADER_PASS:
          snprintf(s, len,
@@ -2884,21 +2879,14 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_SHADER_APPLY_CHANGES:
          snprintf(s, len,
-               " -- Apply Shader Changes. \n"
+               " -- Save Preset. \n"
                " \n"
                "After changing shader settings, use this to \n"
-               "apply changes. \n"
+               "save changes to the current Shader Preset. \n"
                " \n"
-               "Changing shader settings is a somewhat \n"
-               "expensive operation so it has to be \n"
-               "done explicitly. \n"
-               " \n"
-               "When you apply shaders, a placeholder preset is \n"
-               "saved (temporary.cgp or temporary.glslp) and \n"
-               "loaded. The file persists after RetroArch exits.\n"
-               "\n"
-               "Use 'Shader Preset Save As' when you are \n"
-               "finished making changes.\n"
+               "If no Shader Preset is loaded, a placeholder \n"
+               "(temporary.cgp or temporary.glslp) is created. \n"
+               "The file persists after RetroArch exits."
                );
          break;
       case MENU_LABEL_INPUT_BIND_DEVICE_ID:

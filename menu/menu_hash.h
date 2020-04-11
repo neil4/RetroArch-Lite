@@ -257,7 +257,6 @@ extern "C" {
 #define MENU_LABEL_CORE_INFORMATION                                            0xb638e0d3U
 #define MENU_LABEL_VALUE_CORE_INFORMATION                                      0x781981b4U
 #define MENU_LABEL_VIDEO_SHADER_PARAMETERS                                     0x9895c3e5U
-#define MENU_LABEL_VIDEO_SHADER_PRESET_PARAMETERS                              0xd18158d7U
 #define MENU_LABEL_DISK_OPTIONS                                                0xe087bf5bU
 #define MENU_LABEL_VALUE_DISK_OPTIONS                                          0xbee508e5U
 #define MENU_LABEL_CORE_OPTIONS                                                0xf65e60f9U

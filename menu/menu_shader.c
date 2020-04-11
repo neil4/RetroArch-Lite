@@ -151,6 +151,22 @@ void menu_shader_manager_set_preset(struct video_shader *shader,
 #endif
 }
 
+static void menu_shader_manager_update_preset_params(void)
+{
+   menu_handle_t *menu = menu_driver_get_ptr();
+   struct video_shader *shader = video_shader_driver_get_current_shader();
+   uint8_t i;
+
+   if (!shader || !menu || !menu->shader)
+      return;
+
+   for (i = 0; i < shader->num_parameters; i++)
+   {
+      if (!strcmp(menu->shader->parameters[i].id, shader->parameters[i].id))
+         menu->shader->parameters[i] = shader->parameters[i];
+   }
+}
+
 /**
  * menu_shader_manager_save_preset:
  * @basename                 : basename of preset
@@ -180,6 +196,8 @@ void menu_shader_manager_save_preset(
 
    if (type == RARCH_SHADER_NONE)
       return;
+
+   menu_shader_manager_update_preset_params();
 
    *config_directory = '\0';
 
@@ -297,13 +315,27 @@ unsigned menu_shader_manager_get_type(const struct video_shader *shader)
 void menu_shader_manager_apply_changes(void)
 {
 #ifdef HAVE_SHADER_MANAGER
-   menu_handle_t *menu         = menu_driver_get_ptr();
+   menu_handle_t *menu     = menu_driver_get_ptr();
+   settings_t    *settings = config_get_ptr();
+   char msg[64];
+
    unsigned shader_type = menu_shader_manager_get_type(menu->shader);
 
    if (menu->shader->passes 
          && shader_type != RARCH_SHADER_NONE)
    {
-      menu_shader_manager_save_preset(NULL, true);
+      if (settings->video.shader_path[0] != '\0')
+      {
+         menu_shader_manager_update_preset_params();
+         menu_shader_manager_save_preset
+            (path_basename(settings->video.shader_path), true);
+      }
+      else
+         menu_shader_manager_save_preset(NULL, true);
+
+      snprintf(msg, 64, "Saved %s",
+               path_basename(settings->video.shader_path));
+      rarch_main_msg_queue_push(msg, 2, 180, true);
       return;
    }
 

@@ -43,11 +43,6 @@ static int deferred_push_performance_counters(menu_displaylist_info_t *info)
    return menu_displaylist_push_list(info, DISPLAYLIST_PERFCOUNTER_SELECTION);
 }
 
-static int deferred_push_video_shader_preset_parameters(menu_displaylist_info_t *info)
-{
-   return menu_displaylist_push_list(info, DISPLAYLIST_SHADER_PARAMETERS_PRESET);
-}
-
 static int deferred_push_video_shader_parameters(menu_displaylist_info_t *info)
 {
    return menu_displaylist_push_list(info, DISPLAYLIST_SHADER_PARAMETERS);
@@ -337,9 +332,6 @@ static int menu_cbs_init_bind_deferred_push_compare_label(menu_file_list_cbs_t *
          break;
       case MENU_LABEL_CORE_COUNTERS:
          cbs->action_deferred_push = deferred_push_core_counters;
-         break;
-      case MENU_LABEL_VIDEO_SHADER_PRESET_PARAMETERS:
-         cbs->action_deferred_push = deferred_push_video_shader_preset_parameters;
          break;
       case MENU_LABEL_VIDEO_SHADER_PARAMETERS:
          cbs->action_deferred_push = deferred_push_video_shader_parameters;

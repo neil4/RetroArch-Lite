@@ -706,7 +706,6 @@ static int menu_displaylist_parse_shader_options(menu_displaylist_info_t *info)
 {
    unsigned i;
    struct video_shader *shader = NULL;
-   settings_t        *settings = config_get_ptr();
    menu_handle_t         *menu = menu_driver_get_ptr();
 
    if (!menu)
@@ -718,21 +717,16 @@ static int menu_displaylist_parse_shader_options(menu_displaylist_info_t *info)
       return -1;
 
    menu_list_push(info->list,
+         "Shader Parameters",
+         menu_hash_to_str(MENU_LABEL_VIDEO_SHADER_PARAMETERS),
+         MENU_SETTING_ACTION, 0, 0);
+   menu_list_push(info->list,
          menu_hash_to_str(MENU_LABEL_VALUE_SHADER_APPLY_CHANGES),
          menu_hash_to_str(MENU_LABEL_SHADER_APPLY_CHANGES),
          MENU_SETTING_ACTION, 0, 0);
    menu_list_push(info->list,
          menu_hash_to_str(MENU_LABEL_VALUE_VIDEO_SHADER_PRESET_SAVE_AS),
          menu_hash_to_str(MENU_LABEL_VIDEO_SHADER_PRESET_SAVE_AS),
-         MENU_SETTING_ACTION, 0, 0);
-   if (settings->menu.show_advanced_settings)
-      menu_list_push(info->list,
-            "Shader Parameters test",
-            menu_hash_to_str(MENU_LABEL_VIDEO_SHADER_PARAMETERS),
-            MENU_SETTING_ACTION, 0, 0);
-   menu_list_push(info->list,
-         "Shader Parameters",
-         menu_hash_to_str(MENU_LABEL_VIDEO_SHADER_PRESET_PARAMETERS),
          MENU_SETTING_ACTION, 0, 0);
    menu_list_push(info->list,
          menu_hash_to_str(MENU_LABEL_VALUE_VIDEO_SHADER_NUM_PASSES),
@@ -1163,16 +1157,13 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          need_push    = true;
          break;
       case DISPLAYLIST_SHADER_PARAMETERS:
-      case DISPLAYLIST_SHADER_PARAMETERS_PRESET:
 #ifdef HAVE_SHADER_MANAGER
          menu_list_clear(info->list);
          {
             struct video_shader *shader = video_shader_driver_get_current_shader();
 
             ret = deferred_push_video_shader_parameters_common(info, shader,
-                  (type == DISPLAYLIST_SHADER_PARAMETERS)
-                  ? MENU_SETTINGS_SHADER_PARAMETER_0 : MENU_SETTINGS_SHADER_PRESET_PARAMETER_0
-                  );
+                  MENU_SETTINGS_SHADER_PARAMETER_0);
 
             need_push = true;
          }

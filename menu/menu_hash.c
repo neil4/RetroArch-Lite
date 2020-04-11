@@ -27,7 +27,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
    switch (hash)
    {
       case MENU_LABEL_VALUE_SHADER_APPLY_CHANGES:
-         return "Apply Shader Changes";
+         return "Save Preset";
       case MENU_LABEL_SHADER_APPLY_CHANGES:
          return "shader_apply_changes";
       case MENU_LABEL_REWIND_ENABLE:
@@ -294,10 +294,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "shader_options";
       case MENU_LABEL_VIDEO_SHADER_PARAMETERS:
          return "video_shader_parameters";
-      case MENU_LABEL_VIDEO_SHADER_PRESET_PARAMETERS:
-         return "video_shader_preset_parameters";
       case MENU_LABEL_VALUE_VIDEO_SHADER_PRESET_SAVE_AS:
-         return "Shader Preset Save As";
+         return "Save Preset As";
       case MENU_LABEL_VIDEO_SHADER_PRESET_SAVE_AS:
          return "video_shader_preset_save_as";
       case MENU_LABEL_VALUE_NO_SHADER_PARAMETERS:

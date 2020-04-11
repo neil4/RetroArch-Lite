@@ -922,6 +922,7 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
          cbs->action_get_value =
             menu_action_setting_disp_set_label_filter;
          break;
+      case MENU_LABEL_SHADER_APPLY_CHANGES:
       case MENU_LABEL_VIDEO_SHADER_PRESET:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_shader_preset;
