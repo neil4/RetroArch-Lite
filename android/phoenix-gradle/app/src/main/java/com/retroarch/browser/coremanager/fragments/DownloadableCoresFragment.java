@@ -165,18 +165,22 @@ public final class DownloadableCoresFragment extends ListFragment
       {
          case R.id.go_to_libretrodocs_ctx_item:
          {
-            // It's impossible to guess the URL name, but this mostly works.
-            // Avoid spaces, dashes, caps, folder categories, and parenthesized info.
-            String coreUrlPart = ( (DownloadableCore)getListView()
-                                   .getItemAtPosition(info.position))
-                                   .getCoreName().toLowerCase()
-                                   .replace(" ", "_").replace("-", "_")
-                                   .replaceFirst(".+/", "")
-                                   .replaceFirst("_\\(.+\\)", "")
-                                   .replace(".", "_");
-            
+            // todo: Docs pages have no naming convention, so maybe this shouldn't be a feature
+            String coreUrlPart = ((DownloadableCore)getListView().getItemAtPosition(info.position))
+                  .getCoreName().toLowerCase()
+                  .replace(' ', '_')
+                  .replace('-', '_')
+                  .replace('.', '_')
+                  .replace(",", "")
+                  .replace("+", "plus")
+                  .replace("_git", "")
+                  .replace("_svn", "")
+                  .replaceFirst(".+/", "")
+                  .replaceFirst("_\\(.+\\)", "");
+            if (coreUrlPart.matches(".+_[0-9]+_.+"))
+               coreUrlPart = coreUrlPart.replaceFirst("_", "");
             Intent browserIntent = new Intent(Intent.ACTION_VIEW,
-                                              Uri.parse("http://docs.libretro.com/library/" + coreUrlPart));
+                  Uri.parse("http://libretro.readthedocs.io/en/latest/library/" + coreUrlPart));
             startActivity(browserIntent);
             return true;
          }

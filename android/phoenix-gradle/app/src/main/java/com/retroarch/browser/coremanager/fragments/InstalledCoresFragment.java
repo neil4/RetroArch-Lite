@@ -270,9 +270,8 @@ public final class InstalledCoresFragment extends ListFragment
     */
    public static String sanitizedLibretroName(String path)
    {
-      String sanitizedName = path.substring(
-            path.lastIndexOf("/") + 1,
-            path.lastIndexOf("."));
+      int startIndex = path.lastIndexOf('/') + 1;
+      String sanitizedName = path.substring(startIndex, path.indexOf('.', startIndex));
       sanitizedName = sanitizedName.replace("libretro_", "");
       sanitizedName = sanitizedName.replace("_android", "");
 
