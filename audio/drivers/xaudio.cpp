@@ -35,6 +35,8 @@ typedef struct xaudio2 xaudio2_t;
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+static unsigned xaudio2_device_count;
+
 typedef struct
 {
    xaudio2_t *xa;
@@ -175,6 +177,8 @@ static xaudio2_t *xaudio2_new(unsigned samplerate, unsigned channels,
    if (FAILED(handle->pSourceVoice->Start(0)))
       goto error;
 
+   handle->pXAudio2->GetDeviceCount(&xaudio2_device_count);
+
    return handle;
 
 error:
@@ -261,6 +265,15 @@ static ssize_t xa_write(void *data, const void *buf, size_t size)
 {
    size_t ret;
    xa_t *xa = (xa_t*)data;
+   unsigned dev_count;
+
+   /* todo: register a callback instead */
+   xa->xa->pXAudio2->GetDeviceCount(&dev_count);
+   if (dev_count != xaudio2_device_count)
+   {
+      event_command(EVENT_CMD_AUDIO_REINIT);
+      return 0;
+   }
 
    if (xa->nonblock)
    {
