@@ -604,13 +604,11 @@ static void rgui_adjust_wallpaper_alpha()
 {
    settings_t *settings = config_get_ptr();
    global_t *global     = global_get_ptr();
-   uint16_t alpha;
+   uint16_t alpha       = 0xf;
    unsigned i;
    
-   if (global->libretro_dummy)
-      return;
-
-   alpha = (uint16_t)(settings->menu.wallpaper_opacity * 0xf);
+   if (!global->libretro_dummy)
+      alpha *= settings->menu.wallpaper_opacity;
    
    for (i = 0; i < RENDER_WIDTH * RENDER_HEIGHT; i++)
       rgui_wallpaper.data[i] = (rgui_wallpaper.data[i] & 0xfff0) | alpha;

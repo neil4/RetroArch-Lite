@@ -3130,7 +3130,6 @@ void config_backup_restore_globals()
       config_get_float(conf, "rgui_particle_effect_speed_factor",
                        &settings->menu.rgui_particle_effect_speed_factor);
 #endif
-      global->menu.theme_update_flag = true;
    }
    else
    {  /* back up */
@@ -3144,6 +3143,7 @@ void config_backup_restore_globals()
                        settings->menu.rgui_particle_effect_speed_factor);
 #endif
    }
+   global->menu.theme_update_flag = true;
 #endif
    
    /* Core specific settings */
@@ -3159,6 +3159,7 @@ void config_backup_restore_globals()
       config_get_uint(conf, "rewind_buffer_size",
                       &settings->rewind_buffer_size);
       *settings->core_content_directory = '\0';
+      global->libretro_dummy = true;
       prev_libretro = false;
    }
    else if (!prev_libretro && *settings->libretro)
