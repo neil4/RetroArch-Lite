@@ -2474,13 +2474,14 @@ settings_t *config_init(void)
 static inline bool get_scoped_config_filename(char* buf, const unsigned scope)
 {
    global_t *global = global_get_ptr();
-   
+   char tmp_buf[NAME_MAX_LENGTH];
+
    if (scope == THIS_CORE)
    {
       if (!*global->libretro_name)
          return false;
-      
-      fill_pathname_noext(buf, global->libretro_name, ".cfg", PATH_MAX_LENGTH);
+
+      strlcpy(buf, global->libretro_name, NAME_MAX_LENGTH);
    }
    else if (scope == THIS_CONTENT_DIR)
    {
@@ -2491,26 +2492,36 @@ static inline bool get_scoped_config_filename(char* buf, const unsigned scope)
       path_parent_dir_name(buf, global->basename);
       if (!*buf)
          strcpy(buf, "root");
-      strlcat(buf, ".cfg", PATH_MAX_LENGTH);
+
+      /* Check for name clash */
+      if (!strcmp(buf, global->libretro_name))
+         strlcat(buf, " (dir)", NAME_MAX_LENGTH);
    }
    else if (scope == THIS_CONTENT_ONLY)
    {
       if (!*global->basename)
          return false;
 
-      fill_pathname_noext(buf, path_basename(global->basename),
-                          ".cfg", PATH_MAX_LENGTH);
+      strlcpy(buf, path_basename(global->basename), NAME_MAX_LENGTH);
+
+      /* Check for name clash */
+      path_parent_dir_name(tmp_buf, global->basename);
+      if (!*tmp_buf)
+         strcpy(tmp_buf, "root");
+      if (!strcmp(buf, global->libretro_name) || !strcmp(buf, tmp_buf))
+         strlcat(buf, " (rom)", NAME_MAX_LENGTH);
    }
    else
       return false;
-   
+
+   strlcat(buf, ".cfg", NAME_MAX_LENGTH);
    return true;
 }
 
 static void scoped_config_file_save(unsigned scope)
 {
    char directory[PATH_MAX_LENGTH]  = {0};
-   char buf[PATH_MAX_LENGTH]        = {0};
+   char buf[NAME_MAX_LENGTH]        = {0};
    char fullpath[PATH_MAX_LENGTH]   = {0};
    global_t *global                 = global_get_ptr();
    settings_t *settings             = config_get_ptr();
@@ -2799,7 +2810,7 @@ static void scoped_config_file_save(unsigned scope)
    /* Create/update or delete config file */
    if (conf->entries)
    {
-      if(!path_file_exists(directory))
+      if (!path_is_directory(directory))
          path_mkdir(directory);
       config_file_write(conf, fullpath);
    }
