@@ -35,6 +35,7 @@ struct core_option
    struct string_list *vals;
    struct string_list *labels;
    size_t index;
+   size_t default_index;
 };
 
 struct core_option_manager
@@ -189,6 +190,7 @@ static bool parse_option(
 
    /* Initialize default value */
    option->index         = 0;
+   option->default_index = 0;
 
    /* Extract value/label pairs */
    for (i = 0; i < num_vals; i++)
@@ -206,7 +208,10 @@ static bool parse_option(
       if (!string_is_empty(option_def->default_value))
       {
          if (!strcmp(option_def->default_value, values[i].value))
+         {
             option->index         = i;
+            option->default_index = i;
+         }
       }
    }
 
@@ -262,6 +267,8 @@ static bool parse_variable(core_option_manager_t *opt, size_t idx,
       free(value);
       return false;
    }
+
+   option->default_index = 0;
 
    if (config_get_string(opt->conf, option->key, &config_val))
    {
@@ -602,7 +609,7 @@ void core_option_set_default(core_option_manager_t *opt, size_t idx)
    if (!opt)
       return;
 
-   opt->opts[idx].index = 0;
+   opt->opts[idx].index = opt->opts[idx].default_index;
    opt->updated         = true;
    options_touched      = true;
 }
