@@ -195,6 +195,7 @@ static size_t xaudio2_write(xaudio2_t *handle, const void *buf, size_t bytes_)
 {
    unsigned bytes = bytes_;
    const uint8_t *buffer = (const uint8_t*)buf;
+   unsigned dev_count;
 
    while (bytes)
    {
@@ -216,6 +217,10 @@ static size_t xaudio2_write(xaudio2_t *handle, const void *buf, size_t bytes_)
 
          xa2buffer.AudioBytes = handle->bufsize;
          xa2buffer.pAudioData = handle->buf + handle->write_buffer * handle->bufsize;
+
+         handle->pXAudio2->GetDeviceCount(&dev_count);
+         if (dev_count != xaudio2_device_count)
+            event_command(EVENT_CMD_AUDIO_REINIT);
 
          if (FAILED(handle->pSourceVoice->SubmitSourceBuffer(&xa2buffer, NULL)))
             return 0;
@@ -265,15 +270,6 @@ static ssize_t xa_write(void *data, const void *buf, size_t size)
 {
    size_t ret;
    xa_t *xa = (xa_t*)data;
-   unsigned dev_count;
-
-   /* todo: register a callback instead */
-   xa->xa->pXAudio2->GetDeviceCount(&dev_count);
-   if (dev_count != xaudio2_device_count)
-   {
-      event_command(EVENT_CMD_AUDIO_REINIT);
-      return 0;
-   }
 
    if (xa->nonblock)
    {
