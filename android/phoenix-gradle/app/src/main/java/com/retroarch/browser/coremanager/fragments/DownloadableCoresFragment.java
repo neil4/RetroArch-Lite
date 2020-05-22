@@ -180,7 +180,7 @@ public final class DownloadableCoresFragment extends ListFragment
             if (coreUrlPart.matches(".+_[0-9]+_.+"))
                coreUrlPart = coreUrlPart.replaceFirst("_", "");
             Intent browserIntent = new Intent(Intent.ACTION_VIEW,
-                  Uri.parse("http://libretro.readthedocs.io/en/latest/library/" + coreUrlPart));
+                  Uri.parse("http://docs.libretro.com/library/" + coreUrlPart));
             startActivity(browserIntent);
             return true;
          }

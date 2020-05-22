@@ -4500,6 +4500,32 @@ static bool setting_append_list_saving_options(
          general_read_handler);
 
    CONFIG_BOOL(
+         settings->savestate_file_compression,
+         "savestate_file_compression",
+         "Savestate Compression",
+         true,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+
+   CONFIG_BOOL(
+         settings->sram_file_compression,
+         "sram_file_compression",
+         "SRAM Compression",
+         false,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+
+   CONFIG_BOOL(
          settings->block_sram_overwrite,
          "block_sram_overwrite",
          "SRAM Block overwrite",

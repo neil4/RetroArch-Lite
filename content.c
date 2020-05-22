@@ -146,6 +146,7 @@ bool save_state(const char *path)
    bool ret    = false;
    void *data  = NULL;
    size_t size = pretro_serialize_size();
+   settings_t *settings = config_get_ptr();
 
    RARCH_LOG("Saving state: \"%s\".\n", path);
 
@@ -164,7 +165,12 @@ bool save_state(const char *path)
    ret = pretro_serialize(data, size);
 
    if (ret)
-      ret = write_file(path, data, size);
+   {
+      if (settings->savestate_file_compression)
+         ret = write_rzip_file(path, data, size);
+      else
+         ret = write_file(path, data, size);
+   }
 
    if (!ret)
       RARCH_ERR("Failed to save state to \"%s\".\n", path);
@@ -191,7 +197,11 @@ bool load_state(const char *path)
    struct sram_block *blocks = NULL;
    settings_t *settings      = config_get_ptr();
    global_t *global          = global_get_ptr();
-   bool ret                  = read_file(path, &buf, &size);
+   bool ret;
+
+   ret = read_rzip_file(path, &buf, &size);
+   if (!ret)
+      ret = read_file(path, &buf, &size);
 
    RARCH_LOG("Loading state: \"%s\".\n", path);
 
@@ -274,7 +284,9 @@ void load_ram_file(const char *path, int type)
    if (size == 0 || !data)
       return;
 
-   ret = read_file(path, &buf, &rc);
+   ret = read_rzip_file(path, &buf, &rc);
+   if (!ret)
+      ret = read_file(path, &buf, &rc);
 
    if (!ret)
       return;
@@ -308,13 +320,20 @@ void save_ram_file(const char *path, int type)
 {
    size_t size = pretro_get_memory_size(type);
    void *data  = pretro_get_memory_data(type);
+   settings_t *settings = config_get_ptr();
+   bool ret;
 
    if (!data)
       return;
    if (size <= 0)
       return;
 
-   if (!write_file(path, data, size))
+   if (settings->sram_file_compression)
+      ret = write_rzip_file(path, data, size);
+   else
+      ret = write_file(path, data, size);
+
+   if (ret == false)
    {
       RARCH_ERR("Failed to save SRAM.\n");
       RARCH_WARN("Attempting to recover ...\n");

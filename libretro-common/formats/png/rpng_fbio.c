@@ -284,7 +284,7 @@ end:
 
    if (rpng.process.stream)
    {
-      zlib_stream_free(rpng.process.stream);
+      zlib_stream_inflate_free(rpng.process.stream);
       free(rpng.process.stream);
    }
    return ret;

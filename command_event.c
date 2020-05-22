@@ -837,6 +837,7 @@ bool event_command(enum event_command cmd)
          rarch_main_set_state(RARCH_ACTION_STATE_LOAD_CONTENT);
          global->max_scope = NUM_SETTING_SCOPES-1;
          runloop->is_paused = false;
+         rarch_main_msg_queue_push("", 0, 1, true);
          break;
       case EVENT_CMD_LOAD_CONTENT:
 #ifdef HAVE_DYNAMIC

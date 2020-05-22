@@ -320,7 +320,7 @@ static bool rpng_save_image(const char *path,
 
    zlib_deflate_init(stream, 9);
 
-   if (zlib_deflate_data_to_file(stream) != 1)
+   if (zlib_deflate(stream) != 1)
    {
       zlib_stream_deflate_free(stream);
       GOTO_END_ERROR();
@@ -348,7 +348,7 @@ end:
    free(avg_filtered);
    free(paeth_filtered);
 
-   zlib_stream_free(stream);
+   zlib_stream_inflate_free(stream);
    return ret;
 }
 

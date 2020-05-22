@@ -63,6 +63,31 @@ int read_file(const char *path, void **buf, ssize_t *length);
  */
 bool write_file(const char *path, const void *buf, ssize_t size);
 
+/**
+ * write_rzip_file:
+ * @path             : path to file.
+ * @data             : contents to compress and write to file.
+ * @size             : size of the uncompressed contents.
+ *
+ * Writes @data to @path in RZIP format.
+ *
+ * Returns: true on success, false otherwise.
+ */
+bool write_rzip_file(const char *path, const void *data, uint64_t size);
+
+/**
+ * read_rzip_file:
+ * @path             : path to file.
+ * @buf              : buffer to allocate and read the contents of the
+ *                     file into. Needs to be freed manually.
+ * @len              : Number of items read. Not updated on failure
+ *
+ * Decompresses contents from an RZIP file to @buf.
+ *
+ * Returns: true if file read, false on error.
+ */
+bool read_rzip_file(const char *path, void **buf, ssize_t *len);
+
 #ifdef __cplusplus
 }
 #endif

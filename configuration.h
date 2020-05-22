@@ -401,6 +401,9 @@ typedef struct settings
    bool sort_savefiles_enable;
    bool sort_savestates_enable;
 
+   bool savestate_file_compression;
+   bool sram_file_compression;
+
    unsigned menu_ok_btn;
    unsigned menu_cancel_btn;
    unsigned menu_search_btn;

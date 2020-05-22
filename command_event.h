@@ -58,7 +58,6 @@ enum event_command
    /* Initializes autosave. */
    EVENT_CMD_AUTOSAVE_INIT,
    EVENT_CMD_AUTOSAVE_STATE,
-   EVENT_CMD_SRAM_ENABLE_SAVE,  // TODO:  use this
    /* Stops audio. */
    EVENT_CMD_AUDIO_STOP,
    /* Starts audio. */

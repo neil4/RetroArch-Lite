@@ -325,7 +325,7 @@ bool zlib_inflate_init(void *data)
    return true;
 }
 
-void zlib_stream_free(void *data)
+void zlib_stream_inflate_free(void *data)
 {
    z_stream *ret = (z_stream*)data;
    if (ret)
@@ -337,6 +337,20 @@ void zlib_stream_deflate_free(void *data)
    z_stream *ret = (z_stream*)data;
    if (ret)
       deflateEnd(ret);
+}
+
+void zlib_stream_deflate_reset(void *data)
+{
+   z_stream *ret = (z_stream*)data;
+   if (ret)
+      deflateReset(ret);
+}
+
+void zlib_stream_inflate_reset(void *data)
+{
+   z_stream *ret = (z_stream*)data;
+   if (ret)
+      inflateReset(ret);
 }
 
 bool zlib_inflate_data_to_file_init(
@@ -375,14 +389,14 @@ bool zlib_inflate_data_to_file_init(
 
 error:
    if (handle->stream)
-      zlib_stream_free(handle->stream);
+      zlib_stream_inflate_free(handle->stream);
    if (handle->data)
       free(handle->data);
 
    return false;
 }
 
-int zlib_deflate_data_to_file(void *data)
+int zlib_deflate(void *data)
 {
    int zstatus;
    z_stream *stream = (z_stream*)data;
@@ -398,7 +412,7 @@ int zlib_deflate_data_to_file(void *data)
    return 0;
 }
 
-int zlib_inflate_data_to_file_iterate(void *data)
+int zlib_inflate(void *data)
 {
    int zstatus;
    z_stream *stream = (z_stream*)data;
@@ -449,7 +463,7 @@ int zlib_inflate_data_to_file(zlib_file_handle_t *handle,
 {
    if (handle)
    {
-      zlib_stream_free(handle->stream);
+      zlib_stream_inflate_free(handle->stream);
       free(handle->stream);
    }
 
@@ -710,7 +724,7 @@ static int zip_extract_cb(const char *name, const char *valid_exts,
                   return 0;
 
                do{
-                  ret = zlib_inflate_data_to_file_iterate(handle.stream);
+                  ret = zlib_inflate(handle.stream);
                }while(ret == 0);
 
                if (zlib_inflate_data_to_file(&handle, ret, new_path, valid_exts,
@@ -878,7 +892,7 @@ bool zlib_perform_mode(const char *path, const char *valid_exts,
                return false;
 
             do{
-               ret = zlib_inflate_data_to_file_iterate(handle.stream);
+               ret = zlib_inflate(handle.stream);
             }while(ret == 0);
 
             if (!zlib_inflate_data_to_file(&handle, ret, path, valid_exts,

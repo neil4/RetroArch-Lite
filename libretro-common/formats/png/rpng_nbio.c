@@ -223,7 +223,7 @@ void rpng_nbio_load_image_free(struct rpng_t *rpng)
       free(rpng->process.inflate_buf);
    if (rpng->process.stream)
    {
-      zlib_stream_free(rpng->process.stream);
+      zlib_stream_inflate_free(rpng->process.stream);
       free(rpng->process.stream);
    }
 

@@ -112,7 +112,7 @@ bool zlib_inflate_data_to_file_init(
       zlib_file_handle_t *handle,
       const uint8_t *cdata,  uint32_t csize, uint32_t size);
 
-int zlib_inflate_data_to_file_iterate(void *data);
+int zlib_inflate(void *data);
 
 /**
  * zlib_inflate_data_to_file:
@@ -139,13 +139,17 @@ struct string_list *compressed_file_list_new(const char *filename,
 
 void *zlib_stream_new(void);
 
-void zlib_stream_free(void *data);
+void zlib_stream_inflate_free(void *data);
 
 void zlib_deflate_init(void *data, int level);
 
-int zlib_deflate_data_to_file(void *data);
+int zlib_deflate(void *data);
 
 void zlib_stream_deflate_free(void *data);
+
+void zlib_stream_deflate_reset(void *data);
+
+void zlib_stream_inflate_reset(void *data);
 
 bool zlib_inflate_init(void *data);
 

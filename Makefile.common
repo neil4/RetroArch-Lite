@@ -671,7 +671,7 @@ ifeq ($(HAVE_ZLIB), 1)
       DEFINES += -DWANT_ZLIB
    else
       LIBS += -lz
-		HAVE_ZLIB_DEFLATE = 1
+      HAVE_ZLIB_DEFLATE = 1
    endif
 endif
 

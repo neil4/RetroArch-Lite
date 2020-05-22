@@ -790,6 +790,9 @@ static void config_set_defaults(void)
    settings->sort_savefiles_enable = default_sort_savefiles_enable;
    settings->sort_savestates_enable = default_sort_savestates_enable;
 
+   settings->savestate_file_compression = true;
+   settings->sram_file_compression = true;
+
    settings->menu_ok_btn          = default_menu_btn_ok;
    settings->menu_cancel_btn      = default_menu_btn_cancel;
    settings->menu_search_btn      = default_menu_btn_search;
@@ -1795,6 +1798,9 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, sort_savefiles_enable, "sort_savefiles_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, sort_savestates_enable, "sort_savestates_enable");
 
+   CONFIG_GET_BOOL_BASE(conf, settings, savestate_file_compression, "savestate_file_compression");
+   CONFIG_GET_BOOL_BASE(conf, settings, sram_file_compression, "sram_file_compression");
+
    CONFIG_GET_INT_BASE(conf, settings, menu_ok_btn,          "menu_ok_btn");
    CONFIG_GET_INT_BASE(conf, settings, menu_cancel_btn,      "menu_cancel_btn");
    CONFIG_GET_INT_BASE(conf, settings, menu_search_btn,      "menu_search_btn");
@@ -2424,6 +2430,10 @@ bool config_save_file(const char *path)
          settings->sort_savefiles_enable);
    config_set_bool(conf, "sort_savestates_enable",
          settings->sort_savestates_enable);
+   config_set_bool(conf, "savestate_file_compression",
+         settings->savestate_file_compression);
+   config_set_bool(conf, "sram_file_compression",
+         settings->sram_file_compression);
    config_set_int(conf, "libretro_log_level", settings->libretro_log_level);
    config_set_bool(conf, "log_verbosity", global->verbosity);
    config_set_bool(conf, "perfcnt_enable", global->perfcnt_enable);
