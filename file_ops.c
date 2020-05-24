@@ -560,6 +560,10 @@ bool read_rzip_file(const char *path, void **buf, ssize_t *len)
       }
    }
 
+   /* Allow for easy reading of strings to be safe.
+    * Will only work with sane character formatting (Unix). */
+   ((char*)out_buf)[total_out] = '\0';
+
    if (len)
       *len = (ssize_t)total_out;
    ret = true;
