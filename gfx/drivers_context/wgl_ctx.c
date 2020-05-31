@@ -548,7 +548,7 @@ static bool gfx_ctx_wgl_set_video_mode(void *data,
       g_resize_height = height = rect.bottom - rect.top;
    }
 
-   g_hwnd = CreateWindowEx(0, "RetroArch", "RetroArch", style,
+   g_hwnd = CreateWindowEx(0, "RetroArch", "RetroArch Lite", style,
          fullscreen ? mon_rect.left : g_pos_x,
          fullscreen ? mon_rect.top  : g_pos_y,
          width, height,
