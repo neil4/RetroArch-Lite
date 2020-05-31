@@ -647,6 +647,8 @@ static inline void rgui_check_update(settings_t *settings,
          particle_effect = settings->menu.rgui_particle_effect;
          if (particle_effect != RGUI_PARTICLE_EFFECT_NONE)
             rgui_init_particle_effect(frame_buf);
+         else
+            menu_entries_set_refresh();
       }
 
       menu_update_ticker_speed();
@@ -1153,6 +1155,7 @@ static void *rgui_init(void)
    thick_bd_pattern = settings->menu.rgui_thick_bd_checkerboard ? 1 : 0;
    
    particle_effect = settings->menu.rgui_particle_effect;
+   particle_effect_speed = settings->menu.rgui_particle_effect_speed_factor;
    if (particle_effect != RGUI_PARTICLE_EFFECT_NONE)
       rgui_init_particle_effect(frame_buf);
    
