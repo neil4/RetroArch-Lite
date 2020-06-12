@@ -405,9 +405,16 @@ static const unsigned frame_delay = 0;
 static bool black_frame_insertion = false;
 
 /* Uses a custom swap interval for VSync.
- * Set this to effectively halve monitor refresh rate.
+ * Set this to effectively divide the monitor refresh rate.
  */
 static unsigned swap_interval = 1;
+
+/* Use duplicate frames for swap intervals higher than 1. */
+#ifdef ANDROID
+static bool fake_swap_interval = true;
+#else
+static bool fake_swap_interval = false;
+#endif
 
 /* Threaded video. Will possibly increase performance significantly 
  * at the cost of worse synchronization and latency.

@@ -531,6 +531,7 @@ static void config_set_defaults(void)
    settings->video.frame_delay           = frame_delay;
    settings->video.black_frame_insertion = black_frame_insertion;
    settings->video.swap_interval         = swap_interval;
+   settings->video.fake_swap_interval    = fake_swap_interval;
    settings->video.threaded              = video_threaded;
 
    if (g_defaults.settings.video_threaded_enable != video_threaded)
@@ -1377,6 +1378,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_INT_BASE(conf, settings, video.swap_interval, "video_swap_interval");
    settings->video.swap_interval = max(settings->video.swap_interval, 1);
    settings->video.swap_interval = min(settings->video.swap_interval, 4);    
+   CONFIG_GET_BOOL_BASE(conf, settings, video.fake_swap_interval, "video_fake_swap_interval");
    CONFIG_GET_BOOL_BASE(conf, settings, video.threaded, "video_threaded");
    CONFIG_GET_BOOL_BASE(conf, settings, video.shared_context, "video_shared_context");
 #ifdef GEKKO
@@ -2120,7 +2122,11 @@ bool config_save_file(const char *path)
 #endif
    
    if (settings->video.vsync_scope == GLOBAL)
+   {
       config_set_bool(conf,  "video_vsync", settings->video.vsync);
+      config_set_int(conf, "video_swap_interval", settings->video.swap_interval);
+   }
+   config_set_bool(conf, "video_fake_swap_interval", settings->video.fake_swap_interval);
    
 #ifdef HAVE_GL_SYNC
    if (settings->video.hard_sync_scope == GLOBAL)
@@ -2136,7 +2142,6 @@ bool config_save_file(const char *path)
    config_set_bool(conf,  "video_disable_composition",
          settings->video.disable_composition);
    config_set_bool(conf,  "pause_nonactive", settings->pause_nonactive);
-   config_set_int(conf, "video_swap_interval", settings->video.swap_interval);
    config_set_bool(conf, "video_gpu_screenshot", settings->video.gpu_screenshot);
    
    if (settings->video.rotation_scope == GLOBAL)
@@ -2598,9 +2603,16 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "video_threaded");
 
    if (settings->video.vsync_scope == scope)
+   {
       config_set_bool(conf, "video_vsync", settings->video.vsync);
+      config_set_int(conf, "video_swap_interval",
+                     settings->video.swap_interval);
+   }
    else if (settings->video.vsync_scope < scope)
+   {
       config_remove_entry(conf, "video_vsync");
+      config_remove_entry(conf, "video_swap_interval");
+   }
 
    if (settings->video.hard_sync_scope == scope)
    {
@@ -2913,10 +2925,14 @@ void config_backup_restore_globals()
    {  /* restore */
       settings->video.vsync_scope = GLOBAL;
       config_get_bool(conf, "video_vsync", &settings->video.vsync);
+      config_get_uint(conf, "video_swap_interval",
+                      &settings->video.swap_interval);
    }
    else
    {  /* back up */
       config_set_bool(conf, "video_vsync", settings->video.vsync);
+      config_set_int(conf, "video_swap_interval",
+                     settings->video.swap_interval);
    }
 
    if (settings->video.hard_sync_scope != GLOBAL)
@@ -3257,7 +3273,13 @@ static void scoped_config_file_load(unsigned scope)
       settings->audio.dsp_scope = scope;
    }
    if (config_get_bool(conf, "video_vsync", &settings->video.vsync))
+   {
       settings->video.vsync_scope = scope;
+      config_get_uint(conf, "video_swap_interval",
+                      &settings->video.swap_interval);
+      settings->video.swap_interval = max(settings->video.swap_interval, 1);
+      settings->video.swap_interval = min(settings->video.swap_interval, 4);
+   }
    if (config_get_bool(conf, "video_hard_sync", &settings->video.hard_sync))
    {
       settings->video.hard_sync_scope = scope;

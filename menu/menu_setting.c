@@ -3271,8 +3271,17 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                " -- VSync Swap Interval.\n"
                " \n"
-               "Uses a custom swap interval for VSync. Set this \n"
-               "to effectively halve monitor refresh rate.");
+               "Custom swap interval for VSync. Set this \n"
+               "to 2 to effectively halve the monitor \n"
+               "refresh rate.");
+         break;
+      case MENU_LABEL_VIDEO_FAKE_SWAP_INTERVAL:
+         snprintf(s, len,
+               " -- Use duplicate frames for \n"
+               "swap intervals higher than 1. \n"
+               " \n"
+               "Enable if the swap interval \n"
+               "setting does not work. ");
          break;
       case MENU_LABEL_SAVEFILE_DIRECTORY:
          snprintf(s, len,
@@ -5288,7 +5297,21 @@ static bool setting_append_list_video_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   
+
+   CONFIG_UINT(
+         settings->video.swap_interval,
+         "video_swap_interval",
+         "  Swap Interval",
+         swap_interval,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
+   menu_settings_list_current_add_range(list, list_info, 1, 4, 1, true, true);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+
    CONFIG_UINT(
       settings->video.vsync_scope,
       "vsync_scope",
@@ -5304,19 +5327,19 @@ static bool setting_append_list_video_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
-   CONFIG_UINT(
-         settings->video.swap_interval,
-         "video_swap_interval",
-         "  Swap Interval",
-         swap_interval,
+   CONFIG_BOOL(
+         settings->video.fake_swap_interval,
+         "video_fake_swap_interval",
+         "Fake Swap Interval",
+         fake_swap_interval,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
-   menu_settings_list_current_add_range(list, list_info, 1, 4, 1, true, true);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO|SD_FLAG_ADVANCED);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    
 #if defined(HAVE_THREADS) && !defined(RARCH_CONSOLE)
    CONFIG_BOOL(

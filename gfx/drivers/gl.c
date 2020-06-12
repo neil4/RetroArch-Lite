@@ -1510,8 +1510,10 @@ static bool gl_frame(void *data, const void *frame,
 #endif
    driver_t *driver            = driver_get_ptr();
    settings_t *settings        = config_get_ptr();
-   uint64_t frame_count        = video_driver_get_frame_count();
+   uint64_t frame_count        = gl->frame_count;
    const struct font_renderer *font_driver = driver ? driver->font_osd_driver : NULL;
+   static bool recursing;
+   uint8_t i;
 
    if (!gl)
       return false;
@@ -1569,7 +1571,7 @@ static bool gl_frame(void *data, const void *frame,
    glBindTexture(GL_TEXTURE_2D, gl->texture[gl->tex_index]);
 
    /* Can be NULL for frame dupe / NULL render. */
-   if (frame) 
+   if (frame)
    {
 #ifdef HAVE_FBO
       if (!gl->hw_render_fbo_init)
@@ -1637,7 +1639,8 @@ static bool gl_frame(void *data, const void *frame,
       gl_frame_fbo(gl, frame_count, &gl->tex_info);
 #endif
 
-   gl_set_prev_texture(gl, &gl->tex_info);
+   if (!recursing)
+      gl_set_prev_texture(gl, &gl->tex_info);
 
 #if defined(HAVE_MENU)
    if (menu_driver_alive())
@@ -1655,7 +1658,8 @@ static bool gl_frame(void *data, const void *frame,
       gl_render_overlay(gl);
 #endif
 
-   gfx_ctx_update_window_title(gl);
+   if (!recursing)
+      gfx_ctx_update_window_title(gl);
 
 #ifdef HAVE_FBO
    /* Reset state which could easily mess up libretro core. */
@@ -1671,24 +1675,25 @@ static bool gl_frame(void *data, const void *frame,
 
 #ifndef NO_GL_READ_PIXELS
    /* Screenshots. */
-   if (gl->readback_buffer_screenshot)
+   if (!recursing)
    {
-      glPixelStorei(GL_PACK_ALIGNMENT, 4);
+      if (gl->readback_buffer_screenshot)
+      {
+         glPixelStorei(GL_PACK_ALIGNMENT, 4);
 #ifndef HAVE_OPENGLES
-      glPixelStorei(GL_PACK_ROW_LENGTH, 0);
-      glReadBuffer(GL_BACK);
+         glPixelStorei(GL_PACK_ROW_LENGTH, 0);
+         glReadBuffer(GL_BACK);
 #endif
-      glReadPixels(gl->vp.x, gl->vp.y,
-            gl->vp.width, gl->vp.height,
-            GL_RGBA, GL_UNSIGNED_BYTE, gl->readback_buffer_screenshot);
+         glReadPixels(gl->vp.x, gl->vp.y,
+               gl->vp.width, gl->vp.height,
+               GL_RGBA, GL_UNSIGNED_BYTE, gl->readback_buffer_screenshot);
+      }
+#if defined(HAVE_GL_ASYNC_READBACK) && defined(HAVE_MENU)
+      /* Don't readback if we're in menu mode. */
+      else if (gl->pbo_readback_enable && !gl->menu_texture_enable)
+         gl_pbo_async_readback(gl);
+#endif
    }
-#ifdef HAVE_GL_ASYNC_READBACK
-#ifdef HAVE_MENU
-   /* Don't readback if we're in menu mode. */
-   else if (gl->pbo_readback_enable && !gl->menu_texture_enable)
-      gl_pbo_async_readback(gl);
-#endif
-#endif
 #endif
 #if !defined(RARCH_MOBILE)
    /* Disable BFI during fast forward, slow-motion,
@@ -1706,7 +1711,7 @@ static bool gl_frame(void *data, const void *frame,
 
 #ifdef HAVE_GL_SYNC
    if (settings->video.hard_sync && gl->have_sync && !driver->nonblock_state
-       && !gl->menu_texture_enable)
+       && !gl->menu_texture_enable && !recursing)
    {
       glClear(GL_COLOR_BUFFER_BIT);
       gl->fences[gl->fence_count++] = 
@@ -1732,7 +1737,17 @@ static bool gl_frame(void *data, const void *frame,
 
    context_bind_hw_render(gl, true);
 
-   gl->frame_count++;
+   if (gl->swap_interval > 1 && settings->video.fake_swap_interval
+       && !recursing)
+   {
+      recursing = true;
+      for (i = 1; i < gl->swap_interval; i++)
+         gl_frame(gl, NULL, frame_width, frame_height, pitch, msg);
+      recursing = false;
+   }
+
+   if (!recursing)
+      gl->frame_count++;
 
    return true;
 }
@@ -1849,8 +1864,8 @@ static void gl_set_nonblock_state(void *data, bool state)
    RARCH_LOG("[GL]: VSync => %s\n", state ? "off" : "on");
 
    context_bind_hw_render(gl, false);
-   gfx_ctx_swap_interval(gl, 
-         state ? 0 : settings->video.swap_interval);
+   gl->swap_interval = state ? 0 : settings->video.swap_interval;
+   gfx_ctx_swap_interval(gl, gl->swap_interval);
    context_bind_hw_render(gl, true);
 }
 

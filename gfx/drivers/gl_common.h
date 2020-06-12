@@ -251,6 +251,7 @@ typedef struct gl
    const shader_backend_t *shader;
 
    bool vsync;
+   unsigned swap_interval;
    GLuint texture[MAX_TEXTURES];
    unsigned tex_index; /* For use with PREV. */
    unsigned textures;

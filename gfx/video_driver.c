@@ -880,7 +880,7 @@ void video_driver_cached_frame(void)
 {
    driver_t *driver   = driver_get_ptr();
    runloop_t *runloop = rarch_main_get_ptr();
-   void *recording    = driver ? driver->recording_data : NULL;
+   void *recording    = driver->recording_data;
 
    if (runloop->is_idle)
       return;

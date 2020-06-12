@@ -268,9 +268,15 @@ void gfx_ctx_get_video_size(void *data,
 void gfx_ctx_swap_interval(void *data, unsigned interval)
 {
    const gfx_ctx_driver_t *ctx = gfx_ctx_get_ptr();
+   const settings_t *settings  = config_get_ptr();
 
    if (ctx)
-      ctx->swap_interval(data, interval);
+   {
+      if (settings->video.fake_swap_interval && interval != 0)
+         ctx->swap_interval(data, 1);
+      else
+         ctx->swap_interval(data, interval);
+   }
 }
 
 void gfx_ctx_set_resize(void *data, unsigned width, unsigned height)

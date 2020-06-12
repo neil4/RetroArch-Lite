@@ -72,6 +72,7 @@ typedef struct settings
       unsigned hard_sync_scope;
       bool black_frame_insertion;
       unsigned swap_interval;
+      bool fake_swap_interval;
       unsigned hard_sync_frames;
       unsigned frame_delay;
       unsigned frame_delay_scope;

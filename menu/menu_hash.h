@@ -63,6 +63,7 @@ extern "C" {
 #define MENU_LABEL_R_Y_MINUS                                                   0xc5c58dbaU
 #define MENU_LABEL_R_Y_PLUS                                                    0x63173332U
 #define MENU_LABEL_VIDEO_SWAP_INTERVAL                                         0x5673ff9aU
+#define MENU_LABEL_VIDEO_FAKE_SWAP_INTERVAL                                    0xc83434f0U
 #define MENU_LABEL_VIDEO_GPU_SCREENSHOT                                        0xee2fcb44U
 #define MENU_LABEL_PAUSE_NONACTIVE                                             0x580bf549U
 #define MENU_LABEL_BLOCK_SRAM_OVERWRITE                                        0xc4e88d08U
