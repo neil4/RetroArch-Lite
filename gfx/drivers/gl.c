@@ -2293,8 +2293,8 @@ static void *gl_init(const video_info_t *video, const input_driver_t **input, vo
    gfx_ctx_get_video_size(gl, &gl->full_x, &gl->full_y);
    RARCH_LOG("Detecting screen resolution %ux%u.\n", gl->full_x, gl->full_y);
 
-   gfx_ctx_swap_interval(gl, 
-         video->vsync ? settings->video.swap_interval : 0);
+   gl->swap_interval = video->vsync ? settings->video.swap_interval : 0;
+   gfx_ctx_swap_interval(gl, gl->swap_interval);
 
    win_width  = video->width;
    win_height = video->height;
