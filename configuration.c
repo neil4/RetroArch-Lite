@@ -1431,7 +1431,6 @@ static bool config_load_file(const char *path, bool set_defaults)
          "current_resolution_id");
    CONFIG_GET_INT_BASE(conf, global, console.sound.mode, "sound_mode");
 #endif
-   CONFIG_GET_INT_BASE(conf, settings, state_slot, "state_slot");
    
    config_get_int(conf, "custom_viewport_width",  &vp_width);
    config_get_int(conf, "custom_viewport_height", &vp_height);
@@ -2391,7 +2390,6 @@ bool config_save_file(const char *path)
    config_set_float(conf, "slowmotion_ratio", settings->slowmotion_ratio);
 
    config_set_int(conf, "sound_mode", global->console.sound.mode);
-   config_set_int(conf, "state_slot", settings->state_slot);
 
 #ifdef HAVE_NETPLAY
    config_set_bool(conf, "netplay_mode", global->netplay_is_client);
