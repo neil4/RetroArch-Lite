@@ -530,6 +530,7 @@ static void delete_core_file(menu_list_t *menu_list)
    {
       rarch_main_msg_queue_push("Deleted core", 1, 100, true);
       menu_entries_set_refresh();
+      event_command(EVENT_CMD_CORE_INFO_INIT);
    }
 }
 

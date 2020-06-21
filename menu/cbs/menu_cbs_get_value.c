@@ -813,7 +813,7 @@ static void menu_action_setting_disp_set_label_menu_core_url(
                         (w, s, len,
                          ((*list->list[i].alt && list->list[i].alt[0]) ?
                             list->list[i].alt : path),
-                        "(URL)", s2, len2);
+                         (char*)list->list[i].userdata, s2, len2);
 }
 
 static void menu_action_setting_disp_set_alt_label_menu_file_plain(

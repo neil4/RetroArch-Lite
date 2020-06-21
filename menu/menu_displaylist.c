@@ -97,6 +97,26 @@ static void menu_displaylist_push_perfcounter(
                counters[i]->ident, "", id + i, 0, 0);
 }
 
+static bool core_is_installed(const char* libretro_name)
+{
+   global_t* global = global_get_ptr();
+   char buf[NAME_MAX_LENGTH];
+   unsigned i;
+
+   if (!global->core_info)
+      return false;
+
+   for (i = 0; i < global->core_info->count; i += 1)
+   {
+      path_libretro_name(buf, global->core_info->list[i].path);
+
+      if (!strcmp(buf, libretro_name))
+         return true;
+   }
+
+   return false;
+}
+
 static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
 {
    core_info_list_t* core_info = core_info_list_new(DOWNLOADABLE_CORES);
@@ -114,6 +134,10 @@ static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
          return -1;
 
       path_libretro_name(buf, path);
+
+      /* mark with [#] if this core is installed */
+      if (core_is_installed(buf))
+         file_list_set_userdata(list, i, strdup("[#]"));
 
       /* put display_name in 'alt' */
       if (!core_info_list_get_display_name(core_info, buf, buf, NAME_MAX_LENGTH)
