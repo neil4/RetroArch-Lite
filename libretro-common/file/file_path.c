@@ -519,6 +519,29 @@ const char *path_basename(const char *path)
 }
 
 /**
+ * path_libretro_name:
+ * @out              : buffer with length >= NAME_MAX_LENGTH
+ * @path             : path
+ *
+ * Copies @path basename to @out, terminating at "_libretro" or '.'
+ */
+void path_libretro_name(char* out, const char* path)
+{
+   char* pch;
+   strlcpy(out, path_basename(path), NAME_MAX_LENGTH);
+
+   pch = strstr(out, "_libretro");
+   if (pch)
+      *pch = '\0';
+   else
+   {
+      pch = strchr(out, '.');
+      if (pch)
+         *pch = '\0';
+   }
+}
+
+/**
  * path_is_absolute:
  * @path               : path
  *

@@ -266,14 +266,12 @@ public final class InstalledCoresFragment extends ListFragment
 
    /**
     * @param path (not modified) relative or absolute core file path
-    * @return path without directory or "_android.so" or "_libretro_android.so"
+    * @return path without directory or "_libretro_android.so"
     */
    public static String sanitizedLibretroName(String path)
    {
       int startIndex = path.lastIndexOf('/') + 1;
-      String sanitizedName = path.substring(startIndex, path.indexOf('.', startIndex));
-      sanitizedName = sanitizedName.replace("libretro_", "");
-      sanitizedName = sanitizedName.replace("_android", "");
+      String sanitizedName = path.substring(startIndex, path.indexOf("_libretro", startIndex));
 
       return sanitizedName;
    }

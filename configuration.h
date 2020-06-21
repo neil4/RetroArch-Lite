@@ -505,13 +505,6 @@ const char *config_get_default_menu(void);
 const char *config_get_default_record(void);
 
 /**
- * update_libretro_name
- * 
- * Updates global->libretro_name to sanitized lib basename
- */
-void update_libretro_name(void);
-
-/**
  * config_load:
  *
  * Loads a config file and reads all the values into memory.

@@ -104,7 +104,6 @@ static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
    char first_missing[NAME_MAX_LENGTH];
    size_t num_missing = 0;
    char* path;
-   char* substr;
    static bool info_update_attempted;
    int i;
 
@@ -113,13 +112,8 @@ static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
       path = list->list[i].path;
       if (!path)
          return -1;
-      
-      strlcpy(buf, path, strlen(path)+1);
-      
-      /* use platform-free name created in core_info_list_new */
-      substr = strstr(buf,"_libretro");
-      if (substr)
-         *substr = '\0';
+
+      path_libretro_name(buf, path);
 
       /* put display_name in 'alt' */
       if (!core_info_list_get_display_name(core_info, buf, buf, NAME_MAX_LENGTH)

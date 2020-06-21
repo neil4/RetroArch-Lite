@@ -1210,7 +1210,7 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          {
             strlcpy(settings->libretro, (const char*)data,
                   sizeof(settings->libretro));
-            update_libretro_name();
+            path_libretro_name(global->libretro_name, settings->libretro);
          }
          else
             return false;

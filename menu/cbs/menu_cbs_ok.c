@@ -1056,16 +1056,12 @@ static int action_ok_core_updater_download(const char *path,
 #ifdef HAVE_NETWORKING
    char core_path[PATH_MAX_LENGTH] = {0};
    char buf[PATH_MAX_LENGTH]       = {0};
-   char *pch;
    settings_t *settings            = config_get_ptr();
    global_t *global                = global_get_ptr();
    data_runloop_t *runloop         = rarch_main_data_get_ptr();
-   
-   strlcpy(buf, path, PATH_MAX_LENGTH);
-   pch = strstr(buf, "_libretro");
-   if (pch)
-      *pch = '\0';
-   
+
+   path_libretro_name(buf, path);
+
    if (!strcmp(buf, global->libretro_name))
    {
       rarch_main_msg_queue_push("Unload core before updating.",

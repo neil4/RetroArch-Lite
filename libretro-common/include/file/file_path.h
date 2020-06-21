@@ -147,6 +147,15 @@ const char *path_basename(const char *path);
 void path_basedir(char *path);
 
 /**
+ * path_libretro_name:
+ * @out              : buffer with length >= NAME_MAX_LENGTH
+ * @path             : path
+ *
+ * Copies @path basename to @out, terminating at "_libretro" or '.'
+ */
+void path_libretro_name(char* out, const char* path);
+
+/**
  * path_parent_dir:
  * @path               : path
  *

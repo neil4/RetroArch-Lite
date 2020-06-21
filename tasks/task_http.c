@@ -85,7 +85,6 @@ static int cb_core_updater_download(void *data, size_t len)
    settings_t              *settings = config_get_ptr();
    global_t                  *global = global_get_ptr();
    data_runloop_t           *runloop = rarch_main_data_get_ptr();
-   char* substr;
 
    if (!data)
       return -1;
@@ -114,11 +113,8 @@ static int cb_core_updater_download(void *data, size_t len)
    /* refresh installed core list */
    core_info_list_free(global->core_info);
    global->core_info = core_info_list_new(INSTALLED_CORES);
-   
-   strlcpy(buf, runloop->http.msg_filename, NAME_MAX_LENGTH);
-   substr = strstr(buf,"_libretro");
-   if (substr)
-      *substr = '\0';
+
+   path_libretro_name(buf, runloop->http.msg_filename);
    core_info_download_queue(buf);
    
    return 0;

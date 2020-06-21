@@ -414,56 +414,6 @@ void config_check_overlay_preset()
                          sizeof(settings->input.overlay));
 }
 
-void update_libretro_name()
-{
-   global_t* global = global_get_ptr();
-   settings_t* settings = config_get_ptr();
-   
-   if (!*settings->libretro)
-   {
-      global->libretro_name[0] = '\0';
-      return;
-   }
-
-   strlcpy(global->libretro_name,
-           path_basename(settings->libretro),
-           sizeof(global->libretro_name));
-   
-   char* name_end = strstr(global->libretro_name, "_libretro");
-   if (name_end)
-      *name_end = '\0';
-   else
-   {
-      name_end = strstr(global->libretro_name,".");
-      if (name_end)
-         *name_end = '\0';
-      else
-         global->libretro_name[0] = '\0';
-   }
-}
-
-/**
- * core_specific_key:
- * Returns: input string appended to core's libretro name.
- * Not thread safe.
- **/
-const char* core_specific_key( const char* suffix )
-{
-   global_t* global = global_get_ptr();
-   static char key[NAME_MAX_LENGTH];
-   
-   if ( global->libretro_name[0] != '\0')
-   {
-      strlcpy( key, global->libretro_name, NAME_MAX_LENGTH );
-      strlcat( key, "_", NAME_MAX_LENGTH  );
-      strlcat( key, suffix, NAME_MAX_LENGTH  );
-      return key;
-   }
-   else
-      return suffix;
-}
-
-
 /**
  * config_set_defaults:
  *

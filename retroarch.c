@@ -1294,7 +1294,6 @@ void rarch_main_init_wrap(const struct rarch_main_wrap *args,
       argv[(*argc)++] = strdup(args->libretro_path);
       rarch_environment_cb(RETRO_ENVIRONMENT_SET_LIBRETRO_PATH,
                            (void*)args->libretro_path);
-      update_libretro_name();
    }
 #endif
 
@@ -1561,7 +1560,7 @@ void rarch_update_configs()
    }
 
    /* get new core's libretro_name */
-   update_libretro_name();
+   path_libretro_name(global->libretro_name, settings->libretro);
 
    /* restore globals when a core is unloaded */
    if (!*global->libretro_name)
