@@ -147,7 +147,12 @@ static bool preempt_init_buffer(preempt_t *preempt)
    {
       preempt->buffer[i] = malloc(preempt->state_size);
       if (!preempt->buffer[i])
+      {
+         RARCH_WARN("Failed to allocate memory for Preemptive Frames.\n");
+         rarch_main_msg_queue_push("Failed to allocate memory for "
+                                   "Preemptive Frames.", 0, 180, false);
          return false;
+      }
    }
 
    preempt_reset_buffer(preempt);
@@ -194,6 +199,21 @@ static preempt_t *preempt_new()
    return preempt;
 }
 
+static void preempt_update_serialize_size(preempt_t *preempt)
+{
+   size_t i;
+   for (i = 0; i < preempt->frames; i++)
+      free(preempt->buffer[i]);
+
+   if (!preempt_init_buffer(preempt))
+   {
+      deinit_preempt();
+      return;
+   }
+
+   preempt->in_replay = false;
+}
+
 /**
  * preempt_pre_frame:
  * @preempt         : pointer to preempt object
@@ -209,7 +229,7 @@ void preempt_pre_frame(preempt_t *preempt)
    {
       if (preempt->state_size < pretro_serialize_size())
       {
-         update_preempt_frames();
+         preempt_update_serialize_size(preempt);
          return;
       }
       pretro_unserialize(preempt->buffer[preempt->start_ptr],
@@ -284,8 +304,6 @@ bool init_preempt(void)
    if (!driver->preempt_data)
    {
       RARCH_WARN("Failed to initialize Preemptive Frames.\n");
-      rarch_main_msg_queue_push("Failed to initialize Preemptive Frames.",
-                                0, 180, false);
       return false;
    }
 
