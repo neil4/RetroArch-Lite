@@ -381,9 +381,7 @@ static void menu_action_setting_disp_set_label_menu_file_core(
       char *s2, size_t len2)
 {
    const char *alt = NULL;
-   strlcpy(s, "(CORE)", len);
    menu_list_get_alt_at_offset(list, i, &alt);
-   *w = strlen(s);
    if (alt)
       strlcpy(s2, alt, len2);
 }
