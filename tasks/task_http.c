@@ -26,6 +26,7 @@
 #include "../runloop_data.h"
 #include "../menu/menu.h"
 #include "../menu/menu_hash.h"
+#include "../../performance.h"
 #include "tasks.h"
 
 #define CB_CORE_UPDATER_DOWNLOAD 0x7412da7dU
@@ -252,11 +253,8 @@ static bool rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
       /* Notify user unless this is a missing info file, which is common */
       if (strcmp("info", path_get_extension(http->msg_filename)))
       {
-         if (http->handle)
-            snprintf(msg, sizeof(msg),
+         snprintf(msg, sizeof(msg),
                   "Transfer Failed\nStatus %i", net_http_status(http->handle));
-         else
-            rarch_main_data_http_cancel_transfer(http, "Transfer Failed");
          rarch_main_data_http_cancel_transfer(http, msg);
       }
    }
@@ -361,6 +359,46 @@ static int rarch_main_data_http_iterate_poll(http_handle_t *http)
 }
 
 /**
+ * rarch_main_data_http_iterate_cancel:
+ *
+ * Returns true if menu cancel is held 0.5s. Cancels download if held 2s.
+ * todo: configurable timer
+ * todo: cancel all queued downloads, not just current
+ **/
+static bool rarch_main_data_http_iterate_cancel(http_handle_t *http)
+{
+   settings_t *settings = config_get_ptr();
+   int countdown = 0;
+   char msg[32];
+   static int64_t end_time;
+   const uint8_t countdown_max = 2499999 / 500000;
+
+   if (menu_driver_alive()
+       && input_driver_key_pressed(settings->menu_cancel_btn))
+   {
+      if (!end_time)
+         end_time = rarch_get_time_usec() + 2499999;
+      countdown = (end_time - rarch_get_time_usec()) / 500000;
+
+      if (countdown == countdown_max) /* ignore first 0.5s (keep downloading) */
+         return false;
+
+      if (countdown > 0)
+      {
+         snprintf(msg, sizeof(msg), "Canceling download in %i", countdown);
+         rarch_main_msg_queue_push(msg, 1, 10, true);
+      }
+      else
+         rarch_main_data_http_cancel_transfer(http, "Download Canceled");
+
+      return true;
+   }
+
+   end_time = 0;
+   return false;
+}
+
+/**
  * rarch_main_data_http_iterate_transfer:
  *
  * Resumes HTTP transfer update.
@@ -371,53 +409,26 @@ static int rarch_main_data_http_iterate_poll(http_handle_t *http)
 static int rarch_main_data_http_iterate_transfer(void *data)
 {
    http_handle_t *http  = (http_handle_t*)data;
-   settings_t *settings = config_get_ptr();
    size_t pos = 0, tot = 0;
    int percent = 0;
-   static bool in_progress;
-   static size_t stall_frames;
-   char tmp[NAME_MAX_LENGTH];
-   
-   /* Allow canceling stalled downloads */
-   if (menu_driver_alive() && stall_frames > 60
-       && settings && input_driver_key_pressed(settings->menu_cancel_btn))
-   {
-      snprintf(tmp, sizeof(tmp),
-               "Download Canceled: %s", http->connection.filename);
-      rarch_main_data_http_cancel_transfer(http, tmp);
-      return -1;
-   }
+   char msg[NAME_MAX_LENGTH];
    
    if (!net_http_update(http->handle, &pos, &tot))
    {
-      if(tot != 0)
-         percent=(unsigned long long)pos*100/(unsigned long long)tot;
-      else
-         percent=0;
+      if (tot != 0)
+         percent = (pos * 100) / tot;
          
       if (tot > 0)
       {
-         snprintf(tmp, sizeof(tmp), "Download progress: %d%%", percent);
-         rarch_main_msg_queue_push(tmp, 1, 10, true);
-         in_progress = true;
-         return 1;
+         snprintf(msg, sizeof(msg), "Download progress: %d%%", percent);
+         rarch_main_msg_queue_push(msg, 1, 100, true);
       }
       else
-      {
-         if (in_progress)
-            rarch_main_data_http_cancel_transfer(http, "Download Interrupted");
-         else if (stall_frames++ > 60)
-         {
-            snprintf(tmp, sizeof(tmp), "Waiting for Connection...");
-            rarch_main_msg_queue_push(tmp, 1, 10, true);
-         }
-         in_progress = false;
-         return -1;
-      }
+         rarch_main_msg_queue_push("Download waiting...", 1, 100, true);
+
+      return -1;
    }
 
-   stall_frames = 0;
-   in_progress = false;
    return 0;
 }
 
@@ -443,6 +454,8 @@ void rarch_main_data_http_iterate(void *data)
          http->status = HTTP_STATUS_POLL;
          break;
       case HTTP_STATUS_TRANSFER:
+         if (rarch_main_data_http_iterate_cancel(http))
+            break;
          if (!rarch_main_data_http_iterate_transfer(http))
             http->status = HTTP_STATUS_TRANSFER_PARSE;
          break;
