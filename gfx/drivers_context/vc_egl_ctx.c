@@ -119,8 +119,8 @@ static void gfx_ctx_vc_set_resize(void *data, unsigned width, unsigned height)
 
 static void gfx_ctx_vc_update_window_title(void *data)
 {
-   char buf[128]        = {0};
-   char buf_fps[128]    = {0};
+   char buf[128];
+   char buf_fps[32];
    settings_t *settings = config_get_ptr();
 
    (void)data;

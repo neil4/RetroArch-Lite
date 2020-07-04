@@ -132,8 +132,8 @@ static void gfx_ctx_d3d_swap_buffers(void *data)
 
 static void gfx_ctx_d3d_update_title(void *data)
 {
-   char buf[128]        = {0};
-   char buffer_fps[128] = {0};
+   char buf[128];
+   char buffer_fps[128];
    d3d_video_t *d3d     = (d3d_video_t*)data;
    settings_t *settings = config_get_ptr();
 

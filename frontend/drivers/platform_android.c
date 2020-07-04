@@ -651,6 +651,8 @@ static void frontend_android_get_environment_settings(int *argc,
       g_defaults.settings.video_refresh_rate = 60.0;
    else if (!strcmp(device_model, "JSS15J"))
       g_defaults.settings.video_refresh_rate = 59.65;
+
+   global->force_fullscreen = true;
 }
 
 static void frontend_android_deinit(void *data)

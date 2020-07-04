@@ -1135,7 +1135,7 @@ bool video_monitor_get_fps(char *buf, size_t size,
    static retro_time_t fps_time;
    uint64_t frame_count = video_driver_get_frame_count();
    global_t  *global    = global_get_ptr();
-
+   settings_t *settings = config_get_ptr();
    *buf = '\0';
 
    new_time = rarch_get_time_usec();
@@ -1160,8 +1160,13 @@ bool video_monitor_get_fps(char *buf, size_t size,
       }
 
       if (buf_fps)
-         snprintf(buf_fps, size_fps, "FPS: %6.1f || Frames: " U64_SIGN,
+      {
+         if (settings->video.fullscreen)
+            snprintf(buf_fps, size_fps, "FPS: %.1f\nFrames: " U64_SIGN,
                last_fps, (unsigned long long)frame_count);
+         else
+            snprintf(buf_fps, size_fps, "FPS: %.1f", last_fps);
+      }
 
       return ret;
    }

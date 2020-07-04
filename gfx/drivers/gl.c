@@ -1650,7 +1650,7 @@ static bool gl_frame(void *data, const void *frame,
       gl_draw_texture(gl);
 #endif
 
-   if (msg && driver->font_osd_driver && driver->font_osd_data)
+   if (msg && *msg && driver->font_osd_driver && driver->font_osd_data)
       font_driver->render_msg(driver->font_osd_data, msg, NULL);
 
 #ifdef HAVE_OVERLAY

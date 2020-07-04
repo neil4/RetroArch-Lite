@@ -269,7 +269,7 @@ static void gl_raster_font_render_message(
    if (!msg || !*msg || !font->gl)
       return;
 
-   //If the font height is not supported just draw as usual
+   /* If the font height is not supported just draw as usual */
    if (!font->font_driver->get_line_height)
    {
       gl_raster_font_render_line(font, msg, strlen(msg), scale, color, pos_x, pos_y, text_align);
@@ -283,7 +283,7 @@ static void gl_raster_font_render_message(
    {
       const char *delim = strchr(msg, '\n');
 
-      //Draw the line
+      /* Draw the line */
       if (delim)
       {
          unsigned msg_len = delim - msg;
@@ -377,7 +377,7 @@ static void gl_raster_font_render_msg(void *data, const char *msg,
       x           = settings->video.msg_pos_x;
       y           = settings->video.msg_pos_y;
       scale       = 1.0f;
-      full_screen = false;
+      full_screen = true;
       text_align  = TEXT_ALIGN_LEFT;
 
       color[0]    = settings->video.msg_color_r;
