@@ -107,7 +107,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_DISK_OPTIONS:
          return "core_disc_options";
       case MENU_LABEL_VALUE_DISK_OPTIONS:
-         return "Core Disc Options";
+         return "Disc Control";
       case MENU_LABEL_VALUE_CORE_OPTIONS:
          return "Core-Provided Options";
       case MENU_LABEL_VALUE_CORE_CHEAT_OPTIONS:
@@ -285,7 +285,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS:
          return "core_input_remapping_options";
       case MENU_LABEL_VALUE_CORE_INPUT_REMAPPING_OPTIONS:
-         return "Input Remapping Options";
+         return "Input Remapping";
       case MENU_LABEL_VALUE_VIDEO_OPTIONS:
          return "Video Options";
       case MENU_LABEL_VALUE_SHADER_OPTIONS:
