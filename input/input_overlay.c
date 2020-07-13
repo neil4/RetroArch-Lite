@@ -38,7 +38,7 @@
 
 #define MAX_TOUCH 16
 
-/* Extra "high level" bind IDs only for touchscreen overlays */
+/* Extra "high level" bind IDs only for overlays */
 enum 
 {
    RARCH_LIGHTGUN_TRIGGER = 0,
@@ -75,20 +75,20 @@ enum
                                 | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT) \
                                 | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT) )
 
-static bool lightgun_active;
+static bool overlay_lightgun_active;
+static bool overlay_adjust_needed;
+static float disp_aspect = 1.778f;
 
-typedef struct overlay_adjust_data
+typedef struct overlay_aspect_mod_vals
 {
-   float x_aspect_factor;
+   float w;
    float x_center_shift;
    float x_bisect_shift;
-   float y_aspect_factor;
+   float h;
    float y_center_shift;
-   float display_aspect;
-   bool update_needed;
-} overlay_adjust_data_t;
+} overlay_aspect_mod_vals_t;
 
-static overlay_adjust_data_t adj;
+static overlay_aspect_mod_vals_t ar_mod;
 
 typedef struct ellipse_px
 {
@@ -265,63 +265,67 @@ static unsigned input_overlay_auto_aspect_index(struct overlay *ol)
 /* Get values to adjust the overlay's aspect, re-center it, and then bisect it
  * to a wider display if possible
  */
-static void update_aspect_x_y_globals(struct overlay *ol)
+static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
 {
-   unsigned screen_width, screen_height;
-   float overlay_aspect, bisect_aspect, max_bisect;
+   unsigned disp_width, disp_height;
+   float ol_aspect, bisect_aspect, max_bisect, bisect_w;
    settings_t* settings = config_get_ptr();
    
-   /* initialize to defaults */
-   adj.x_aspect_factor      = 1.0f;
-   adj.x_center_shift       = 0.0f;
-   adj.x_bisect_shift       = 0.0f;
-   adj.y_aspect_factor      = 1.0f;
-   adj.y_center_shift       = 0.0f;
+   /* initialize AR mod vals to defaults */
+   ar_mod.w              = 1.0f;
+   ar_mod.x_center_shift = 0.0f;
+   ar_mod.x_bisect_shift = 0.0f;
+   ar_mod.h              = 1.0f;
+   ar_mod.y_center_shift = 0.0f;
 
-   video_driver_get_size(&screen_width, &screen_height);
-   adj.display_aspect = (float)screen_width / screen_height;
+   video_driver_get_size(&disp_width, &disp_height);
+   disp_aspect = (float)disp_width / disp_height;
 
    if (settings->input.overlay_aspect_ratio_index == OVERLAY_ASPECT_RATIO_AUTO)
-      overlay_aspect = overlay_aspectratio_lut
-                       [input_overlay_auto_aspect_index(ol)].value;
+      ol_aspect = overlay_aspectratio_lut
+                        [input_overlay_auto_aspect_index(ol)].value;
    else
-      overlay_aspect = overlay_aspectratio_lut
-                       [settings->input.overlay_aspect_ratio_index].value;
+      ol_aspect = overlay_aspectratio_lut
+                        [settings->input.overlay_aspect_ratio_index].value;
    
-   if (adj.display_aspect > overlay_aspect * 1.01)
+   if (disp_aspect > ol_aspect * 1.01)
    {
-      adj.x_aspect_factor = overlay_aspect / adj.display_aspect;
-      adj.x_center_shift = (1.0f - adj.x_aspect_factor) / 2.0f;
+      ar_mod.w = ol_aspect / disp_aspect;
+      ar_mod.x_center_shift = (1.0f - ar_mod.w) / 2.0f;
    }
-   else if (overlay_aspect > adj.display_aspect * 1.01)
+   else if (ol_aspect > disp_aspect * 1.01)
    {
-      adj.y_aspect_factor = adj.display_aspect / overlay_aspect;
-      adj.y_center_shift = (1.0f - adj.y_aspect_factor) / 2.0f;
+      ar_mod.h = disp_aspect / ol_aspect;
+      ar_mod.y_center_shift = (1.0f - ar_mod.h) / 2.0f;
    }
 
    /* adjust for scale to keep bisect aspect setting relative to display */
    bisect_aspect = settings->input.overlay_bisect_aspect_ratio
                    / settings->input.overlay_scale;
-   max_bisect = adj.display_aspect / settings->input.overlay_scale;
+   max_bisect = disp_aspect / settings->input.overlay_scale;
    bisect_aspect = min(bisect_aspect, max_bisect);
-   if (bisect_aspect > overlay_aspect)
+   if (bisect_aspect > ol_aspect)
    {
-      adj.x_bisect_shift = ( bisect_aspect/adj.display_aspect
-                             + ( (1.0f - bisect_aspect/adj.display_aspect)
-                                 / 2.0f ) )
-                           - (adj.x_aspect_factor + adj.x_center_shift);
+      bisect_w = bisect_aspect / disp_aspect;
+      ar_mod.x_bisect_shift = (bisect_w - ar_mod.w) / 2.0f;
    }
 }
 
-static void input_overlay_desc_update_hitbox(struct overlay_desc *desc)
+static void input_overlay_desc_init_imagebox(struct overlay_desc *desc)
 {
    if (!desc)
       return;
-   
+
    desc->mod_x   = desc->x - desc->range_x;
    desc->mod_w   = 2.0f * desc->range_x;
    desc->mod_y   = desc->y - desc->range_y;
    desc->mod_h   = 2.0f * desc->range_y;
+}
+
+static void input_overlay_desc_init_hitbox(struct overlay_desc *desc)
+{
+   if (!desc)
+      return;
 
    desc->x_hitbox = ( (desc->x + desc->range_x * desc->reach_right)
                       + (desc->x - desc->range_x * desc->reach_left) ) / 2.0f;
@@ -341,8 +345,8 @@ static void input_overlay_desc_update_hitbox(struct overlay_desc *desc)
 
 static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc)
 {
-   settings_t* settings = config_get_ptr();
-   global_t  *global    = global_get_ptr();
+   settings_t *settings = config_get_ptr();
+   global_t   *global   = global_get_ptr();
    float upper_bound = 0.5f + (0.5f * (1.0f / settings->input.overlay_scale));
    float lower_bound = 0.5f - (0.5f * (1.0f / settings->input.overlay_scale));
    
@@ -352,18 +356,18 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
    if (settings->input.overlay_adjust_aspect)
    {
       /* adjust aspect */
-      desc->x = desc->x_orig * adj.x_aspect_factor;
-      desc->y = desc->y_orig * adj.y_aspect_factor;
-      desc->range_x = desc->range_x_orig * adj.x_aspect_factor;
-      desc->range_y = desc->range_y_orig * adj.y_aspect_factor;
+      desc->x = desc->x_orig * ar_mod.w;
+      desc->y = desc->y_orig * ar_mod.h;
+      desc->range_x = desc->range_x_orig * ar_mod.w;
+      desc->range_y = desc->range_y_orig * ar_mod.h;
 
       /* re-center and bisect */
-      desc->x += adj.x_center_shift;
+      desc->x += ar_mod.x_center_shift;
       if ( desc->x > 0.5f )
-         desc->x += adj.x_bisect_shift;
+         desc->x += ar_mod.x_bisect_shift;
       else if ( desc->x < 0.5f )
-         desc->x -= adj.x_bisect_shift;
-      desc->y += adj.y_center_shift;
+         desc->x -= ar_mod.x_bisect_shift;
+      desc->y += ar_mod.y_center_shift;
    }
    else
    {
@@ -579,7 +583,7 @@ void input_overlay_set_scale_factor(input_overlay_t *ol, float scale)
    input_overlay_set_vertex_geom(ol);
 }
 
-static void input_overlay_update_aspect_and_shift_vals(struct overlay *ol)
+static void input_overlay_update_aspect_and_shift(struct overlay *ol)
 {
    struct overlay_desc* desc;
    size_t i;
@@ -587,14 +591,15 @@ static void input_overlay_update_aspect_and_shift_vals(struct overlay *ol)
    if (!ol)
       return;
 
-   update_aspect_x_y_globals(ol);
+   input_overlay_update_aspect_ratio_vals(ol);
 
    for (i = 0; i < ol->size; i++)
    {
       desc = &ol->descs[i];
       if (!ol->fullscreen_image)
          input_overlay_desc_adjust_aspect_and_shift(desc);
-      input_overlay_desc_update_hitbox(desc);
+      input_overlay_desc_init_imagebox(desc);
+      input_overlay_desc_init_hitbox(desc);
    }
 }
 
@@ -608,7 +613,7 @@ void input_overlays_update_aspect_shift_scale(input_overlay_t *ol)
 
    for (i = 0; i < ol->size; i++)
    {
-      input_overlay_update_aspect_and_shift_vals(&ol->overlays[i]);
+      input_overlay_update_aspect_and_shift(&ol->overlays[i]);
       input_overlay_scale(&ol->overlays[i], settings->input.overlay_scale);
    }
 
@@ -895,7 +900,8 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    desc->reach_down = 1.0f;
    config_get_float(ol->conf, conf_key, &desc->reach_down);
 
-   input_overlay_desc_update_hitbox(desc);
+   input_overlay_desc_init_imagebox(desc);
+   input_overlay_desc_init_hitbox(desc);
    
    snprintf(conf_key, sizeof(conf_key),
          "overlay%u_desc%u_movable", ol_idx, desc_idx);
@@ -1108,7 +1114,7 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
          break;
       case OVERLAY_IMAGE_TRANSFER_DESC_DONE:
          if (!driver_get_ptr()->osk_enable)
-            input_overlay_update_aspect_and_shift_vals(&ol->overlays[ol->pos]);
+            input_overlay_update_aspect_and_shift(&ol->overlays[ol->pos]);
          input_overlay_scale(&ol->overlays[ol->pos], ol->deferred.scale_factor);
          if (ol->pos == 0)
             input_overlay_load_overlays_resolve_iterate(ol);
@@ -1589,7 +1595,7 @@ static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
    uint64_t state = 0;
    const struct overlay_eightway_vals* vals = desc_ptr->eightway_vals;
    
-   float x_offset = (x - desc_ptr->x) * adj.display_aspect;
+   float x_offset = (x - desc_ptr->x) * disp_aspect;
    float y_offset = (desc_ptr->y - y);
    unsigned method = area_type < ABXY_AREA ?
                      settings->input.dpad_method : settings->input.abxy_method;
@@ -1703,7 +1709,7 @@ static void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
    if (!mask)
       return;
 
-   if (lightgun_active)
+   if (overlay_lightgun_active)
       out->lightgun_buttons |= overlay_lightgun_buttons_state(mask);
 
    if (mask & (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA))
@@ -1717,8 +1723,8 @@ static void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
  * input_overlay_undo_meta_overlap
  * @param out                 : overlay state for a single pointer
  *
- * Disallows simultaneous use of meta keys with other controls. Meta keys take
- * priority unless other controls were already active.
+ * Disallows simultaneous use of meta keys with other controls by the same
+ * pointer. Meta keys take priority unless other controls were already active.
  */
 static inline void input_overlay_undo_meta_overlap(input_overlay_state_t* out)
 {
@@ -1982,10 +1988,10 @@ void input_overlay_poll_clear(input_overlay_t *ol, float opacity)
       input_overlay_update_desc_geom(ol, desc);
    }
    
-   if (adj.update_needed)
+   if (overlay_adjust_needed)
    {
       input_overlays_update_aspect_shift_scale(ol);
-      adj.update_needed = false;
+      overlay_adjust_needed = false;
    }
 }
 
@@ -2009,11 +2015,11 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    bool generic = false;
    
    /* disconnect any connected lightgun */
-   if (lightgun_active)
+   if (overlay_lightgun_active)
    {
       pretro_set_controller_port_device
          (old_port, settings->input.libretro_device[old_port]);
-      lightgun_active = false;
+      overlay_lightgun_active = false;
    }
    
    if (ol->active->lightgun_overlay)
@@ -2024,13 +2030,13 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
          if ( (RETRO_DEVICE_MASK & settings->input.libretro_device[port])
                  == RETRO_DEVICE_LIGHTGUN )
          {
-            lightgun_active = true;
+            overlay_lightgun_active = true;
             break;
          }
       }
 
       /* If already connected, just get the device name */
-      if (lightgun_active)
+      if (overlay_lightgun_active)
       {
          rci = global->system.ports[port];
          for (i = 0; i < rci.num_types; i++)
@@ -2045,22 +2051,22 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
             if ((RETRO_DEVICE_MASK & rci.types[i].id) == RETRO_DEVICE_LIGHTGUN)
             {
                pretro_set_controller_port_device(port, rci.types[i].id);
-               lightgun_active = true;
+               overlay_lightgun_active = true;
                break;
             }
          }
-         if (lightgun_active) break;
+         if (overlay_lightgun_active) break;
       }
 
-      if (!lightgun_active)
+      if (!overlay_lightgun_active)
       {  /* Fall back to generic lightgun */
          port = 0;
-         lightgun_active = true;
+         overlay_lightgun_active = true;
          generic = true;
       }
    }
    
-   if (lightgun_active)
+   if (overlay_lightgun_active)
    {
       old_port = port;
       
@@ -2179,10 +2185,10 @@ uint64_t menu_analog_dpad_state(const int16_t analog_x, const int16_t analog_y)
 
 bool input_overlay_lightgun_active()
 {
-   return lightgun_active;
+   return overlay_lightgun_active;
 }
 
 void input_overlay_notify_video_updated()
 {
-   adj.update_needed = true;
+   overlay_adjust_needed = true;
 }

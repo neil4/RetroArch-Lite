@@ -146,14 +146,22 @@ enum overlay_image_transfer_status
 
 struct overlay_desc
 {
-   float x;
-   float y;
+   float x, y;
+   float x_orig, y_orig;
+   float x_hitbox, y_hitbox;
+
+   float range_x, range_y;
+   float range_x_orig, range_y_orig;
+   float reach_right, reach_left;
+   float range_x_hitbox;
+   float reach_up, reach_down;
+   float range_y_hitbox;
 
    enum overlay_hitbox hitbox;
-   float range_x, range_y;
+   float range_mod;
    float range_x_mod, range_y_mod;
-   float mod_x, mod_y, mod_w, mod_h;
-   float delta_x, delta_y;
+   bool  range_mod_exclusive;
+   uint16_t updated;
 
    enum overlay_type type;
    uint64_t key_mask;
@@ -165,25 +173,12 @@ struct overlay_desc
 
    struct texture_image image;
    unsigned image_index;
-
+   float mod_x, mod_y, mod_w, mod_h;
    float alpha_mod;
-   float range_mod;
-
-   float reach_right, reach_left, reach_up, reach_down;
-   float x_hitbox, y_hitbox;
-   float range_x_hitbox, range_y_hitbox;
-   
-   struct overlay_eightway_vals* eightway_vals;
-   
-   uint16_t updated;  /* MAX_TOUCH bits; 'updated' is true if any are set */
+   float delta_x, delta_y;
    bool movable;
-   bool range_mod_exclusive;  /* ignore overlapping controls when range extended */
-   
-   /* values as-read from cfg, before shift or aspect adjustments */
-   float x_orig;
-   float y_orig;
-   float range_x_orig;
-   float range_y_orig;
+
+   struct overlay_eightway_vals *eightway_vals;
 };
 
 struct overlay
