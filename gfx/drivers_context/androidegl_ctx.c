@@ -340,8 +340,7 @@ static bool android_gfx_ctx_bind_api(void *data,
 
    (void)data;
 
-   if (version >= 300)
-      g_es3 = true;
+   g_es3 = (version >= 300);
    return api == GFX_CTX_OPENGL_ES_API;
 }
 
