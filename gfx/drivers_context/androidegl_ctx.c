@@ -141,7 +141,8 @@ static bool android_gfx_ctx_init(void *data)
       EGL_NONE
    };
    const EGLint attribs[] = {
-      EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+      EGL_RENDERABLE_TYPE,
+      g_es3 ? EGL_OPENGL_ES3_BIT : EGL_OPENGL_ES2_BIT,
       EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
       EGL_BLUE_SIZE, 8,
       EGL_GREEN_SIZE, 8,
@@ -339,11 +340,7 @@ static bool android_gfx_ctx_bind_api(void *data,
 
    (void)data;
 
-   if (version > 300)
-      return false;
-   if (version < 300)
-      g_es3 = false;
-   else if (version == 300)
+   if (version >= 300)
       g_es3 = true;
    return api == GFX_CTX_OPENGL_ES_API;
 }
