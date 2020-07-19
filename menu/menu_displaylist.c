@@ -34,6 +34,7 @@
 #include "../git_version.h"
 #include "../performance.h"
 #include "../tasks/tasks.h"
+#include "../input/input_remapping.h"
 
 #ifdef HAVE_NETWORKING
 extern char *core_buf;
@@ -1170,6 +1171,12 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          break;
       case DISPLAYLIST_OPTIONS_REMAPPINGS:
          menu_list_clear(info->list);
+         if (!global->has_set_input_descriptors)
+         {
+            rarch_main_msg_queue_push("Defaulting to RetroPad input "
+                                      "descriptors.", 1, 180, true);
+            input_remapping_set_default_desc();
+         }
          ret = menu_displaylist_parse_options_remappings(info);
 
          need_push    = true;
@@ -1325,11 +1332,10 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
       case DISPLAYLIST_CORE_OPTIONS:
          menu_list_clear(info->list);
          
-         if (global->has_set_input_descriptors)
-            menu_list_push(info->list,
-               menu_hash_to_str(MENU_LABEL_VALUE_CORE_INPUT_REMAPPING_OPTIONS),
-               menu_hash_to_str(MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS),
-               MENU_SETTING_ACTION, 0, 0);
+         menu_list_push(info->list,
+            menu_hash_to_str(MENU_LABEL_VALUE_CORE_INPUT_REMAPPING_OPTIONS),
+            menu_hash_to_str(MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS),
+            MENU_SETTING_ACTION, 0, 0);
          if (!global->libretro_dummy && global->system.disk_control.get_num_images)
             menu_list_push(info->list,
                menu_hash_to_str(MENU_LABEL_VALUE_DISK_OPTIONS),

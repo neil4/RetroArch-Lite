@@ -60,6 +60,8 @@ void input_remapping_set_defaults(void);
 void input_remapping_state(unsigned port,
       unsigned *device, unsigned *idx, unsigned *id);
 
+void input_remapping_set_default_desc();
+
 #ifdef __cplusplus
 }
 #endif
