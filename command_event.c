@@ -441,7 +441,8 @@ static void event_init_controllers(void)
    {
       const char *ident = NULL;
       const struct retro_controller_description *desc = NULL;
-      unsigned device = settings->input.libretro_device[i];
+      unsigned device = (i < settings->input.max_users) ?
+                        settings->input.libretro_device[i] : RETRO_DEVICE_NONE;
 
       if (i < global->system.num_ports)
          desc = libretro_find_controller_description(
