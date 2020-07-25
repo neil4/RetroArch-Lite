@@ -3053,7 +3053,7 @@ void config_backup_restore_globals()
    if (settings->input.libretro_device_scope != GLOBAL)
    {  /* restore */
       settings->input.libretro_device_scope = GLOBAL;
-      for (i = 0; i < settings->input.max_users; i++)
+      for (i = 0; i < MAX_USERS; i++)
       {
          snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
          config_get_uint(conf, buf, &settings->input.libretro_device[i]);
@@ -3063,7 +3063,7 @@ void config_backup_restore_globals()
    }
    else
    {  /* back up */
-      for (i = 0; i < settings->input.max_users; i++)
+      for (i = 0; i < MAX_USERS; i++)
       {
          snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
          config_set_int(conf, buf, settings->input.libretro_device[i]);
