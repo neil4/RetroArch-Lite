@@ -2008,15 +2008,14 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
 {
    global_t*   global   = global_get_ptr();
    settings_t* settings = config_get_ptr();
-   static int old_port = -1;
+   static int old_port;
    int port, i;
    char msg[64];
    struct retro_controller_info rci;
    bool generic = false;
    
-   /* disconnect any connected lightgun */
    if (overlay_lightgun_active)
-   {
+   {  /* reconnect previous device */
       pretro_set_controller_port_device
          (old_port, settings->input.libretro_device[old_port]);
       overlay_lightgun_active = false;
@@ -2055,7 +2054,8 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
                break;
             }
          }
-         if (overlay_lightgun_active) break;
+         if (overlay_lightgun_active)
+            break;
       }
 
       if (!overlay_lightgun_active)
