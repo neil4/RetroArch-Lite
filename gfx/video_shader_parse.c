@@ -587,7 +587,7 @@ static bool video_shader_parse_imports(config_file_t *conf,
 }
 
 /** 
- * video_shader_read_conf_cgp:
+ * video_shader_read_conf:
  * @conf              : Preset file to read from.
  * @shader            : Shader passes handle.
  *
@@ -596,12 +596,17 @@ static bool video_shader_parse_imports(config_file_t *conf,
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
-bool video_shader_read_conf_cgp(config_file_t *conf, struct video_shader *shader)
+bool video_shader_read_conf(config_file_t *conf, struct video_shader *shader)
 {
    unsigned shaders, i;
 
    memset(shader, 0, sizeof(*shader));
-   shader->type = RARCH_SHADER_CG;
+   shader->type = video_shader_parse_type(conf->path, RARCH_SHADER_NONE);
+   if (shader->type == RARCH_SHADER_NONE)
+   {
+      RARCH_ERR("Unsupported shader preset.\n");
+      return false;
+   }
 
    shaders = 0;
    if (!config_get_uint(conf, "shaders", &shaders))
@@ -758,14 +763,14 @@ static void shader_write_variable(config_file_t *conf,
 }
 
 /** 
- * video_shader_write_conf_cgp:
+ * video_shader_write_conf:
  * @conf              : Preset file to read from.
  * @shader            : Shader passes handle.
  *
  * Saves preset and all associated state (passes,
  * textures, imports, etc) to disk. 
  **/
-void video_shader_write_conf_cgp(config_file_t *conf,
+void video_shader_write_conf(config_file_t *conf,
       struct video_shader *shader)
 {
    unsigned i;

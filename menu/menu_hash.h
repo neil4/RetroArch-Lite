@@ -275,7 +275,7 @@ extern "C" {
 #define MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS                                0x7836a8caU
 #define MENU_LABEL_VALUE_CURSOR_MANAGER                                        0xc3696afeU
 #define MENU_LABEL_VIDEO_SHADER_PASS                                           0x4fa31028U
-#define MENU_LABEL_VALUE_VIDEO_SHADER_PRESET                                   0xd149336fU
+#define MENU_LABEL_VALUE_VIDEO_SHADER_PRESET                                   0x5990f82eU
 #define MENU_LABEL_VIDEO_SHADER_PRESET                                         0xc5d3bae4U
 #define MENU_LABEL_CHEAT_FILE_LOAD                                             0x57336148U
 #define MENU_LABEL_VALUE_CHEAT_FILE_LOAD                                       0x5b983e0aU

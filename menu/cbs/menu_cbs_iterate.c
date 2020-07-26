@@ -475,6 +475,7 @@ static void delete_shader_preset(menu_list_t *menu_list)
    const char *menu_dir            = NULL;
    const char *menu_label          = NULL;
    settings_t *settings            = config_get_ptr();
+   struct video_shader *shader     = video_shader_driver_get_current_shader();
    menu_entry_t entry;
    size_t selected;
 
@@ -500,7 +501,9 @@ static void delete_shader_preset(menu_list_t *menu_list)
          settings->video.shader_path[0] = '\0';
          scoped_settings_touched = true;
          settings_touched = true;
-         event_command(EVENT_CMD_REINIT);
+
+         if (shader)
+            video_driver_set_shader(shader->type, NULL);
       }
    }
 }

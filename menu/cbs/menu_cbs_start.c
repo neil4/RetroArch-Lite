@@ -149,6 +149,7 @@ static int action_start_options_file_delete_game(unsigned type, const char *labe
 static int action_start_shader_preset(unsigned type, const char *label)
 {
    settings_t *settings = config_get_ptr();
+   struct video_shader *shader = video_shader_driver_get_current_shader();
 
    if (!settings)
       return -1;
@@ -156,7 +157,10 @@ static int action_start_shader_preset(unsigned type, const char *label)
    settings->video.shader_path[0] = '\0';
    scoped_settings_touched = true;
    settings_touched = true;
-   event_command(EVENT_CMD_REINIT);
+
+   if (shader)
+      video_driver_set_shader(shader->type, NULL);
+
    return 0;
 }
 

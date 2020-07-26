@@ -303,7 +303,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_VIDEO_SHADER_PRESET:
          return "video_shader_preset";
       case MENU_LABEL_VALUE_VIDEO_SHADER_PRESET:
-         return "Load Shader Preset";
+         return "HW Shader Preset";
       case MENU_LABEL_VIDEO_FILTER:
          return "video_filter";
       case MENU_LABEL_VALUE_VIDEO_FILTER:

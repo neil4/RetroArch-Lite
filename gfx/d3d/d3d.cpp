@@ -1195,7 +1195,7 @@ static bool d3d_init_multipass(d3d_video_t *d3d)
 
    memset(&d3d->shader, 0, sizeof(d3d->shader));
 
-   if (!video_shader_read_conf_cgp(conf, &d3d->shader))
+   if (!video_shader_read_conf(conf, &d3d->shader))
    {
       config_file_free(conf);
       RARCH_ERR("Failed to parse CGP file.\n");

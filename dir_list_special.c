@@ -25,7 +25,7 @@ struct string_list *dir_list_new_special(const char *input_dir, enum dir_list_ty
    const char *exts  = NULL;
    bool include_dirs = false;
 
-   global_t                *global = global_get_ptr();
+   global_t     *global = global_get_ptr();
    settings_t *settings = config_get_ptr();
 
    (void)input_dir;
@@ -42,7 +42,7 @@ struct string_list *dir_list_new_special(const char *input_dir, enum dir_list_ty
          exts = (global->core_info) ? core_info_list_get_all_extensions(global->core_info) : NULL;
          break;
       case DIR_LIST_SHADERS:
-         dir  = settings->video.shader_dir;
+         dir  = *input_dir ? input_dir : settings->video.shader_dir;
          exts = "cg|cgp|glsl|glslp";
          break;
       case DIR_LIST_PLAIN:

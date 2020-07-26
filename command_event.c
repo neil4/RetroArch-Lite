@@ -1303,26 +1303,33 @@ bool event_command(enum event_command cmd)
          global->shader_dir.ptr  = 0;
          break;
       case EVENT_CMD_SHADER_DIR_INIT:
+      {
+         char shader_dir[PATH_MAX_LENGTH];
+
          event_command(EVENT_CMD_SHADER_DIR_DEINIT);
 
-         if (!*settings->video.shader_dir)
+         if (!*settings->video.shader_dir && !*settings->video.shader_path)
             return false;
 
-         global->shader_dir.list = dir_list_new_special(NULL, DIR_LIST_SHADERS);
-
+         fill_pathname_parent_dir(shader_dir, settings->video.shader_path,
+                                  PATH_MAX_LENGTH);
+         global->shader_dir.list = dir_list_new_special(shader_dir,
+                                                        DIR_LIST_SHADERS);
          if (!global->shader_dir.list || global->shader_dir.list->size == 0)
-         {
-            event_command(EVENT_CMD_SHADER_DIR_DEINIT);
             return false;
-         }
 
-         global->shader_dir.ptr  = 0;
+         global->shader_dir.ptr = 0;
          dir_list_sort(global->shader_dir.list, false);
-
          for (i = 0; i < global->shader_dir.list->size; i++)
+         {
             RARCH_LOG("Found shader \"%s\"\n",
                   global->shader_dir.list->elems[i].data);
+            if (!strcmp(settings->video.shader_path,
+                        global->shader_dir.list->elems[i].data))
+               global->shader_dir.ptr = i;
+         }
          break;
+      }
       case EVENT_CMD_SAVEFILES:
          event_save_files();
          break;

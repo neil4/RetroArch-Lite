@@ -5520,7 +5520,7 @@ static bool setting_append_list_video_options(
 #ifdef HAVE_SHADER_MANAGER
    CONFIG_ACTION(
          menu_hash_to_str(MENU_LABEL_VIDEO_SHADER_PRESET),
-         "HW Shader Preset",
+         menu_hash_to_str(MENU_LABEL_VALUE_VIDEO_SHADER_PRESET),
          group_info.name,
          subgroup_info.name,
          parent_group);

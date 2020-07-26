@@ -686,7 +686,7 @@ static bool load_preset(cg_shader_data_t *cg, const char *path)
       return false;
    }
 
-   if (!video_shader_read_conf_cgp(conf, cg->cg_shader))
+   if (!video_shader_read_conf(conf, cg->cg_shader))
    {
       RARCH_ERR("Failed to parse CGP file.\n");
       config_file_free(conf);

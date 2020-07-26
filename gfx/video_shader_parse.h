@@ -154,7 +154,7 @@ struct video_shader
 };
 
 /** 
- * video_shader_read_conf_cgp:
+ * video_shader_read_conf:
  * @conf              : Preset file to read from.
  * @shader            : Shader passes handle.
  *
@@ -163,18 +163,18 @@ struct video_shader
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
-bool video_shader_read_conf_cgp(config_file_t *conf,
+bool video_shader_read_conf(config_file_t *conf,
       struct video_shader *shader);
 
 /** 
- * video_shader_write_conf_cgp:
+ * video_shader_write_conf:
  * @conf              : Preset file to read from.
  * @shader            : Shader passes handle.
  *
  * Saves preset and all associated state (passes,
  * textures, imports, etc) to disk. 
  **/
-void video_shader_write_conf_cgp(config_file_t *conf,
+void video_shader_write_conf(config_file_t *conf,
       struct video_shader *shader);
 
 /**

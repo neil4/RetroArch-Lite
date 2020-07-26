@@ -405,10 +405,9 @@ static void check_shader_dir(bool pressed_next, bool pressed_prev)
    else
       return;
 
+   shader   = global->shader_dir.list->elems[global->shader_dir.ptr].data;
    ext      = path_get_extension(shader);
    ext_hash = djb2_calculate(ext);
-   shader   = global ? 
-      global->shader_dir.list->elems[global->shader_dir.ptr].data : NULL;
 
    switch (ext_hash)
    {
@@ -424,8 +423,8 @@ static void check_shader_dir(bool pressed_next, bool pressed_prev)
          return;
    }
 
-   snprintf(msg, sizeof(msg), "Shader #%u: \"%s\".",
-         (unsigned)global->shader_dir.ptr, shader);
+   snprintf(msg, sizeof(msg), "Shader #%u: \"%s\"",
+         (unsigned)global->shader_dir.ptr, path_basename(shader));
    rarch_main_msg_queue_push(msg, 1, 120, true);
    RARCH_LOG("Applying shader \"%s\".\n", shader);
 

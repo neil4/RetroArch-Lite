@@ -58,7 +58,7 @@ void menu_shader_manager_init(menu_handle_t *menu)
          conf = config_file_new(settings->video.shader_path);
          if (conf)
          {
-            if (video_shader_read_conf_cgp(conf, shader))
+            if (video_shader_read_conf(conf, shader))
             {
                video_shader_resolve_relative(shader, settings->video.shader_path);
                video_shader_resolve_parameters(conf, shader);
@@ -88,7 +88,7 @@ void menu_shader_manager_init(menu_handle_t *menu)
 
             if (conf)
             {
-               if (video_shader_read_conf_cgp(conf, shader))
+               if (video_shader_read_conf(conf, shader))
                {
                   video_shader_resolve_relative(shader, preset_path);
                   video_shader_resolve_parameters(conf, shader);
@@ -140,7 +140,7 @@ void menu_shader_manager_set_preset(struct video_shader *shader,
 
    RARCH_LOG("Setting Menu shader: %s.\n", preset_path ? preset_path : "N/A (stock)");
 
-   if (video_shader_read_conf_cgp(conf, shader))
+   if (video_shader_read_conf(conf, shader))
    {
       video_shader_resolve_relative(shader, preset_path);
       video_shader_resolve_parameters(conf, shader);
@@ -148,6 +148,10 @@ void menu_shader_manager_set_preset(struct video_shader *shader,
    config_file_free(conf);
 
    menu_entries_set_refresh();
+
+   event_command(EVENT_CMD_SHADER_DIR_INIT);
+   scoped_settings_touched = true;
+   settings_touched = true;
 #endif
 }
 
@@ -238,7 +242,7 @@ void menu_shader_manager_save_preset(
 
    if (!(conf = (config_file_t*)config_file_new(NULL)))
       return;
-   video_shader_write_conf_cgp(conf, menu->shader);
+   video_shader_write_conf(conf, menu->shader);
 
    for (d = 0; d < ARRAY_SIZE(dirs); d++)
    {
