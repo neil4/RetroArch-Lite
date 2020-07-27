@@ -74,6 +74,16 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
 
       DECLARE_META_BIND(2, toggle_hotkeys,        RARCH_TOGGLE_HOTKEYS, "Hotkeys toggle"),
 
+      /* TODO: Allow binding these */
+      DECLARE_BIND(lightgun_trigger, RARCH_LIGHTGUN_TRIGGER, "Lightgun trigger"),
+      DECLARE_BIND(lightgun_reload,  RARCH_LIGHTGUN_RELOAD, "Lightgun reload"),
+      DECLARE_BIND(lightgun_aux_a,   RARCH_LIGHTGUN_AUX_A, "Lightgun aux A"),
+      DECLARE_BIND(lightgun_aux_b,   RARCH_LIGHTGUN_AUX_B, "Lightgun aux B"),
+      DECLARE_BIND(lightgun_aux_c,   RARCH_LIGHTGUN_AUX_C, "Lightgun aux C"),
+
+      DECLARE_BIND(dpad_area, RARCH_JOYPAD_DPAD_AREA, "D-pad area"),
+      DECLARE_BIND(abxy_area, RARCH_JOYPAD_ABXY_AREA, "ABXY area"),
+
       DECLARE_META_BIND(2, enable_hotkey,         RARCH_ENABLE_HOTKEY, "Hotkeys enable hold"),
       DECLARE_META_BIND(1, toggle_fast_forward,   RARCH_FAST_FORWARD_KEY, "Fast forward toggle"),
       DECLARE_META_BIND(2, hold_fast_forward,     RARCH_FAST_FORWARD_HOLD_KEY, "Fast forward hold"),

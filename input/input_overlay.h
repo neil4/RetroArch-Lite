@@ -41,7 +41,7 @@ extern "C" {
  * This interface requires that the video driver has support 
  * for the overlay interface.
  */
-   
+
 enum overlay_eightway_type
 {
    DPAD_AREA = 0,
@@ -165,7 +165,6 @@ struct overlay_desc
 
    enum overlay_type type;
    uint64_t key_mask;
-   uint64_t highlevel_mask;
    float analog_saturate_pct;
 
    unsigned next_index;
@@ -285,7 +284,6 @@ typedef struct input_overlay_state
    /* Left X, Left Y, Right X, Right Y */
    int16_t analog[4]; 
 
-   uint16_t lightgun_buttons;
    uint16_t lightgun_x, lightgun_y;
    bool lightgun_ptr_active;
    
@@ -427,9 +425,6 @@ void input_overlay_update_eightway_diag_sens();
  * Returns 4-way Dpad state from analog axes for menu navigation.
  **/
 uint64_t menu_analog_dpad_state(const int16_t analog_x, const int16_t analog_y);
-
-/* Repurpose lightgun id values unusable as state bits */
-#define RARCH_LIGHTGUN_BIT_RELOAD RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN
 
 bool input_overlay_lightgun_active();
 

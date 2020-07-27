@@ -38,43 +38,6 @@
 
 #define MAX_TOUCH 16
 
-/* Extra "high level" bind IDs only for overlays */
-enum 
-{
-   RARCH_LIGHTGUN_TRIGGER = 0,
-   RARCH_LIGHTGUN_AUX_A,
-   RARCH_LIGHTGUN_AUX_B,
-   RARCH_LIGHTGUN_AUX_C,
-   RARCH_LIGHTGUN_START,
-   RARCH_LIGHTGUN_SELECT,
-   RARCH_LIGHTGUN_DPAD_UP,
-   RARCH_LIGHTGUN_DPAD_DOWN,
-   RARCH_LIGHTGUN_DPAD_LEFT,
-   RARCH_LIGHTGUN_DPAD_RIGHT,
-   RARCH_LIGHTGUN_RELOAD,
-
-   RARCH_JOYPAD_DPAD_AREA,
-   RARCH_JOYPAD_ABXY_AREA,
-
-   RARCH_HIGHLEVEL_END,
-   RARCH_HIGHLEVEL_END_NULL
-};
-
-#define OVERLAY_EIGHTWAY_MASK ( (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA) \
-                                | (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA) )
-
-#define OVERLAY_LIGHTGUN_MASK ( (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD) \
-                                | (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER) \
-                                | (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A) \
-                                | (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B) \
-                                | (UINT64_C(1) << RARCH_LIGHTGUN_START) \
-                                | (UINT64_C(1) << RARCH_LIGHTGUN_SELECT) \
-                                | (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C) \
-                                | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP) \
-                                | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN) \
-                                | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT) \
-                                | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT) )
-
 static bool overlay_lightgun_active;
 static bool overlay_adjust_needed;
 static float disp_aspect = 1.778f;
@@ -122,27 +85,6 @@ struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_EN
 
 static float overlay_eightway_dpad_slope_high, overlay_eightway_dpad_slope_low;
 static float overlay_eightway_abxy_slope_high, overlay_eightway_abxy_slope_low;
-
-/* Below: need 3 additional elements for duplicated (obsolete) values */
-const struct input_bind_map input_highlevel_config_bind_map[RARCH_HIGHLEVEL_END_NULL+3] = {
-      DECLARE_BIND(lightgun_trigger, RARCH_LIGHTGUN_TRIGGER, "Lightgun trigger"),
-      DECLARE_BIND(lightgun_cursor,  RARCH_LIGHTGUN_AUX_A, "Lightgun cursor"),
-      DECLARE_BIND(lightgun_aux_a,   RARCH_LIGHTGUN_AUX_A, "Lightgun aux A"),
-      DECLARE_BIND(lightgun_turbo,   RARCH_LIGHTGUN_AUX_B, "Lightgun turbo"),
-      DECLARE_BIND(lightgun_aux_b,   RARCH_LIGHTGUN_AUX_B, "Lightgun aux B"),
-      DECLARE_BIND(lightgun_aux_c,   RARCH_LIGHTGUN_AUX_C, "Lightgun aux C"),
-      DECLARE_BIND(lightgun_pause,   RARCH_LIGHTGUN_START, "Lightgun pause"),
-      DECLARE_BIND(lightgun_start,   RARCH_LIGHTGUN_START, "Lightgun start"),
-      DECLARE_BIND(lightgun_select,  RARCH_LIGHTGUN_SELECT, "Lightgun select"),
-      DECLARE_BIND(lightgun_reload,  RARCH_LIGHTGUN_RELOAD, "Lightgun reload"),
-      DECLARE_BIND(lightgun_up,      RARCH_LIGHTGUN_DPAD_UP, "Lightgun D-pad up"),
-      DECLARE_BIND(lightgun_down,    RARCH_LIGHTGUN_DPAD_DOWN, "Lightgun D-pad down"),
-      DECLARE_BIND(lightgun_left,    RARCH_LIGHTGUN_DPAD_LEFT, "Lightgun D-pad left"),
-      DECLARE_BIND(lightgun_right,   RARCH_LIGHTGUN_DPAD_RIGHT, "Lightgun D-pad right"),
-      DECLARE_BIND(dpad_area,        RARCH_JOYPAD_DPAD_AREA, "D-pad area"),
-      DECLARE_BIND(abxy_area,        RARCH_JOYPAD_ABXY_AREA, "ABXY area")
-};
-
 
 /**
  * set_ellipse
@@ -457,7 +399,7 @@ static void input_overlay_desc_populate_eightway_vals(config_file_t *ol_conf,
    desc->eightway_vals = calloc(1, sizeof(struct overlay_eightway_vals));
    vals = desc->eightway_vals;
 
-   if (desc->highlevel_mask == (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA))
+   if (desc->key_mask == (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA))
    {
       vals->up = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_UP;
       vals->down = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_DOWN;
@@ -466,7 +408,7 @@ static void input_overlay_desc_populate_eightway_vals(config_file_t *ol_conf,
       vals->p_slope_high = &overlay_eightway_dpad_slope_high;
       vals->p_slope_low = &overlay_eightway_dpad_slope_low;
    }
-   else if (desc->highlevel_mask == (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA))
+   else if (desc->key_mask == (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA))
    {
       vals->up = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_X;
       vals->down = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_B;
@@ -517,24 +459,6 @@ static void input_overlay_desc_populate_eightway_vals(config_file_t *ol_conf,
    vals->up_right = vals->up | vals->right;
    vals->down_left = vals->down | vals->left;
    vals->down_right = vals->down | vals->right;
-}
-
-/**
- * input_translate_str_to_highlevel_bind_id:
- * @str                            : String to translate to high level bind ID.
- *
- * Translate string representation to "high level" bind ID
- * High level IDs eventually translate to low level IDs
- *
- * Returns: Bind ID value on success, otherwise RARCH_HIGHLEVEL_END on not found.
- **/
-static unsigned input_translate_str_to_highlevel_bind_id(const char *str)
-{
-   unsigned i;
-   for (i = 0; input_highlevel_config_bind_map[i].valid; i++)
-      if (!strcmp(str, input_highlevel_config_bind_map[i].base))
-         return input_highlevel_config_bind_map[i].retro_key;
-   return RARCH_HIGHLEVEL_END;
 }
 
 static void input_overlay_set_vertex_geom(input_overlay_t *ol)
@@ -787,13 +711,7 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
             for (tmp = strtok_r(key, "|", &save); tmp; tmp = strtok_r(NULL, "|", &save))
             {
                if (strcmp(tmp, "nul") != 0)
-               {
-                  unsigned hlid = input_translate_str_to_highlevel_bind_id(tmp);
-                  if ( hlid != RARCH_HIGHLEVEL_END )
-                     desc->highlevel_mask |= UINT64_C(1) << hlid;
-                  else
-                     desc->key_mask |= UINT64_C(1) << input_translate_str_to_bind_id(tmp);
-               }
+                  desc->key_mask |= UINT64_C(1) << input_translate_str_to_bind_id(tmp);
             }
 
             if (desc->key_mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
@@ -910,7 +828,7 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    desc->delta_y = 0.0f;
    config_get_bool(ol->conf, conf_key, &desc->movable);
    
-   if ((desc->highlevel_mask & OVERLAY_EIGHTWAY_MASK) != 0)
+   if ((desc->key_mask & MULTIBUTTON_AREA_MASK) != 0)
       input_overlay_desc_populate_eightway_vals(ol->conf, desc, ol_idx, desc_idx);
 
    input_overlay->pos ++;
@@ -1585,7 +1503,7 @@ static inline uint64_t eightway_ellipse_coverage(const struct overlay_eightway_v
  * @x                     : X coordinate value.
  * @y                     : Y coordinate value.
  *
- * Returns the low level input state based on @x, @y, and ellipse_px valuess
+ * Returns the low level input state based on @x, @y, and ellipse_px values.
  **/
 static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
                                       unsigned area_type,
@@ -1608,116 +1526,6 @@ static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
    
    return state;
 }
-
-static inline uint16_t overlay_lightgun_buttons_state(uint64_t highlevel_mask)
-{
-   uint16_t lightgun_buttons = 0;
-
-   switch (highlevel_mask & OVERLAY_LIGHTGUN_MASK)
-   {  /* expected cases */
-   case (UINT64_C(0)):
-      break;
-   case (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_A);
-      break;
-   case (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_B);
-      break;
-   case (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_C);
-      break;
-   case (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP);
-      break;
-   case ((UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP) | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT)):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP) | (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT);
-      break;
-   case ((UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP) | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT)):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP) | (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
-      break;
-   case (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN);
-      break;
-   case ((UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN) | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT)):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN) | (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
-      break;
-   case ((UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN) | (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT)):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN) | (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
-      break;
-   case(UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
-      break;
-   case (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT);
-      break;
-   case (UINT64_C(1) << RARCH_LIGHTGUN_SELECT):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_SELECT);
-      break;
-   case (UINT64_C(1) << RARCH_LIGHTGUN_START): /* set start & pause */
-      lightgun_buttons = (3<<RETRO_DEVICE_ID_LIGHTGUN_PAUSE);
-      break;
-   case (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER):
-      lightgun_buttons = (1<<RETRO_DEVICE_ID_LIGHTGUN_TRIGGER);
-      break;
-   case (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD):
-      lightgun_buttons = (1<<RARCH_LIGHTGUN_BIT_RELOAD);
-      break;
-   default:  /* overlapping buttons */
-      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A) )
-         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_A);
-      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B) )
-         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_B);
-      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C) )
-         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_AUX_C);
-      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_UP) )
-         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP);
-      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_DOWN) )
-         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN);
-      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_LEFT) )
-         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT);
-      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_DPAD_RIGHT) )
-         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT);
-      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_SELECT) )
-         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_SELECT);
-      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_START) )
-         lightgun_buttons |= (3<<RETRO_DEVICE_ID_LIGHTGUN_PAUSE);
-      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER) )
-         lightgun_buttons |= (1<<RETRO_DEVICE_ID_LIGHTGUN_TRIGGER);
-      if ( highlevel_mask & (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD) )
-         lightgun_buttons |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
-   }
-
-   return lightgun_buttons;
-}
-
-/**
- * translate_highlevel_mask:
- * @desc_ptr              : Overlay descriptor handle.
- * @out                   : Polled output data.
- * @x                     : X coordinate value.
- * @y                     : Y coordinate value.
- *
- * Translate high level input into something usable.
- * For now, "high level" means multi-button areas and lightgun buttons
- *
- **/
-static void translate_highlevel_mask(const struct overlay_desc *desc_ptr,
-                                     input_overlay_state_t *out,
-                                     const float x, const float y)
-{
-   uint64_t mask = desc_ptr->highlevel_mask;
-   if (!mask)
-      return;
-
-   if (overlay_lightgun_active)
-      out->lightgun_buttons |= overlay_lightgun_buttons_state(mask);
-
-   if (mask & (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA))
-      out->buttons |= eightway_state(desc_ptr, DPAD_AREA, x, y);
-   else if (mask & (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA))
-      out->buttons |= eightway_state(desc_ptr, ABXY_AREA, x, y);
-}
-
 
 /**
  * input_overlay_undo_meta_overlap
@@ -1846,7 +1654,11 @@ void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
       if (desc->type == OVERLAY_TYPE_BUTTONS)
       {
          out->buttons |= desc->key_mask;
-         translate_highlevel_mask(desc, out, x, y);
+
+         if (desc->key_mask & (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA))
+            out->buttons |= eightway_state(desc, DPAD_AREA, x, y);
+         else if (desc->key_mask & (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA))
+            out->buttons |= eightway_state(desc, ABXY_AREA, x, y);
 
          if (desc->key_mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
             ol->next_index = desc->next_index;
@@ -2078,7 +1890,7 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
       global->overlay_lightgun_autotrigger = true;
       for (i = 0; i < ol->active->size; i++)
       {
-         if (ol->active->descs[i].highlevel_mask
+         if (ol->active->descs[i].key_mask
              & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER))
          {
             global->overlay_lightgun_autotrigger = false;

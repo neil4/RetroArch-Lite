@@ -170,7 +170,7 @@ typedef struct global
       bool force_nonblock;
       bool no_content;
 
-      const char *input_desc_btn[MAX_USERS][RARCH_FIRST_META_KEY];
+      const char *input_desc_btn[MAX_USERS][RARCH_CUSTOM_BIND_LIST_END];
       char valid_extensions[PATH_MAX_LENGTH];
       
       retro_keyboard_event_t key_event;

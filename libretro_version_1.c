@@ -184,7 +184,7 @@ static int16_t input_state(unsigned port, unsigned device,
 
    if (!driver->block_libretro_input)
    {
-      if (((id < RARCH_FIRST_META_KEY) || (device == RETRO_DEVICE_KEYBOARD)))
+      if (id < RARCH_CUSTOM_BIND_LIST_END || device == RETRO_DEVICE_KEYBOARD)
          res = input_driver_state(libretro_input_binds, port, device, idx, id);
 
 #ifdef HAVE_OVERLAY
@@ -220,23 +220,75 @@ static int16_t input_state(unsigned port, unsigned device,
                   break;
             }
          }
-         if (device == RETRO_DEVICE_LIGHTGUN)
+         if (device == RETRO_DEVICE_LIGHTGUN && input_overlay_lightgun_active())
          {
             switch(id)
             {
                case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
-                  return driver->overlay_state.lightgun_x;
+                  res = driver->overlay_state.lightgun_x;
+                  break;
                case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
-                  return driver->overlay_state.lightgun_y;
+                  res = driver->overlay_state.lightgun_y;
+                  break;
                case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
                case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
-                  return (driver->overlay_state.lightgun_buttons
-                          & (1<<RARCH_LIGHTGUN_BIT_RELOAD));
+                  if (driver->overlay_state.buttons
+                      & (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD))
+                     res = true;
+                  break;
+               case RETRO_DEVICE_ID_LIGHTGUN_AUX_A:
+                  if (driver->overlay_state.buttons
+                      & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A))
+                     res = true;
+                  break;
+               case RETRO_DEVICE_ID_LIGHTGUN_AUX_B:
+                  if (driver->overlay_state.buttons
+                      & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B))
+                     res = true;
+                  break;
+               case RETRO_DEVICE_ID_LIGHTGUN_AUX_C:
+                  if (driver->overlay_state.buttons
+                      & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C))
+                     res = true;
+                  break;
                case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
                   if (global->overlay_lightgun_autotrigger)
-                     return driver->overlay_state.lightgun_ptr_active;
-               default:
-                  return (driver->overlay_state.lightgun_buttons & (1<<id)) != 0;
+                     res = driver->overlay_state.lightgun_ptr_active;
+                  else if (driver->overlay_state.buttons
+                           & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER))
+                     res = true;
+                  break;
+               case RETRO_DEVICE_ID_LIGHTGUN_START:
+               case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
+                  if (driver->overlay_state.buttons
+                      & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_START))
+                     res = true;
+                  break;
+               case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
+                  if (driver->overlay_state.buttons
+                      & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_SELECT))
+                     res = true;
+                  break;
+               case RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP:
+                  if (driver->overlay_state.buttons
+                      & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_UP))
+                     res = true;
+                  break;
+               case RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN:
+                  if (driver->overlay_state.buttons
+                      & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_DOWN))
+                     res = true;
+                  break;
+               case RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT:
+                  if (driver->overlay_state.buttons
+                      & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_LEFT))
+                     res = true;
+                  break;
+               case RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT:
+                  if (driver->overlay_state.buttons
+                      & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_RIGHT))
+                     res = true;
+                  break;
             }
          }
       }
@@ -302,28 +354,25 @@ static INLINE void input_poll_overlay(input_overlay_t *overlay_device, float opa
 
       state->buttons |= polled_data.buttons;
 
-      if (input_overlay_lightgun_active())
+      if (input_overlay_lightgun_active() && polled_data.buttons == 0ULL
+          && !overlay_device->blocked)
       {
-         if (polled_data.lightgun_buttons)
-            state->lightgun_buttons |= polled_data.lightgun_buttons;
-         else if (!overlay_device->blocked && polled_data.buttons == 0ULL)
-         {  /* Assume this is the lightgun pointer if all buttons were missed */
-            if (!state->lightgun_ptr_active)
-            {
-               state->lightgun_x
-                  = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
-                                       RETRO_DEVICE_ID_POINTER_X);
-               state->lightgun_y
-                  = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
-                                       RETRO_DEVICE_ID_POINTER_Y);
-               state->lightgun_ptr_active = true;
-            }
-            else /* 2nd lightgun pointer reloads */
-            {
-               state->lightgun_buttons |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
-               /* suppress haptic feedback */
-               old_state->lightgun_buttons |= (1<<RARCH_LIGHTGUN_BIT_RELOAD);
-            }
+         /* Assume this is the lightgun pointer if all buttons were missed */
+         if (!state->lightgun_ptr_active)
+         {
+            state->lightgun_x
+               = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
+                                    RETRO_DEVICE_ID_POINTER_X);
+            state->lightgun_y
+               = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
+                                    RETRO_DEVICE_ID_POINTER_Y);
+            state->lightgun_ptr_active = true;
+         }
+         else /* 2nd lightgun pointer reloads */
+         {
+            state->buttons |= (1ULL << RARCH_LIGHTGUN_RELOAD);
+            /* suppress haptic feedback */
+            old_state->buttons |= (1ULL << RARCH_LIGHTGUN_RELOAD);
          }
       }
 
@@ -428,8 +477,7 @@ static INLINE void input_poll_overlay(input_overlay_t *overlay_device, float opa
    /* haptic feedback on button presses or direction changes */
    if ( driver->input->overlay_haptic_feedback
         && ptr_count >= old_ptr_count
-        && (state->buttons != old_state->buttons
-            || state->lightgun_buttons != old_state->lightgun_buttons)
+        && state->buttons != old_state->buttons
         && !overlay_device->blocked )
    {
       driver->input->overlay_haptic_feedback();
