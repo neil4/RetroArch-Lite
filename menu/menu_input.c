@@ -414,10 +414,13 @@ static bool menu_input_retropad_bind_keyboard_cb(void *data, unsigned code)
 
    if (!menu_input)
       return false;
-   
+
+   if (menu_input->binds.begin == MENU_SETTINGS_BIND_BEGIN)
+      last_code = RETROK_UNKNOWN;
+
    time_since_cb = rarch_get_time_usec() - last_cb_usec;
    last_cb_usec = rarch_get_time_usec();
-   
+
    /* Guard against held or repeated keys */
    if (time_since_cb > 100000 && code != last_code)
    {
@@ -429,7 +432,7 @@ static bool menu_input_retropad_bind_keyboard_cb(void *data, unsigned code)
       menu_input->binds.timeout_end = rarch_get_time_usec() +
          MENU_KEYBOARD_BIND_TIMEOUT_SECONDS_LONG * 1000000;  
    }
-   
+
    return (menu_input->binds.begin <= menu_input->binds.last);
 }
 
