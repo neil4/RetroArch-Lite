@@ -17,11 +17,11 @@ BEGIN
 	  BEGIN
 		MENUITEM "Audio Mute Toggle",	ID_M_MUTE_TOGGLE
 	  END
-      POPUP "Disk Options"
+      POPUP "Disc Control"
       BEGIN
-         MENUITEM "Disk Eject Toggle",   ID_M_DISK_CYCLE
-         MENUITEM "Disk Previous",       ID_M_DISK_PREV
-         MENUITEM "Disk Next",           ID_M_DISK_NEXT
+         MENUITEM "Disc Eject Toggle",   ID_M_DISK_CYCLE
+         MENUITEM "Disc Previous",       ID_M_DISK_PREV
+         MENUITEM "Disc Next",           ID_M_DISK_NEXT
       END
       POPUP "Save State Options"
       BEGIN
