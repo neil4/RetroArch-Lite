@@ -329,59 +329,28 @@ void input_overlay_free(input_overlay_t *ol);
  **/
 void input_overlay_enable(input_overlay_t *ol, bool enable);
 
-/**
- * input_overlay_full_screen:
- * @ol                    : Overlay handle.
- *
- * Checks if the overlay is fullscreen.
- *
- * Returns: true (1) if overlay is fullscreen, otherwise false (0).
- **/
-bool input_overlay_full_screen(input_overlay_t *ol);
-
-/**
+/*
  * input_overlay_poll:
- * @ol                    : Overlay handle.
- * @out                   : Polled output data.
- * @norm_x                : Normalized X coordinate.
- * @norm_y                : Normalized Y coordinate.
+ * @overlay_device : pointer to overlay
  *
- * Polls input overlay.
- *
- * @norm_x and @norm_y are the result of
- * input_translate_coord_viewport().
+ * Poll pressed buttons/keys on currently active overlay.
  **/
-void input_overlay_poll(input_overlay_t *ol,
-      input_overlay_state_t *out, int16_t norm_x, int16_t norm_y);
+void input_overlay_poll(input_overlay_t *overlay_device);
 
 /**
- * set_overlay_pointer_index
- * @param idx driver index of in-use overlay pointer
- * 
- * Useful for indexing touch ellipse data
- */
-void set_overlay_pointer_index(uint8_t idx);
-
-/**
- * input_overlay_post_poll:
- * @ol                    : overlay handle
- * 
+ * input_state:
+ * @port                 : user number.
+ * @device_base         : base class of user device identifier.
+ * @idx                  : index value of user.
+ * @id                   : identifier of key pressed by user.
  *
- * Called after all the input_overlay_poll() calls to
- * update the range modifiers for pressed/unpressed regions
- * and alpha mods.
- **/
-void input_overlay_post_poll(input_overlay_t *ol, float opacity);
-
-/**
- * input_overlay_poll_clear:
- * @ol                    : overlay handle
- * @opacity               : Opacity of overlay.
+ * Overlay Input state callback function.
  *
- * Call when there is nothing to poll. Allows overlay to
- * clear certain state.
+ * Returns: Non-zero if the given key (identified by @id) was pressed by the user
+ * (assigned to @port).
  **/
-void input_overlay_poll_clear(input_overlay_t *ol, float opacity);
+int16_t input_overlay_state(unsigned port, unsigned device_base,
+      unsigned idx, unsigned id);
 
 /**
  * input_overlay_set_alpha_mod:
@@ -416,17 +385,6 @@ void input_overlay_next(input_overlay_t *ol, float opacity);
  * Convert diagonal sensitivity to slope values for 8way_state functions
  **/
 void input_overlay_update_eightway_diag_sens();
-
-/**
- * menu_analog_dpad_state:
- * @analog_x             : x axis value [-0x7fff, 0x7fff]
- * @analog_y             : y axis value [-0x7fff, 0x7fff]
- *
- * Returns 4-way Dpad state from analog axes for menu navigation.
- **/
-uint64_t menu_analog_dpad_state(const int16_t analog_x, const int16_t analog_y);
-
-bool input_overlay_lightgun_active();
 
 void input_overlay_notify_video_updated();
 

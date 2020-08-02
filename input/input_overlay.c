@@ -112,12 +112,6 @@ void reset_ellipse(uint8_t idx)
    ellipse.major_px[idx] = 0;
 }
 
-void set_overlay_pointer_index(uint8_t idx)
-{
-   overlay_ptr_idx = idx;
-}
-
-
 /**
  * input_overlay_scale:
  * @ol                    : Overlay handle.
@@ -1592,25 +1586,28 @@ static bool inside_hitbox(const struct overlay_desc *desc, float x, float y)
 }
 
 /**
- * input_overlay_poll:
+ * input_overlay_poll_iterate:
  * @ol                    : Overlay handle.
  * @out                   : Polled output data.
+ * @ptr_idx               : Pointer index.
  * @norm_x                : Normalized X coordinate.
  * @norm_y                : Normalized Y coordinate.
  *
- * Polls input overlay.
+ * Polls input overlay for a single input pointer.
  *
  * @norm_x and @norm_y are the result of
  * input_translate_coord_viewport().
  **/
-void input_overlay_poll(input_overlay_t *ol, input_overlay_state_t *out,
-                        int16_t norm_x, int16_t norm_y)
+static INLINE void input_overlay_poll_iterate(
+      input_overlay_t *ol, input_overlay_state_t *out,
+      uint8_t ptr_idx, int16_t norm_x, int16_t norm_y)
 {
    size_t i, j;
    float x, y;
    bool ignore_other = false;
    struct overlay_desc *descs = ol->active->descs;
 
+   overlay_ptr_idx = ptr_idx;
    memset(out, 0, sizeof(*out));
 
    if (!ol->enable)
@@ -1729,8 +1726,10 @@ static void input_overlay_update_desc_geom(input_overlay_t *ol,
  * update the range modifiers for pressed/unpressed regions
  * and alpha mods.
  **/
-void input_overlay_post_poll(input_overlay_t *ol, float opacity)
+static INLINE void input_overlay_post_poll(input_overlay_t *ol)
 {
+   settings_t *settings = config_get_ptr();
+   float opacity        = settings->input.overlay_opacity;
    size_t i;
 
    if (!ol)
@@ -1773,8 +1772,10 @@ void input_overlay_post_poll(input_overlay_t *ol, float opacity)
  * Call when there is nothing to poll. Allows overlay to
  * clear certain state.
  **/
-void input_overlay_poll_clear(input_overlay_t *ol, float opacity)
+static INLINE void input_overlay_poll_clear(input_overlay_t *ol)
 {
+   settings_t *settings = config_get_ptr();
+   float       opacity  = settings->input.overlay_opacity;
    size_t i;
 
    if (!ol)
@@ -1805,6 +1806,328 @@ void input_overlay_poll_clear(input_overlay_t *ol, float opacity)
       input_overlays_update_aspect_shift_scale(ol);
       overlay_adjust_needed = false;
    }
+}
+
+/**
+ * menu_analog_dpad_state:
+ * @analog_x             : x axis value [-0x7fff, 0x7fff]
+ * @analog_y             : y axis value [-0x7fff, 0x7fff]
+ *
+ * Returns 4-way d-pad state from analog axes for menu navigation.
+ **/
+static INLINE uint64_t menu_analog_dpad_state(const int16_t analog_x,
+                                              const int16_t analog_y)
+{
+   if (abs(analog_x) > 0x2aaa || abs(analog_y) > 0x2aaa) /* 33% deadzone */
+      return fourway_direction(&menu_analog_vals, analog_x, -analog_y);
+   else
+      return 0;
+}
+
+/*
+ * input_overlay_poll:
+ * @overlay_device : pointer to overlay
+ *
+ * Poll pressed buttons/keys on currently active overlay.
+ **/
+void input_overlay_poll(input_overlay_t *overlay_device)
+{
+   unsigned i, j, device;
+   uint16_t key_mod                 = 0;
+   driver_t *driver                 = driver_get_ptr();
+   settings_t *settings             = config_get_ptr();
+   input_overlay_state_t *state     = &driver->overlay_state;
+   input_overlay_state_t *old_state = &driver->old_overlay_state;
+
+   unsigned ptr_count;
+   static unsigned old_ptr_count = 0;
+
+   if (overlay_device->state != OVERLAY_STATUS_ALIVE)
+      return;
+
+   memcpy(old_state, state, sizeof(input_overlay_state_t));
+   memset(state, 0, sizeof(input_overlay_state_t));
+   if (overlay_lightgun_active)
+   {
+      state->lightgun_x = old_state->lightgun_x;
+      state->lightgun_y = old_state->lightgun_y;
+   }
+
+   device = overlay_device->active->full_screen ?
+      RARCH_DEVICE_POINTER_SCREEN : RETRO_DEVICE_POINTER;
+
+   for (i = 0;
+         input_driver_state(NULL, 0, device, i, RETRO_DEVICE_ID_POINTER_PRESSED);
+         i++)
+   {
+      input_overlay_state_t polled_data;
+      int16_t x = input_driver_state(NULL, 0,
+            device, i, RETRO_DEVICE_ID_POINTER_X);
+      int16_t y = input_driver_state(NULL, 0,
+            device, i, RETRO_DEVICE_ID_POINTER_Y);
+
+      input_overlay_poll_iterate(overlay_device, &polled_data, i, x, y);
+
+      state->buttons |= polled_data.buttons;
+
+      if (overlay_lightgun_active && polled_data.buttons == 0ULL
+          && !overlay_device->blocked)
+      {
+         /* Assume this is the lightgun pointer if all buttons were missed */
+         if (!state->lightgun_ptr_active)
+         {
+            state->lightgun_x
+               = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
+                                    RETRO_DEVICE_ID_POINTER_X);
+            state->lightgun_y
+               = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
+                                    RETRO_DEVICE_ID_POINTER_Y);
+            state->lightgun_ptr_active = true;
+         }
+         else /* 2nd lightgun pointer reloads */
+         {
+            state->buttons |= (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD);
+            /* suppress haptic feedback */
+            old_state->buttons |= (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD);
+         }
+      }
+
+      for (j = 0; j < ARRAY_SIZE(state->keys); j++)
+         state->keys[j] |= polled_data.keys[j];
+
+      /* Fingers pressed later take prio and matched up
+       * with overlay poll priorities. */
+      for (j = 0; j < 4; j++)
+         if (polled_data.analog[j])
+            state->analog[j] = polled_data.analog[j];
+   }
+   ptr_count = i;
+
+   if (OVERLAY_GET_KEY(state, RETROK_LSHIFT)
+       || OVERLAY_GET_KEY(state, RETROK_RSHIFT))
+      key_mod |= RETROKMOD_SHIFT;
+
+   if (OVERLAY_GET_KEY(state, RETROK_LCTRL)
+       || OVERLAY_GET_KEY(state, RETROK_RCTRL))
+      key_mod |= RETROKMOD_CTRL;
+
+   if (OVERLAY_GET_KEY(state, RETROK_LALT)
+       || OVERLAY_GET_KEY(state, RETROK_RALT))
+      key_mod |= RETROKMOD_ALT;
+
+   if (OVERLAY_GET_KEY(state, RETROK_LMETA)
+       || OVERLAY_GET_KEY(state, RETROK_RMETA))
+      key_mod |= RETROKMOD_META;
+
+   /* CAPSLOCK SCROLLOCK NUMLOCK */
+   for (i = 0; i < ARRAY_SIZE(state->keys); i++)
+   {
+      if (state->keys[i] != old_state->keys[i])
+      {
+         uint32_t orig_bits = old_state->keys[i];
+         uint32_t new_bits  = state->keys[i];
+
+         for (j = 0; j < 32; j++)
+            if ((orig_bits & (1 << j)) != (new_bits & (1 << j)))
+               input_keyboard_event(new_bits & (1 << j),
+                     i * 32 + j, 0, key_mod, RETRO_DEVICE_POINTER);
+      }
+   }
+
+   /* Map "analog" buttons to analog axes like regular input drivers do. */
+   for (j = 0; j < 4; j++)
+   {
+      unsigned bind_plus  = RARCH_ANALOG_LEFT_X_PLUS + 2 * j;
+      unsigned bind_minus = bind_plus + 1;
+
+      if (state->analog[j])
+         continue;
+
+      if (state->buttons & (UINT64_C(1) << bind_plus))
+         state->analog[j] += 0x7fff;
+      if (state->buttons & (UINT64_C(1) << bind_minus))
+         state->analog[j] -= 0x7fff;
+   }
+
+   /* Check for analog_dpad_mode.
+    * Map analogs to d-pad buttons when configured. */
+   switch (settings->input.analog_dpad_mode[0])
+   {
+      case ANALOG_DPAD_LSTICK:
+      case ANALOG_DPAD_RSTICK:
+      {
+         float analog_x, analog_y;
+         unsigned analog_base = 2;
+
+         if (settings->input.analog_dpad_mode[0] == ANALOG_DPAD_LSTICK)
+            analog_base = 0;
+
+         analog_x = (float)state->analog[analog_base + 0] / 0x7fff;
+         analog_y = (float)state->analog[analog_base + 1] / 0x7fff;
+
+         if (analog_x <= -settings->input.axis_threshold)
+            state->buttons |= (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_LEFT);
+         if (analog_x >=  settings->input.axis_threshold)
+            state->buttons |= (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_RIGHT);
+         if (analog_y <= -settings->input.axis_threshold)
+            state->buttons |= (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_UP);
+         if (analog_y >=  settings->input.axis_threshold)
+            state->buttons |= (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_DOWN);
+         break;
+      }
+
+      default:
+         if (menu_driver_alive())
+         {
+            state->buttons |= menu_analog_dpad_state(state->analog[0],
+                                                     state->analog[1]);
+         }
+         break;
+   }
+
+   if (ptr_count)
+      input_overlay_post_poll(overlay_device);
+   else
+      input_overlay_poll_clear(overlay_device);
+
+   /* haptic feedback on button presses or direction changes */
+   if ( driver->input->overlay_haptic_feedback
+        && ptr_count >= old_ptr_count
+        && state->buttons != old_state->buttons
+        && !overlay_device->blocked )
+   {
+      driver->input->overlay_haptic_feedback();
+   }
+
+   old_ptr_count = ptr_count;
+}
+
+static INLINE int16_t overlay_lightgun_state(unsigned id)
+{
+   global_t *global = global_get_ptr();
+   driver_t *driver = driver_get_ptr();
+
+   switch(id)
+   {
+      case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
+         return driver->overlay_state.lightgun_x;
+      case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
+         return driver->overlay_state.lightgun_y;
+      case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
+      case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
+         if (driver->overlay_state.buttons
+             & (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD))
+            return 1;
+         break;
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_A:
+         if (driver->overlay_state.buttons
+             & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A))
+            return 1;
+         break;
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_B:
+         if (driver->overlay_state.buttons
+             & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B))
+            return 1;
+         break;
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_C:
+         if (driver->overlay_state.buttons
+             & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C))
+            return 1;
+         break;
+      case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
+         if (global->overlay_lightgun_autotrigger)
+            return driver->overlay_state.lightgun_ptr_active;
+         if (driver->overlay_state.buttons
+             & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER))
+            return 1;
+         break;
+      case RETRO_DEVICE_ID_LIGHTGUN_START:
+      case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
+         if (driver->overlay_state.buttons
+            & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_START))
+            return 1;
+         break;
+      case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
+         if (driver->overlay_state.buttons
+             & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_SELECT))
+            return 1;
+         break;
+      case RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP:
+         if (driver->overlay_state.buttons
+             & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_UP))
+            return 1;
+         break;
+      case RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN:
+         if (driver->overlay_state.buttons
+             & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_DOWN))
+            return 1;
+         break;
+      case RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT:
+         if (driver->overlay_state.buttons
+             & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_LEFT))
+            return 1;
+         break;
+      case RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT:
+         if (driver->overlay_state.buttons
+             & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_RIGHT))
+            return 1;
+         break;
+   }
+   return 0;
+}
+
+/**
+ * input_state:
+ * @port                 : user number.
+ * @device_base          : base class of user device identifier.
+ * @idx                  : index value of user.
+ * @id                   : identifier of key pressed by user.
+ *
+ * Overlay Input state callback function.
+ *
+ * Returns: Non-zero if the given key (identified by @id) was pressed by the user
+ * (assigned to @port).
+ **/
+int16_t input_overlay_state(unsigned port, unsigned device_base,
+                            unsigned idx, unsigned id)
+{
+   int16_t res      = 0;
+   driver_t *driver = driver_get_ptr();
+
+   if (device_base == RETRO_DEVICE_LIGHTGUN && overlay_lightgun_active)
+      res = overlay_lightgun_state(id);
+   else if (port == 0)
+   {
+      switch (device_base)
+      {
+         case RETRO_DEVICE_JOYPAD:
+             if (driver->overlay_state.buttons & (UINT64_C(1) << id))
+               res = 1;
+            break;
+         case RETRO_DEVICE_KEYBOARD:
+            if (id < RETROK_LAST)
+            {
+               if (OVERLAY_GET_KEY(&driver->overlay_state, id))
+                  res = 1;
+            }
+            break;
+         case RETRO_DEVICE_ANALOG:
+            if (idx < 2 && id < 2)  /* axes only */
+            {
+               unsigned base = 0;
+
+               if (idx == RETRO_DEVICE_INDEX_ANALOG_RIGHT)
+                  base = 2;
+               if (id == RETRO_DEVICE_ID_ANALOG_Y)
+                  base += 1;
+               if (driver->overlay_state.analog[base])
+                  res = driver->overlay_state.analog[base];
+            }
+            break;
+      }
+   }
+
+   return res;
 }
 
 /**
@@ -1923,21 +2246,6 @@ void input_overlay_next(input_overlay_t *ol, float opacity)
 }
 
 /**
- * input_overlay_full_screen:
- * @ol                    : Overlay handle.
- *
- * Checks if the overlay is fullscreen.
- *
- * Returns: true (1) if overlay is fullscreen, otherwise false (0).
- **/
-bool input_overlay_full_screen(input_overlay_t *ol)
-{
-   if (!ol)
-      return false;
-   return ol->active->full_screen;
-}
-
-/**
  * input_overlay_free:
  * @ol                    : Overlay handle.
  *
@@ -1978,26 +2286,6 @@ void input_overlay_set_alpha_mod(input_overlay_t *ol, float mod)
 
    for (i = 0; i < ol->active->load_images_size; i++)
       ol->iface->set_alpha(ol->iface_data, i, mod);
-}
-
-/**
- * menu_analog_dpad_state:
- * @analog_x             : x axis value [-0x7fff, 0x7fff]
- * @analog_y             : y axis value [-0x7fff, 0x7fff]
- *
- * Returns 4-way Dpad state from analog axes for menu navigation.
- **/
-uint64_t menu_analog_dpad_state(const int16_t analog_x, const int16_t analog_y)
-{
-   if (abs(analog_x) < 0x3000 && abs(analog_y) < 0x3000)
-      return 0;
-
-   return fourway_direction(&menu_analog_vals, analog_x, -analog_y);
-}
-
-bool input_overlay_lightgun_active()
-{
-   return overlay_lightgun_active;
 }
 
 void input_overlay_notify_video_updated()
