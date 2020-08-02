@@ -972,7 +972,7 @@ static void rgui_render(void)
 
    if (settings->menu.pointer.enable)
    {
-      menu_input->pointer.ptr = menu_input->pointer.y / 11 - 2 + menu_entries_get_start();
+      menu_input->pointer.ptr = (menu_input->pointer.y - 3) / 11 - 2 + menu_entries_get_start();
 
       if (menu_input->pointer.dragging)
       {
@@ -992,7 +992,7 @@ static void rgui_render(void)
       if (menu_input->mouse.scrollup && (menu_entries_get_start() > 0))
          menu_entries_set_start(menu_entries_get_start() - 1);
 
-      menu_input->mouse.ptr = menu_input->mouse.y / 11 - 2 + menu_entries_get_start();
+      menu_input->mouse.ptr = (menu_input->mouse.y - 3) / 11 - 2 + menu_entries_get_start();
    }
 
    /* Do not scroll if all items are visible. */

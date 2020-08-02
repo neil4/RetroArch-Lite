@@ -305,11 +305,13 @@ static void x_input_poll_mouse(x11_input_t *x11)
 
    if (video_driver_viewport_info(&vp))
    {
-      x11->lightgun_x = (2 * x11->mouse_x * 0x7fff) / (int)vp.width - 0x7fff;
+      x11->lightgun_x = (2 * (x11->mouse_x - vp.x) * 0x7fff)
+                        / (int)vp.width - 0x7fff;
       x11->lightgun_x = max(x11->lightgun_x, -0x7fff);
       x11->lightgun_x = min(x11->lightgun_x, 0x7fff);
 
-      x11->lightgun_y = (2 * x11->mouse_y * 0x7fff) / (int)vp.height - 0x7fff;
+      x11->lightgun_y = (2 * (x11->mouse_y - vp.y) * 0x7fff)
+                        / (int)vp.height - 0x7fff;
       x11->lightgun_y = max(x11->lightgun_y, -0x7fff);
       x11->lightgun_y = min(x11->lightgun_y, 0x7fff);
    }

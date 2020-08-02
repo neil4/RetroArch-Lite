@@ -224,11 +224,13 @@ static void dinput_poll(void *data)
 
       if (video_driver_viewport_info(&vp))
       {
-         di->lightgun_x = (2 * di->mouse_x * 0x7fff) / (int)vp.width - 0x7fff;
+         di->lightgun_x = (2 * (di->mouse_x - vp.x) * 0x7fff)
+                          / (int)vp.width - 0x7fff;
          di->lightgun_x = max(di->lightgun_x, -0x7fff);
          di->lightgun_x = min(di->lightgun_x, 0x7fff);
 
-         di->lightgun_y = (2 * di->mouse_y * 0x7fff) / (int)vp.height - 0x7fff;
+         di->lightgun_y = (2 * (di->mouse_y - vp.y) * 0x7fff)
+                          / (int)vp.height - 0x7fff;
          di->lightgun_y = max(di->lightgun_y, -0x7fff);
          di->lightgun_y = min(di->lightgun_y, 0x7fff);
       }

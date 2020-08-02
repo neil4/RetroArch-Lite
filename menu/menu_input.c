@@ -662,15 +662,13 @@ static int menu_input_mouse(unsigned *action)
    menu_framebuf_t *frame_buf= menu_display_fb_get_ptr();
    settings_t *settings      = config_get_ptr();
 
-   if (!settings->menu.mouse.enable
 #ifdef HAVE_OVERLAY
-       || (settings->input.overlay_enable && driver && driver->overlay)
-#endif
-      )
+   if (settings->input.overlay_enable && driver && driver->overlay)
    {
       memset(&menu_input->mouse, 0, sizeof(menu_input->mouse));
       return 0;
    }
+#endif
 
    if (!video_driver_viewport_info(&vp))
       return -1;
@@ -707,7 +705,11 @@ static int menu_input_mouse(unsigned *action)
          0, RETRO_DEVICE_ID_MOUSE_Y);
 
    menu_input->mouse.screen_x += menu_input->mouse.dx;
+   menu_input->mouse.screen_x = max(menu_input->mouse.screen_x, 0);
+   menu_input->mouse.screen_x = min(menu_input->mouse.screen_x, vp.width);
    menu_input->mouse.screen_y += menu_input->mouse.dy;
+   menu_input->mouse.screen_y = max(menu_input->mouse.screen_y, 0);
+   menu_input->mouse.screen_y = min(menu_input->mouse.screen_y, vp.height);
 
    menu_input->mouse.x         = ((int)menu_input->mouse.screen_x * (int)frame_buf->width) / (int)vp.width;
    menu_input->mouse.y         = ((int)menu_input->mouse.screen_y * (int)frame_buf->height) / (int)vp.height;
@@ -789,14 +791,20 @@ static int menu_input_mouse_frame(
       menu_file_list_cbs_t *cbs, menu_entry_t *entry,
       uint64_t input_mouse)
 {
-   menu_input_t *menu_input = menu_input_get_ptr();
-   menu_list_t *menu_list   = menu_list_get_ptr();
-   menu_navigation_t *nav   = menu_navigation_get_ptr();
+   menu_input_t *menu_input   = menu_input_get_ptr();
+   menu_list_t *menu_list     = menu_list_get_ptr();
+   menu_navigation_t *nav     = menu_navigation_get_ptr();
+   menu_framebuf_t *frame_buf = menu_display_fb_get_ptr();
 
    if (BIT64_GET(input_mouse, MOUSE_ACTION_BUTTON_L))
    {
       if (BIT64_GET(input_mouse, MOUSE_ACTION_BUTTON_L_TOGGLE))
-         return menu_entry_action(entry, nav->selection_ptr, MENU_ACTION_RIGHT);
+      {
+         if (menu_input->mouse.x > frame_buf->width / 2)
+            return menu_entry_action(entry, nav->selection_ptr, MENU_ACTION_RIGHT);
+         else
+            return menu_entry_action(entry, nav->selection_ptr, MENU_ACTION_LEFT);
+      }
 
       if (BIT64_GET(input_mouse, MOUSE_ACTION_BUTTON_L_OK))
          return menu_entry_action(entry, nav->selection_ptr, MENU_ACTION_OK);

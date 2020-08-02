@@ -320,11 +320,13 @@ static void sdl_poll_mouse(sdl_input_t *sdl)
 
    if (video_driver_viewport_info(&vp))
    {
-      sdl->lightgun_x = (2 * sdl->mouse_abs_x * 0x7fff) / (int)vp.width - 0x7fff;
+      sdl->lightgun_x = (2 * (sdl->mouse_abs_x - vp.x) * 0x7fff)
+                        / (int)vp.width - 0x7fff;
       sdl->lightgun_x = max(sdl->lightgun_x, -0x7fff);
       sdl->lightgun_x = min(sdl->lightgun_x, 0x7fff);
 
-      sdl->lightgun_y = (2 * sdl->mouse_abs_y * 0x7fff) / (int)vp.height - 0x7fff;
+      sdl->lightgun_y = (2 * (sdl->mouse_abs_y - vp.y) * 0x7fff)
+                        / (int)vp.height - 0x7fff;
       sdl->lightgun_y = max(sdl->lightgun_y, -0x7fff);
       sdl->lightgun_y = min(sdl->lightgun_y, 0x7fff);
    }
