@@ -105,6 +105,8 @@ extern "C" {
 #define MENU_LABEL_VALUE_OVERLAY_PRESET                                        0x8338e89aU
 #define MENU_LABEL_OVERLAY_OPACITY                                             0xc466fbaeU
 #define MENU_LABEL_VALUE_OVERLAY_OPACITY                                       0x98605740U
+#define MENU_LABEL_OVERLAY_MAGNIFY_CONTACT_AREA                                0x82fc628eU
+#define MENU_LABEL_SETTING_SCOPE                                               0xd171dfbcU
 
 #define MENU_LABEL_MENU_THEME                                                  0x7bf56e4cU
 #define MENU_LABEL_VALUE_MENU_THEME                                            0x656b3a6dU

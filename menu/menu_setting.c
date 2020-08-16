@@ -3271,9 +3271,8 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                " -- VSync Swap Interval.\n"
                " \n"
-               "Custom swap interval for VSync. Set this \n"
-               "to 2 to effectively halve the monitor \n"
-               "refresh rate.");
+               "Custom swap interval for VSync. Set this to \n"
+               "effectively divide the monitor refresh rate.");
          break;
       case MENU_LABEL_VIDEO_FAKE_SWAP_INTERVAL:
          snprintf(s, len,
@@ -3482,13 +3481,32 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                      "cost of higher CPU usage and jitter. \n");
             break;
       case MENU_LABEL_PREEMPTIVE_FRAMES:
-      snprintf(s, len,
-                     " -- Hides latency by rewriting history. \n"
-                     " \n"
-                     "On joypad updates, recent frames are  \n"
-                     "internally rerun with the latest input. \n"
+         snprintf(s, len,
+                     " -- On joypad updates, recent frames are \n"
+                     "internally rerun with the latest input \n"
+                     "before running the current frame. \n"
                      " \n"
                      "Requires savestate support from the core.\n");
+            break;
+      case MENU_LABEL_OVERLAY_MAGNIFY_CONTACT_AREA:
+         snprintf(s, len,
+                     " -- Magnify or shrink the size of the \n"
+                     "contact area reported by the touchscreen,\n"
+                     "which might be inaccurate. \n"
+                     " \n"
+                     "Only applies to the 'Contact Area' method\n"
+                     "for D-Pad and ABXY areas. \n");
+            break;
+      case MENU_LABEL_SETTING_SCOPE:
+         snprintf(s, len,
+                     " -- Override associated setting(s) for \n"
+                     "the scope chosen. Overrides are created\n"
+                     "when the ROM or Core is unloaded. \n"
+                     " \n"
+                     "Smaller scopes have priority when loading.\n"
+                     "i.e. ROM < Directory < Core < Global\n"
+                     " \n"
+                     "To remove an override, widen its scope.\n");
             break;
       default:
          return -1;
@@ -4730,7 +4748,7 @@ static bool setting_append_list_frame_throttling_options(
       
    CONFIG_UINT(
          settings->throttle_setting_scope,
-         "throttle_setting_scope",
+         "setting_scope",
          "  Scope",
          GLOBAL,
          group_info.name,
@@ -5148,7 +5166,7 @@ static bool setting_append_list_video_options(
 
    CONFIG_UINT(
       settings->video.aspect_ratio_idx_scope,
-      "aspect_ratio_index_scope",
+      "setting_scope",
       "  Scope",
       GLOBAL,
       group_info.name,
@@ -5314,7 +5332,7 @@ static bool setting_append_list_video_options(
 
    CONFIG_UINT(
       settings->video.vsync_scope,
-      "vsync_scope",
+      "setting_scope",
       "  Scope",
       GLOBAL,
       group_info.name,
@@ -5359,7 +5377,7 @@ static bool setting_append_list_video_options(
    
    CONFIG_UINT(
       settings->video.threaded_scope,
-      "video_threaded_scope",
+      "setting_scope",
       "  Scope",
       GLOBAL,
       group_info.name,
@@ -5392,7 +5410,7 @@ static bool setting_append_list_video_options(
    
    CONFIG_UINT(
       settings->video.rotation_scope,
-      "video_rotation_scope",
+      "setting_scope",
       "  Scope",
       GLOBAL,
       group_info.name,
@@ -5537,7 +5555,7 @@ static bool setting_append_list_video_options(
       
    CONFIG_UINT(
          settings->video.filter_shader_scope,
-         "video_filter_shader_scope",
+         "setting_scope",
 #ifdef HAVE_SHADER_MANAGER
          "  Scope (Filter & Shader)",
 #else
@@ -5711,7 +5729,7 @@ static bool setting_append_list_audio_options(
    
    CONFIG_UINT(
       settings->audio.volume_scope,
-      "audio_volume_scope",
+      "setting_scope",
       "  Scope",
       GLOBAL,
       group_info.name,
@@ -5766,7 +5784,7 @@ static bool setting_append_list_audio_options(
    
    CONFIG_UINT(
       settings->audio.sync_scope,
-      "audio_sync_scope",
+      "setting_scope",
       "  Scope",
       GLOBAL,
       group_info.name,
@@ -5836,7 +5854,7 @@ static bool setting_append_list_audio_options(
          true);
    CONFIG_UINT(
       settings->audio.max_timing_skew_scope,
-      "audio_max_timing_skew_scope",
+      "setting_scope",
       "  Scope",
       GLOBAL,
       group_info.name,
@@ -5914,7 +5932,7 @@ static bool setting_append_list_audio_options(
 
    CONFIG_UINT(
          settings->audio.dsp_scope,
-         "audio_dsp_scope",
+         "setting_scope",
          "  Scope",
          GLOBAL,
          group_info.name,
@@ -5977,7 +5995,7 @@ static bool setting_append_list_latency_options(
    
    CONFIG_UINT(
          settings->video.hard_sync_scope,
-         "video_hard_sync_scope",
+         "setting_scope",
          "  Scope",
          GLOBAL,
          group_info.name,
@@ -6017,7 +6035,7 @@ static bool setting_append_list_latency_options(
 
       CONFIG_UINT(
             settings->preempt_frames_scope,
-            "preempt_frames_scope",
+            "setting_scope",
             "  Scope",
             (core_loaded ? THIS_CORE : GLOBAL),
             group_info.name,
@@ -6047,7 +6065,7 @@ static bool setting_append_list_latency_options(
 
       CONFIG_UINT(
             settings->video.frame_delay_scope,
-            "video_frame_delay_scope",
+            "setting_scope",
             "  Scope",
             (core_loaded ? THIS_CORE : GLOBAL),
             group_info.name,
@@ -6143,7 +6161,7 @@ static bool setting_append_list_input_options(
    
    CONFIG_UINT(
          settings->input.max_users_scope,
-         "input_max_users_scope",
+         "setting_scope",
          "  Scope",
          GLOBAL,
          group_info.name,
@@ -6339,7 +6357,7 @@ static bool setting_append_list_input_options(
 
    CONFIG_UINT(
          settings->input.libretro_device_scope,
-         "input_libretro_device_scope",
+         "setting_scope",
          "  Scope (Virtual Devices)",
          (core_loaded ? THIS_CORE : GLOBAL),
          group_info.name,
@@ -6465,7 +6483,7 @@ static bool setting_append_list_overlay_options(
 
    CONFIG_UINT(
          settings->input.overlay_scope,
-         "input_overlay_scope",
+         "setting_scope",
          "  Scope",
          GLOBAL,
          group_info.name,
@@ -6576,7 +6594,7 @@ static bool setting_append_list_overlay_options(
 
    CONFIG_UINT(
          settings->input.overlay_adjust_vert_horiz_scope,
-         "input_overlay_adjust_vert_horiz_scope",
+         "setting_scope",
          "  Scope (Shift & Aspect)",
          GLOBAL,
          group_info.name,
@@ -6663,7 +6681,7 @@ static bool setting_append_list_overlay_options(
    
    CONFIG_UINT(
          settings->input.dpad_abxy_config_scope,
-         "input_dpad_abxy_diag_sens_scope",
+         "setting_scope",
          "  Scope (D-Pad & ABXY)",
          GLOBAL,
          group_info.name,
@@ -6709,7 +6727,7 @@ static bool setting_append_list_overlay_options(
    
    CONFIG_UINT(
          settings->input.overlay_opacity_scope,
-         "input_overlay_opacity_scope",
+         "setting_scope",
          "  Scope",
          GLOBAL,
          group_info.name,
@@ -6853,7 +6871,7 @@ static bool setting_append_list_menu_options(
 
    CONFIG_UINT(
          settings->menu.theme_scope,
-         "menu_theme_scope",
+         "setting_scope",
          "  Scope",
          GLOBAL,
          group_info.name,
