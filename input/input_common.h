@@ -29,6 +29,10 @@ extern "C" {
 #define DECLARE_BIND(x, bind, desc) { true, 0, #x, desc, bind }
 #define DECLARE_META_BIND(level, x, bind, desc) { true, level, #x, desc, bind }
 
+/* Internal Id values for menu input */
+#define RETRO_DEVICE_ID_MOUSE_SCREEN_X 11
+#define RETRO_DEVICE_ID_MOUSE_SCREEN_Y 12
+
 /* Input config. */
 struct input_bind_map
 {

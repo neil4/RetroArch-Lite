@@ -276,6 +276,10 @@ static int16_t cocoa_mouse_state(cocoa_input_data_t *apple,
          return apple->mouse_x;
       case RETRO_DEVICE_ID_MOUSE_Y:
          return apple->mouse_y;
+      case RETRO_DEVICE_ID_MOUSE_SCREEN_X:
+         return apple->touches[0].screen_x;
+      case RETRO_DEVICE_ID_MOUSE_SCREEN_Y:
+         return apple->touches[0].screen_y;
       case RETRO_DEVICE_ID_MOUSE_LEFT:
          return apple->mouse_buttons & 1;
       case RETRO_DEVICE_ID_MOUSE_RIGHT:

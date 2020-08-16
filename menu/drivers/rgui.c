@@ -1112,7 +1112,7 @@ static void rgui_render(void)
    else
       rgui_check_update(settings, frame_buf);
   
-   if (settings->menu.mouse.enable)
+   if (settings->menu.mouse.enable && menu_input->mouse.show)
       rgui_blit_cursor(menu);
 }
 

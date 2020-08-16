@@ -662,6 +662,9 @@ static int menu_input_mouse(unsigned *action)
    menu_framebuf_t *frame_buf= menu_display_fb_get_ptr();
    settings_t *settings      = config_get_ptr();
 
+   static unsigned old_screen_x, old_screen_y;
+   static retro_time_t input_usec;
+
 #ifdef HAVE_OVERLAY
    if (settings->input.overlay_enable && driver && driver->overlay)
    {
@@ -699,20 +702,15 @@ static int menu_input_mouse(unsigned *action)
          0, RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELUP);
    menu_input->mouse.hwheeldown = input_driver_state(binds, 0, RETRO_DEVICE_MOUSE,
          0, RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELDOWN);
-   menu_input->mouse.dx         = input_driver_state(binds, 0, RETRO_DEVICE_MOUSE,
-         0, RETRO_DEVICE_ID_MOUSE_X);
-   menu_input->mouse.dy         = input_driver_state(binds, 0, RETRO_DEVICE_MOUSE,
-         0, RETRO_DEVICE_ID_MOUSE_Y);
+   menu_input->mouse.screen_x   = input_driver_state(binds, 0, RETRO_DEVICE_MOUSE,
+         0, RETRO_DEVICE_ID_MOUSE_SCREEN_X);
+   menu_input->mouse.screen_y   = input_driver_state(binds, 0, RETRO_DEVICE_MOUSE,
+         0, RETRO_DEVICE_ID_MOUSE_SCREEN_Y);
 
-   menu_input->mouse.screen_x += menu_input->mouse.dx;
-   menu_input->mouse.screen_x = max(menu_input->mouse.screen_x, 0);
-   menu_input->mouse.screen_x = min(menu_input->mouse.screen_x, vp.width);
-   menu_input->mouse.screen_y += menu_input->mouse.dy;
-   menu_input->mouse.screen_y = max(menu_input->mouse.screen_y, 0);
-   menu_input->mouse.screen_y = min(menu_input->mouse.screen_y, vp.height);
-
-   menu_input->mouse.x         = ((int)menu_input->mouse.screen_x * (int)frame_buf->width) / (int)vp.width;
-   menu_input->mouse.y         = ((int)menu_input->mouse.screen_y * (int)frame_buf->height) / (int)vp.height;
+   menu_input->mouse.x = ( ((int)menu_input->mouse.screen_x - (int)vp.x)
+                           * (int)frame_buf->width ) / (int)vp.width;
+   menu_input->mouse.y = ( ((int)menu_input->mouse.screen_y - (int)vp.y)
+                           * (int)frame_buf->height ) / (int)vp.height;
 
    if (menu_input->mouse.x < 5)
       menu_input->mouse.x       = 5;
@@ -726,19 +724,25 @@ static int menu_input_mouse(unsigned *action)
    menu_input->mouse.scrollup   = (menu_input->mouse.y == 5);
    menu_input->mouse.scrolldown = (menu_input->mouse.y == (int)frame_buf->height - 5);
 
-   if (
-         (menu_input->mouse.dx != 0)     ||
-         (menu_input->mouse.dy !=0)      ||
-         menu_input->mouse.left          ||
-         menu_input->mouse.wheelup       ||
-         menu_input->mouse.wheeldown     ||
-         menu_input->mouse.hwheelup      ||
-         menu_input->mouse.hwheeldown    ||
-         menu_input->mouse.scrollup      ||
-         menu_input->mouse.scrolldown
-      )
+   if ( (menu_input->mouse.screen_x != old_screen_x) ||
+        (menu_input->mouse.screen_y != old_screen_y) ||
+        menu_input->mouse.left                       ||
+        menu_input->mouse.wheelup                    ||
+        menu_input->mouse.wheeldown                  ||
+        menu_input->mouse.hwheelup                   ||
+        menu_input->mouse.hwheeldown                 ||
+        menu_input->mouse.scrollup                   ||
+        menu_input->mouse.scrolldown )
+   {
       anim->is_active = true;
+      menu_input->mouse.show = true;
+      input_usec = rarch_get_time_usec();
+   }
+   else if (rarch_get_time_usec() > input_usec + 4000000)
+      menu_input->mouse.show = false;
 
+   old_screen_x = menu_input->mouse.screen_x;
+   old_screen_y = menu_input->mouse.screen_y;
    return 0;
 }
 
@@ -1036,7 +1040,7 @@ void menu_input_post_iterate(int *ret, unsigned action)
    menu_entry_get(&entry, selected, NULL, false);
 
    if (settings->menu.mouse.enable)
-      *ret  = menu_input_mouse_post_iterate  (&menu_input->mouse.state, cbs, action);
+      *ret = menu_input_mouse_post_iterate(&menu_input->mouse.state, cbs, action);
 
    *ret = menu_input_mouse_frame(cbs, &entry, menu_input->mouse.state);
 

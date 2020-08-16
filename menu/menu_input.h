@@ -121,8 +121,6 @@ typedef struct menu_input
 
    struct
    {
-      int16_t dx;
-      int16_t dy;
       int16_t x;
       int16_t y;
       int16_t screen_x;
@@ -137,6 +135,7 @@ typedef struct menu_input
       bool    hwheeldown;
       bool    scrollup;
       bool    scrolldown;
+      bool    show;
       unsigned ptr;
       uint64_t state;
    } mouse;
