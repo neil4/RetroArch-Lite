@@ -624,6 +624,7 @@ static int action_iterate_main(const char *label, unsigned action)
    bool do_post_iterate      = false;
    bool do_render            = false;
    int ret                   = 0;
+   global_t *global          = global_get_ptr();
    menu_handle_t *menu       = menu_driver_get_ptr();
    menu_navigation_t *nav    = menu_navigation_get_ptr();
    menu_display_t *disp      = menu_display_get_ptr();
@@ -708,7 +709,10 @@ static int action_iterate_main(const char *label, unsigned action)
    }
 
    if (did_messagebox && !do_messagebox)
+   {
       menu_display_fb_set_dirty();
+      global->menu.block_push = false;
+   }
 
    if (do_messagebox)
       menu_driver_render_messagebox(msg);

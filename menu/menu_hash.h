@@ -252,7 +252,6 @@ extern "C" {
 #define MENU_LABEL_VALUE_FRONTEND_COUNTERS                                     0x5752bcf8U
 #define MENU_LABEL_VALUE_CORE_COUNTERS                                         0x4610e861U
 #define MENU_LABEL_CORE_COUNTERS                                               0x64cc83e0U
-#define MENU_LABEL_INFO_SCREEN                                                 0xd97853d0U
 #define MENU_LABEL_SYSTEM_INFORMATION                                          0x206ebf0fU
 #define MENU_LABEL_VALUE_SYSTEM_INFORMATION                                    0xa62fd7f0U
 #define MENU_LABEL_CORE_INFORMATION                                            0xb638e0d3U

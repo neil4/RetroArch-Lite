@@ -17,12 +17,14 @@
 
 #include "../menu.h"
 #include "../menu_hash.h"
+#include "../../runloop.h"
 
 static int action_info_default(unsigned type, const char *label)
 {
    menu_displaylist_info_t info = {0};
    menu_navigation_t *nav       = menu_navigation_get_ptr();
    menu_list_t *menu_list       = menu_list_get_ptr();
+   global_t       *global       = global_get_ptr();
 
    if (!menu_list)
       return 0;
@@ -33,7 +35,9 @@ static int action_info_default(unsigned type, const char *label)
          menu_hash_to_str(MENU_LABEL_INFO_SCREEN),
         sizeof(info.label));
 
-   return menu_displaylist_push_list(&info, DISPLAYLIST_HELP);
+   menu_displaylist_push_list(&info, DISPLAYLIST_HELP);
+   global->menu.block_push = true;
+   return 0;
 }
 
 int menu_cbs_init_bind_info(menu_file_list_cbs_t *cbs,
