@@ -99,6 +99,8 @@ LRESULT win32_menu_loop(HWND owner, WPARAM wparam)
                switch (mode)
                {
                   case ID_M_LOAD_CORE:
+                     if (*settings->libretro)
+                        event_command(EVENT_CMD_UNLOAD_CORE);
                      strlcpy(settings->libretro, win32_file, sizeof(settings->libretro));
                      cmd = EVENT_CMD_LOAD_CORE;
                      break;
@@ -176,7 +178,10 @@ LRESULT win32_menu_loop(HWND owner, WPARAM wparam)
    }
 
    if (cmd != EVENT_CMD_NONE)
+   {
       event_command(cmd);
+      event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
+   }
 
    if (do_wm_close)
       PostMessage(owner, WM_CLOSE, 0, 0);
