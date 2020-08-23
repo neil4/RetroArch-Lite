@@ -707,10 +707,19 @@ static int menu_input_mouse(unsigned *action)
    menu_input->mouse.screen_y   = input_driver_state(binds, 0, RETRO_DEVICE_MOUSE,
          0, RETRO_DEVICE_ID_MOUSE_SCREEN_Y);
 
-   menu_input->mouse.x = ( ((int)menu_input->mouse.screen_x - (int)vp.x)
+   menu_input->mouse.x = ( ((int)menu_input->mouse.screen_x - vp.x)
                            * (int)frame_buf->width ) / (int)vp.width;
-   menu_input->mouse.y = ( ((int)menu_input->mouse.screen_y - (int)vp.y)
+   menu_input->mouse.y = ( ((int)menu_input->mouse.screen_y - vp.y)
                            * (int)frame_buf->height ) / (int)vp.height;
+
+   if (menu_input->mouse.x < -vp.x
+       || menu_input->mouse.y < -vp.y
+       || menu_input->mouse.x > (int)frame_buf->width + vp.x
+       || menu_input->mouse.y > (int)frame_buf->height + vp.y)
+   {
+      menu_input->mouse.show = false;
+      goto end;
+   }
 
    if (menu_input->mouse.x < 5)
       menu_input->mouse.x       = 5;
@@ -736,6 +745,7 @@ static int menu_input_mouse(unsigned *action)
    else if (rarch_get_time_usec() > input_usec + 4000000)
       menu_input->mouse.show = false;
 
+   end:
    old_screen_x = menu_input->mouse.screen_x;
    old_screen_y = menu_input->mouse.screen_y;
    return 0;
