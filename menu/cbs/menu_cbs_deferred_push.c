@@ -133,6 +133,9 @@ int cb_core_updater_list(void *data_, size_t len)
 
 static int deferred_push_core_updater_list(menu_displaylist_info_t *info)
 {
+   global_t *global  = global_get_ptr();
+
+   global->menu.block_push = false;
    return menu_displaylist_push_list(info, DISPLAYLIST_CORES_UPDATER);
 }
 #endif

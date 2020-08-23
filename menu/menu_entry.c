@@ -23,6 +23,7 @@
 #include "menu_setting.h"
 #include "menu_input.h"
 #include "../runloop_data.h"
+#include "../runloop.h"
 
 /* This file provides an abstraction of the currently displayed
  * menu.
@@ -432,6 +433,7 @@ int menu_entry_iterate(unsigned action)
 int menu_entry_action(menu_entry_t *entry, unsigned i, enum menu_action action)
 {
    int ret                   = 0;
+   global_t *global          = global_get_ptr();
    menu_navigation_t *nav    = menu_navigation_get_ptr();
    menu_display_t *disp      = menu_display_get_ptr();
    menu_list_t *menu_list    = menu_list_get_ptr();
@@ -456,11 +458,14 @@ int menu_entry_action(menu_entry_t *entry, unsigned i, enum menu_action action)
 
       case MENU_ACTION_CANCEL:
          if (cbs && cbs->action_cancel)
+         {
             ret = cbs->action_cancel(entry->path, entry->label, entry->type, i);
+            global->menu.block_push = false;
+         }
          break;
 
       case MENU_ACTION_OK:
-         if (cbs && cbs->action_ok)
+         if (cbs && cbs->action_ok && !global->menu.block_push)
             ret = cbs->action_ok(entry->path, entry->label, entry->type, i, entry->entry_idx);
          break;
       case MENU_ACTION_START:

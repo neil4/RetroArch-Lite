@@ -151,9 +151,9 @@ static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
    if (!info_update_attempted && num_missing)
    {
       if (num_missing == 1)
-         core_info_download_queue(first_missing);
+         core_info_queue_download(first_missing);
       else
-         core_info_download_queue(NULL); /* download all (info.zip) */
+         core_info_queue_download(NULL); /* download all (info.zip) */
       info_update_attempted = true;
    }
    

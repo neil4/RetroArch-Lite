@@ -199,6 +199,7 @@ typedef struct global
       bool theme_update_flag;
       char wallpaper[PATH_MAX_LENGTH];
       bool force_dirty;
+      bool block_push;
    } menu;
 #endif
 

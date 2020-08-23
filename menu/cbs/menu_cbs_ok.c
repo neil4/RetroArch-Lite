@@ -390,6 +390,7 @@ static int action_ok_core_updater_list(const char *path,
    menu_displaylist_info_t info   = {0};
    menu_list_t       *menu_list   = menu_list_get_ptr();
    settings_t *settings           = config_get_ptr();
+   global_t   *global             = global_get_ptr();
    if (!menu_list)
       return -1;
 
@@ -417,7 +418,10 @@ static int action_ok_core_updater_list(const char *path,
    strlcpy(info.label,
          menu_hash_to_str(MENU_LABEL_DEFERRED_CORE_UPDATER_LIST), sizeof(info.label));
 
-   return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
+   menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
+   global->menu.block_push = true;
+
+   return 0;
 } 
 
 static int action_ok_remap_file(const char *path,

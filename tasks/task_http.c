@@ -116,8 +116,8 @@ static int cb_core_updater_download(void *data, size_t len)
    global->core_info = core_info_list_new(INSTALLED_CORES);
 
    path_libretro_name(buf, runloop->http.msg_filename);
-   core_info_download_queue(buf);
-   
+   core_info_queue_download(buf);
+
    return 0;
 }
 
@@ -168,7 +168,7 @@ static int cb_core_info_download(void *data, size_t len)
 }
 
 
-void core_info_download_queue(const char* libretro_name)
+void core_info_queue_download(const char* libretro_name)
 {
 #ifdef HAVE_NETWORKING
    char info_path[PATH_MAX_LENGTH] = {0};
@@ -258,7 +258,7 @@ static bool rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
          rarch_main_data_http_cancel_transfer(http, msg);
       }
    }
-   
+
    net_http_delete(http->handle);
    http->handle = NULL;
    return rv;
@@ -412,6 +412,8 @@ static int rarch_main_data_http_iterate_transfer(void *data)
    size_t pos = 0, tot = 0;
    int percent = 0;
    char msg[NAME_MAX_LENGTH];
+   int64_t now_usec;
+   static int64_t start_usec;
    
    if (!net_http_update(http->handle, &pos, &tot))
    {
@@ -422,9 +424,22 @@ static int rarch_main_data_http_iterate_transfer(void *data)
       {
          snprintf(msg, sizeof(msg), "Download progress: %d%%", percent);
          rarch_main_msg_queue_push(msg, 1, 100, true);
+         start_usec = 0;
       }
       else
-         rarch_main_msg_queue_push("Download waiting...", 1, 100, true);
+      {
+         now_usec = rarch_get_time_usec();
+         if (!start_usec)
+            start_usec = now_usec;
+
+         if (now_usec - start_usec < 4000000)
+            rarch_main_msg_queue_push("Download waiting...", 1, 1, true);
+         else
+         {
+            rarch_main_data_http_cancel_transfer(http, "Download timed out");
+            start_usec = 0;
+         }
+      }
 
       return -1;
    }
