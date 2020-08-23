@@ -860,24 +860,21 @@ static void menu_action_setting_disp_set_label(file_list_t* list,
       case MENU_LABEL_PERFORMANCE_COUNTERS:
          *w = strlen(label);
          break;
-      case MENU_LABEL_CORE_INFORMATION:
-      case MENU_LABEL_SYSTEM_INFORMATION:
-         *w = 0;
-         break;
       case MENU_LABEL_INFO_SCREEN:
       {
          /* todo: something less kludgey */
          file_list_t *stack = menu_list_get_ptr()->menu_stack;
-         char *parent_label;
-
          if (stack->size > 1)
-         {
-            parent_label = stack->list[stack->size-2].label;
-            return menu_action_setting_disp_set_label(list, w, type, i,
-                  parent_label, s, len, entry_label, path, s2, len2);
-         }
-         break;
+            hash_label = menu_hash_calculate(stack->list[stack->size-2].label);
+
+         if (hash_label != MENU_LABEL_CORE_INFORMATION
+             && hash_label != MENU_LABEL_SYSTEM_INFORMATION)
+            break;  /* else fall through */
       }
+      case MENU_LABEL_CORE_INFORMATION:
+      case MENU_LABEL_SYSTEM_INFORMATION:
+         *w = 0;
+         break;
    }
 
    if (type >= MENU_SETTINGS_CORE_OPTION_START)
