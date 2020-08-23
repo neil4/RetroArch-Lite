@@ -7265,7 +7265,7 @@ CONFIG_BOOL(
          settings->menu.mouse.enable,
          "menu_mouse_enable",
          "Mouse Support",
-         false,
+         menu_mouse_support,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,

@@ -563,7 +563,7 @@ static void config_set_defaults(void)
 #ifdef HAVE_MENU
    settings->menu_show_start_screen            = menu_show_start_screen;
    settings->menu.pause_libretro               = true;
-   settings->menu.mouse.enable                 = false;
+   settings->menu.mouse.enable                 = menu_mouse_support;
    settings->menu.pointer.enable               = pointer_enable;
    settings->menu.timedate_enable              = true;
    settings->menu.core_enable                  = true;

@@ -721,18 +721,13 @@ static int menu_input_mouse(unsigned *action)
    if (menu_input->mouse.y > (int)frame_buf->height - 5)
       menu_input->mouse.y       = frame_buf->height - 5;
 
-   menu_input->mouse.scrollup   = (menu_input->mouse.y == 5);
-   menu_input->mouse.scrolldown = (menu_input->mouse.y == (int)frame_buf->height - 5);
-
    if ( (menu_input->mouse.screen_x != old_screen_x) ||
         (menu_input->mouse.screen_y != old_screen_y) ||
         menu_input->mouse.left                       ||
         menu_input->mouse.wheelup                    ||
         menu_input->mouse.wheeldown                  ||
         menu_input->mouse.hwheelup                   ||
-        menu_input->mouse.hwheeldown                 ||
-        menu_input->mouse.scrollup                   ||
-        menu_input->mouse.scrolldown )
+        menu_input->mouse.hwheeldown )
    {
       anim->is_active = true;
       menu_input->mouse.show = true;

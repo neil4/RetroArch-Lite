@@ -692,6 +692,12 @@ static const bool menu_show_start_screen = true;
 static const bool menu_show_start_screen = false;
 #endif
 
+#ifdef RARCH_MOBILE
+static const bool menu_mouse_support = false;
+#else
+static const bool menu_mouse_support = true;
+#endif
+
 static const bool menu_dpi_override_enable = false;
 
 static const unsigned menu_dpi_override_value = 72;

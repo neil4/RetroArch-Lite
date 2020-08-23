@@ -984,16 +984,7 @@ static void rgui_render(void)
    }
    
    if (settings->menu.mouse.enable)
-   {
-      if (menu_input->mouse.scrolldown 
-            && (menu_entries_get_start() < menu_entries_get_end() - RGUI_TERM_HEIGHT))
-         menu_entries_set_start(menu_entries_get_start() + 1);
-
-      if (menu_input->mouse.scrollup && (menu_entries_get_start() > 0))
-         menu_entries_set_start(menu_entries_get_start() - 1);
-
       menu_input->mouse.ptr = (menu_input->mouse.y - 3) / 11 - 2 + menu_entries_get_start();
-   }
 
    /* Do not scroll if all items are visible. */
    if (menu_entries_get_end() <= RGUI_TERM_HEIGHT)

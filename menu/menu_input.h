@@ -133,8 +133,6 @@ typedef struct menu_input
       bool    wheeldown;
       bool    hwheelup;
       bool    hwheeldown;
-      bool    scrollup;
-      bool    scrolldown;
       bool    show;
       unsigned ptr;
       uint64_t state;
