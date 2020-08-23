@@ -1047,31 +1047,29 @@ static void rgui_render(void)
 
    for (; i < end; i++, y += FONT_HEIGHT_STRIDE)
    {
-      char entry_path[PATH_MAX_LENGTH];
-      char entry_value[PATH_MAX_LENGTH];
       char message[PATH_MAX_LENGTH];
       char entry_title_buf[PATH_MAX_LENGTH];
       char type_str_buf[PATH_MAX_LENGTH];
-      unsigned entry_spacing                = menu_entry_get_spacing(i);
-      bool entry_selected                   = menu_entry_is_currently_selected(i);
+      menu_entry_t entry = {{0}};
+      unsigned entry_spacing;
+      bool entry_selected;
+
+      menu_entry_get(&entry, i, NULL, true);
+      entry_spacing  = entry.spacing;
+      entry_selected = menu_entry_is_currently_selected(i);
 
       if (i > (nav->selection_ptr + 100))
          continue;
 
-      entry_path[0]      = '\0';
-      entry_value[0]     = '\0';
       message[0]         = '\0';
       entry_title_buf[0] = '\0';
       type_str_buf[0]    = '\0';
 
-      menu_entry_get_value(i, entry_value, sizeof(entry_value));
-      menu_entry_get_path(i, entry_path, sizeof(entry_path));
-
       menu_animation_ticker_line(entry_title_buf, RGUI_TERM_WIDTH - (entry_spacing + 1 + 2),
-            frame_count, entry_path, entry_selected);
+            frame_count, entry.path, entry_selected);
       menu_animation_ticker_line(type_str_buf, entry_spacing,
             frame_count,
-            entry_value, entry_selected);
+            entry.value, entry_selected);
 
       snprintf(message, sizeof(message), "%c %-*.*s %-*s",
             entry_selected ? '>' : ' ',
