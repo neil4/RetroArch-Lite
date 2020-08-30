@@ -892,11 +892,34 @@ static int menu_displaylist_parse_options_cheats(menu_displaylist_info_t *info)
    return 0;
 }
 
+static INLINE void menu_displaylist_push_remap(menu_displaylist_info_t *info,
+                                               unsigned p, unsigned retro_id)
+{
+   global_t *global        = global_get_ptr();
+   char desc_label[64]     = {0};
+   unsigned user           = p + 1;
+   unsigned desc_offset    = retro_id;
+   const char *description = NULL;
+
+   if (desc_offset >= RARCH_FIRST_CUSTOM_BIND)
+      desc_offset = RARCH_FIRST_CUSTOM_BIND + (desc_offset - RARCH_FIRST_CUSTOM_BIND) * 2;
+
+   description = global->system.input_desc_btn[p][desc_offset];
+
+   if (!description)
+      return;
+
+   snprintf(desc_label, sizeof(desc_label),
+         "User %u %s: ", user, description);
+   menu_list_push(info->list, desc_label, "",
+         MENU_SETTINGS_INPUT_DESC_BEGIN +
+         (p * (RARCH_FIRST_CUSTOM_BIND + 4)) +  retro_id, 0, 0);
+}
+
 static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *info)
 {
    unsigned p, retro_id;
    settings_t *settings   = config_get_ptr();
-   global_t *global       = global_get_ptr();
 
    menu_list_push(info->list,
          menu_hash_to_str(MENU_LABEL_VALUE_REMAP_FILE_LOAD),
@@ -917,27 +940,17 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
 
    for (p = 0; p < settings->input.max_users; p++)
    {
-      for (retro_id = 0; retro_id < RARCH_FIRST_CUSTOM_BIND + 4; retro_id++)
-      {
-         char desc_label[64]     = {0};
-         unsigned user           = p + 1;
-         unsigned desc_offset    = retro_id;
-         const char *description = NULL;
+      menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_A);
+      menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_B);
+      menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_X);
+      menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_Y);
 
-         if (desc_offset >= RARCH_FIRST_CUSTOM_BIND)
-            desc_offset = RARCH_FIRST_CUSTOM_BIND + (desc_offset - RARCH_FIRST_CUSTOM_BIND) * 2;
-
-         description = global->system.input_desc_btn[p][desc_offset];
-
-         if (!description)
-            continue;
-
-         snprintf(desc_label, sizeof(desc_label),
-               "User %u %s: ", user, description);
-         menu_list_push(info->list, desc_label, "",
-               MENU_SETTINGS_INPUT_DESC_BEGIN +
-               (p * (RARCH_FIRST_CUSTOM_BIND + 4)) +  retro_id, 0, 0);
-      }
+      for (retro_id = RETRO_DEVICE_ID_JOYPAD_L;
+           retro_id < RARCH_FIRST_CUSTOM_BIND + 4; retro_id++)
+         menu_displaylist_push_remap(info, p, retro_id);
+      for (retro_id = RETRO_DEVICE_ID_JOYPAD_SELECT;
+           retro_id <= RETRO_DEVICE_ID_JOYPAD_RIGHT; retro_id++)
+         menu_displaylist_push_remap(info, p, retro_id);
    }
 
    return 0;
