@@ -463,11 +463,12 @@ void path_parent_dir(char *path)
  * @param buf
  * @param file_path
  * 
- * Writes @file_path's parent directory name to @buf
+ * Writes name of @file_path's parent directory to @buf
+ * Returns true if name found, false otherwise.
  */
-void path_parent_dir_name(char *buf, const char* file_path)
+bool path_parent_dir_name(char *buf, const char* file_path)
 {
-   char slash_char = path_default_slash()[0];
+   const char slash_char = path_default_slash()[0];
    char *slash = strchr(file_path, slash_char);
    char *start = slash + 1;
    char *end;
@@ -475,7 +476,7 @@ void path_parent_dir_name(char *buf, const char* file_path)
    if (!slash || !(slash = strchr(start, slash_char)))
    {
       *buf = '\0';
-      return;
+      return false;
    }
    
    end = slash;
@@ -488,6 +489,7 @@ void path_parent_dir_name(char *buf, const char* file_path)
    
    strncpy(buf, start, (end-start)*sizeof(char));
    buf[end-start] = '\0';
+   return true;
 }
 
 /**

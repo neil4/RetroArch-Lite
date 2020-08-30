@@ -697,8 +697,7 @@ static int action_ok_remap_file_save(const char *path,
          break;
 
       case MENU_LABEL_REMAP_FILE_SAVE_DIR:
-         path_parent_dir_name(buf, global->basename);
-         if (!*buf)
+         if (!path_parent_dir_name(buf, global->basename))
             strcpy(buf, "root");
          fill_pathname_join(rel_path, global->libretro_name,
                             buf, PATH_MAX_LENGTH);

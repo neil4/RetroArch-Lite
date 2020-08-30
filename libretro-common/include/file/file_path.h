@@ -170,8 +170,9 @@ void path_parent_dir(char *path);
  * @param file_path
  * 
  * Writes name of @file_path's parent directory to @buf
+ * Returns true if name found, false otherwise.
  */
-void path_parent_dir_name(char *buf, const char* file_path);
+bool path_parent_dir_name(char *buf, const char* file_path);
 
 /**
  * path_resolve_realpath:

@@ -124,8 +124,7 @@ int remap_file_load_auto()
    if(!path_file_exists(fullpath))
    {
       /* Directory remap path */
-      path_parent_dir_name(buf, global->basename);
-      if (!*buf)
+      if (!path_parent_dir_name(buf, global->basename))
          strcpy(buf, "root");
       fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
       strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);

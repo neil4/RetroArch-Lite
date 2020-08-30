@@ -67,8 +67,7 @@ static int action_start_remap_file_delete(unsigned type, const char *label)
          break;
 
       case MENU_LABEL_REMAP_FILE_SAVE_DIR:
-         path_parent_dir_name(buf, global->basename);
-         if (!*buf)
+         if (!path_parent_dir_name(buf, global->basename))
             strcpy(buf, "root");
          strlcat(fullpath, buf, PATH_MAX_LENGTH);
          scope = "Directory";

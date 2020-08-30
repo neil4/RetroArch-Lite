@@ -2452,8 +2452,7 @@ static inline bool get_scoped_config_filename(char* buf, const unsigned scope)
          return false;
 
       /* Basename is conveniently updated between saving and loading scoped cfgs */
-      path_parent_dir_name(buf, global->basename);
-      if (!*buf)
+      if (!path_parent_dir_name(buf, global->basename))
          strcpy(buf, "root");
 
       /* Check for name clash */
@@ -2468,8 +2467,7 @@ static inline bool get_scoped_config_filename(char* buf, const unsigned scope)
       strlcpy(buf, path_basename(global->basename), NAME_MAX_LENGTH);
 
       /* Check for name clash */
-      path_parent_dir_name(tmp_buf, global->basename);
-      if (!*tmp_buf)
+      if (!path_parent_dir_name(tmp_buf, global->basename))
          strcpy(tmp_buf, "root");
       if (!strcmp(buf, global->libretro_name) || !strcmp(buf, tmp_buf))
          strlcat(buf, " (rom)", NAME_MAX_LENGTH);
