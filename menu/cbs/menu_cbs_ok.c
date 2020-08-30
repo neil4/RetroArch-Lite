@@ -14,6 +14,7 @@
  */
 
 #include <file/file_path.h>
+#include <rhash.h>
 
 #include "../menu.h"
 #include "../menu_display.h"
@@ -669,59 +670,59 @@ static int action_ok_cheat_file_save_as(const char *path,
    return 0;
 }
 
-static int action_ok_remap_file_save_core(const char *path,
+static int action_ok_remap_file_save(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   char directory[PATH_MAX_LENGTH]   = {0};
-   char rel_path[PATH_MAX_LENGTH]    = {0};
-   global_t *global                  = global_get_ptr();
-   settings_t *settings              = config_get_ptr();
-   const char *core_name             = global ? global->libretro_name
-                                                : NULL;
-   if (!global || !settings)
-      return 0;
-
-   fill_pathname_join(directory, settings->input_remapping_directory,
-                      core_name, PATH_MAX_LENGTH);
-   fill_pathname_join(rel_path, core_name, core_name, PATH_MAX_LENGTH);
-
-   if(!path_file_exists(directory))
-       path_mkdir(directory);
-
-   if(input_remapping_save_file(rel_path))
-      rarch_main_msg_queue_push("Remap file saved successfully", 1, 100, true);
-   else
-      rarch_main_msg_queue_push("Error saving remap file", 1, 100, true);
-
-   return 0;
-}
-
-static int action_ok_remap_file_save_game(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   char directory[PATH_MAX_LENGTH] = {0};
+   char buf[PATH_MAX_LENGTH]       = {0};
    char rel_path[PATH_MAX_LENGTH]  = {0};
    global_t *global                = global_get_ptr();
    settings_t *settings            = config_get_ptr();
-   const char *core_name           = global ? global->libretro_name
-                                              : NULL;
-   const char *game_name           = global ? path_basename(global->basename)
-                                              : NULL;
+   char *scope                     = NULL;
+   uint32_t hash                   = djb2_calculate(label);
+
    if (!global || !settings)
       return 0;
 
-   fill_pathname_join(directory, settings->input_remapping_directory,
-                      core_name, PATH_MAX_LENGTH);
-   fill_pathname_join(rel_path, core_name, game_name, PATH_MAX_LENGTH);
+   fill_pathname_join(buf, settings->input_remapping_directory,
+                      global->libretro_name, PATH_MAX_LENGTH);
+   if (!path_file_exists(buf))
+      path_mkdir(buf);
 
-   if(!path_file_exists(directory))
-       path_mkdir(directory);
+   switch(hash)
+   {
+      case MENU_LABEL_REMAP_FILE_SAVE_GAME:
+         fill_pathname_join(rel_path, global->libretro_name,
+                            path_basename(global->basename), PATH_MAX_LENGTH);
+         scope = "ROM";
+         break;
 
-   if(input_remapping_save_file(rel_path))
-      rarch_main_msg_queue_push("Remap file saved successfully", 1, 100, true);
+      case MENU_LABEL_REMAP_FILE_SAVE_DIR:
+         path_parent_dir_name(buf, global->basename);
+         if (!*buf)
+            strcpy(buf, "root");
+         fill_pathname_join(rel_path, global->libretro_name,
+                            buf, PATH_MAX_LENGTH);
+         scope = "Directory";
+         break;
+
+      case MENU_LABEL_REMAP_FILE_SAVE_CORE:
+         fill_pathname_join(rel_path, global->libretro_name,
+                            global->libretro_name, PATH_MAX_LENGTH);
+         scope = "Core";
+         break;
+
+      default:
+         return -1;
+   }
+
+   if (input_remapping_save_file(rel_path))
+      snprintf(buf, PATH_MAX_LENGTH,
+               "%s remap file saved successfully.", scope);
    else
-      rarch_main_msg_queue_push("Error saving remap file", 1, 100, true);
+      snprintf(buf, PATH_MAX_LENGTH,
+               "Error saving %s remap file.", scope);
 
+   rarch_main_msg_queue_push(buf, 1, 100, true);
    return 0;
 }
 
@@ -1309,10 +1310,9 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          cbs->action_ok = action_ok_cheat_file_save_as;
          break;
       case MENU_LABEL_REMAP_FILE_SAVE_CORE:
-         cbs->action_ok = action_ok_remap_file_save_core;
-         break;
+      case MENU_LABEL_REMAP_FILE_SAVE_DIR:
       case MENU_LABEL_REMAP_FILE_SAVE_GAME:
-         cbs->action_ok = action_ok_remap_file_save_game;
+         cbs->action_ok = action_ok_remap_file_save;
          break;
       case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
          cbs->action_ok = action_ok_options_file_save_game;

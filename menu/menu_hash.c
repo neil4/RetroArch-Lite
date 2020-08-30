@@ -86,6 +86,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "remap_file_load";
       case MENU_LABEL_REMAP_FILE_SAVE_CORE:
          return "remap_file_save_core";
+      case MENU_LABEL_REMAP_FILE_SAVE_DIR:
+         return "remap_file_save_dir";
       case MENU_LABEL_REMAP_FILE_SAVE_GAME:
          return "remap_file_save_game";
       case MENU_LABEL_VALUE_REMAP_FILE_LOAD:

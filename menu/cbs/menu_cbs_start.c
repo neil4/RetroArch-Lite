@@ -13,6 +13,8 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <rhash.h>
+
 #include "../../libretro-common/include/file/file_path.h"
 #include "../menu.h"
 #include "../menu_cbs.h"
@@ -41,68 +43,60 @@ static int action_start_remap_file_load(unsigned type, const char *label)
    return 0;
 }
 
-static int action_start_remap_file_delete_core(unsigned type, const char *label)
+static int action_start_remap_file_delete(unsigned type, const char *label)
 {
-   char directory[PATH_MAX_LENGTH]  = {0};
-   char buf[PATH_MAX_LENGTH]        = {0};
-   char fullpath[PATH_MAX_LENGTH]   = {0};
-   global_t *global                 = global_get_ptr();
-   settings_t *settings             = config_get_ptr();
-   const char *core_name            = global ? global->libretro_name : NULL;
+   char buf[PATH_MAX_LENGTH]       = {0};
+   char fullpath[PATH_MAX_LENGTH]  = {0};
+   global_t *global                = global_get_ptr();
+   settings_t *settings            = config_get_ptr();
+   char *scope                     = NULL;
+   uint32_t hash                   = djb2_calculate(label);
 
-   fill_pathname_join(directory,settings->input_remapping_directory,core_name,PATH_MAX_LENGTH);
-   fill_pathname_join(buf,directory,core_name,PATH_MAX_LENGTH);
-   fill_pathname_noext(fullpath, buf, ".rmp", PATH_MAX_LENGTH);
-
-   if (!path_file_exists(fullpath))
-   {
-      rarch_main_msg_queue_push("Core remap file does not exist", 1, 100, true);
+   if (!global || !settings)
       return 0;
+
+   fill_pathname_join(fullpath, settings->input_remapping_directory,
+                      global->libretro_name, PATH_MAX_LENGTH);
+   strlcat(fullpath, path_default_slash(), PATH_MAX_LENGTH);
+
+   switch(hash)
+   {
+      case MENU_LABEL_REMAP_FILE_SAVE_GAME:
+         strlcat(fullpath, path_basename(global->basename), PATH_MAX_LENGTH);
+         scope = "ROM";
+         break;
+
+      case MENU_LABEL_REMAP_FILE_SAVE_DIR:
+         path_parent_dir_name(buf, global->basename);
+         if (!*buf)
+            strcpy(buf, "root");
+         strlcat(fullpath, buf, PATH_MAX_LENGTH);
+         scope = "Directory";
+         break;
+
+      case MENU_LABEL_REMAP_FILE_SAVE_CORE:
+         strlcat(fullpath, global->libretro_name, PATH_MAX_LENGTH);
+         scope = "Core";
+         break;
+
+      default:
+         return -1;
    }
 
-   if (remove(fullpath))
-      rarch_main_msg_queue_push("Error deleting remap file", 1, 100, true);
+   strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
+
+   if (!path_file_exists(fullpath))
+      snprintf(buf, PATH_MAX_LENGTH, "%s remap file does not exist.", scope);
+   else if (remove(fullpath))
+      snprintf(buf, PATH_MAX_LENGTH, "Error deleting %s remap file", scope);
    else
    {
-      rarch_main_msg_queue_push("Deleted Core remap file", 1, 100, true);
+      snprintf(buf, PATH_MAX_LENGTH, "Deleted %s remap file", scope);
       if (!strcmp(fullpath, settings->input.remapping_path))
          settings->input.remapping_path[0] = '\0';
    }
 
-   return 0;
-}
-
-static int action_start_remap_file_delete_game(unsigned type, const char *label)
-{
-   char directory[PATH_MAX_LENGTH]  = {0};
-   char buf[PATH_MAX_LENGTH]        = {0};
-   char fullpath[PATH_MAX_LENGTH]   = {0};
-   global_t *global                 = global_get_ptr();
-   settings_t *settings             = config_get_ptr();
-   const char *core_name            = global ? global->libretro_name
-                                               : NULL;
-   const char *game_name            = global ? path_basename(global->basename)
-                                               : NULL;
-
-   fill_pathname_join(directory,settings->input_remapping_directory,core_name,PATH_MAX_LENGTH);
-   fill_pathname_join(buf,directory,game_name,PATH_MAX_LENGTH);
-   fill_pathname_noext(fullpath, buf, ".rmp", PATH_MAX_LENGTH);
-
-   if (!path_file_exists(fullpath))
-   {
-      rarch_main_msg_queue_push("ROM remap file does not exist", 1, 100, true);
-      return 0;
-   }
-
-   if (remove(fullpath))
-      rarch_main_msg_queue_push("Error deleting remap file", 1, 100, true);
-   else
-   {
-      rarch_main_msg_queue_push("Deleted ROM remap file", 1, 100, true);
-      if (!strcmp(fullpath, settings->input.remapping_path))
-         settings->input.remapping_path[0] = '\0';
-   }
-
+   rarch_main_msg_queue_push(buf, 1, 100, true);
    return 0;
 }
 
@@ -429,10 +423,9 @@ int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
          cbs->action_start = action_start_remap_file_load;
          break;
       case MENU_LABEL_REMAP_FILE_SAVE_CORE:
-         cbs->action_start = action_start_remap_file_delete_core;
-         break;
+      case MENU_LABEL_REMAP_FILE_SAVE_DIR:
       case MENU_LABEL_REMAP_FILE_SAVE_GAME:
-         cbs->action_start = action_start_remap_file_delete_game;
+         cbs->action_start = action_start_remap_file_delete;
          break;
       case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
          cbs->action_start = action_start_options_file_delete_game;

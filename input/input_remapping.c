@@ -15,6 +15,7 @@
 
 #include "input_remapping.h"
 
+#include <rhash.h>
 #include <file/config_file.h>
 #include <file/file_path.h>
 
@@ -102,33 +103,44 @@ bool input_remapping_load_file(const char *path)
 
 int remap_file_load_auto()
 {
-  /* Look for game-specific file first, then core-specific file */
+  /* Look for ROM, Directory, then Core specific remap */
    char directory[PATH_MAX_LENGTH]  = {0};
-   char buf[PATH_MAX_LENGTH]        = {0};
+   char buf[NAME_MAX_LENGTH]        = {0};
    char fullpath[PATH_MAX_LENGTH]   = {0};
    global_t *global                 = global_get_ptr();
    settings_t *settings             = config_get_ptr();
-   const char *core_name            = global ? global->libretro_name
-                                               : NULL;
-   const char *game_name            = global ? path_basename(global->basename)
-                                               : NULL;
    
    if (!global || !settings)
       return 0;
 
    fill_pathname_join(directory, settings->input_remapping_directory,
-                      core_name, PATH_MAX_LENGTH);
-   fill_pathname_join(buf, directory, game_name, PATH_MAX_LENGTH);
-   fill_pathname_noext(fullpath, buf, ".rmp", PATH_MAX_LENGTH);
+                      global->libretro_name, PATH_MAX_LENGTH);
 
-   if( !path_file_exists(fullpath) )
-   {  /* fall back to core remap file */
-      fill_pathname_join(buf,directory,core_name,PATH_MAX_LENGTH);
-      fill_pathname_noext(fullpath, buf, ".rmp", PATH_MAX_LENGTH);
+   /* ROM remap path */
+   fill_pathname_join(fullpath, directory,
+                      path_basename(global->basename), PATH_MAX_LENGTH);
+   strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
+
+   if(!path_file_exists(fullpath))
+   {
+      /* Directory remap path */
+      path_parent_dir_name(buf, global->basename);
+      if (!*buf)
+         strcpy(buf, "root");
+      fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
+      strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
+
+      if(!path_file_exists(fullpath))
+      {
+         /* Core remap path */
+         fill_pathname_join(fullpath, directory,
+                            global->libretro_name, PATH_MAX_LENGTH);
+         strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
+      }
    }
    
-   if( path_file_exists(fullpath)
-       && input_remapping_load_file(fullpath) )
+   if ( path_file_exists(fullpath)
+        && input_remapping_load_file(fullpath) )
       strlcpy(settings->input.remapping_path, fullpath, PATH_MAX_LENGTH);
    else
    {  /* fall back to default mapping */
