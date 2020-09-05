@@ -34,9 +34,13 @@ static inline void set_mame_title(file_list_t *list, const char *path)
    char *ext;
    
    if (global->mame_list && settings->menu.mame_titles
-       && (ext=strrchr(path,'.')) && !strcmp(".zip", ext))
-      config_get_string(global->mame_list, path,
-                        &list->list[list->size].alt);
+       && (ext = strrchr(path,'.'))
+       && (!strcmp("zip", ext+1) || !strcmp("7z", ext+1)))
+   {
+      *ext = '\0';
+      config_get_string(global->mame_list, path, &list->list[list->size].alt);
+      *ext = '.';
+   }
 }
 
 void file_list_push(file_list_t *list,

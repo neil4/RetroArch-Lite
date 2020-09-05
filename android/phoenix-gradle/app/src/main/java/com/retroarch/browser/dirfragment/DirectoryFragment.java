@@ -484,8 +484,12 @@ public class DirectoryFragment extends DialogFragment
 
             boolean allowFile = file.isDirectory() || (filterPath(path) && !isDirectoryTarget);
             if (allowFile)
+            {
+               boolean showMameTitle = showMameTitles
+                     && (path.endsWith(".zip") || path.endsWith((".7z")));
                adapter.add(new FileWrapper(file, FileWrapper.FILE, true,
-                     showMameTitles ? mameListFile : null));
+                     showMameTitle ? mameListFile : null));
+            }
          }
       }
 

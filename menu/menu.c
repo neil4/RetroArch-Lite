@@ -121,19 +121,15 @@ static int menu_init_entries(menu_entries_t *entries)
 
 static void menu_init_mame_list()
 {
-   char *mamelist_path = NULL;
+   char mamelist_path[PATH_MAX_LENGTH];
    global_t *global = global_get_ptr();
    settings_t *settings = config_get_ptr();
-   static bool inited;
    
-   if (!inited)
+   if (!global->mame_list)
    {
-      mamelist_path = calloc(PATH_MAX_LENGTH, sizeof(char));
       fill_pathname_join(mamelist_path, settings->libretro_info_path,
             "mamelist.txt", PATH_MAX_LENGTH);
       global->mame_list = (config_file_t*)config_file_new(mamelist_path);
-      free(mamelist_path);
-      inited = true;
    }
 }
 
@@ -262,6 +258,7 @@ void menu_free(menu_handle_t *menu)
    
    if (global->mame_list)
       config_file_free(global->mame_list);
+   global->mame_list = NULL;
 
    if (global->core_info_current)
       free(global->core_info_current);

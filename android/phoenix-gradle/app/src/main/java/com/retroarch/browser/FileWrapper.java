@@ -17,7 +17,7 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
    private final boolean parentItem;
    private final boolean dirSelectItem;
    private final boolean enabled;
-   private final ConfigFile nameConf;
+   private final ConfigFile nameMap;
    private final int typeIndex;
 
    public FileWrapper(File file, int type, boolean isEnabled, ConfigFile nameMap)
@@ -27,7 +27,7 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
       this.dirSelectItem = (type == DIRSELECT);      
       this.typeIndex     = (type == FILE) ? (FILE + (file.isDirectory() ? 0 : 1)) : type;
       this.enabled = parentItem || dirSelectItem || isEnabled;
-      this.nameConf = nameMap;
+      this.nameMap = nameMap;
    }
 
    public FileWrapper(File file, int type, boolean isEnabled)
@@ -37,7 +37,7 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
       this.dirSelectItem = (type == DIRSELECT);
       this.typeIndex     = (type == FILE) ? (FILE + (file.isDirectory() ? 0 : 1)) : type;
       this.enabled = parentItem || dirSelectItem || isEnabled;
-      this.nameConf = null;
+      this.nameMap = null;
    }
    
    public FileWrapper()
@@ -47,7 +47,7 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
       this.dirSelectItem = false;
       this.typeIndex = 0;
       this.enabled = false;
-      this.nameConf = null;
+      this.nameMap = null;
    }
 
    @Override
@@ -61,7 +61,7 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
          return "[[Use this directory]]";
       else if (parentItem)
          return "[Parent Directory]";
-      else if (nameConf != null)
+      else if (nameMap != null)
          return MapName(file.getName());
       else
          return file.getName();
@@ -134,11 +134,13 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
       return -1;
    }
 
-   public String MapName(String filename)
+   private String MapName(String filename)
    {
-      String lcName = filename.toLowerCase();
-      if (nameConf.keyExists(lcName))
-         return nameConf.getString(lcName);
+      int dot = filename.lastIndexOf('.');
+      String basename = dot > 0 ? filename.substring(0, dot) : filename;
+
+      if (nameMap.keyExists(basename))
+         return nameMap.getString(basename);
       else
          return filename;
    }
