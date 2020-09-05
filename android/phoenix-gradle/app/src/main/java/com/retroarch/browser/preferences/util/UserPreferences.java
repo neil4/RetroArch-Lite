@@ -89,15 +89,12 @@ public final class UserPreferences
 
       final String defaultSave = UserPreferences.defaultBaseDir + "/save";
       final String defaultSys = UserPreferences.defaultBaseDir + "/system";
-      final String defaultConfig = UserPreferences.defaultBaseDir + "/config";  // content configs, core options, and remaps
+      final String defaultConfig = UserPreferences.defaultBaseDir + "/config";  // configs, core options, and remaps
       final String defaultState = UserPreferences.defaultBaseDir + "/state";
-      final String coreDir = ctx.getApplicationInfo().dataDir + "/cores/";
 
       final SharedPreferences prefs = getPreferences(ctx);
 
-      // Internal directories
-      //
-      config.setString("libretro_directory", coreDir);
+      // Default ROM path
       config.setString("rgui_browser_directory", prefs.getString("rgui_browser_directory", ""));
       
       // Audio, Video

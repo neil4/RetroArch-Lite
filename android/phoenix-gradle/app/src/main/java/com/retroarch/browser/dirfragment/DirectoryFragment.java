@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.retroarch.browser.FileWrapper;
 import com.retroarch.browser.IconAdapter;
 import com.retroarch.browser.NativeInterface;
+import com.retroarch.browser.preferences.PreferenceActivity;
 import com.retroarch.browser.preferences.util.ConfigFile;
 import com.retroarch.browser.preferences.util.UserPreferences;
 
@@ -364,6 +365,7 @@ public class DirectoryFragment extends DialogFragment
          SharedPreferences settings = UserPreferences.getPreferences(getActivity());
          SharedPreferences.Editor editor = settings.edit();
          editor.putString(pathSettingKey, path).apply();
+         PreferenceActivity.config_dirty = true;
       }
 
       dismiss();

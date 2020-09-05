@@ -226,8 +226,8 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
          contentBrowser.setShowMameTitles(prefs.getBoolean("mame_titles", false));
          contentBrowser.setOnDirectoryFragmentClosedListener(this);
 
-         String startPath = prefs.getString( libretroName + "_directory", "");
-         if ( startPath.isEmpty() || new File(startPath).exists() == false )
+         String startPath = prefs.getString(libretroName + "_directory", "");
+         if (startPath.isEmpty() || new File(startPath).exists() == false)
             startPath = prefs.getString("rgui_browser_directory", "");
          if (!startPath.isEmpty() && new File(startPath).exists())
             contentBrowser.setStartDirectory(startPath);

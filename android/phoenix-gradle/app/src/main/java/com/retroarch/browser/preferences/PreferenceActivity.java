@@ -34,6 +34,8 @@ public final class PreferenceActivity extends AppCompatActivity implements TabLi
    // ViewPager for the fragments.
    private ViewPager viewPager;
 
+   public static boolean config_dirty;
+
    @Override
    public void onCreate(Bundle savedInstanceState)
    {
@@ -94,15 +96,18 @@ public final class PreferenceActivity extends AppCompatActivity implements TabLi
    @Override
    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
    {
-      // Do nothing
+      // TODO: Only do this for prefs that affect retroarch.cfg
+      config_dirty = true;
    }
    
    @Override
    public void onDestroy()
    {
-      // TODO: Update config file only when preferences actually changed.
-      // Note: Choosing a directory path does not invoke onSharedPreferenceChanged
-      UserPreferences.updateConfigFile(this);
+      if (config_dirty)
+      {
+         UserPreferences.updateConfigFile(this);
+         config_dirty = false;
+      }
       super.onDestroy();
    }
 
