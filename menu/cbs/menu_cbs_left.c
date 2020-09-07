@@ -412,12 +412,11 @@ static int action_left_video_resolution(unsigned type, const char *label,
 static int core_setting_left(unsigned type, const char *label,
       bool wraparound)
 {
-   unsigned idx     = type - MENU_SETTINGS_CORE_OPTION_START;
    global_t *global = global_get_ptr();
 
    (void)label;
 
-   core_option_prev(global->system.core_options, idx);
+   core_option_prev(global->system.core_options, type);
 
    return 0;
 }

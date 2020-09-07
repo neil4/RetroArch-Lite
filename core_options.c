@@ -24,8 +24,10 @@
 #include <compat/strl.h>
 #include <retro_miscellaneous.h>
 #include <string/stdstring.h>
+#include "menu/menu.h"
 
 bool options_touched = false;
+unsigned *options_index_map;  /* from menu index to 'opts' index */
 
 struct core_option
 {
@@ -36,6 +38,7 @@ struct core_option
    struct string_list *labels;
    size_t index;
    size_t default_index;
+   bool hide;
 };
 
 struct core_option_manager
@@ -73,6 +76,7 @@ void core_option_free(core_option_manager_t *opt)
    if (opt->conf)
       config_file_free(opt->conf);
    free(opt->opts);
+   free(options_index_map);
    free(opt);
 }
 
@@ -337,7 +341,8 @@ static core_option_manager_t *core_option_new(const char *conf_path,
    }
 
    opt->opts = (struct core_option*)calloc(size, sizeof(*opt->opts));
-   if (!opt->opts)
+   options_index_map = (unsigned*)calloc(size, sizeof(unsigned));
+   if (!opt->opts || !options_index_map)
       goto error;
 
    opt->size = size;
@@ -366,6 +371,7 @@ static core_option_manager_t *core_option_new(const char *conf_path,
 
 error:
    core_option_free(opt);
+   free(options_index_map);
    return NULL;
 }
 
@@ -394,6 +400,44 @@ void core_options_init(const struct retro_core_option_definition *option_defs,
       core_option_get_core_conf_path(conf_path);
 
    global->system.core_options = core_option_new(conf_path, option_defs, vars);
+}
+
+/**
+ * core_option_set_visible:
+ * @opt                   : options manager handle
+ * @key                   : String id of core_option
+ * @visible               : False if option should be hidden in menu
+ */
+void core_option_set_visible(core_option_manager_t *opt,
+                             const char* key, bool visible)
+{
+   unsigned i;
+
+   if (!opt || !key)
+      return;
+
+   for (i = 0; i < opt->size; i++)
+   {
+      if (!strcmp(opt->opts[i].key, key))
+      {
+         opt->opts[i].hide = !visible;
+         menu_entries_set_refresh();
+         return;
+      }
+   }
+}
+
+/**
+ * core_option_index:
+ * @type            : menu entry type
+ *
+ * Returns: Index of core option
+ */
+static INLINE unsigned core_option_index(unsigned type)
+{
+   if (type >= MENU_SETTINGS_CORE_OPTION_START)
+      return options_index_map[type - MENU_SETTINGS_CORE_OPTION_START];
+   return type;
 }
 
 /**
@@ -452,9 +496,25 @@ size_t core_option_size(core_option_manager_t *opt)
 }
 
 /**
+ * core_option_set_menu_offset:
+ * @opt                       : options manager handle
+ * @idx                       : index of option in @opt
+ * @menu_offset               : offset from first option in menu display list
+ *
+ * Maps @idx to a menu entry. Required to index core option by menu entry type.
+ */
+void core_option_set_menu_offset(core_option_manager_t *opt,
+                                 unsigned idx, unsigned menu_offset)
+{
+   if (!opt || idx >= opt->size || menu_offset >= opt->size)
+      return;
+   options_index_map[menu_offset] = idx;
+}
+
+/**
  * core_option_get_desc:
- * @opt              : options manager handle
- * @index            : index identifier of the option
+ * @opt                : options manager handle
+ * @idx                : option index or menu entry type
  *
  * Gets description for an option.
  *
@@ -464,13 +524,15 @@ const char *core_option_get_desc(core_option_manager_t *opt, size_t idx)
 {
    if (!opt)
       return NULL;
+
+   idx = core_option_index(idx);
    return opt->opts[idx].desc;
 }
 
 /**
  * core_option_get_val:
- * @opt              : options manager handle
- * @index            : index identifier of the option
+ * @opt               : options manager handle
+ * @idx               : option index or menu entry type
  *
  * Gets value for an option.
  *
@@ -478,7 +540,13 @@ const char *core_option_get_desc(core_option_manager_t *opt, size_t idx)
  **/
 const char *core_option_get_val(core_option_manager_t *opt, size_t idx)
 {
-   struct core_option *option = (struct core_option*)&opt->opts[idx];
+   struct core_option *option;
+   if (!opt)
+      return NULL;
+
+   idx = core_option_index(idx);
+   option = (struct core_option*)&opt->opts[idx];
+
    if (!option)
       return NULL;
    return option->vals->elems[option->index].data;
@@ -487,7 +555,7 @@ const char *core_option_get_val(core_option_manager_t *opt, size_t idx)
 /**
  * core_option_get_label:
  * @opt              : options manager handle
- * @idx              : idx identifier of the option
+ * @idx              : option index or menu entry type
  *
  * Gets label for an option value.
  *
@@ -495,10 +563,13 @@ const char *core_option_get_val(core_option_manager_t *opt, size_t idx)
  **/
 const char *core_option_get_label(core_option_manager_t *opt, size_t idx)
 {
-   struct core_option *option = (struct core_option*)&opt->opts[idx];
+   struct core_option *option;
+
+   idx = core_option_index(idx);
+   option = (struct core_option*)&opt->opts[idx];
+
    if (!option)
       return NULL;
-
    if (option->labels)
       return option->labels->elems[option->index].data;
    else
@@ -506,69 +577,90 @@ const char *core_option_get_label(core_option_manager_t *opt, size_t idx)
 }
 
 /**
+ * core_option_is_hidden:
+ * @opt                 : options manager handle
+ * @idx                 : index identifier of the option
+ *
+ * Returns: True if option should be hidden in menu, false if not
+ */
+bool core_option_is_hidden(core_option_manager_t *opt, size_t idx)
+{
+   if (!opt || idx >= opt->size)
+      return true;
+   return opt->opts[idx].hide;
+}
+
+/**
  * core_option_get_info:
+ * @opt                : options manager handle
  * @s                  : output message
  * @len                : size of @s
- * @idx                : idx identifier of the option
+ * @idx                : option index or menu entry type
  *
  * Gets info message text describing an option.
  */
-void core_option_get_info(char *s, size_t len, size_t idx)
+void core_option_get_info(core_option_manager_t *opt,
+                          char *s, size_t len, size_t idx)
 {
-   global_t *global = global_get_ptr();
-   struct core_option *option = &global->system.core_options->opts[idx];
+   char *info;
+   if (!opt)
+      return;
 
-   if (!option || !option->info || !*option->info)
+   idx = core_option_index(idx);
+   info = opt->opts[idx].info;
+
+   if (!info || !*info)
       strlcpy(s, "-- No info on this item is available. --\n", len);
    else
-      strlcpy(s, option->info, len);
+      strlcpy(s, info, len);
 }
 
 /**
  * core_option_get_vals:
- * @opt                   : pointer to core option manager object.
- * @idx                   : idx of core option.
+ * @opt                : pointer to core option manager object.
+ * @idx                : option index or menu entry type
  *
- * Gets list of core option values from core option at index @idx.
+ * Gets list of core option values from core option specified by @idx.
  *
  * Returns: string list of core option values if successful, otherwise
  * NULL.
  **/
-struct string_list *core_option_get_vals(
-      core_option_manager_t *opt, size_t idx)
+struct string_list *core_option_get_vals(core_option_manager_t *opt, size_t idx)
 {
    if (!opt)
       return NULL;
+   idx = core_option_index(idx);
    return opt->opts[idx].vals;
 }
 
 void core_option_set_val(core_option_manager_t *opt,
       size_t idx, size_t val_idx)
 {
-   struct core_option *option= (struct core_option*)&opt->opts[idx];
-
-   if (!option)
+   if (!opt)
       return;
 
-   option->index   = val_idx % option->vals->size;
-   opt->updated    = true;
-   options_touched = true;
+   idx = core_option_index(idx);
+   opt->opts[idx].index = val_idx % opt->opts[idx].vals->size;
+   opt->updated         = true;
+   options_touched      = true;
 }
 
 /**
  * core_option_next:
- * @opt                   : pointer to core option manager object.
- * @idx                   : index of core option to be reset to defaults.
+ * @opt            : pointer to core option manager object.
+ * @idx            : option index or menu entry type
  *
  * Get next value for core option specified by @idx.
  * Options wrap around.
  **/
 void core_option_next(core_option_manager_t *opt, size_t idx)
 {
-   struct core_option *option = (struct core_option*)&opt->opts[idx];
-
-   if (!option)
+   struct core_option *option;
+   if (!opt)
       return;
+
+   idx = core_option_index(idx);
+   option = (struct core_option*)&opt->opts[idx];
 
    option->index   = (option->index + 1) % option->vals->size;
    opt->updated    = true;
@@ -577,8 +669,8 @@ void core_option_next(core_option_manager_t *opt, size_t idx)
 
 /**
  * core_option_prev:
- * @opt                   : pointer to core option manager object.
- * @idx                   : index of core option to be reset to defaults.
+ * @opt            : pointer to core option manager object.
+ * @idx            : option index or menu entry type
  * Options wrap around.
  *
  * Get previous value for core option specified by @idx.
@@ -586,10 +678,12 @@ void core_option_next(core_option_manager_t *opt, size_t idx)
  **/
 void core_option_prev(core_option_manager_t *opt, size_t idx)
 {
-   struct core_option *option = (struct core_option*)&opt->opts[idx];
-
-   if (!option)
+   struct core_option *option;
+   if (!opt)
       return;
+
+   idx = core_option_index(idx);
+   option = (struct core_option*)&opt->opts[idx];
 
    option->index   = (option->index + option->vals->size - 1) %
       option->vals->size;
@@ -600,7 +694,7 @@ void core_option_prev(core_option_manager_t *opt, size_t idx)
 /**
  * core_option_set_default:
  * @opt                   : pointer to core option manager object.
- * @idx                   : index of core option to be reset to defaults.
+ * @idx                   : option index or menu entry type
  *
  * Reset core option specified by @idx and sets default value for option.
  **/
@@ -609,6 +703,7 @@ void core_option_set_default(core_option_manager_t *opt, size_t idx)
    if (!opt)
       return;
 
+   idx                  = core_option_index(idx);
    opt->opts[idx].index = opt->opts[idx].default_index;
    opt->updated         = true;
    options_touched      = true;

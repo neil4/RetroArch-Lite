@@ -380,11 +380,10 @@ static int action_start_core_setting(unsigned type,
       const char *label)
 {
    global_t *global       = global_get_ptr();
-   unsigned idx           = type - MENU_SETTINGS_CORE_OPTION_START;
 
    (void)label;
 
-   core_option_set_default(global->system.core_options, idx);
+   core_option_set_default(global->system.core_options, type);
 
    return 0;
 }

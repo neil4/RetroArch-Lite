@@ -214,6 +214,7 @@ static int action_iterate_info(char *s, size_t len, const char *label)
    rarch_setting_t *current_setting = NULL;
    file_list_t *list                = NULL;
    menu_list_t *menu_list           = menu_list_get_ptr();
+   global_t *global                 = global_get_ptr();
    size_t selection                 = menu_navigation_get_current_selection();
    if (!menu_list)
       return 0;
@@ -240,7 +241,7 @@ static int action_iterate_info(char *s, size_t len, const char *label)
    }
 
    if (info_type >= MENU_SETTINGS_CORE_OPTION_START)
-      core_option_get_info(s, len, info_type - MENU_SETTINGS_CORE_OPTION_START);
+      core_option_get_info(global->system.core_options, s, len, info_type);
    else
       setting_get_description(needle, s, len);
 

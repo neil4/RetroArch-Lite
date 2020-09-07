@@ -1143,7 +1143,7 @@ static int menu_displaylist_parse_generic(menu_displaylist_info_t *info, bool *n
 
 int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
 {
-   size_t i, list_size;
+   size_t i, j, list_size;
    int ret                  = 0;
    bool need_sort           = false;
    bool need_refresh        = false;
@@ -1376,10 +1376,17 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
                   MENU_SETTING_ACTION, 0, 0);
             }
 
-            for (i = 0; i < opts; i++)
+            for (i = 0, j = 0; i < opts; i++)
+            {
+               if (core_option_is_hidden(global->system.core_options, i))
+                  continue;
+
                menu_list_push(info->list,
                      core_option_get_desc(global->system.core_options, i), "",
-                     MENU_SETTINGS_CORE_OPTION_START + i, 0, 0);
+                     MENU_SETTINGS_CORE_OPTION_START + j, 0, 0);
+
+               core_option_set_menu_offset(global->system.core_options, i, j++);
+            }
          }
          else if (info->list->size == 0)
             menu_list_push(info->list,

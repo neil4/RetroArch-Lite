@@ -44,6 +44,15 @@ void core_options_init(const struct retro_core_option_definition *option_defs,
       const struct retro_variable *vars);
 
 /**
+ * core_option_set_visible:
+ * @opt                   : options manager handle
+ * @key                   : String id of core_option
+ * @visible               : False if option should be hidden in menu
+ */
+void core_option_set_visible(core_option_manager_t *opt,
+                             const char* key, bool visible);
+
+/**
  * core_option_updated:
  * @opt              : options manager handle
  *
@@ -86,9 +95,20 @@ void core_option_get(core_option_manager_t *opt, struct retro_variable *var);
 size_t core_option_size(core_option_manager_t *opt);
 
 /**
+ * core_option_set_menu_offset:
+ * @opt                       : options manager handle
+ * @idx                       : index of option in @opt
+ * @menu_offset               : offset from first option in menu display list
+ *
+ * Maps @idx to a menu entry. Required to index core option by menu entry type.
+ */
+void core_option_set_menu_offset(core_option_manager_t *opt,
+                                 unsigned idx, unsigned menu_offset);
+
+/**
  * core_option_get_desc:
- * @opt              : options manager handle
- * @idx              : idx identifier of the option
+ * @opt                : options manager handle
+ * @idx                : option index or menu entry type
  *
  * Gets description for an option.
  *
@@ -98,8 +118,8 @@ const char *core_option_get_desc(core_option_manager_t *opt, size_t idx);
 
 /**
  * core_option_get_val:
- * @opt              : options manager handle
- * @idx              : idx identifier of the option
+ * @opt               : options manager handle
+ * @idx               : option index or menu entry type
  *
  * Gets value for an option.
  *
@@ -110,28 +130,41 @@ const char *core_option_get_val(core_option_manager_t *opt, size_t idx);
 /**
  * core_option_get_label:
  * @opt              : options manager handle
- * @idx              : idx identifier of the option
+ * @idx              : option index or menu entry type
+ *
+ * Gets label for an option value.
  *
  * Returns: Label for an option value.
  **/
 const char *core_option_get_label(core_option_manager_t *opt, size_t idx);
 
 /**
+ * core_option_is_hidden:
+ * @opt                 : options manager handle
+ * @idx                 : index identifier of the option
+ *
+ * Returns: True if option should be hidden in menu, false if not
+ */
+bool core_option_is_hidden(core_option_manager_t *opt, size_t idx);
+
+/**
  * core_option_get_info:
+ * @opt                : options manager handle
  * @s                  : output message
  * @len                : size of @s
- * @idx                : idx identifier of the option
+ * @idx                : option index or menu entry type
  *
  * Gets info message text describing an option.
  */
-void core_option_get_info(char *s, size_t len, size_t idx);
+void core_option_get_info(core_option_manager_t *opt,
+                          char *s, size_t len, size_t idx);
 
 /**
  * core_option_get_vals:
- * @opt                   : pointer to core option manager object.
- * @idx                   : idx of core option.
+ * @opt                : pointer to core option manager object.
+ * @idx                : option index or menu entry type
  *
- * Gets list of core option values from core option at index @idx.
+ * Gets list of core option values from core option specified by @idx.
  *
  * Returns: string list of core option values if successful, otherwise
  * NULL.
@@ -144,8 +177,8 @@ void core_option_set_val(core_option_manager_t *opt,
 
 /**
  * core_option_next:
- * @opt                   : pointer to core option manager object.
- * @idx                   : idx of core option to be reset to defaults.
+ * @opt            : pointer to core option manager object.
+ * @idx            : option index or menu entry type
  *
  * Get next value for core option specified by @idx.
  * Options wrap around.
@@ -155,8 +188,7 @@ void core_option_next(core_option_manager_t *opt, size_t idx);
 /**
  * core_option_prev:
  * @opt                   : pointer to core option manager object.
- * @idx                   : idx of core option to be reset to defaults.
- * Options wrap around.
+ * @idx                   : option index or menu entry type
  *
  * Get previous value for core option specified by @idx.
  * Options wrap around.
@@ -166,7 +198,7 @@ void core_option_prev(core_option_manager_t *opt, size_t idx);
 /**
  * core_option_set_default:
  * @opt                   : pointer to core option manager object.
- * @idx                   : idx of core option to be reset to defaults.
+ * @idx                   : option index or menu entry type
  *
  * Reset core option specified by @idx and sets default value for option.
  **/

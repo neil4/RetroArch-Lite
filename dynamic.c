@@ -611,6 +611,18 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          break;
       }
 
+      case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
+      {
+         RARCH_LOG("Environ: RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY.\n");
+         const struct retro_core_option_display *core_options_display = (const struct retro_core_option_display *)data;
+
+         if (global->system.core_options && core_options_display)
+            core_option_set_visible(global->system.core_options,
+                                    core_options_display->key,
+                                    core_options_display->visible);
+         break;
+      }
+
       case RETRO_ENVIRONMENT_SET_MESSAGE:
       {
          const struct retro_message *msg = (const struct retro_message*)data;
