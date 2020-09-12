@@ -27,7 +27,6 @@
 #include "menu/menu.h"
 
 bool options_touched = false;
-unsigned *options_index_map;  /* from menu index to 'opts' index */
 
 struct core_option
 {
@@ -47,6 +46,7 @@ struct core_option_manager
    char conf_path[PATH_MAX_LENGTH];
 
    struct core_option *opts;
+   unsigned *index_map;  /* from menu index to 'opts' array index */
    size_t size;
    bool updated;
 };
@@ -76,7 +76,7 @@ void core_option_free(core_option_manager_t *opt)
    if (opt->conf)
       config_file_free(opt->conf);
    free(opt->opts);
-   free(options_index_map);
+   free(opt->index_map);
    free(opt);
 }
 
@@ -341,8 +341,8 @@ static core_option_manager_t *core_option_new(const char *conf_path,
    }
 
    opt->opts = (struct core_option*)calloc(size, sizeof(*opt->opts));
-   options_index_map = (unsigned*)calloc(size, sizeof(unsigned));
-   if (!opt->opts || !options_index_map)
+   opt->index_map = (unsigned*)calloc(size, sizeof(unsigned));
+   if (!opt->opts || !opt->index_map)
       goto error;
 
    opt->size = size;
@@ -371,7 +371,6 @@ static core_option_manager_t *core_option_new(const char *conf_path,
 
 error:
    core_option_free(opt);
-   free(options_index_map);
    return NULL;
 }
 
@@ -429,20 +428,22 @@ void core_option_set_visible(core_option_manager_t *opt,
 
 /**
  * core_option_index:
+ * @opt             : options manager handle
  * @type            : menu entry type
  *
  * Returns: Index of core option
  */
-static INLINE unsigned core_option_index(unsigned type)
+static INLINE unsigned core_option_index(core_option_manager_t *opt,
+                                         unsigned type)
 {
    if (type >= MENU_SETTINGS_CORE_OPTION_START)
-      return options_index_map[type - MENU_SETTINGS_CORE_OPTION_START];
+      return opt->index_map[type - MENU_SETTINGS_CORE_OPTION_START];
    return type;
 }
 
 /**
  * core_option_updated:
- * @opt              : options manager handle
+ * @opt               : options manager handle
  *
  * Has a core option been updated?
  *
@@ -508,7 +509,7 @@ void core_option_set_menu_offset(core_option_manager_t *opt,
 {
    if (!opt || idx >= opt->size || menu_offset >= opt->size)
       return;
-   options_index_map[menu_offset] = idx;
+   opt->index_map[menu_offset] = idx;
 }
 
 /**
@@ -525,7 +526,7 @@ const char *core_option_get_desc(core_option_manager_t *opt, size_t idx)
    if (!opt)
       return NULL;
 
-   idx = core_option_index(idx);
+   idx = core_option_index(opt, idx);
    return opt->opts[idx].desc;
 }
 
@@ -544,7 +545,7 @@ const char *core_option_get_val(core_option_manager_t *opt, size_t idx)
    if (!opt)
       return NULL;
 
-   idx = core_option_index(idx);
+   idx = core_option_index(opt, idx);
    option = (struct core_option*)&opt->opts[idx];
 
    if (!option)
@@ -565,7 +566,7 @@ const char *core_option_get_label(core_option_manager_t *opt, size_t idx)
 {
    struct core_option *option;
 
-   idx = core_option_index(idx);
+   idx = core_option_index(opt, idx);
    option = (struct core_option*)&opt->opts[idx];
 
    if (!option)
@@ -606,7 +607,7 @@ void core_option_get_info(core_option_manager_t *opt,
    if (!opt)
       return;
 
-   idx = core_option_index(idx);
+   idx = core_option_index(opt, idx);
    info = opt->opts[idx].info;
 
    if (!info || !*info)
@@ -629,7 +630,7 @@ struct string_list *core_option_get_vals(core_option_manager_t *opt, size_t idx)
 {
    if (!opt)
       return NULL;
-   idx = core_option_index(idx);
+   idx = core_option_index(opt, idx);
    return opt->opts[idx].vals;
 }
 
@@ -639,7 +640,7 @@ void core_option_set_val(core_option_manager_t *opt,
    if (!opt)
       return;
 
-   idx = core_option_index(idx);
+   idx = core_option_index(opt, idx);
    opt->opts[idx].index = val_idx % opt->opts[idx].vals->size;
    opt->updated         = true;
    options_touched      = true;
@@ -659,7 +660,7 @@ void core_option_next(core_option_manager_t *opt, size_t idx)
    if (!opt)
       return;
 
-   idx = core_option_index(idx);
+   idx = core_option_index(opt, idx);
    option = (struct core_option*)&opt->opts[idx];
 
    option->index   = (option->index + 1) % option->vals->size;
@@ -682,7 +683,7 @@ void core_option_prev(core_option_manager_t *opt, size_t idx)
    if (!opt)
       return;
 
-   idx = core_option_index(idx);
+   idx = core_option_index(opt, idx);
    option = (struct core_option*)&opt->opts[idx];
 
    option->index   = (option->index + option->vals->size - 1) %
@@ -703,7 +704,7 @@ void core_option_set_default(core_option_manager_t *opt, size_t idx)
    if (!opt)
       return;
 
-   idx                  = core_option_index(idx);
+   idx                  = core_option_index(opt, idx);
    opt->opts[idx].index = opt->opts[idx].default_index;
    opt->updated         = true;
    options_touched      = true;
