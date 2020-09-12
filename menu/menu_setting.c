@@ -6479,9 +6479,9 @@ static bool setting_append_list_overlay_options(
       &setting_get_string_representation_uint_scope_index;
    
    CONFIG_FLOAT(
-         settings->input.overlay_adjust_vertical,
+         settings->input.overlay_shift_y,
          "input_overlay_adjust_vertical",
-         "Shift Vertical",
+         "Shift Y",
          0.0f,
          "%.2f",
          group_info.name,
@@ -6494,7 +6494,7 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
 
    CONFIG_BOOL(
-         settings->input.overlay_adjust_vertical_lock_edges,
+         settings->input.overlay_shift_y_lock_edges,
          "input_overlay_adjust_vertical_lock_edges",
          "  Clamp Edge Buttons",
          false,
@@ -6508,9 +6508,9 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
 
    CONFIG_FLOAT(
-         settings->input.overlay_adjust_horizontal,
+         settings->input.overlay_shift_x,
          "input_overlay_adjust_horizontal",
-         "Shift Horizontal",
+         "Shift X",
          0.0f,
          "%.3f",
          group_info.name,
@@ -6575,7 +6575,7 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
 
    CONFIG_UINT(
-         settings->input.overlay_adjust_vert_horiz_scope,
+         settings->input.overlay_shift_xy_scope,
          "input_overlay_adjust_vert_horiz_scope",
          "  Scope (Shift & Aspect)",
          GLOBAL,

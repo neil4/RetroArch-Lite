@@ -669,7 +669,7 @@ static void config_set_defaults(void)
    settings->input.overlay_adjust_aspect           = true;
    settings->input.overlay_aspect_ratio_index      = OVERLAY_ASPECT_RATIO_AUTO;
    settings->input.overlay_bisect_aspect_ratio     = 2.0f;
-   settings->input.overlay_adjust_vertical_lock_edges = false;
+   settings->input.overlay_shift_y_lock_edges      = false;
    settings->osk.enable                            = true;
 #endif
 
@@ -1626,9 +1626,9 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_INT_BASE(conf, settings, input.overlay_aspect_ratio_index, "input_overlay_aspect_ratio_index");
    if (settings->input.overlay_aspect_ratio_index >= OVERLAY_ASPECT_RATIO_END)
          settings->input.overlay_aspect_ratio_index = OVERLAY_ASPECT_RATIO_END-1;
-   CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_adjust_vertical, "input_overlay_adjust_vertical");
-   CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_adjust_horizontal, "input_overlay_adjust_horizontal");
-   CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_adjust_vertical_lock_edges, "input_overlay_adjust_vertical_lock_edges");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_shift_y, "input_overlay_adjust_vertical");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.overlay_shift_x, "input_overlay_adjust_horizontal");
+   CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_shift_y_lock_edges, "input_overlay_adjust_vertical_lock_edges");
 
    CONFIG_GET_INT_BASE(conf, settings, input.vibrate_time, "input_vibrate_time");
 
@@ -2264,7 +2264,7 @@ bool config_save_file(const char *path)
    config_set_float(conf, "input_touch_ellipse_magnify",
                     settings->input.touch_ellipse_magnify);
    
-   if (settings->input.overlay_adjust_vert_horiz_scope == GLOBAL)
+   if (settings->input.overlay_shift_xy_scope == GLOBAL)
    {
       config_set_bool(conf, "input_overlay_adjust_aspect",
            settings->input.overlay_adjust_aspect);
@@ -2273,11 +2273,11 @@ bool config_save_file(const char *path)
       config_set_float(conf, "input_overlay_bisect_aspect_ratio",
             settings->input.overlay_bisect_aspect_ratio);
       config_set_float(conf, "input_overlay_adjust_vertical",
-            settings->input.overlay_adjust_vertical);
+            settings->input.overlay_shift_y);
       config_set_bool(conf, "input_overlay_adjust_vertical_lock_edges",
-            settings->input.overlay_adjust_vertical_lock_edges);
+            settings->input.overlay_shift_y_lock_edges);
       config_set_float(conf, "input_overlay_adjust_horizontal",
-            settings->input.overlay_adjust_horizontal);
+            settings->input.overlay_shift_x);
    }
 
    config_set_float(conf, "input_vibrate_time", settings->input.vibrate_time);
@@ -2605,7 +2605,7 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "input_dpad_method");
    }
 
-   if (settings->input.overlay_adjust_vert_horiz_scope == scope)
+   if (settings->input.overlay_shift_xy_scope == scope)
    {
       config_set_bool(conf, "input_overlay_adjust_aspect",
            settings->input.overlay_adjust_aspect);
@@ -2614,13 +2614,13 @@ static void scoped_config_file_save(unsigned scope)
       config_set_float(conf, "input_overlay_bisect_aspect_ratio",
             settings->input.overlay_bisect_aspect_ratio);
       config_set_float(conf, "input_overlay_adjust_vertical",
-            settings->input.overlay_adjust_vertical);
+            settings->input.overlay_shift_y);
       config_set_bool(conf, "input_overlay_adjust_vertical_lock_edges",
-            settings->input.overlay_adjust_vertical_lock_edges);
+            settings->input.overlay_shift_y_lock_edges);
       config_set_float(conf, "input_overlay_adjust_horizontal",
-            settings->input.overlay_adjust_horizontal);
+            settings->input.overlay_shift_x);
    }
-   else if (settings->input.overlay_adjust_vert_horiz_scope < scope)
+   else if (settings->input.overlay_shift_xy_scope < scope)
    {
       config_remove_entry(conf, "input_overlay_adjust_aspect");
       config_remove_entry(conf, "input_overlay_aspect_ratio_index");
@@ -2937,9 +2937,9 @@ void config_backup_restore_globals()
                        settings->input.abxy_diagonal_sensitivity);
    }
 
-   if (settings->input.overlay_adjust_vert_horiz_scope != GLOBAL)
+   if (settings->input.overlay_shift_xy_scope != GLOBAL)
    {  /* restore */
-      settings->input.overlay_adjust_vert_horiz_scope = GLOBAL;
+      settings->input.overlay_shift_xy_scope = GLOBAL;
       config_get_bool(conf, "input_overlay_adjust_aspect",
                       &settings->input.overlay_adjust_aspect);
       config_get_float(conf, "input_overlay_bisect_aspect_ratio",
@@ -2947,11 +2947,11 @@ void config_backup_restore_globals()
       config_get_uint(conf, "input_overlay_aspect_ratio_index",
                       &settings->input.overlay_aspect_ratio_index);
       config_get_float(conf, "input_overlay_adjust_vertical",
-                       &settings->input.overlay_adjust_vertical);
+                       &settings->input.overlay_shift_y);
       config_get_bool(conf, "input_overlay_adjust_vertical_lock_edges",
-                      &settings->input.overlay_adjust_vertical_lock_edges);
+                      &settings->input.overlay_shift_y_lock_edges);
       config_get_float(conf, "input_overlay_adjust_horizontal",
-                       &settings->input.overlay_adjust_horizontal);
+                       &settings->input.overlay_shift_x);
    }
    else
    {  /* back up */
@@ -2962,11 +2962,11 @@ void config_backup_restore_globals()
       config_set_float(conf, "input_overlay_bisect_aspect_ratio",
             settings->input.overlay_bisect_aspect_ratio);
       config_set_float(conf, "input_overlay_adjust_vertical",
-            settings->input.overlay_adjust_vertical);
+            settings->input.overlay_shift_y);
       config_set_bool(conf, "input_overlay_adjust_vertical_lock_edges",
-            settings->input.overlay_adjust_vertical_lock_edges);
+            settings->input.overlay_shift_y_lock_edges);
       config_set_float(conf, "input_overlay_adjust_horizontal",
-            settings->input.overlay_adjust_horizontal);
+            settings->input.overlay_shift_x);
    }
    
    if (settings->input.overlay_opacity_scope != GLOBAL)
@@ -3256,7 +3256,7 @@ static void scoped_config_file_load(unsigned scope)
    }
    if (config_get_bool(conf, "input_overlay_adjust_aspect", &settings->input.overlay_adjust_aspect))
    {
-      settings->input.overlay_adjust_vert_horiz_scope = scope;
+      settings->input.overlay_shift_xy_scope = scope;
       config_get_float(conf, "input_overlay_bisect_aspect_ratio",
                        &settings->input.overlay_bisect_aspect_ratio);
       config_get_uint(conf, "input_overlay_aspect_ratio_index",
@@ -3264,11 +3264,11 @@ static void scoped_config_file_load(unsigned scope)
       if (settings->input.overlay_aspect_ratio_index >= OVERLAY_ASPECT_RATIO_END)
          settings->input.overlay_aspect_ratio_index = OVERLAY_ASPECT_RATIO_END-1;
       config_get_float(conf, "input_overlay_adjust_vertical",
-                       &settings->input.overlay_adjust_vertical);
+                       &settings->input.overlay_shift_y);
       config_get_bool(conf, "input_overlay_adjust_vertical_lock_edges",
-                      &settings->input.overlay_adjust_vertical_lock_edges);
+                      &settings->input.overlay_shift_y_lock_edges);
       config_get_float(conf, "input_overlay_adjust_horizontal",
-                       &settings->input.overlay_adjust_horizontal);
+                       &settings->input.overlay_shift_x);
    }
    if (config_get_float(conf, "input_overlay_opacity", &settings->input.overlay_opacity))
       settings->input.overlay_opacity_scope = scope;

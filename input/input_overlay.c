@@ -130,32 +130,32 @@ static void input_overlay_scale(struct overlay *ol, float scale)
    if (ol->block_scale || ol->fullscreen_image || driver_get_ptr()->osk_enable)
       scale = 1.0f;
 
-   ol->scale = scale;
-   ol->mod_w = ol->w * scale;
-   ol->mod_h = ol->h * scale;
-   ol->mod_x = ol->center_x +
+   ol->scale   = scale;
+   ol->scale_w = ol->w * scale;
+   ol->scale_h = ol->h * scale;
+   ol->scale_x = ol->center_x +
       (ol->x - ol->center_x) * scale;
-   ol->mod_y = ol->center_y +
+   ol->scale_y = ol->center_y +
       (ol->y - ol->center_y) * scale;
 
    for (i = 0; i < ol->size; i++)
    {
-      float scale_w, scale_h, adj_center_x, adj_center_y;
+      float adj_range_x, adj_range_y, adj_center_x, adj_center_y;
       struct overlay_desc *desc = &ol->descs[i];
 
       if (!desc)
          continue;
 
-      scale_w = ol->mod_w * desc->range_x;
-      scale_h = ol->mod_h * desc->range_y;
+      adj_range_x = ol->scale_w * desc->range_x;
+      adj_range_y = ol->scale_h * desc->range_y;
 
-      desc->mod_w = 2.0f * scale_w;
-      desc->mod_h = 2.0f * scale_h;
+      desc->image_w = 2.0f * adj_range_x;
+      desc->image_h = 2.0f * adj_range_y;
 
-      adj_center_x = ol->mod_x + desc->x * ol->mod_w;
-      adj_center_y = ol->mod_y + desc->y * ol->mod_h;
-      desc->mod_x = adj_center_x - scale_w;
-      desc->mod_y = adj_center_y - scale_h;
+      adj_center_x = ol->scale_x + desc->x * ol->scale_w;
+      adj_center_y = ol->scale_y + desc->y * ol->scale_h;
+      desc->image_x = adj_center_x - adj_range_x;
+      desc->image_y = adj_center_y - adj_range_y;
    }
 }
 
@@ -252,10 +252,10 @@ static void input_overlay_desc_init_imagebox(struct overlay_desc *desc)
    if (!desc)
       return;
 
-   desc->mod_x   = desc->x - desc->range_x;
-   desc->mod_w   = 2.0f * desc->range_x;
-   desc->mod_y   = desc->y - desc->range_y;
-   desc->mod_h   = 2.0f * desc->range_y;
+   desc->image_x = desc->x - desc->range_x;
+   desc->image_w = 2.0f * desc->range_x;
+   desc->image_y = desc->y - desc->range_y;
+   desc->image_h = 2.0f * desc->range_y;
 }
 
 static void input_overlay_desc_init_hitbox(struct overlay_desc *desc)
@@ -299,9 +299,9 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
 
       /* re-center and bisect */
       desc->x += ar_mod.x_center_shift;
-      if ( desc->x > 0.5f )
+      if (desc->x > 0.5f)
          desc->x += ar_mod.x_bisect_shift;
-      else if ( desc->x < 0.5f )
+      else if (desc->x < 0.5f)
          desc->x -= ar_mod.x_bisect_shift;
       desc->y += ar_mod.y_center_shift;
    }
@@ -314,7 +314,7 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
    }
    
    /* adjust vertical */
-   desc->y -= settings->input.overlay_adjust_vertical;
+   desc->y -= settings->input.overlay_shift_y;
    
    /* make sure the button isn't pushed off screen */
    if (desc->y + desc->range_y > upper_bound)
@@ -323,7 +323,7 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
       desc->y = lower_bound + desc->range_y;
    
    /* optionally clamp to edge */
-   if (settings->input.overlay_adjust_vertical_lock_edges)
+   if (settings->input.overlay_shift_y_lock_edges)
    {
       if (desc->y_orig + desc->range_y_orig > 0.99f)
          desc->y = upper_bound - desc->range_y;
@@ -332,13 +332,13 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
    }
 
    /* adjust horizontal */
-   desc->x += settings->input.overlay_adjust_horizontal
-              * (global->overlay_reverse_horiz_shift ? -1.0f : 1.0f);
+   desc->x += settings->input.overlay_shift_x
+              * (global->overlay_reverse_shift_x ? -1.0f : 1.0f);
 
    /* make sure the button isn't entirely pushed off screen */
-   if ( desc->x > upper_bound )
+   if (desc->x > upper_bound)
       desc->x = upper_bound;
-   else if ( desc->x < lower_bound)
+   else if (desc->x < lower_bound)
       desc->x = lower_bound;
 }
 
@@ -463,8 +463,8 @@ static void input_overlay_set_vertex_geom(input_overlay_t *ol)
       return;
    if (ol->active->image.pixels)
       ol->iface->vertex_geom(ol->iface_data, 0,
-            ol->active->mod_x, ol->active->mod_y,
-            ol->active->mod_w, ol->active->mod_h);
+            ol->active->scale_x, ol->active->scale_y,
+            ol->active->scale_w, ol->active->scale_h);
 
    for (i = 0; i < ol->active->size; i++)
    {
@@ -477,28 +477,8 @@ static void input_overlay_set_vertex_geom(input_overlay_t *ol)
          continue;
 
       ol->iface->vertex_geom(ol->iface_data, desc->image_index,
-            desc->mod_x, desc->mod_y, desc->mod_w, desc->mod_h);
+            desc->image_x, desc->image_y, desc->image_w, desc->image_h);
    }
-}
-
-/**
- * input_overlay_set_scale_factor:
- * @ol                    : Overlay handle.
- * @scale                 : Factor of scale to apply.
- *
- * Scales the overlay by a factor of scale.
- **/
-void input_overlay_set_scale_factor(input_overlay_t *ol, float scale)
-{
-   size_t i;
-
-   if (!ol)
-      return;
-
-   for (i = 0; i < ol->size; i++)
-      input_overlay_scale(&ol->overlays[i], scale);
-
-   input_overlay_set_vertex_geom(ol);
 }
 
 static void input_overlay_update_aspect_and_shift(struct overlay *ol)
@@ -1623,10 +1603,10 @@ static INLINE void input_overlay_poll_iterate(
    x = (float)(norm_x + 0x7fff) / 0xffff;
    y = (float)(norm_y + 0x7fff) / 0xffff;
 
-   x -= ol->active->mod_x;
-   y -= ol->active->mod_y;
-   x /= ol->active->mod_w;
-   y /= ol->active->mod_h;
+   x -= ol->active->scale_x;
+   y -= ol->active->scale_y;
+   x /= ol->active->scale_w;
+   y /= ol->active->scale_h;
 
    for (i = 0; i < ol->active->size; i++)
    {
@@ -1682,9 +1662,9 @@ static INLINE void input_overlay_poll_iterate(
          if (desc->movable)
          {
             desc->delta_x = clamp_float(x_dist, -desc->range_x, desc->range_x)
-               * ol->active->mod_w;
+               * ol->active->scale_w;
             desc->delta_y = clamp_float(y_dist, -desc->range_y, desc->range_y)
-               * ol->active->mod_h;
+               * ol->active->scale_h;
          }
       }
 
@@ -1711,8 +1691,8 @@ static void input_overlay_update_desc_geom(input_overlay_t *ol,
       return;
 
    ol->iface->vertex_geom(ol->iface_data, desc->image_index,
-      desc->mod_x + desc->delta_x, desc->mod_y + desc->delta_y,
-      desc->mod_w, desc->mod_h);
+      desc->image_x + desc->delta_x, desc->image_y + desc->delta_y,
+      desc->image_w, desc->image_h);
 
    desc->delta_x = 0.0f;
    desc->delta_y = 0.0f;

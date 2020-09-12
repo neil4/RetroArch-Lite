@@ -172,7 +172,7 @@ struct overlay_desc
 
    struct texture_image image;
    unsigned image_index;
-   float mod_x, mod_y, mod_w, mod_h;
+   float image_x, image_y, image_w, image_h;
    float alpha_mod;
    float delta_x, delta_y;
    bool movable;
@@ -190,7 +190,7 @@ struct overlay
    struct texture_image image;
 
    bool block_scale;
-   float mod_x, mod_y, mod_w, mod_h;
+   float scale_x, scale_y, scale_w, scale_h;
    float x, y, w, h;
    float scale;
    float center_x, center_y;

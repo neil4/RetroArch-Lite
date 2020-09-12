@@ -488,7 +488,7 @@ static void *jni_update_rotation_thread(void* data)
 
       if (g_android->screenRotation != old_rotation)
       {
-         global->overlay_reverse_horiz_shift = (g_android->screenRotation >= 2);
+         global->overlay_reverse_shift_x = (g_android->screenRotation >= 2);
          old_rotation = g_android->screenRotation;
          input_overlay_notify_video_updated();
       }

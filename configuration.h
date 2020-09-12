@@ -299,10 +299,10 @@ typedef struct settings
       bool overlay_adjust_aspect;
       uint32_t overlay_aspect_ratio_index;
       float overlay_bisect_aspect_ratio;
-      float overlay_adjust_vertical;
-      float overlay_adjust_horizontal;
-      bool overlay_adjust_vertical_lock_edges;
-      unsigned overlay_adjust_vert_horiz_scope;
+      float overlay_shift_y;
+      float overlay_shift_x;
+      bool overlay_shift_y_lock_edges;
+      unsigned overlay_shift_xy_scope;
       
       float dpad_diagonal_sensitivity;  /* diagonal-to-normal ratio (percentage) */
       float abxy_diagonal_sensitivity;
