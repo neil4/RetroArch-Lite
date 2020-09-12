@@ -718,6 +718,7 @@ static int menu_input_mouse(unsigned *action)
        || menu_input->mouse.y > (int)frame_buf->height + vp.y)
    {
       menu_input->mouse.show = false;
+      anim->is_active = true;
       goto end;
    }
 
@@ -743,7 +744,10 @@ static int menu_input_mouse(unsigned *action)
       input_usec = rarch_get_time_usec();
    }
    else if (rarch_get_time_usec() > input_usec + 4000000)
+   {
       menu_input->mouse.show = false;
+      anim->is_active = true;
+   }
 
    end:
    old_screen_x = menu_input->mouse.screen_x;
@@ -761,7 +765,7 @@ static int menu_input_pointer(unsigned *action)
    settings_t *settings      = config_get_ptr();
    driver_t *driver          = driver_get_ptr();
 
-   if (!settings->menu.pointer.enable)
+   if (settings->menu.mouse.enable && menu_input->mouse.show)
    {
       memset(&menu_input->pointer, 0, sizeof(menu_input->pointer));
       return 0;
