@@ -163,10 +163,11 @@ static unsigned input_overlay_auto_aspect_index(struct overlay *ol)
 {
    size_t i, j;
    float image_aspect, ol_aspect;
+   float cfg_ratio = ol->w / ol->h;
    float avg_delta[OVERLAY_ASPECT_RATIO_END];
    float best_delta = 1e9;
    unsigned best_index = 0;
-   
+
    if (!ol)
       return 0;
 
@@ -179,13 +180,13 @@ static unsigned input_overlay_auto_aspect_index(struct overlay *ol)
          if (!desc->image.width || !desc->image.height)
             continue;
          image_aspect = ((float)desc->image.width) / desc->image.height;
-         ol_aspect = desc->range_x_orig / desc->range_y_orig;
+         ol_aspect = cfg_ratio * (desc->range_x_orig / desc->range_y_orig);
          avg_delta[i] += overlay_aspectratio_lut[i].value * ol_aspect
                          - image_aspect;
       }
       avg_delta[i] /= ol->size;
    }
-   
+
    for (i = 0; i < OVERLAY_ASPECT_RATIO_AUTO; i++)
    {
       if (fabs(avg_delta[i]) < best_delta)
