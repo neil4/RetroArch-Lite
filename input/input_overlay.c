@@ -76,11 +76,12 @@ struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_EN
    { "9:16",          0.5625f },
    { "10:16",         0.625f },
    { "3:4",           0.75f },
-   { "4:3",           1.33333333f },
+   { "4:3",           1.3333f },
    { "16:10",         1.6f },
-   { "16:9",          1.77777778f },
+   { "16:9",          1.7778f },
    { "2:1",           2.0f },
-   { "Auto",          1.0 },
+   { "Auto (Index)",  1.0f },
+   { "Auto (Free)",   1.0f },
 };
 
 static float overlay_eightway_dpad_slope_high, overlay_eightway_dpad_slope_low;
@@ -162,32 +163,36 @@ static void input_overlay_scale(struct overlay *ol, float scale)
 static unsigned input_overlay_auto_aspect_index(struct overlay *ol)
 {
    size_t i, j;
-   float image_aspect, ol_aspect;
-   float cfg_ratio = ol->w / ol->h;
-   float avg_delta[OVERLAY_ASPECT_RATIO_END];
+   float image_aspect, desc_ratio;
+   float ol_ratio = ol->w / ol->h;
+   float avg_delta[OVERLAY_ASPECT_RATIO_AUTO_INDEX];
    float best_delta = 1e9;
    unsigned best_index = 0;
+   unsigned num_images;
 
    if (!ol)
       return 0;
 
-   for (i = 0; i < OVERLAY_ASPECT_RATIO_AUTO; i++)
+   for (i = 0; i < OVERLAY_ASPECT_RATIO_AUTO_INDEX; i++)
    {
       avg_delta[i] = 0.0f;
+      num_images = 0;
       for (j = 0; j < ol->size; j++)
       {
          struct overlay_desc *desc = &ol->descs[j];
          if (!desc->image.width || !desc->image.height)
             continue;
+         num_images++;
          image_aspect = ((float)desc->image.width) / desc->image.height;
-         ol_aspect = cfg_ratio * (desc->range_x_orig / desc->range_y_orig);
-         avg_delta[i] += overlay_aspectratio_lut[i].value * ol_aspect
+         desc_ratio = ol_ratio * (desc->range_x_orig / desc->range_y_orig);
+         avg_delta[i] += overlay_aspectratio_lut[i].value * desc_ratio
                          - image_aspect;
       }
-      avg_delta[i] /= ol->size;
+      if (num_images)
+         avg_delta[i] /= num_images;
    }
 
-   for (i = 0; i < OVERLAY_ASPECT_RATIO_AUTO; i++)
+   for (i = 0; i < OVERLAY_ASPECT_RATIO_AUTO_INDEX; i++)
    {
       if (fabs(avg_delta[i]) < best_delta)
       {
@@ -197,6 +202,36 @@ static unsigned input_overlay_auto_aspect_index(struct overlay *ol)
       else break; /* overlay aspects are sorted */
    }
    return best_index;
+}
+
+static float input_overlay_auto_aspect(struct overlay *ol)
+{
+   size_t i;
+   float image_aspect, desc_ratio;
+   float best_aspect = 0.0f;
+   float ol_ratio = ol->w / ol->h;
+   unsigned num_images = 0;
+
+   if (!ol)
+      return 0.0f;
+
+   for (i = 0; i < ol->size; i++)
+   {
+      struct overlay_desc *desc = &ol->descs[i];
+      if (!desc->image.width || !desc->image.height)
+         continue;
+      num_images++;
+      image_aspect = ((float)desc->image.width) / desc->image.height;
+      desc_ratio = ol_ratio * (desc->range_x_orig / desc->range_y_orig);
+      best_aspect += image_aspect / desc_ratio;
+   }
+
+   if (num_images)
+      best_aspect /= num_images;
+   else
+      return 1.7778f;
+
+   return best_aspect;
 }
 
 /* Get values to adjust the overlay's aspect, re-center it, and then bisect it
@@ -218,7 +253,11 @@ static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
    video_driver_get_size(&disp_width, &disp_height);
    disp_aspect = (float)disp_width / disp_height;
 
-   if (settings->input.overlay_aspect_ratio_index == OVERLAY_ASPECT_RATIO_AUTO)
+   if (settings->input.overlay_aspect_ratio_index ==
+            OVERLAY_ASPECT_RATIO_AUTO_FREE)
+      ol_aspect = input_overlay_auto_aspect(ol);
+   else if (settings->input.overlay_aspect_ratio_index ==
+            OVERLAY_ASPECT_RATIO_AUTO_INDEX)
       ol_aspect = overlay_aspectratio_lut
                         [input_overlay_auto_aspect_index(ol)].value;
    else

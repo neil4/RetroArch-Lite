@@ -6541,7 +6541,7 @@ static bool setting_append_list_overlay_options(
          settings->input.overlay_aspect_ratio_index,
          "input_overlay_aspect_ratio_index",
          "  Assumed Overlay Aspect",
-         OVERLAY_ASPECT_RATIO_AUTO,
+         OVERLAY_ASPECT_RATIO_AUTO_INDEX,
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -6551,7 +6551,7 @@ static bool setting_append_list_overlay_options(
          list,
          list_info,
          0,
-         OVERLAY_ASPECT_RATIO_AUTO,
+         OVERLAY_ASPECT_RATIO_AUTO_FREE,
          1,
          true,
          true);
