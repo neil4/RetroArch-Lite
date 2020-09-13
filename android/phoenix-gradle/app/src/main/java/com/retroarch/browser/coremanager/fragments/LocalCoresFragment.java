@@ -22,7 +22,6 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -38,22 +37,20 @@ import android.widget.Toast;
 import com.retroarch.browser.preferences.util.UserPreferences;
 
 import com.retroarchlite.R;
-import java.net.URLConnection;
 
 /**
- * {@link ListFragment} that is responsible for showing
- * cores that are able to be downloaded or are not installed.
+ * {@link ListFragment} that is responsible for showing local backup
+ * cores that can be installed.
  */
 public final class LocalCoresFragment extends ListFragment
 {
    /**
-    * Dictates what actions will occur when a core download completes.
+    * Dictates what actions will occur when a core install completes.
     * <p>
     * Acts like a callback so that communication between fragments is possible.
     */
    public interface OnCoreCopiedListener
    {
-      /** The action that will occur when a core is successfully downloaded. */
       void onCoreCopied();
    }
 
@@ -99,7 +96,6 @@ public final class LocalCoresFragment extends ListFragment
       {
          localCoresDir = sharedSettings.getBoolean("backup_cores_directory_enable", false) ?
                sharedSettings.getString("backup_cores_directory", defaultLocalCoresDir) : defaultLocalCoresDir;
-         adapter.clear();
          PopulateCoresList();
          adapter.notifyDataSetChanged();
       }

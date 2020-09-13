@@ -70,23 +70,9 @@ final class DownloadableCore implements Comparable<DownloadableCore>
    @Override
    public int compareTo(DownloadableCore other)
    {
-      if ( sortBySystem && !isLocal )
-      {
-         if( systemName == null || systemName.isEmpty() )
-            return 1;
-         if( other.systemName == null || other.systemName.isEmpty() )
-            return -1;
-         else
-            return systemName.compareToIgnoreCase(other.systemName);
-      }
-      else // sort by name
-      {
-         if( coreName == null || coreName.isEmpty() )
-            return 1;
-         if( other.coreName == null || other.coreName.isEmpty() )
-            return -1;
-         else
-            return coreName.compareToIgnoreCase(other.coreName);
-      }
+      if (sortBySystem && !isLocal)
+         return systemName.compareToIgnoreCase(other.systemName);
+      else
+         return coreName.compareToIgnoreCase(other.coreName);
    }
 }
