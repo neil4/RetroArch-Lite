@@ -27,10 +27,6 @@
 #define RARCH_LOG(...)  __android_log_print(ANDROID_LOG_INFO, RARCH_LOG_TAG, __VA_ARGS__)
 #endif
 
-#ifndef RARCH_LOG_FORCE
-#define RARCH_LOG_FORCE RARCH_LOG
-#endif
-
 #ifndef RARCH_LOG_V
 #define RARCH_LOG_V(tag, fmt, vp) __android_log_vprint(ANDROID_LOG_INFO, RARCH_LOG_TAG tag, fmt, vp)
 #endif

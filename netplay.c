@@ -1557,9 +1557,9 @@ bool init_netplay(void)
    retro_set_default_callbacks(&cbs);
 
    if (global->netplay_is_client)
-      RARCH_LOG_FORCE("Connecting to netplay host...\n");
+      RARCH_LOG("Connecting to netplay host...\n");
    else
-      RARCH_LOG_FORCE("Waiting for client...\n");
+      RARCH_LOG("Waiting for client...\n");
 
    driver->netplay_data = (netplay_t*)netplay_new(
          global->netplay_is_client ? global->netplay_server : NULL,

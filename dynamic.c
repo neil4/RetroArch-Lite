@@ -517,19 +517,19 @@ static void rarch_log_libretro(enum retro_log_level level,
    switch (level)
    {
       case RETRO_LOG_DEBUG:
-         RARCH_LOG_V("[libretro DEBUG] :: ", fmt, vp);
+         RARCH_LOG_V("libretro DEBUG", fmt, vp);
          break;
 
       case RETRO_LOG_INFO:
-         RARCH_LOG_OUTPUT_V("[libretro INFO] :: ", fmt, vp);
+         RARCH_LOG_V("libretro INFO", fmt, vp);
          break;
 
       case RETRO_LOG_WARN:
-         RARCH_WARN_V("[libretro WARN] :: ", fmt, vp);
+         RARCH_LOG_V("libretro WARN", fmt, vp);
          break;
 
       case RETRO_LOG_ERROR:
-         RARCH_ERR_V("[libretro ERROR] :: ", fmt, vp);
+         RARCH_LOG_V("libretro ERROR", fmt, vp);
          break;
 
       default:
@@ -598,13 +598,13 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          break;
 
       case RETRO_ENVIRONMENT_SET_CORE_OPTIONS:
-         RARCH_LOG("Environ: SET_CORE_OPTIONS.\n");
+         RARCH_LOG("Environ SET_CORE_OPTIONS.\n");
          core_options_init(data, NULL);
          break;
 
       case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL:
       {  /* TODO: don't ignore core_options_intl->local */
-         RARCH_LOG("Environ: SET_CORE_OPTIONS_INTL.\n");
+         RARCH_LOG("Environ SET_CORE_OPTIONS_INTL.\n");
          const struct retro_core_options_intl *core_options_intl
                = ((const struct retro_core_options_intl *)data);
          core_options_init(core_options_intl->us, NULL);
@@ -613,7 +613,7 @@ bool rarch_environment_cb(unsigned cmd, void *data)
 
       case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
       {
-         RARCH_LOG("Environ: RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY.\n");
+         RARCH_LOG("Environ RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY.\n");
          const struct retro_core_option_display *core_options_display = (const struct retro_core_option_display *)data;
 
          if (global->system.core_options && core_options_display)
@@ -1142,24 +1142,6 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          }
          break;
       }
-      
-      /* TODO*/
-      /* case RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER: */
-      
-      /* TODO */
-      /* case RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE: */
-
-      /* TODO */
-      /* case RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS: */
-         
-      /* TODO */
-      /* case RETRO_ENVIRONMENT_SET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE: */
-    
-      /* TODO */
-      /* case RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS: */
-      
-      /* TODO */
-      /* case RETRO_ENVIRONMENT_GET_MIDI_INTERFACE: */
       
       case RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT:
       {
