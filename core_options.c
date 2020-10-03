@@ -741,7 +741,7 @@ void core_option_get_core_conf_path(char *path)
                       core_name, PATH_MAX_LENGTH);
    strlcat(path, ".opt", PATH_MAX_LENGTH);
 
-   if(!path_file_exists(directory))
+   if(!path_is_directory(directory))
       path_mkdir(directory);
 }
 

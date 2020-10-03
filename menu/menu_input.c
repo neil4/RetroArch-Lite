@@ -712,10 +712,11 @@ static int menu_input_mouse(unsigned *action)
    menu_input->mouse.y = ( ((int)menu_input->mouse.screen_y - vp.y)
                            * (int)frame_buf->height ) / (int)vp.height;
 
-   if (menu_input->mouse.x < -vp.x
-       || menu_input->mouse.y < -vp.y
-       || menu_input->mouse.x > (int)frame_buf->width + vp.x
-       || menu_input->mouse.y > (int)frame_buf->height + vp.y)
+   if (!settings->video.fullscreen
+       && (menu_input->mouse.x < 0
+           || menu_input->mouse.y < 0
+           || menu_input->mouse.x > (int)frame_buf->width
+           || menu_input->mouse.y > (int)frame_buf->height))
    {
       menu_input->mouse.show = false;
       anim->is_active = true;

@@ -746,7 +746,7 @@ static int action_ok_options_file_save_game(const char *path,
    fill_pathname_join(abs_path, directory, game_name, PATH_MAX_LENGTH);
    strlcat(abs_path, ".opt", PATH_MAX_LENGTH);
 
-   if(!path_file_exists(directory))
+   if(!path_is_directory(directory))
        path_mkdir(directory);
    
    opt_path = core_option_conf_path(global->system.core_options);

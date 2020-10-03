@@ -163,8 +163,7 @@ static void input_overlay_scale(struct overlay *ol, float scale)
 static unsigned input_overlay_auto_aspect_index(struct overlay *ol)
 {
    size_t i, j;
-   float image_aspect, desc_ratio;
-   float ol_ratio = ol->w / ol->h;
+   float image_aspect, desc_ratio, ol_ratio;
    float avg_delta[OVERLAY_ASPECT_RATIO_AUTO_INDEX];
    float best_delta = 1e9;
    unsigned best_index = 0;
@@ -172,6 +171,7 @@ static unsigned input_overlay_auto_aspect_index(struct overlay *ol)
 
    if (!ol)
       return 0;
+   ol_ratio = ol->w / ol->h;
 
    for (i = 0; i < OVERLAY_ASPECT_RATIO_AUTO_INDEX; i++)
    {
@@ -207,13 +207,13 @@ static unsigned input_overlay_auto_aspect_index(struct overlay *ol)
 static float input_overlay_auto_aspect(struct overlay *ol)
 {
    size_t i;
-   float image_aspect, desc_ratio;
+   float image_aspect, desc_ratio, ol_ratio;
    float best_aspect = 0.0f;
-   float ol_ratio = ol->w / ol->h;
    unsigned num_images = 0;
 
    if (!ol)
       return 0.0f;
+   ol_ratio = ol->w / ol->h;
 
    for (i = 0; i < ol->size; i++)
    {
