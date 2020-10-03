@@ -391,7 +391,7 @@ static int menu_displaylist_parse_system_info(menu_displaylist_info_t *info)
       if (frontend->get_os)
       {
          frontend->get_os(tmp2, sizeof(tmp2), &major, &minor);
-         snprintf(tmp, sizeof(tmp), "%s: %s %d.%d",
+         snprintf(tmp, sizeof(tmp), "%s: %s (v%d.%d)",
                "Frontend OS",
                frontend->get_os ? tmp2 : "N/A", major, minor);
          menu_list_push(info->list, tmp, "info",
