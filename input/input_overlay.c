@@ -2168,11 +2168,12 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    char msg[64];
    struct retro_controller_info rci;
    bool generic = false;
-   
+
    if (overlay_lightgun_active)
    {  /* reconnect previous device */
-      pretro_set_controller_port_device
-         (old_port, settings->input.libretro_device[old_port]);
+      if (old_port < global->system.num_ports)
+         pretro_set_controller_port_device(
+               old_port, settings->input.libretro_device[old_port]);
       overlay_lightgun_active = false;
    }
    

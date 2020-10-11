@@ -437,16 +437,18 @@ static void event_init_controllers(void)
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
 
-   for (i = 0; i < MAX_USERS; i++)
+   /* Some cores do not properly range check port argument.
+    * This is broken behavior of course, but avoid breaking
+    * cores needlessly. */
+   for (i = 0; i < global->system.num_ports; i++)
    {
       const char *ident = NULL;
       const struct retro_controller_description *desc = NULL;
       unsigned device = (i < settings->input.max_users) ?
-                        settings->input.libretro_device[i] : RETRO_DEVICE_NONE;
+            settings->input.libretro_device[i] : RETRO_DEVICE_NONE;
 
-      if (i < global->system.num_ports)
-         desc = libretro_find_controller_description(
-               &global->system.ports[i], device);
+      desc = libretro_find_controller_description(
+            &global->system.ports[i], device);
 
       if (desc)
          ident = desc->desc;
@@ -461,30 +463,19 @@ static void event_init_controllers(void)
             /* Do not fix settings->input.libretro_device[i],
              * because any use of dummy core will reset this,
              * which is not a good idea. */
-            RARCH_WARN("Input device ID %u is unknown to this libretro implementation. Using RETRO_DEVICE_JOYPAD.\n", device);
+            RARCH_WARN("Input device ID %u is unknown to this libretro "
+               "implementation. Using RETRO_DEVICE_JOYPAD.\n", device);
             device = RETRO_DEVICE_JOYPAD;
          }
          ident = "Joypad";
       }
 
-      switch (device)
-      {
-         case RETRO_DEVICE_NONE:
-            RARCH_LOG("Disconnecting device from port %u.\n", i + 1);
-            pretro_set_controller_port_device(i, device);
-            break;
-         default:
-            /* Some cores do not properly range check port argument.
-             * This is broken behavior of course, but avoid breaking
-             * cores needlessly. */
-            if (i < global->system.num_ports)
-            {
-               RARCH_LOG("Connecting %s (ID: %u) to port %u.\n", ident,
-                     device, i + 1);
-               pretro_set_controller_port_device(i, device);
-            }
-            break;
-      }
+      if (device != RETRO_DEVICE_NONE)
+         RARCH_LOG("Connecting %s (ID: %u) to port %u.\n", ident, device, i+1);
+      else
+         RARCH_LOG("Disconnecting device from port %u.\n", i+1);
+
+      pretro_set_controller_port_device(i, device);
    }
 }
 

@@ -770,8 +770,7 @@ static int setting_action_start_analog_dpad_mode(void *data)
 
 static int setting_action_start_libretro_device_type(void *data)
 {
-   unsigned current_device, i, devices[128], types = 0, port = 0;
-   const struct retro_controller_info *desc = NULL;
+   unsigned device, port = 0;
    rarch_setting_t *setting  = (rarch_setting_t*)data;
    settings_t      *settings = config_get_ptr();
    global_t        *global   = global_get_ptr();
@@ -779,35 +778,12 @@ static int setting_action_start_libretro_device_type(void *data)
    if (setting_generic_action_start_default(setting) != 0)
       return -1;
 
-   port = setting->index_offset;
+   port   = setting->index_offset;
+   device = RETRO_DEVICE_JOYPAD;
 
-   devices[types++] = RETRO_DEVICE_NONE;
-   devices[types++] = RETRO_DEVICE_JOYPAD;
-
-   /* Only push RETRO_DEVICE_ANALOG as default if we use an 
-    * older core which doesn't use SET_CONTROLLER_INFO. */
-   if (!global->system.num_ports)
-      devices[types++] = RETRO_DEVICE_ANALOG;
-
-   desc = port < global->system.num_ports ?
-      &global->system.ports[port] : NULL;
-
-   if (desc)
-   {
-      for (i = 0; i < desc->num_types; i++)
-      {
-         unsigned id = desc->types[i].id;
-         if (types < ARRAY_SIZE(devices) &&
-               id != RETRO_DEVICE_NONE &&
-               id != RETRO_DEVICE_JOYPAD)
-            devices[types++] = id;
-      }
-   }
-
-   current_device = RETRO_DEVICE_JOYPAD;
-
-   settings->input.libretro_device[port] = current_device;
-   pretro_set_controller_port_device(port, current_device);
+   settings->input.libretro_device[port] = device;
+   if (port < global->system.num_ports)
+      pretro_set_controller_port_device(port, device);
 
    return 0;
 }
@@ -958,7 +934,8 @@ static int setting_action_left_libretro_device_type(
       [(current_idx + types - 1) % types];
 
    settings->input.libretro_device[port] = current_device;
-   pretro_set_controller_port_device(port, current_device);
+   if (port < global->system.num_ports)
+      pretro_set_controller_port_device(port, current_device);
 
    return 0;
 }
@@ -1016,7 +993,8 @@ static int setting_action_right_libretro_device_type(
       [(current_idx + 1) % types];
 
    settings->input.libretro_device[port] = current_device;
-   pretro_set_controller_port_device(port, current_device);
+   if (port < global->system.num_ports)
+      pretro_set_controller_port_device(port, current_device);
 
    return 0;
 }
