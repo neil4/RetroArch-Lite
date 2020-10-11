@@ -1210,6 +1210,10 @@ bool rarch_environment_cb(unsigned cmd, void *data)
             return false;
          break;
 
+      case RETRO_ENVIRONMENT_GET_CLEAR_ALL_THREAD_WAITS_CB:
+         *(retro_environment_t *)data = rarch_clear_all_thread_waits;
+         break;
+
       case RETRO_ENVIRONMENT_EXEC:
       case RETRO_ENVIRONMENT_EXEC_ESCAPE:
 

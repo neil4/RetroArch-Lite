@@ -1569,3 +1569,13 @@ void rarch_update_configs()
    scoped_settings_touched = false;
    options_touched = false;
 }
+
+bool rarch_clear_all_thread_waits(unsigned clear_threads, void* data)
+{
+   if (clear_threads > 0)
+      event_command(EVENT_CMD_AUDIO_START);
+   else
+      event_command(EVENT_CMD_AUDIO_STOP);
+
+   return true;
+}

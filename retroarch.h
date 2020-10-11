@@ -27,6 +27,15 @@
 extern "C" {
 #endif
 
+#define RETRO_ENVIRONMENT_RETROARCH_START_BLOCK 0x800000
+
+#define RETRO_ENVIRONMENT_GET_CLEAR_ALL_THREAD_WAITS_CB (3 | RETRO_ENVIRONMENT_RETROARCH_START_BLOCK)
+                                           /* retro_environment_t * --
+                                            * Provides the callback to the frontend method which will cancel
+                                            * all currently waiting threads.  Used when coordination is needed
+                                            * between the core and the frontend to gracefully stop all threads.
+                                            */
+
 enum action_state
 {
    RARCH_ACTION_STATE_NONE = 0,
@@ -175,6 +184,8 @@ void rarch_set_paths(const char *path);
 void set_paths_redirect();
 
 int rarch_info_get_capabilities(enum rarch_capabilities type, char *s, size_t len);
+
+bool rarch_clear_all_thread_waits(unsigned clear_threads, void* data);
 
 /* Savestate path when sort_savestates_enable is true */
 char core_savestate_dir[PATH_MAX_LENGTH];
