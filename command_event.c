@@ -914,7 +914,8 @@ bool event_command(enum event_command cmd)
          /* bSNES since v073r01 resets controllers to JOYPAD
           * after a reset, so just enforce it here. */
          event_command(EVENT_CMD_CONTROLLERS_INIT);
-         rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
+         if (menu_driver_alive())
+            rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
 
 #ifdef HAVE_NETPLAY
          if (driver->netplay_data && !netplay_send_savestate())
@@ -1229,7 +1230,8 @@ bool event_command(enum event_command cmd)
          rarch_main_set_state(RARCH_ACTION_STATE_FORCE_QUIT);
          break;
       case EVENT_CMD_RESUME:
-         rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
+         if (menu_driver_alive())
+            rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
          break;
       case EVENT_CMD_RESTART_RETROARCH:
 #if defined(GEKKO) && defined(HW_RVL)
@@ -1470,7 +1472,8 @@ bool event_command(enum event_command cmd)
             if (control)
             {
                event_check_disk_eject(control);
-               rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
+               if (menu_driver_alive())
+                  rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
             }
          }
          else
