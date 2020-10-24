@@ -123,6 +123,14 @@ static void core_option_copy_info_as_messagebox(struct core_option *option,
    strlcat(option->info, option_def->info, info_len);
 
    line_start = strlen(option_def->desc) + 3;
+
+   /* Replace any existing newlines with spaces. */
+   for (i = line_start; i < info_len; i++)
+   {
+      if (option->info[i] == '\n')
+         option->info[i] = ' ';
+   }
+
    /* Replace space with newline near each max_line_len interval */
    for (i = line_start + max_line_len; i < info_len;)
    {
