@@ -280,7 +280,7 @@ static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
                    / settings->input.overlay_scale;
    max_bisect = disp_aspect / settings->input.overlay_scale;
    bisect_aspect = min(bisect_aspect, max_bisect);
-   if (bisect_aspect > ol_aspect)
+   if (bisect_aspect > ol_aspect * ar_mod.h)
    {
       bisect_w = bisect_aspect / disp_aspect;
       ar_mod.x_bisect_shift = (bisect_w - ar_mod.w) / 2.0f;
