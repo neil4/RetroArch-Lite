@@ -7128,6 +7128,7 @@ CONFIG_BOOL(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    CONFIG_BOOL(
          settings->menu.show_logging_menu,
          "show_logging_menu",
@@ -7178,9 +7179,6 @@ CONFIG_BOOL(
          parent_group,
          general_write_handler,
          general_read_handler);
-#ifdef SINGLE_CORE
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-#endif
    CONFIG_BOOL(
          settings->menu.show_privacy_menu,
          "show_privacy_menu",
@@ -7805,9 +7803,6 @@ static bool setting_append_list_directory_options(
       return true;
 
    START_GROUP(group_info, "Directory Settings", parent_group);
-#ifdef SINGLE_CORE
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-#endif
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 

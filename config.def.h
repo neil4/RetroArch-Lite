@@ -422,7 +422,7 @@ static bool fake_swap_interval = false;
 static const bool video_threaded = false;
 
 /* Set to true if HW render cores should get their private context. */
-static const bool video_shared_context = true;
+static const bool video_shared_context = false;
 
 /* Sets GC/Wii screen width. */
 static const unsigned video_viwidth = 640;
@@ -481,14 +481,14 @@ static bool show_overlay_menu = true;
 static bool input_osk_overlay_enable = false;
 #endif
 static float overlay_opacity = 0.5f;
-static const unsigned input_vibrate_time = 5;
+static const unsigned input_vibrate_time = 10;
 static const float dpad_diagonal_sensitivity = 80.0f;
 static const float abxy_diagonal_sensitivity = 50.0f;
 static const float overlay_bisect_aspect_ratio = 2.15f;
 #endif
 static bool show_frame_throttle_menu = true;
 #ifdef HAVE_NETPLAY
-static bool show_netplay_menu = true;
+static bool show_netplay_menu = false;
 static unsigned netplay_sync_frames = 3;
 #endif
 static bool show_saving_menu = false;
@@ -501,7 +501,11 @@ static bool menu_show_core_info = true;
 static bool menu_show_system_info = true;
 static bool show_configuration_menu = false;
 static bool show_user_menu = false;
+#ifndef SINGLE_CORE
 static bool show_directory_menu = true;
+#else
+static bool show_directory_menu = false;
+#endif
 static bool show_privacy_menu = false;
 static bool show_recording_menu = false;
 static bool show_core_updater_menu = false;
