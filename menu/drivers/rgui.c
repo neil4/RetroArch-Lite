@@ -82,6 +82,7 @@ struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS] = {
 };
 
 static wallpaper_t rgui_wallpaper = {NULL, {0}};
+static uint8_t rgui_wallpaper_orig_alpha[RENDER_WIDTH * RENDER_HEIGHT];
 static char rgui_loaded_theme[PATH_MAX_LENGTH];
 static bool rgui_wallpaper_valid;
 
@@ -604,14 +605,18 @@ static void rgui_adjust_wallpaper_alpha()
 {
    settings_t *settings = config_get_ptr();
    global_t *global     = global_get_ptr();
-   uint16_t alpha       = 0xf;
+   uint16_t alpha;
+   float scale;
    unsigned i;
-   
-   if (!global->libretro_dummy)
-      alpha *= settings->menu.wallpaper_opacity;
-   
+
+   scale = global->libretro_dummy ?
+      1.0f : settings->menu.wallpaper_opacity;
+
    for (i = 0; i < RENDER_WIDTH * RENDER_HEIGHT; i++)
+   {
+      alpha = scale * rgui_wallpaper_orig_alpha[i];
       rgui_wallpaper.data[i] = (rgui_wallpaper.data[i] & 0xfff0) | alpha;
+   }
 }
 
 static inline void rgui_check_update(settings_t *settings,
@@ -1290,7 +1295,10 @@ static void process_wallpaper(struct texture_image *image)
             argb32_to_rgba4444(image->pixels[x + (y * RENDER_WIDTH)]);
       }
    }
-   
+
+   for (x = 0; x < RENDER_WIDTH * RENDER_HEIGHT; x++)
+      rgui_wallpaper_orig_alpha[x] = rgui_wallpaper.data[x] & 0xf;
+
    rgui_adjust_wallpaper_alpha();
    rgui_wallpaper_valid = true;
    menu_display_fb_set_dirty();
