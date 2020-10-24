@@ -43,15 +43,6 @@ enum runloop_data_type
 };
 
 #ifdef HAVE_NETWORKING
-enum
-{
-   HTTP_STATUS_POLL = 0,
-   HTTP_STATUS_CONNECTION_TRANSFER,
-   HTTP_STATUS_CONNECTION_TRANSFER_PARSE,
-   HTTP_STATUS_TRANSFER,
-   HTTP_STATUS_TRANSFER_PARSE,
-   HTTP_STATUS_TRANSFER_PARSE_FREE,
-} http_status_enum;
 
 typedef struct http_handle
 {
@@ -89,24 +80,6 @@ typedef struct nbio_image_handle
    msg_queue_t *msg_queue;
    unsigned status;
 } nbio_image_handle_t;
-
-enum
-{
-   NBIO_IMAGE_STATUS_POLL = 0,
-   NBIO_IMAGE_STATUS_TRANSFER,
-   NBIO_IMAGE_STATUS_TRANSFER_PARSE,
-   NBIO_IMAGE_STATUS_PROCESS_TRANSFER,
-   NBIO_IMAGE_STATUS_PROCESS_TRANSFER_PARSE,
-   NBIO_IMAGE_STATUS_TRANSFER_PARSE_FREE,
-} nbio_image_status_enum;
-
-enum
-{
-   NBIO_STATUS_POLL = 0,
-   NBIO_STATUS_TRANSFER,
-   NBIO_STATUS_TRANSFER_PARSE,
-   NBIO_STATUS_TRANSFER_PARSE_FREE,
-} nbio_status_enum;
 
 typedef struct nbio_handle
 {

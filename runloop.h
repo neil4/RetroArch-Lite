@@ -137,6 +137,9 @@ typedef struct global
    char savefile_dir[PATH_MAX_LENGTH];
    char savestate_dir[PATH_MAX_LENGTH];
 
+   char core_savestate_dir[PATH_MAX_LENGTH];
+   char core_savefile_dir[PATH_MAX_LENGTH];
+
 #ifdef HAVE_OVERLAY
    char overlay_dir[PATH_MAX_LENGTH];
    char osk_overlay_dir[PATH_MAX_LENGTH];

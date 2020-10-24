@@ -314,23 +314,27 @@ void set_paths_redirect()
             (global->system.info.library_name[0] != '\0'))
          ? djb2_calculate(global->system.info.library_name) : 0);
    
-   /* Default to subdirectories "save" and "state */
+   /* Default to subdirectories 'save' and 'state' */
    if (*global->savefile_dir)
-      strlcpy(core_savefile_dir, global->savefile_dir,
-                                 sizeof(global->savefile_dir));
+      strlcpy(global->core_savefile_dir, global->savefile_dir,
+              sizeof(global->savefile_dir));
    else
    {
-      strlcpy(core_savefile_dir, path_default_dotslash(), sizeof(core_savefile_dir));
-      strlcat(core_savefile_dir, "save", sizeof(core_savefile_dir));
+      strlcpy(global->core_savefile_dir, path_default_dotslash(),
+              sizeof(global->core_savefile_dir));
+      strlcat(global->core_savefile_dir, "save",
+              sizeof(global->core_savefile_dir));
    }
    
    if (*global->savestate_dir)
-      strlcpy(core_savestate_dir, global->savestate_dir,
-                                  sizeof(global->savestate_dir));
+      strlcpy(global->core_savestate_dir, global->savestate_dir,
+              sizeof(global->savestate_dir));
    else
    {
-      strlcpy(core_savestate_dir, path_default_dotslash(), sizeof(core_savestate_dir));
-      strlcat(core_savestate_dir, "state", sizeof(core_savestate_dir));
+      strlcpy(global->core_savestate_dir, path_default_dotslash(),
+              sizeof(global->core_savestate_dir));
+      strlcat(global->core_savestate_dir, "state",
+              sizeof(global->core_savestate_dir));
    }
    
    /* Default input_remapping_directory to menu_config_directory if empty.
@@ -346,16 +350,16 @@ void set_paths_redirect()
       if (settings->sort_savefiles_enable)
       {
          fill_pathname_dir(
-               core_savefile_dir,
+               global->core_savefile_dir,
                global->libretro_name,
                "",
-               sizeof(core_savefile_dir));
+               sizeof(global->core_savefile_dir));
 
          /* if path doesn't exist, try to create it.
           * If everything fails revert to the original path. */
-         if(!path_is_directory(core_savefile_dir))
-            if(!path_mkdir(core_savefile_dir))
-               strlcpy(core_savefile_dir,
+         if(!path_is_directory(global->core_savefile_dir))
+            if(!path_mkdir(global->core_savefile_dir))
+               strlcpy(global->core_savefile_dir,
                        global->savefile_dir,
                        sizeof(global->savefile_dir));
       }
@@ -364,28 +368,28 @@ void set_paths_redirect()
       if (settings->sort_savestates_enable)
       {
          fill_pathname_dir(
-               core_savestate_dir,
+               global->core_savestate_dir,
                global->libretro_name,
                "",
-               sizeof(core_savestate_dir));
+               sizeof(global->core_savestate_dir));
 
          /* If path doesn't exist, try to create it.
           * If everything fails, revert to the original path. */
-         if(!path_is_directory(core_savestate_dir))
-            if(!path_mkdir(core_savestate_dir))
-               strlcpy(core_savestate_dir,
+         if(!path_is_directory(global->core_savestate_dir))
+            if(!path_mkdir(global->core_savestate_dir))
+               strlcpy(global->core_savestate_dir,
                        global->savestate_dir,
                        sizeof(global->savestate_dir));
       }
    }
 
-   if(path_is_directory(core_savefile_dir))
+   if(path_is_directory(global->core_savefile_dir))
       strlcpy(global->savefile_name,
-              core_savefile_dir, sizeof(core_savefile_dir));
+              global->core_savefile_dir, sizeof(global->core_savefile_dir));
 
-   if(path_is_directory(core_savestate_dir))
+   if(path_is_directory(global->core_savestate_dir))
       strlcpy(global->savestate_name,
-              core_savestate_dir, sizeof(core_savestate_dir));
+              global->core_savestate_dir, sizeof(global->core_savestate_dir));
 
    if (path_is_directory(global->savefile_name))
    {

@@ -187,11 +187,6 @@ int rarch_info_get_capabilities(enum rarch_capabilities type, char *s, size_t le
 
 bool rarch_clear_all_thread_waits(unsigned clear_threads, void* data);
 
-/* Savestate path when sort_savestates_enable is true */
-char core_savestate_dir[PATH_MAX_LENGTH];
-/* Savefile path when sort_savefiles_enable is true */
-char core_savefile_dir[PATH_MAX_LENGTH];
-
 #ifdef __cplusplus
 }
 #endif

@@ -31,6 +31,24 @@
 #include "../configuration.h"
 #include "../menu/menu_driver.h"
 
+enum
+{
+   NBIO_IMAGE_STATUS_POLL = 0,
+   NBIO_IMAGE_STATUS_TRANSFER,
+   NBIO_IMAGE_STATUS_TRANSFER_PARSE,
+   NBIO_IMAGE_STATUS_PROCESS_TRANSFER,
+   NBIO_IMAGE_STATUS_PROCESS_TRANSFER_PARSE,
+   NBIO_IMAGE_STATUS_TRANSFER_PARSE_FREE,
+} nbio_image_status_enum;
+
+enum
+{
+   NBIO_STATUS_POLL = 0,
+   NBIO_STATUS_TRANSFER,
+   NBIO_STATUS_TRANSFER_PARSE,
+   NBIO_STATUS_TRANSFER_PARSE_FREE,
+} nbio_status_enum;
+
 #ifdef HAVE_RPNG
 static int cb_image_menu_upload_generic(nbio_handle_t *nbio)
 {

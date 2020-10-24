@@ -665,10 +665,10 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          break;
 
       case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
-         *(const char**)data = core_savefile_dir[0] ?
-            core_savefile_dir : NULL;
+         *(const char**)data = global->core_savefile_dir[0] ?
+            global->core_savefile_dir : NULL;
          RARCH_LOG("Environ SAVE_DIRECTORY: \"%s\".\n",
-               core_savefile_dir);
+               global->core_savefile_dir);
          break;
 
       case RETRO_ENVIRONMENT_GET_USERNAME:
