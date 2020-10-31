@@ -976,7 +976,11 @@ static int menu_input_pointer_post_iterate(menu_file_list_cbs_t *cbs,
        || (settings->input.overlay_enable && driver && driver->overlay)
 #endif
       )
+   {
+      menu_input->pointer.oldpressed[0] = 0;
+      menu_input->pointer.dragging = false;
       return 0;
+   }
 
    if (menu_input->pointer.pressed[0])
    {
