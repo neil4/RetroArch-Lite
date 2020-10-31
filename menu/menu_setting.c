@@ -6796,13 +6796,13 @@ static bool setting_append_list_menu_options(
          "menu_wallpaper_opacity",
          "  Wallpaper Opacity",
          wallpaper_opacity,
-         "%.1f",
+         "%.2f",
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 1, 0.1, true, true);
+   menu_settings_list_current_add_range(list, list_info, 0, 1, 0.05, true, true);
    (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
    
 #ifdef HAVE_RGUI
