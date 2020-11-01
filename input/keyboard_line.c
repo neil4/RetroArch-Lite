@@ -237,7 +237,7 @@ void input_keyboard_wait_keys_cancel(void)
  * This interfaces with the global driver struct and libretro callbacks.
  **/
 void input_keyboard_event(bool down, unsigned code,
-      uint32_t character, uint16_t mod, unsigned device)
+      uint32_t character, uint16_t mod)
 {
    static bool deferred_wait_keys;
    global_t *global = global_get_ptr();
@@ -265,17 +265,8 @@ void input_keyboard_event(bool down, unsigned code,
       if (!down)
          return;
 
-      switch (device)
-      {
-         case RETRO_DEVICE_POINTER:
-            if (!input_keyboard_line_event(g_keyboard_line, (code != 0x12d) ? (char)code : character))
-               return;
-            break;
-         default:
-            if (!input_keyboard_line_event(g_keyboard_line, character))
-               return;
-            break;
-      }
+      if (!input_keyboard_line_event(g_keyboard_line, character))
+         return;
 
       /* Line is complete, can free it now. */
       input_keyboard_line_free(g_keyboard_line);

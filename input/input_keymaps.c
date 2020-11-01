@@ -1219,3 +1219,104 @@ unsigned input_keymaps_translate_rk_to_keysym(enum retro_key key)
 {
    return rarch_keysym_lut[key];
 }
+
+/**
+ * input_keymaps_translate_rk_to_char:
+ * @key                   : Retro key identifier
+ * @mod                   : retro_mod mask
+ *
+ * Translates a retro key identifier with mod mask
+ * to an ASCII code.
+ */
+uint32_t input_keymaps_translate_rk_to_char(enum retro_key key, uint16_t mod)
+{
+   if (key > RETROK_KP_EQUALS ||
+         (mod & (RETROKMOD_ALT | RETROKMOD_CTRL | RETROKMOD_META)))
+      return 0;
+
+   if (key >= RETROK_KP0)
+   {
+      if (key == RETROK_KP_ENTER)
+         return (uint32_t)'\n';
+
+      if (mod & RETROKMOD_NUMLOCK)
+      {
+         switch (key)
+         {
+            case RETROK_KP_PERIOD:
+               return (uint32_t)'.';
+            case RETROK_KP_DIVIDE:
+               return (uint32_t)'/';
+            case RETROK_KP_MULTIPLY:
+               return (uint32_t)'*';
+            case RETROK_KP_MINUS:
+               return (uint32_t)'-';
+            case RETROK_KP_PLUS:
+               return (uint32_t)'+';
+            case RETROK_KP_EQUALS:
+               return (uint32_t)'=';
+            default:  /* KP 0 - 9 */
+               return key - 208;
+         }
+      }
+
+      return 0;
+   }
+
+   if (mod & RETROKMOD_SHIFT)
+   {
+      switch (key)
+      {
+         case RETROK_BACKQUOTE:
+            return (uint32_t)'~';
+         case RETROK_1:
+            return (uint32_t)'!';
+         case RETROK_2:
+            return (uint32_t)'@';
+         case RETROK_3:
+            return (uint32_t)'#';
+         case RETROK_4:
+            return (uint32_t)'$';
+         case RETROK_5:
+            return (uint32_t)'%';
+         case RETROK_6:
+            return (uint32_t)'^';
+         case RETROK_7:
+            return (uint32_t)'&';
+         case RETROK_8:
+            return (uint32_t)'*';
+         case RETROK_9:
+            return (uint32_t)'(';
+         case RETROK_0:
+            return (uint32_t)')';
+         case RETROK_MINUS:
+            return (uint32_t)'_';
+         case RETROK_EQUALS:
+            return (uint32_t)'+';
+         case RETROK_LEFTBRACKET:
+            return (uint32_t)'{';
+         case RETROK_RIGHTBRACKET:
+            return (uint32_t)'}';
+         case RETROK_BACKSLASH:
+            return (uint32_t)'|';
+         case RETROK_SEMICOLON:
+            return (uint32_t)':';
+         case RETROK_QUOTE:
+            return (uint32_t)'"';
+         case RETROK_COMMA:
+            return (uint32_t)'<';
+         case RETROK_PERIOD:
+            return (uint32_t)'>';
+         case RETROK_SLASH:
+            return (uint32_t)'?';
+         default:
+            break;
+      }
+   }
+
+   if (key >= RETROK_a && key <= RETROK_z
+            && ((mod & RETROKMOD_SHIFT) ^ ((mod & RETROKMOD_CAPSLOCK) >> 5)))
+      return key - 32;  /* caps */
+
+   return key;
+}

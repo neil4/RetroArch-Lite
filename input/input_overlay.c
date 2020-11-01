@@ -28,6 +28,7 @@
 
 #include "input_overlay.h"
 #include "input_common.h"
+#include "input_keymaps.h"
 #include "../dynamic.h"
 
 #define BOX_RADIAL       0x18df06d2U
@@ -1949,8 +1950,11 @@ void input_overlay_poll(input_overlay_t *overlay_device)
 
          for (j = 0; j < 32; j++)
             if ((orig_bits & (1 << j)) != (new_bits & (1 << j)))
-               input_keyboard_event(new_bits & (1 << j),
-                     i * 32 + j, 0, key_mod, RETRO_DEVICE_POINTER);
+            {
+               unsigned rk = i * 32 + j;
+               uint32_t c = input_keymaps_translate_rk_to_char(rk, key_mod);
+               input_keyboard_event(new_bits & (1 << j), rk, c, key_mod);
+            }
       }
    }
 

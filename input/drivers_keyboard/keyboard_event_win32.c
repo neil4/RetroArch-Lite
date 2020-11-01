@@ -46,30 +46,25 @@ LRESULT win32_handle_keyboard_event(HWND hwnd, UINT message,
        * WM_CHAR and WM_KEYDOWN properly.
        */
       case WM_CHAR:
-         input_keyboard_event(true, RETROK_UNKNOWN, wparam, mod,
-               RETRO_DEVICE_KEYBOARD);
+         input_keyboard_event(true, RETROK_UNKNOWN, wparam, mod);
          return TRUE;
 
       case WM_KEYDOWN:
          /* DirectInput uses scancodes directly. */
-         input_keyboard_event(true, keycode, 0, mod,
-               RETRO_DEVICE_KEYBOARD);
+         input_keyboard_event(true, keycode, 0, mod);
          return 0;
 
       case WM_KEYUP:
          /* DirectInput uses scancodes directly. */
-         input_keyboard_event(false, keycode, 0, mod,
-               RETRO_DEVICE_KEYBOARD);
+         input_keyboard_event(false, keycode, 0, mod);
          return 0;
 
       case WM_SYSKEYUP:
-         input_keyboard_event(false, keycode, 0, mod,
-               RETRO_DEVICE_KEYBOARD);
+         input_keyboard_event(false, keycode, 0, mod);
          return 0;
 
       case WM_SYSKEYDOWN:
-         input_keyboard_event(true, keycode, 0, mod,
-               RETRO_DEVICE_KEYBOARD);
+         input_keyboard_event(true, keycode, 0, mod);
 
          switch (wparam)
          {

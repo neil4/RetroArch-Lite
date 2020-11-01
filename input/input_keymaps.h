@@ -87,6 +87,16 @@ unsigned input_keymaps_translate_rk_to_keysym(enum retro_key key);
  **/
 void input_keymaps_translate_rk_to_str(enum retro_key key, char *buf, size_t size);
 
+/**
+ * input_keymaps_translate_rk_to_char:
+ * @key                   : Retro key identifier
+ * @mod                   : retro_mod mask
+ *
+ * Translates a retro key identifier with mod mask
+ * to an ASCII code.
+ */
+uint32_t input_keymaps_translate_rk_to_char(enum retro_key key, uint16_t mod);
+
 #ifdef __cplusplus
 }
 #endif

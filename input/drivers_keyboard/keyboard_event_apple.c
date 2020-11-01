@@ -165,5 +165,5 @@ void cocoa_input_keyboard_event(bool down,
     
    input_keyboard_event(down,
          input_keymaps_translate_keysym_to_rk(code),
-         character, (enum retro_mod)mod, device);
+         character, (enum retro_mod)mod);
 }

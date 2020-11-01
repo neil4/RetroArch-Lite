@@ -27,6 +27,7 @@
 #include "../input_autodetect.h"
 #include "../input_common.h"
 #include "../input_joypad.h"
+#include "../input_keymaps.h"
 #include "../../performance.h"
 #include "../../general.h"
 #include "../../configuration.h"
@@ -706,7 +707,7 @@ static INLINE bool android_input_keyboard_event(
 {
    bool keydown = (AKeyEvent_getAction(event) == AKEY_EVENT_ACTION_DOWN);
    unsigned rk  = input_keymaps_translate_keysym_to_rk(keycode);
-   uint32_t c   = rk;
+   uint32_t c;
    uint16_t mod = 0;
    int meta     = AKeyEvent_getMetaState(event);
 
@@ -716,22 +717,23 @@ static INLINE bool android_input_keyboard_event(
       return false;
    android->kbd_port = port;
 
-   if (rk > RETROK_KP_EQUALS)
-      c = 0;
-
    if (meta & AMETA_ALT_ON)
       mod |= RETROKMOD_ALT;
    if (meta & AMETA_CTRL_ON)
       mod |= RETROKMOD_CTRL;
    if (meta & AMETA_SHIFT_ON)
-   {
       mod |= RETROKMOD_SHIFT;
-      /* todo: !@#$%^&*()_+{}|:"<>? */
-      if (rk >= RETROK_a && rk <= RETROK_z)
-         c -= 32;
-   }
+   if (meta & AMETA_CAPS_LOCK_ON)
+      mod |= RETROKMOD_CAPSLOCK;
+   if (meta & AMETA_NUM_LOCK_ON)
+      mod |= RETROKMOD_NUMLOCK;
+   if (meta & AMETA_SCROLL_LOCK_ON)
+      mod |= RETROKMOD_SCROLLOCK;
+   if (meta & AMETA_META_ON)
+      mod |= RETROKMOD_META;
 
-   input_keyboard_event(keydown, rk, c, mod, RETRO_DEVICE_KEYBOARD);
+   c = input_keymaps_translate_rk_to_char(rk, mod);
+   input_keyboard_event(keydown, rk, c, mod);
 
    return menu_input_get_ptr()->keyboard.display;
 }

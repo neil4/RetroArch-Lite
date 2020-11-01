@@ -126,9 +126,9 @@ void x11_handle_key_event(XEvent *event, XIC ic, bool filter)
    if (IsKeypadKey(keysym))
       mod |= RETROKMOD_NUMLOCK;
 
-   input_keyboard_event(down, key, chars[0], mod, RETRO_DEVICE_KEYBOARD);
+   input_keyboard_event(down, key, chars[0], mod);
 
    for (i = 1; i < num; i++)
       input_keyboard_event(down, RETROK_UNKNOWN,
-            chars[i], mod, RETRO_DEVICE_KEYBOARD);
+            chars[i], mod);
 }
