@@ -1326,6 +1326,7 @@ static void process_wallpaper(struct texture_image *image)
    rgui_adjust_wallpaper_alpha();
    rgui_wallpaper_valid = true;
    menu_display_fb_set_dirty();
+   menu_entries_set_refresh();
 }
 
 static bool rgui_load_image(void *data, menu_image_type_t type)

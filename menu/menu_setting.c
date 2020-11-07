@@ -1358,6 +1358,7 @@ static int setting_action_start_wallpaper(void *data)
 
    global->menu.wallpaper[0] = '\0';
    global->menu.theme_update_flag = true;
+   menu_entries_set_refresh();
 
    return 0;
 }
@@ -6790,20 +6791,24 @@ static bool setting_append_list_menu_options(
    (*list)[list_info->index - 1].action_start = &setting_action_start_theme;
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_st_path_with_default;
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
 
-   CONFIG_FLOAT(
-         settings->menu.wallpaper_opacity,
-         "menu_wallpaper_opacity",
-         "  Wallpaper Opacity",
-         wallpaper_opacity,
-         "%.2f",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 1, 0.05, true, true);
-   (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+   if (*global->menu.wallpaper)
+   {
+      CONFIG_FLOAT(
+            settings->menu.wallpaper_opacity,
+            "menu_wallpaper_opacity",
+            "  Wallpaper Opacity",
+            wallpaper_opacity,
+            "%.2f",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0, 1, 0.05, true, true);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+   }
    
 #ifdef HAVE_RGUI
    if (using_rgui)
@@ -6825,6 +6830,20 @@ static bool setting_append_list_menu_options(
             1, true, true);
       (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_uint_rgui_particle_effect_index;
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+
+      CONFIG_FLOAT(
+            settings->menu.rgui_particle_effect_speed_factor,
+            "rgui_particle_effect_speed_factor",
+            "  Background Effect Speed",
+            1.0f,
+            "%.1fx",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0.1, 10, 0.1, true, true);
       (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
    }
 #endif
@@ -6863,41 +6882,6 @@ static bool setting_append_list_menu_options(
    
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
-
-#ifdef HAVE_RGUI
-   if (using_rgui)
-   {
-      CONFIG_FLOAT(
-            settings->menu.rgui_particle_effect_speed_factor,
-            "rgui_particle_effect_speed_factor",
-            "Background Effect Speed",
-            1.0f,
-            "%.1fx",
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 0.1, 10, 0.1, true, true);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-   }
-#endif
-
-   CONFIG_FLOAT(
-         settings->menu.ticker_speed,
-         "menu_ticker_speed",
-         "Ticker Speed",
-         menu_ticker_speed,
-         "%.1fx",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0.5, 5, 0.5, true, true);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
 
 #ifdef HAVE_RGUI
    if (using_rgui)
@@ -7365,6 +7349,7 @@ CONFIG_BOOL(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_BOOL(
          settings->menu.core_enable,
@@ -7378,7 +7363,21 @@ CONFIG_BOOL(
          parent_group,
          general_write_handler,
          general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
+      CONFIG_FLOAT(
+         settings->menu.ticker_speed,
+         "menu_ticker_speed",
+         "Ticker Text Speed",
+         menu_ticker_speed,
+         "%.1fx",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0.5, 6, 0.5, true, true);
+   (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
 
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Display", group_info.name, subgroup_info, parent_group);
