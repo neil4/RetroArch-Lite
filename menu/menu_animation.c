@@ -25,7 +25,7 @@
 #include "../runloop.h"
 #include "../performance.h"
 
-static unsigned tick_div;
+static unsigned g_tick_frames;
 
 menu_animation_t *menu_animation_get_ptr(void)
 {
@@ -499,49 +499,63 @@ bool menu_animation_update(menu_animation_t *anim, float dt)
 }
 
 /* Left/right bounce ticker
+ * Returns offset for smooth ticker text
  */
-static void menu_animation_ticker_bounce(char *s, size_t len, uint64_t idx,
+static float menu_animation_ticker_bounce(char *s, size_t len, uint64_t idx,
       const char *str, const size_t str_len)
 {
    unsigned ticker_period, phase, phase_left_stop;
    unsigned phase_left_moving, phase_right_stop;
    unsigned left_offset, right_offset;
-   unsigned div;
+   unsigned tick_frames;
 
    /* Slower ticks for shorter strings */
-   div = str_len < (len + (len>>2)) ? tick_div + (tick_div>>1) : tick_div;
+   tick_frames = str_len < (len + (len>>2)) ?
+         g_tick_frames + (g_tick_frames>>1) : g_tick_frames;
 
    /* Wrap long strings in options with some kind of ticker line. */
-   ticker_period     = 2 * (str_len - len) + 4;
-   phase             = (idx / div) % ticker_period;
+   ticker_period     = 2 * (str_len - len) + 6;
+   phase             = (idx / tick_frames) % ticker_period;
 
-   phase_left_stop   = 2;
+   phase_left_stop   = 3;
    phase_left_moving = phase_left_stop + (str_len - len);
-   phase_right_stop  = phase_left_moving + 2;
+   phase_right_stop  = phase_left_moving + 3;
 
    left_offset       = phase - phase_left_stop;
    right_offset      = (str_len - len) - (phase - phase_right_stop);
 
    /* Ticker period:
-    * [Wait at left (2 ticks),
+    * [Wait at left (3 ticks),
     * Progress to right(type_len - w),
-    * Wait at right (2 ticks),
+    * Wait at right (3 ticks),
     * Progress to left].
     */
    if (phase < phase_left_stop)
+   {
       strlcpy(s, str, len + 1);
+      return 0.0f;
+   }
    else if (phase < phase_left_moving)
+   {
       strlcpy(s, str + left_offset, len + 1);
+      return ((idx % tick_frames) / (float)tick_frames) * -1.01f;
+   }
    else if (phase < phase_right_stop)
+   {
       strlcpy(s, str + str_len - len, len + 1);
+      return 0.0f;
+   }
    else
+   {
       strlcpy(s, str + right_offset, len + 1);
+      return ((idx % tick_frames) / (float)tick_frames) * 1.01f;
+   }
 }
 
-/* Simple endless scrolling ticker
- * Could misbehave if len < sep_len+2
+/* Endless left scrolling ticker
+ * Returns offset for smooth ticker text
  */
-static void menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
+static float menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
       const char *str, const size_t str_len)
 {
    unsigned ticker_period, phase;
@@ -560,7 +574,7 @@ static void menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
    phase3 = str_len;
 
    ticker_period = str_len + sep_len;
-   phase         = (idx / tick_div) % ticker_period;
+   phase         = (idx / g_tick_frames) % ticker_period;
 
    if (phase < phase1)
       strlcpy(s, str + phase, len + 1);
@@ -580,6 +594,8 @@ static void menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
       strlcpy(s, sep + (phase - str_len), len + 1);
       strlcat(s, str, len + 1);
    }
+
+   return ((idx % g_tick_frames) / (float)g_tick_frames) * -1.01f;
 }
 
 /**
@@ -589,11 +605,12 @@ static void menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
  * @idx                      : Index. Will be used for ticker logic.
  * @str                      : Input string.
  * @selected                 : Is the item currently selected in the menu?
+ * @return Font stride offset for smooth ticker text (-1.0, 1.0)
  *
  * Take the contents of @str and apply a ticker effect to it,
  * and write the results in @s.
  **/
-void menu_animation_ticker_line(char *s, size_t len, uint64_t idx,
+float menu_animation_ticker_line(char *s, size_t len, uint64_t idx,
       const char *str, bool selected)
 {
    size_t         str_len = strlen(str);
@@ -602,25 +619,25 @@ void menu_animation_ticker_line(char *s, size_t len, uint64_t idx,
    if (str_len <= len)
    {
       strlcpy(s, str, len + 1);
-      return;
+      return 0.0f;
    }
 
    if (!len)
-      return;
+      return 0.0f;
 
    if (!selected)
    {
       strlcpy(s, str, len + 1 - 3);
       strlcat(s, "...", len + 1);
-      return;
+      return 0.0f;
    }
 
-   if (str_len > len + (len >> 1))
-      menu_animation_ticker_loop(s, len, idx, str, str_len);
-   else
-      menu_animation_ticker_bounce(s, len, idx, str, str_len);
-
    anim->is_active = true;
+
+   if (str_len > len + (len >> 1))
+      return menu_animation_ticker_loop(s, len, idx, str, str_len);
+   else
+      return menu_animation_ticker_bounce(s, len, idx, str, str_len);
 }
 
 void menu_animation_update_time(menu_animation_t *anim)
@@ -647,5 +664,5 @@ void menu_animation_update_time(menu_animation_t *anim)
 void menu_update_ticker_speed()
 {
    settings_t *settings = config_get_ptr();
-   tick_div = (unsigned)(10.0f / settings->menu.ticker_speed + 0.5f);
+   g_tick_frames = (unsigned)(12.0f / settings->menu.ticker_speed + 0.5f);
 }

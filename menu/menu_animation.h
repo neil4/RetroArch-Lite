@@ -135,11 +135,12 @@ bool menu_animation_update(
  * @idx                      : Index. Will be used for ticker logic.
  * @str                      : Input string.
  * @selected                 : Is the item currently selected in the menu?
+ * @return Font stride offset for smooth ticker text (-1.0, 1.0)
  *
  * Take the contents of @str and apply a ticker effect to it,
  * and write the results in @buf.
  **/
-void menu_animation_ticker_line(char *buf, size_t len, uint64_t tick,
+float menu_animation_ticker_line(char *buf, size_t len, uint64_t tick,
       const char *str, bool selected);
 
 menu_animation_t *menu_animation_get_ptr(void);

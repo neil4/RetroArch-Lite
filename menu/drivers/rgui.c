@@ -705,19 +705,25 @@ static void color_rect(menu_handle_t *menu,
             frame_buf->data[j * (frame_buf->pitch >> 1) + i] = color;
 }
 
-static void blit_line(menu_handle_t *menu, int x, int y,
-      const char *message, uint16_t color)
+static void blit_line(const char *message, unsigned message_len,
+      int x, int y, int x_offset, uint16_t color)
 {
    unsigned i, j;
+   int x_start = x;
+   int x_end   = x_start + message_len * FONT_WIDTH_STRIDE;
    menu_framebuf_t *frame_buf = menu_display_fb_get_ptr();
    menu_display_t  *disp      = menu_display_get_ptr();
 
+   x += x_offset;
    while (*message)
    {
       for (j = 0; j < FONT_HEIGHT; j++)
       {
          for (i = 0; i < FONT_WIDTH; i++)
          {
+            if (x + i < x_start || x + i > x_end)
+               continue;
+
             uint8_t rem = 1 << ((i + j * FONT_WIDTH) & 7);
             int offset  = (i + j * FONT_WIDTH) >> 3;
             bool col    = (disp->font.framebuf[FONT_OFFSET
@@ -850,7 +856,7 @@ static void rgui_render_background(void)
 static void rgui_render_messagebox(const char *message)
 {
    size_t i;
-   int x, y;
+   int x, y, line_len;
    unsigned width, glyphs_width, height;
    struct string_list *list   = NULL;
    menu_handle_t *menu        = menu_driver_get_ptr();
@@ -910,10 +916,11 @@ static void rgui_render_messagebox(const char *message)
    for (i = 0; i < list->size; i++)
    {
       const char *msg = list->elems[i].data;
-      int offset_x    = FONT_WIDTH_STRIDE * (glyphs_width - strlen(msg)) / 2;
+      line_len        = strlen(msg);
+      int offset_x    = FONT_WIDTH_STRIDE * (glyphs_width - line_len) / 2;
       int offset_y    = FONT_HEIGHT_STRIDE * i;
-      blit_line(menu, x + 8 + offset_x, y + 8 + offset_y, msg,
-                rgui_normal_16b);
+      blit_line(msg, line_len, x + 8 + offset_x, y + 8 + offset_y,
+            0, rgui_normal_16b);
    }
 
 end:
@@ -933,9 +940,12 @@ static void rgui_blit_cursor(menu_handle_t *menu)
 
 static void rgui_render(void)
 {
-   unsigned x, y;
+   unsigned title_x, y;
    size_t i, end;
    int bottom;
+   int title_w;
+   uint16_t color;
+   float offset;
    char title[256];
    char title_buf[256];
    char title_msg[64];
@@ -1006,38 +1016,38 @@ static void rgui_render(void)
 
    menu_entries_get_title(title, sizeof(title));
 
-   menu_animation_ticker_line(title_buf, RGUI_TERM_WIDTH - 10,
+   title_w = RGUI_TERM_WIDTH - 10;
+   offset = menu_animation_ticker_line(title_buf, title_w,
          frame_count, title, true);
 
    if (menu_entries_show_back())
-      blit_line(menu,
-            RGUI_TERM_START_X, RGUI_TERM_START_X,
-            "BACK", rgui_title_16b);
+      blit_line("BACK", 4, RGUI_TERM_START_X, RGUI_TERM_START_X,
+            0, rgui_title_16b);
 
-   blit_line(menu,
+   blit_line(title_buf, title_w,
          RGUI_TERM_START_X + (RGUI_TERM_WIDTH - strlen(title_buf)) * FONT_WIDTH_STRIDE / 2,
-         RGUI_TERM_START_X, title_buf, rgui_title_16b);
+         RGUI_TERM_START_X,
+         FONT_WIDTH_STRIDE * offset, rgui_title_16b);
 
    if (settings->menu.core_enable)
    {
       menu_entries_get_core_title(title_msg, sizeof(title_msg));
-      blit_line(menu,
+      blit_line(title_msg, 42,
             RGUI_TERM_START_X,
-            (RGUI_TERM_HEIGHT * FONT_HEIGHT_STRIDE) +
-            RGUI_TERM_START_Y + 2, title_msg, rgui_hover_16b);
+            (RGUI_TERM_HEIGHT * FONT_HEIGHT_STRIDE) + RGUI_TERM_START_Y + 2,
+            0, rgui_hover_16b);
    }
 
    if (settings->menu.timedate_enable)
    {
       menu_display_timedate(timedate, sizeof(timedate), 3);
-
-      blit_line(menu,
+      blit_line(timedate, 5,
             RGUI_TERM_WIDTH * FONT_WIDTH_STRIDE - RGUI_TERM_START_X,
-            (RGUI_TERM_HEIGHT * FONT_HEIGHT_STRIDE) +
-            RGUI_TERM_START_Y + 2, timedate, rgui_hover_16b);
+            (RGUI_TERM_HEIGHT * FONT_HEIGHT_STRIDE) + RGUI_TERM_START_Y + 2,
+            0, rgui_hover_16b);
    }
 
-   x = RGUI_TERM_START_X;
+   title_x = RGUI_TERM_START_X + FONT_WIDTH_STRIDE * 2;
    y = RGUI_TERM_START_Y;
    i = menu_entries_get_start();
 
@@ -1061,22 +1071,36 @@ static void rgui_render(void)
       entry_title_buf[0] = '\0';
       type_str_buf[0]    = '\0';
 
-      menu_animation_ticker_line(entry_title_buf, RGUI_TERM_WIDTH - (entry_spacing + 1 + 2),
-            frame_count, entry.path, entry_selected);
-      menu_animation_ticker_line(type_str_buf, entry_spacing,
-            frame_count,
-            entry.value, entry_selected);
+      /* cursor */
+      if (entry_selected)
+      {
+         color = rgui_hover_16b;
+         blit_line(">", 1, RGUI_TERM_START_X, y, 0, color);
+      }
+      else
+         color = rgui_normal_16b;
 
-      snprintf(message, sizeof(message), "%c %-*.*s %-*s",
-            entry_selected ? '>' : ' ',
-            RGUI_TERM_WIDTH - (entry_spacing + 1 + 2),
-            RGUI_TERM_WIDTH - (entry_spacing + 1 + 2),
-            entry_title_buf,
-            entry_spacing,
-            type_str_buf);
+      /* entry title */
+      title_w = RGUI_TERM_WIDTH - (entry_spacing + 1 + 2);
+      offset = menu_animation_ticker_line(entry_title_buf,
+            title_w, frame_count, entry.path, entry_selected);
 
-      blit_line(menu, x, y, message,
-                entry_selected ? rgui_hover_16b : rgui_normal_16b);
+      snprintf(message, sizeof(message), "%-*.*s",
+            title_w, title_w, entry_title_buf);
+
+      blit_line(message, title_w, title_x, y,
+            FONT_WIDTH_STRIDE * offset, color);
+
+      /* entry value */
+      offset = menu_animation_ticker_line(type_str_buf,
+            entry_spacing, frame_count, entry.value, entry_selected);
+
+      snprintf(message, sizeof(message), "%-*s",
+            entry_spacing, type_str_buf);
+
+      blit_line(message, entry_spacing,
+            title_x + FONT_WIDTH_STRIDE * (title_w + 1), y,
+            FONT_WIDTH_STRIDE * offset, color);
    }
 
 #ifdef GEKKO
