@@ -297,7 +297,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
    switch (action)
    {
       case MENU_ACTION_UP:
-         if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
+         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
          {
             custom->y      -= stride_y;
             custom->height += stride_y;
@@ -309,7 +309,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          break;
 
       case MENU_ACTION_DOWN:
-         if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
+         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
          {
             custom->y += stride_y;
             if (custom->height >= (unsigned)stride_y)
@@ -322,7 +322,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          break;
 
       case MENU_ACTION_LEFT:
-         if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
+         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
          {
             custom->x     -= stride_x;
             custom->width += stride_x;
@@ -334,7 +334,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          break;
 
       case MENU_ACTION_RIGHT:
-         if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
+         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
          {
             custom->x += stride_x;
             if (custom->width >= (unsigned)stride_x)
@@ -365,13 +365,13 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          menu_list_pop_stack(menu_list);
          menu_entries_unset_refresh();
 
-         if (type == MENU_SETTINGS_CUSTOM_VIEWPORT
+         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1
                && !settings->video.scale_integer)
          {
             info.list          = menu_list->menu_stack;
-            strlcpy(info.label, "custom_viewport_2", sizeof(info.label));
-            info.type          = 0;
+            info.type          = MENU_SETTINGS_CUSTOM_VIEWPORT;
             info.directory_ptr = nav->selection_ptr;
+            strlcpy(info.label, "custom_viewport_2", sizeof(info.label));
 
             menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
          }
@@ -394,7 +394,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          break;
          
    case MENU_ACTION_L:  /* ten strides at a time */
-      if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
+      if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
          {
             custom->x     -= 10*stride_x;
             custom->width += 10*stride_x;
@@ -406,7 +406,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          break;
          
       case MENU_ACTION_R:  /* ten strides at a time */
-         if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
+         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
          {
             if (custom->width >= (unsigned)(10*stride_x))
             {
@@ -451,7 +451,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
    }
    else
    {
-      if (type == MENU_SETTINGS_CUSTOM_VIEWPORT)
+      if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
          base_msg = "Set Upper-Left Corner";
       else
          base_msg = "Set Bottom-Right Corner";
