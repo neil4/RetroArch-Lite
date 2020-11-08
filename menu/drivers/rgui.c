@@ -717,23 +717,26 @@ static void blit_line(const char *message, unsigned message_len,
    x += x_offset;
    while (*message)
    {
-      for (i = 0; i < FONT_WIDTH; i++)
+      if (*message != ' ')
       {
-         if (x + i < x_start || x + i > x_end)
-            continue;
-
-         for (j = 0; j < FONT_HEIGHT; j++)
+         for (i = 0; i < FONT_WIDTH; i++)
          {
-            uint8_t rem = 1 << ((i + j * FONT_WIDTH) & 7);
-            int offset  = (i + j * FONT_WIDTH) >> 3;
-            bool col    = (disp->font.framebuf[FONT_OFFSET
-                  ((unsigned char)*message) + offset] & rem);
-
-            if (!col)
+            if (x + i < x_start || x + i > x_end)
                continue;
 
-            frame_buf->data[(y + j) *
-               (frame_buf->pitch >> 1) + (x + i)] = color;
+            for (j = 0; j < FONT_HEIGHT; j++)
+            {
+               uint8_t rem = 1 << ((i + j * FONT_WIDTH) & 7);
+               int offset  = (i + j * FONT_WIDTH) >> 3;
+               bool col    = (disp->font.framebuf[FONT_OFFSET
+                     ((unsigned char)*message) + offset] & rem);
+
+               if (!col)
+                  continue;
+
+               frame_buf->data[(y + j) *
+                  (frame_buf->pitch >> 1) + (x + i)] = color;
+            }
          }
       }
 
