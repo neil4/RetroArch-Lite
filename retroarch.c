@@ -1206,7 +1206,10 @@ int rarch_main_init(int argc, char *argv[])
    init_drivers_pre();
 
    if (!event_command(EVENT_CMD_CORE_INIT))
-      goto error;
+   {
+      init_libretro_sym(global->libretro_dummy = true);
+      event_command(EVENT_CMD_CORE_INIT);
+   }
 
    event_command(EVENT_CMD_DRIVERS_INIT);
    event_command(EVENT_CMD_COMMAND_INIT);
@@ -1232,12 +1235,6 @@ int rarch_main_init(int argc, char *argv[])
    global->error_in_init = false;
    global->main_is_init  = true;
    return 0;
-
-error:
-   event_command(EVENT_CMD_CORE_DEINIT);
-
-   global->main_is_init = false;
-   return 1;
 }
 
 /**
