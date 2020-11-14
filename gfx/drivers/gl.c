@@ -1510,7 +1510,6 @@ static bool gl_frame(void *data, const void *frame,
 #endif
    driver_t *driver            = driver_get_ptr();
    settings_t *settings        = config_get_ptr();
-   uint64_t frame_count        = gl->frame_count;
    const struct font_renderer *font_driver = driver ? driver->font_osd_driver : NULL;
    static bool recursing;
    uint8_t i;
@@ -1626,7 +1625,7 @@ static bool gl_frame(void *data, const void *frame,
          frame_width, frame_height,
          gl->tex_w, gl->tex_h,
          gl->vp.width, gl->vp.height,
-         (unsigned int)frame_count, 
+         (unsigned int)gl->frame_count,
          &gl->tex_info, gl->prev_info, NULL, 0);
 
    gl->coords.vertices = 4;
@@ -1636,7 +1635,7 @@ static bool gl_frame(void *data, const void *frame,
 
 #ifdef HAVE_FBO
    if (gl->fbo_inited)
-      gl_frame_fbo(gl, frame_count, &gl->tex_info);
+      gl_frame_fbo(gl, gl->frame_count, &gl->tex_info);
 #endif
 
    if (!recursing)
