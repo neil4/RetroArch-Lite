@@ -1154,7 +1154,7 @@ bool event_command(enum event_command cmd)
          event_command(EVENT_CMD_CORE_INFO_DEINIT);
 
          if (*settings->libretro_directory)
-#ifdef SINGLE_CORE
+#ifdef EXTERNAL_LAUNCHER
             global->core_info = core_info_list_new(LAUNCHED_CORE);
 #else
             global->core_info = core_info_list_new(INSTALLED_CORES);

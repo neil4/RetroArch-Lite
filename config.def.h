@@ -471,13 +471,13 @@ static bool default_block_config_read = true;
 static bool show_advanced_settings    = false;
 static bool mame_titles = true;
 static float wallpaper_opacity = 1.0f;
-static float menu_ticker_speed = 1.0f;
+static float menu_ticker_speed = 2.0f;
 #ifdef HAVE_OVERLAY
-#ifndef ANDROID
-static bool show_overlay_menu = false;
+#ifdef ANDROID
+static bool show_overlay_menu = true;
 static bool input_osk_overlay_enable = true;
 #else
-static bool show_overlay_menu = true;
+static bool show_overlay_menu = false;
 static bool input_osk_overlay_enable = false;
 #endif
 static float overlay_opacity = 0.5f;
@@ -501,21 +501,21 @@ static bool menu_show_core_info = true;
 static bool menu_show_system_info = true;
 static bool show_configuration_menu = false;
 static bool show_user_menu = false;
-#ifndef SINGLE_CORE
-static bool show_directory_menu = true;
-#else
+#ifdef EXTERNAL_LAUNCHER
 static bool show_directory_menu = false;
+#else
+static bool show_directory_menu = true;
 #endif
 static bool show_privacy_menu = false;
 static bool show_recording_menu = false;
 static bool show_core_updater_menu = false;
 static bool show_font_menu = false;
-#ifndef ANDROID
-static bool show_hotkey_menu = true;
-#else
+#ifdef ANDROID
 static bool show_hotkey_menu = false;
+#else
+static bool show_hotkey_menu = true;
 #endif
-#ifndef SINGLE_CORE
+#ifndef EXTERNAL_LAUNCHER
 static bool show_core_updater = true;
 #endif
 #ifdef RARCH_MOBILE
@@ -691,10 +691,10 @@ static const uint16_t network_cmd_port = 55355;
 static const bool stdin_cmd_enable = false;
 
 /* Show Menu start-up screen on boot. */
-#ifndef SINGLE_CORE
-static const bool menu_show_start_screen = true;
-#else
+#ifdef EXTERNAL_LAUNCHER
 static const bool menu_show_start_screen = false;
+#else
+static const bool menu_show_start_screen = true;
 #endif
 
 #ifdef RARCH_MOBILE

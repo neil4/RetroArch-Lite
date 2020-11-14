@@ -269,7 +269,7 @@ int menu_action_handle_setting(rarch_setting_t *setting,
    if (!setting)
       return -1;
 
-   // Save on exit if something has changed.
+   /* Save on exit if something has changed. */
    if ( setting->group
         && strcmp(setting->group, menu_hash_to_str(MENU_VALUE_MAIN_MENU)) )
    {
@@ -3953,9 +3953,9 @@ static bool setting_append_list_main_menu_options(
    START_GROUP(group_info, main_menu, parent_group);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
    
-#ifndef SINGLE_CORE
+#ifndef EXTERNAL_LAUNCHER
 #if defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT)
-   if (!*settings->libretro)  // no core loaded
+   if (!*settings->libretro)  /* no core loaded */
    {
       CONFIG_ACTION(
             "core_list",
@@ -3966,16 +3966,16 @@ static bool setting_append_list_main_menu_options(
       (*list)[list_info->index - 1].size = sizeof(settings->libretro);
       (*list)[list_info->index - 1].value.string = settings->libretro;
       (*list)[list_info->index - 1].values = EXT_EXECUTABLES;
-      // It is not a good idea to have chosen action_toggle as the place
-      // to put this callback. It should be called whenever the browser
-      // needs to get the directory to browse into. It's not quite like
-      // get_string_representation, but it is close.
+      /* It is not a good idea to have chosen action_toggle as the place
+         to put this callback. It should be called whenever the browser
+         needs to get the directory to browse into. It's not quite like
+         get_string_representation, but it is close. */
       (*list)[list_info->index - 1].action_left  = core_list_action_toggle;
       (*list)[list_info->index - 1].action_right = core_list_action_toggle;
       menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_LOAD_CORE);
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
    }
-   else  // core loaded
+   else  /* core loaded */
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_LOAD_CONTENT),
@@ -3999,7 +3999,7 @@ static bool setting_append_list_main_menu_options(
             parent_group);
       menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_UNLOAD_CORE);
    }
-#endif // #if defined(HAVE_DYNAMIC)...
+#endif /* #if defined(HAVE_DYNAMIC)... */
    if (!*settings->libretro
        && global->core_info && core_info_list_num_info_files(global->core_info))
    {
@@ -4011,7 +4011,7 @@ static bool setting_append_list_main_menu_options(
             parent_group);
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
    }
-#else // #ifndef SINGLE_CORE
+#else /* #ifndef EXTERNAL_LAUNCHER */
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_LOAD_CONTENT),
@@ -4027,7 +4027,7 @@ static bool setting_append_list_main_menu_options(
       menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_LOAD_CONTENT);
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
    }
-#endif  // #ifndef SINGLE_CORE
+#endif  /* #ifndef EXTERNAL_LAUNCHER */
 
    if (global->content_is_init)
       CONFIG_ACTION(
@@ -4070,7 +4070,7 @@ static bool setting_append_list_main_menu_options(
    }
 
 #ifdef HAVE_NETWORKING
-#ifndef SINGLE_CORE
+#ifndef EXTERNAL_LAUNCHER
    if (settings->menu.show_core_updater)
    {
       CONFIG_ACTION(
@@ -7022,7 +7022,7 @@ static bool setting_append_list_menu_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-#ifndef SINGLE_CORE
+#ifndef EXTERNAL_LAUNCHER
    CONFIG_BOOL(
          settings->menu.show_core_updater,
          "show_core_updater",
@@ -7515,7 +7515,7 @@ static bool setting_append_list_core_updater_options(
       rarch_setting_info_t *list_info,
       const char *parent_group)
 {
-#if defined(HAVE_NETWORKING) && !defined(SINGLE_CORE)
+#if defined(HAVE_NETWORKING) && !defined(EXTERNAL_LAUNCHER)
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();

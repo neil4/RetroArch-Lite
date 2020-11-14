@@ -596,7 +596,7 @@ static void config_set_defaults(void)
    settings->menu.show_logging_menu            = show_logging_menu;
    settings->menu.show_hotkey_menu             = show_hotkey_menu;
    settings->menu.show_rewind_menu             = show_rewind_menu;
-#ifndef SINGLE_CORE
+#ifndef EXTERNAL_LAUNCHER
    settings->menu.show_core_updater            = show_core_updater;
 #endif
    settings->menu.show_core_info               = menu_show_core_info;
@@ -672,7 +672,7 @@ static void config_set_defaults(void)
    settings->input.overlay_aspect_ratio_index      = OVERLAY_ASPECT_RATIO_AUTO_INDEX;
    settings->input.overlay_bisect_aspect_ratio     = overlay_bisect_aspect_ratio;
    settings->input.overlay_shift_y_lock_edges      = false;
-   settings->osk.enable                            = true;
+   settings->osk.enable                            = input_osk_overlay_enable;
 #endif
 
    strlcpy(settings->network.buildbot_url, buildbot_server_url,
@@ -1301,7 +1301,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_rewind_menu,  "show_rewind_menu");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_cheat_options,  "show_cheat_options");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.swap_ok_cancel,  "menu_swap_ok_cancel");
-#ifndef SINGLE_CORE
+#ifndef EXTERNAL_LAUNCHER
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_updater,  "show_core_updater");
 #endif
    CONFIG_GET_BOOL_BASE(conf, settings, menu.show_core_info,  "menu_show_core_info");
@@ -2218,7 +2218,7 @@ bool config_save_file(const char *path)
    config_set_bool(conf, "show_rewind_menu", settings->menu.show_rewind_menu);
    config_set_bool(conf, "show_cheat_options", settings->menu.show_cheat_options);
    config_set_bool(conf, "menu_swap_ok_cancel", settings->menu.swap_ok_cancel);
-#ifndef SINGLE_CORE
+#ifndef EXTERNAL_LAUNCHER
    config_set_bool(conf, "show_core_updater", settings->menu.show_core_updater);
 #endif
    config_set_bool(conf, "menu_show_core_info", settings->menu.show_core_info);
