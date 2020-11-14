@@ -305,7 +305,6 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          else if (custom->height >= (unsigned)stride_y)
             custom->height -= stride_y;
 
-         event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
          break;
 
       case MENU_ACTION_DOWN:
@@ -318,7 +317,6 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          else
             custom->height += stride_y;
 
-         event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
          break;
 
       case MENU_ACTION_LEFT:
@@ -329,8 +327,6 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          }
          else if (custom->width >= (unsigned)stride_x)
             custom->width -= stride_x;
-
-         event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
          break;
 
       case MENU_ACTION_RIGHT:
@@ -342,8 +338,6 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          }
          else
             custom->width += stride_x;
-
-         event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
          break;
 
       case MENU_ACTION_CANCEL:
@@ -388,8 +382,6 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
             custom->height  = vp.full_height;
             custom->x       = (vp.full_width - custom->width) / 2;
             custom->y       = 0;
-            
-            event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
          }
          break;
          
@@ -402,7 +394,6 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          else if (custom->width >= (unsigned)(10*stride_x))
             custom->width -= 10*stride_x;
 
-         event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
          break;
          
       case MENU_ACTION_R:  /* ten strides at a time */
@@ -417,7 +408,6 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          else
             custom->width += 10*stride_x;
 
-         event_command(EVENT_CMD_VIDEO_APPLY_STATE_CHANGES);
          break;
 
       case MENU_ACTION_MESSAGE:
