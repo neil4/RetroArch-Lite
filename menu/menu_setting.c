@@ -3977,19 +3977,22 @@ static bool setting_append_list_main_menu_options(
    }
    else  /* core loaded */
    {
-      CONFIG_ACTION(
-            menu_hash_to_str(MENU_LABEL_LOAD_CONTENT),
-            menu_hash_to_str(MENU_LABEL_VALUE_LOAD_CONTENT),
-            group_info.name,
-            subgroup_info.name,
-            parent_group);
-      (*list)[list_info->index - 1].size = sizeof(global->fullpath);
-      (*list)[list_info->index - 1].value.string   = global->fullpath;
-      (*list)[list_info->index - 1].action_left    = load_content_action_toggle;
-      (*list)[list_info->index - 1].action_right   = load_content_action_toggle;
-      (*list)[list_info->index - 1].action_select  = load_content_action_toggle;
-      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_LOAD_CONTENT);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
+      if (!global->libretro_no_content)
+      {
+         CONFIG_ACTION(
+               menu_hash_to_str(MENU_LABEL_LOAD_CONTENT),
+               menu_hash_to_str(MENU_LABEL_VALUE_LOAD_CONTENT),
+               group_info.name,
+               subgroup_info.name,
+               parent_group);
+         (*list)[list_info->index - 1].size = sizeof(global->fullpath);
+         (*list)[list_info->index - 1].value.string   = global->fullpath;
+         (*list)[list_info->index - 1].action_left    = load_content_action_toggle;
+         (*list)[list_info->index - 1].action_right   = load_content_action_toggle;
+         (*list)[list_info->index - 1].action_select  = load_content_action_toggle;
+         menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_LOAD_CONTENT);
+         settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
+      }
       
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_UNLOAD_CORE),
@@ -4012,6 +4015,7 @@ static bool setting_append_list_main_menu_options(
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
    }
 #else /* #ifndef EXTERNAL_LAUNCHER */
+   if (!global->libretro_no_content)
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_LOAD_CONTENT),

@@ -866,9 +866,11 @@ bool event_command(enum event_command cmd)
          break;
       case EVENT_CMD_LOAD_CORE:
          rarch_update_configs();
+
          if (!*global->fullpath)
             core_config_file_load_auto();
          global->max_scope = THIS_CORE;
+
          event_command(EVENT_CMD_LOAD_CORE_PERSIST);
 #ifndef HAVE_DYNAMIC
          event_command(EVENT_CMD_QUIT);
@@ -959,7 +961,9 @@ bool event_command(enum event_command cmd)
       case EVENT_CMD_UNLOAD_CORE:
          *settings->libretro = '\0';
          global->max_scope = GLOBAL;
+
          rarch_update_configs();
+
          event_command(EVENT_CMD_PREPARE_DUMMY);
          event_command(EVENT_CMD_LOAD_CORE_DEINIT);
          

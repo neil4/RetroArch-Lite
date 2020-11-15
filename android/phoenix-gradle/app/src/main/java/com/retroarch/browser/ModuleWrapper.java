@@ -32,6 +32,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    private final List<String> supportedExtensions;
    private final List<String> permissions;
    private final List<String> requiredHwApi;
+   private boolean supportsNoGame;
    private int firmwareCount = 0;
    private String firmwares;
    private boolean is64bit;
@@ -117,6 +118,9 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
             this.supportedExtensions = new ArrayList<String>();
             this.supportedExtensions.add(supportedExts);
          }
+
+         final String supportsNoGame = infoFile.getString("supports_no_game");
+         this.supportsNoGame = supportsNoGame.equalsIgnoreCase("true") ? true : false;
 
          final String emuAuthors = infoFile.getString("authors");
          if (emuAuthors != null && emuAuthors.contains("|"))
@@ -348,6 +352,11 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    public List<String> getSupportedExtensions()
    {
       return supportedExtensions;
+   }
+
+   public boolean getSupportsNoGame()
+   {
+      return supportsNoGame;
    }
 
    @Override

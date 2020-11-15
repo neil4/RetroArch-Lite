@@ -920,6 +920,7 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
 {
    unsigned p, retro_id;
    settings_t *settings   = config_get_ptr();
+   global_t   *global     = global_get_ptr();
 
    menu_list_push(info->list,
          menu_hash_to_str(MENU_LABEL_VALUE_REMAP_FILE_LOAD),
@@ -929,14 +930,18 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
          "Save Core Remap File",
          menu_hash_to_str(MENU_LABEL_REMAP_FILE_SAVE_CORE),
          MENU_SETTING_ACTION, 0, 0);
-   menu_list_push(info->list,
-         "Save Directory Remap File",
-         menu_hash_to_str(MENU_LABEL_REMAP_FILE_SAVE_DIR),
-         MENU_SETTING_ACTION, 0, 0);
-   menu_list_push(info->list,
-         "Save ROM Remap File",
-         menu_hash_to_str(MENU_LABEL_REMAP_FILE_SAVE_GAME),
-         MENU_SETTING_ACTION, 0, 0);
+
+   if (!global->libretro_no_content)
+   {
+      menu_list_push(info->list,
+            "Save Directory Remap File",
+            menu_hash_to_str(MENU_LABEL_REMAP_FILE_SAVE_DIR),
+            MENU_SETTING_ACTION, 0, 0);
+      menu_list_push(info->list,
+            "Save ROM Remap File",
+            menu_hash_to_str(MENU_LABEL_REMAP_FILE_SAVE_GAME),
+            MENU_SETTING_ACTION, 0, 0);
+   }
 
    for (p = 0; p < settings->input.max_users; p++)
    {
