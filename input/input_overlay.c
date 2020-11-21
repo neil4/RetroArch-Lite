@@ -1856,7 +1856,6 @@ void input_overlay_poll(input_overlay_t *overlay_device)
    unsigned i, j, device;
    uint16_t key_mod                 = 0;
    driver_t *driver                 = driver_get_ptr();
-   settings_t *settings             = config_get_ptr();
    input_overlay_state_t *state     = &driver->overlay_state;
    input_overlay_state_t *old_state = &driver->old_overlay_state;
 
@@ -1973,41 +1972,9 @@ void input_overlay_poll(input_overlay_t *overlay_device)
          state->analog[j] -= 0x7fff;
    }
 
-   /* Check for analog_dpad_mode.
-    * Map analogs to d-pad buttons when configured. */
-   switch (settings->input.analog_dpad_mode[0])
-   {
-      case ANALOG_DPAD_LSTICK:
-      case ANALOG_DPAD_RSTICK:
-      {
-         float analog_x, analog_y;
-         unsigned analog_base = 2;
-
-         if (settings->input.analog_dpad_mode[0] == ANALOG_DPAD_LSTICK)
-            analog_base = 0;
-
-         analog_x = (float)state->analog[analog_base + 0] / 0x7fff;
-         analog_y = (float)state->analog[analog_base + 1] / 0x7fff;
-
-         if (analog_x <= -settings->input.axis_threshold)
-            state->buttons |= (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_LEFT);
-         if (analog_x >=  settings->input.axis_threshold)
-            state->buttons |= (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_RIGHT);
-         if (analog_y <= -settings->input.axis_threshold)
-            state->buttons |= (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_UP);
-         if (analog_y >=  settings->input.axis_threshold)
-            state->buttons |= (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_DOWN);
-         break;
-      }
-
-      default:
-         if (menu_driver_alive())
-         {
-            state->buttons |= menu_analog_dpad_state(state->analog[0],
-                                                     state->analog[1]);
-         }
-         break;
-   }
+   if (menu_driver_alive())
+      state->buttons |= menu_analog_dpad_state(state->analog[0],
+                                               state->analog[1]);
 
    if (ptr_count)
       input_overlay_post_poll(overlay_device);

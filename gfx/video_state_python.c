@@ -397,21 +397,7 @@ float py_state_get(py_state_t *handle, const char *id,
    PyObject        *ret = NULL;
    settings_t *settings = config_get_ptr();
 
-   for (i = 0; i < MAX_USERS; i++)
-   {
-      input_push_analog_dpad(settings->input.binds[i],
-            settings->input.analog_dpad_mode[i]);
-      input_push_analog_dpad(settings->input.autoconf_binds[i],
-            settings->input.analog_dpad_mode[i]);
-   }
-
    ret = PyObject_CallMethod(handle->inst, (char*)id, (char*)"I", frame_count);
-
-   for (i = 0; i < MAX_USERS; i++)
-   {
-      input_pop_analog_dpad(settings->input.binds[i]);
-      input_pop_analog_dpad(settings->input.autoconf_binds[i]);
-   }
 
    if (!ret)
    {

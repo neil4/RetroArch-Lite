@@ -24,6 +24,7 @@
 #include "input/input_common.h"
 #include "input/input_keymaps.h"
 #include "input/input_remapping.h"
+#include "input/input_joypad.h"
 #include "configuration.h"
 #include "general.h"
 
@@ -652,7 +653,6 @@ static void config_set_defaults(void)
             rarch_assert(j == settings->input.binds[i][j].id);
       }
 
-   settings->input.axis_threshold                  = axis_threshold;
    settings->input.netplay_client_swap_input       = netplay_client_swap_input;
    
    settings->input.autodetect_enable               = input_autodetect_enable;
@@ -684,12 +684,14 @@ static void config_set_defaults(void)
    for (i = 0; i < MAX_USERS; i++)
    {
       settings->input.joypad_map[i] = i;
-      settings->input.analog_dpad_mode[i] = ANALOG_DPAD_NONE;
       if (!global->has_set_libretro_device[i])
          settings->input.libretro_device[i] = RETRO_DEVICE_JOYPAD;
    }
+   settings->input.analog_dpad_mode            = ANALOG_DPAD_NONE;
+   settings->input.analog_diagonal_sensitivity = analog_diagonal_sensitivity;
+   settings->input.analog_dpad_deadzone        = analog_dpad_deadzone;
 
-   settings->core.set_supports_no_game_enable        = true;
+   settings->core.set_supports_no_game_enable  = true;
 
    video_viewport_reset_custom();
 
@@ -1421,7 +1423,11 @@ static bool config_load_file(const char *path, bool set_defaults)
       *settings->audio.filter_dir = '\0';
 
    CONFIG_GET_BOOL_BASE(conf, settings, input.remap_binds_enable, "input_remap_binds_enable");
-   CONFIG_GET_FLOAT_BASE(conf, settings, input.axis_threshold, "input_axis_threshold");
+   CONFIG_GET_INT_BASE(conf, settings, input.analog_dpad_mode, "input_analog_dpad_mode");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.analog_diagonal_sensitivity, "input_analog_diagonal_sensitivity");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.analog_dpad_deadzone, "input_analog_dpad_deadzone");
+   input_joypad_update_analog_dpad_params();
+
    CONFIG_GET_BOOL_BASE(conf, settings, input.rumble_enable, "input_rumble_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, input.netplay_client_swap_input, "netplay_client_swap_input");
    CONFIG_GET_INT_BASE(conf, settings, input.max_users, "input_max_users");
@@ -1440,9 +1446,6 @@ static bool config_load_file(const char *path, bool set_defaults)
       char buf[64] = {0};
       snprintf(buf, sizeof(buf), "input_player%u_joypad_index", i + 1);
       CONFIG_GET_INT_BASE(conf, settings, input.joypad_map[i], buf);
-
-      snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
-      CONFIG_GET_INT_BASE(conf, settings, input.analog_dpad_mode[i], buf);
 
       if (!global->has_set_libretro_device[i])
       {
@@ -1980,14 +1983,22 @@ bool config_save_file(const char *path)
 
    if (settings->input.max_users_scope == GLOBAL)
       config_set_int(conf, "input_max_users", settings->input.max_users);
-   config_set_float(conf, "input_axis_threshold",
-         settings->input.axis_threshold);
    config_set_bool(conf, "input_rumble_enable",
          settings->input.rumble_enable);
    config_set_bool(conf, "ui_companion_start_on_boot", settings->ui.companion_start_on_boot);
    config_set_bool(conf, "video_gpu_record", settings->video.gpu_record);
    config_set_bool(conf, "input_remap_binds_enable",
          settings->input.remap_binds_enable);
+   if (settings->input.analog_dpad_scope == GLOBAL)
+   {
+      config_set_int(conf, "input_analog_dpad_mode",
+            settings->input.analog_dpad_mode);
+      config_set_float(conf, "input_analog_diagonal_sensitivity",
+            settings->input.analog_diagonal_sensitivity);
+      config_set_float(conf, "input_analog_dpad_deadzone",
+            settings->input.analog_dpad_deadzone);
+   }
+
    config_set_bool(conf, "netplay_client_swap_input",
          settings->input.netplay_client_swap_input);
    config_set_bool(conf, "autoconfig_descriptor_label_show",
@@ -2371,8 +2382,6 @@ bool config_save_file(const char *path)
       {
          snprintf(cfg, sizeof(cfg), "input_libretro_device_p%u", i + 1);
          config_set_int(conf, cfg, settings->input.libretro_device[i]);
-         snprintf(cfg, sizeof(cfg), "input_player%u_analog_dpad_mode", i + 1);
-         config_set_int(conf, cfg, settings->input.analog_dpad_mode[i]);
       }
    }
 
@@ -2691,23 +2700,33 @@ static void scoped_config_file_save(unsigned scope)
    {
       for (i = 0; i < settings->input.max_users; i++)
       {
-         char buf[64] = {0};
          snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
          config_set_int(conf, buf, settings->input.libretro_device[i]);
-         snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
-         config_set_int(conf, buf, settings->input.analog_dpad_mode[i]);
       }
    }
    else if (settings->input.libretro_device_scope < scope)
    {
       for (i = 0; i < MAX_USERS; i++)
       {
-         char buf[64] = {0};
          snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
          config_remove_entry(conf, buf);
-         snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
-         config_remove_entry(conf, buf);
       }
+   }
+
+   if (settings->input.analog_dpad_scope == scope)
+   {
+      config_set_int(conf, "input_analog_dpad_mode",
+            settings->input.analog_dpad_mode);
+      config_set_float(conf, "input_analog_diagonal_sensitivity",
+            settings->input.analog_diagonal_sensitivity);
+      config_set_float(conf, "input_analog_dpad_deadzone",
+            settings->input.analog_dpad_deadzone);
+   }
+   else if (settings->input.analog_dpad_scope < scope)
+   {
+      config_remove_entry(conf, "input_analog_dpad_mode");
+      config_remove_entry(conf, "input_analog_diagonal_sensitivity");
+      config_remove_entry(conf, "input_analog_dpad_deadzone");
    }
 
    if (settings->video.filter_shader_scope == scope)
@@ -3057,8 +3076,6 @@ void config_backup_restore_globals()
       {
          snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
          config_get_uint(conf, buf, &settings->input.libretro_device[i]);
-         snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
-         config_get_uint(conf, buf, &settings->input.analog_dpad_mode[i]);
       }
    }
    else
@@ -3067,9 +3084,27 @@ void config_backup_restore_globals()
       {
          snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
          config_set_int(conf, buf, settings->input.libretro_device[i]);
-         snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
-         config_set_int(conf, buf, settings->input.analog_dpad_mode[i]);
       }
+   }
+
+   if (settings->input.analog_dpad_scope != GLOBAL)
+   {  /* restore */
+      settings->input.analog_dpad_scope = GLOBAL;
+      config_get_uint(conf, "input_analog_dpad_mode",
+            &settings->input.analog_dpad_mode);
+      config_get_float(conf, "input_analog_diagonal_sensitivity",
+            &settings->input.analog_diagonal_sensitivity);
+      config_get_float(conf, "input_analog_dpad_deadzone",
+            &settings->input.analog_dpad_deadzone);
+   }
+   else
+   {  /* back up */
+      config_set_int(conf, "input_analog_dpad_mode",
+            settings->input.analog_dpad_mode);
+      config_set_float(conf, "input_analog_diagonal_sensitivity",
+            settings->input.analog_diagonal_sensitivity);
+      config_set_float(conf, "input_analog_dpad_deadzone",
+            settings->input.analog_dpad_deadzone);
    }
    
    if (settings->video.filter_shader_scope != GLOBAL)
@@ -3300,15 +3335,24 @@ static void scoped_config_file_load(unsigned scope)
       settings->input.max_users_scope = scope;
    for (i = 0; i < settings->input.max_users; i++)
    {
-      char buf[64] = {0};
       snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
       if (!config_get_uint(conf, buf, &settings->input.libretro_device[i]))
          break;
-      snprintf(buf, sizeof(buf), "input_player%u_analog_dpad_mode", i + 1);
-      config_get_uint(conf, buf, &settings->input.analog_dpad_mode[i]);
    }
    if (i > 0)
       settings->input.libretro_device_scope = scope;
+
+   if (config_get_uint(conf, "input_analog_dpad_mode",
+         &settings->input.analog_dpad_mode))
+   {
+      settings->input.analog_dpad_scope = scope;
+      config_get_float(conf, "input_analog_diagonal_sensitivity",
+            &settings->input.analog_diagonal_sensitivity);
+      config_get_float(conf, "input_analog_dpad_deadzone",
+            &settings->input.analog_dpad_deadzone);
+
+      input_joypad_update_analog_dpad_params();
+   }
 
    if (config_get_path(conf, "video_filter", settings->video.softfilter_plugin,
                        sizeof(settings->video.softfilter_plugin)))

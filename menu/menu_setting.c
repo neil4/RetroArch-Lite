@@ -756,18 +756,6 @@ static int setting_generic_action_set_max(void *data)
    return 0;
 }
 
-static int setting_action_start_analog_dpad_mode(void *data)
-{
-   rarch_setting_t *setting = (rarch_setting_t*)data;
-
-   if (!setting)
-      return -1;
-
-   *setting->value.unsigned_integer = 0;
-
-   return 0;
-}
-
 static int setting_action_start_libretro_device_type(void *data)
 {
    unsigned device, port = 0;
@@ -844,42 +832,6 @@ static int setting_bind_action_start(void *data)
 /**
  ******* ACTION TOGGLE CALLBACK FUNCTIONS *******
 **/
-
-static int setting_action_left_analog_dpad_mode(void *data, bool wraparound)
-{
-   unsigned port = 0;
-   rarch_setting_t *setting  = (rarch_setting_t*)data;
-   settings_t      *settings = config_get_ptr();
-
-   if (!setting)
-      return -1;
-
-   port = setting->index_offset;
-
-   settings->input.analog_dpad_mode[port] =
-      (settings->input.analog_dpad_mode
-       [port] + ANALOG_DPAD_LAST - 1) % ANALOG_DPAD_LAST;
-
-   return 0;
-}
-
-static int setting_action_right_analog_dpad_mode(void *data, bool wraparound)
-{
-   unsigned port = 0;
-   rarch_setting_t *setting  = (rarch_setting_t*)data;
-   settings_t      *settings = config_get_ptr();
-
-   if (!setting)
-      return -1;
-
-   port = setting->index_offset;
-
-   settings->input.analog_dpad_mode[port] =
-      (settings->input.analog_dpad_mode[port] + 1)
-      % ANALOG_DPAD_LAST;
-
-   return 0;
-}
 
 static int setting_action_left_libretro_device_type(
       void *data, bool wraparound)
@@ -1965,8 +1917,7 @@ static void setting_get_string_representation_uint_analog_dpad_mode(void *data,
    settings_t      *settings = config_get_ptr();
 
    if (setting)
-      strlcpy(s, modes[settings->input.analog_dpad_mode
-            [setting->index_offset] % ANALOG_DPAD_LAST],
+      strlcpy(s, modes[settings->input.analog_dpad_mode % ANALOG_DPAD_LAST],
             len);
 }
 
@@ -6213,13 +6164,11 @@ static bool setting_append_list_input_options(
       /* FIXME/TODO - really need to clean up this mess in some way. */
       static char key[MAX_USERS][64];
       static char key_type[MAX_USERS][64];
-      static char key_analog[MAX_USERS][64];
       static char key_bind_all[MAX_USERS][64];
       static char key_bind_defaults[MAX_USERS][64];
 
       static char label[MAX_USERS][64];
       static char label_type[MAX_USERS][64];
-      static char label_analog[MAX_USERS][64];
       static char label_bind_all[MAX_USERS][64];
       static char label_bind_defaults[MAX_USERS][64];
 
@@ -6227,8 +6176,6 @@ static bool setting_append_list_input_options(
                "input_player%u_joypad_index", user + 1);
       snprintf(key_type[user], sizeof(key_type[user]),
                "input_libretro_device_p%u", user + 1);
-      snprintf(key_analog[user], sizeof(key_analog[user]),
-               "input_player%u_analog_dpad_mode", user + 1);
       snprintf(key_bind_all[user], sizeof(key_bind_all[user]),
                "input_player%u_bind_all", user + 1);
       snprintf(key_bind_defaults[user], sizeof(key_bind_defaults[user]),
@@ -6238,8 +6185,6 @@ static bool setting_append_list_input_options(
                "User %u Host Device", user + 1);
       snprintf(label_type[user], sizeof(label_type[user]),
                "User %u Virtual Device", user + 1);
-      snprintf(label_analog[user], sizeof(label_analog[user]),
-               "User %u Analog To D-Pad Type", user + 1);
       snprintf(label_bind_all[user], sizeof(label_bind_all[user]),
                "User %u Bind All", user + 1);
       snprintf(label_bind_defaults[user], sizeof(label_bind_defaults[user]),
@@ -6263,25 +6208,6 @@ static bool setting_append_list_input_options(
       (*list)[list_info->index - 1].action_start  = &setting_action_start_libretro_device_type;
       (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_uint_libretro_device;
-
-      CONFIG_UINT(
-            settings->input.analog_dpad_mode[user],
-            key_analog[user],
-            label_analog[user],
-            user,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      (*list)[list_info->index - 1].index = user + 1;
-      (*list)[list_info->index - 1].index_offset = user;
-      (*list)[list_info->index - 1].action_left   = &setting_action_left_analog_dpad_mode;
-      (*list)[list_info->index - 1].action_right  = &setting_action_right_analog_dpad_mode;
-      (*list)[list_info->index - 1].action_select = &setting_action_right_analog_dpad_mode;
-      (*list)[list_info->index - 1].action_start = &setting_action_start_analog_dpad_mode;
-      (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_uint_analog_dpad_mode;
 
       CONFIG_ACTION(
             key[user],
@@ -6344,18 +6270,65 @@ static bool setting_append_list_input_options(
          subgroup_info,
          parent_group);
 
-   CONFIG_FLOAT(
-         settings->input.axis_threshold,
-         "input_axis_threshold",
-         "Analog to D-Pad Axis Threshold",
-         axis_threshold,
-         "%.3f",
+   CONFIG_UINT(
+         settings->input.analog_dpad_mode,
+         "input_analog_dpad_mode",
+         "Analog To D-Pad Mode",
+         ANALOG_DPAD_NONE,
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 1.00, 0.001, true, true);
+   menu_settings_list_current_add_range(list, list_info,
+         ANALOG_DPAD_NONE, ANALOG_DPAD_LAST - 1, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation =
+         &setting_get_string_representation_uint_analog_dpad_mode;
+
+   CONFIG_FLOAT(
+         settings->input.analog_diagonal_sensitivity,
+         "input_analog_diagonal_sensitivity",
+         "  Diagonal Sensitivity",
+         analog_diagonal_sensitivity,
+         "%.0f%%",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
+   menu_settings_list_current_add_cmd(list, list_info,
+         EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS);
+
+   CONFIG_FLOAT(
+         settings->input.analog_dpad_deadzone,
+         "input_analog_dpad_deadzone",
+         "  Deadzone",
+         analog_dpad_deadzone,
+         "%.0f%%",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 1, 100, 1, true, true);
+   menu_settings_list_current_add_cmd(list, list_info,
+         EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS);
+
+   CONFIG_UINT(
+         settings->input.analog_dpad_scope,
+         "input_analog_dpad_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation =
+      &setting_get_string_representation_uint_scope_index;
    
    if (driver && driver->input && driver->input->set_rumble)
    {

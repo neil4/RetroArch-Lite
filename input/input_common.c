@@ -331,9 +331,6 @@ void input_config_parse_joy_axis(config_file_t *conf, const char *prefix,
          else
             bind->joyaxis = AXIS_NEG(i_axis);
       }
-
-      /* Ensure that D-pad emulation doesn't screw this over. */
-      bind->orig_joyaxis = bind->joyaxis;
    }
 
    if (config_get_string(conf, key_label, &tmp_a))
@@ -437,55 +434,3 @@ void input_get_bind_string(char *buf, const struct retro_keybind *bind,
 #endif
 }
 #endif
-
-/**
- * input_push_analog_dpad:
- * @binds                          : Binds to modify.
- * @mode                           : Which analog stick to bind D-Pad to.
- *                                   E.g:
- *                                   ANALOG_DPAD_LSTICK
- *                                   ANALOG_DPAD_RSTICK
- *
- * Push analog to D-Pad mappings to binds.
- **/
-void input_push_analog_dpad(struct retro_keybind *binds, unsigned mode)
-{
-   unsigned i, j = 0;
-   bool inherit_joyaxis = false;
-
-   for (i = RETRO_DEVICE_ID_JOYPAD_UP; i <= RETRO_DEVICE_ID_JOYPAD_RIGHT; i++)
-      binds[i].orig_joyaxis = binds[i].joyaxis;
-
-   switch (mode)
-   {
-      case ANALOG_DPAD_LSTICK:
-         j = RARCH_ANALOG_LEFT_X_PLUS + 3;
-         inherit_joyaxis = true;
-         break;
-      case ANALOG_DPAD_RSTICK:
-         j = RARCH_ANALOG_RIGHT_X_PLUS + 3;
-         inherit_joyaxis = true;
-         break;
-   }
-
-   if (!inherit_joyaxis)
-      return;
-
-   /* Inherit joyaxis from analogs. */
-   for (i = RETRO_DEVICE_ID_JOYPAD_UP; i <= RETRO_DEVICE_ID_JOYPAD_RIGHT; i++)
-      binds[i].joyaxis = binds[j--].joyaxis;
-}
-
-/**
- * input_pop_analog_dpad:
- * @binds                          : Binds to modify.
- *
- * Restores binds temporarily overridden by input_push_analog_dpad().
- **/
-void input_pop_analog_dpad(struct retro_keybind *binds)
-{
-   unsigned i;
-
-   for (i = RETRO_DEVICE_ID_JOYPAD_UP; i <= RETRO_DEVICE_ID_JOYPAD_RIGHT; i++)
-      binds[i].joyaxis = binds[i].orig_joyaxis;
-}

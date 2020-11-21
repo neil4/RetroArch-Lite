@@ -716,9 +716,9 @@ static const unsigned libretro_log_level = 3;
 
 /* KEYBINDS, JOYPAD */
 
-/* Axis threshold (between 0.0 and 1.0)
- * How far an axis must be tilted to result in a button press. */
-static const float axis_threshold = 0.5;
+/* Analog to D-Pad params; percentages */
+static const float analog_dpad_deadzone        = 33.0f;
+static const float analog_diagonal_sensitivity = 100.0f;
 
 /* Enable input auto-detection. Will attempt to autoconfigure
  * gamepads, plug-and-play style. */

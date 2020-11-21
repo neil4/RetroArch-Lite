@@ -786,10 +786,7 @@ static bool check_block_hotkey(bool enable_hotkey)
  */
 static INLINE retro_input_t input_keys_pressed(void)
 {
-   unsigned i;
-   retro_input_t ret        = 0;
    driver_t *driver         = driver_get_ptr();
-   settings_t *settings     = config_get_ptr();
 
    if (!driver->input || !driver->input_data)
       return 0;
@@ -797,23 +794,7 @@ static INLINE retro_input_t input_keys_pressed(void)
    driver->block_libretro_input = check_block_hotkey(
          input_driver_key_pressed(RARCH_ENABLE_HOTKEY));
 
-   for (i = 0; i < settings->input.max_users; i++)
-   {
-      input_push_analog_dpad(settings->input.binds[i],
-            settings->input.analog_dpad_mode[i]);
-      input_push_analog_dpad(settings->input.autoconf_binds[i],
-            settings->input.analog_dpad_mode[i]);
-   }
-
-   ret = input_driver_keys_pressed();
-
-   for (i = 0; i < settings->input.max_users; i++)
-   {
-      input_pop_analog_dpad(settings->input.binds[i]);
-      input_pop_analog_dpad(settings->input.autoconf_binds[i]);
-   }
-
-   return ret;
+   return input_driver_keys_pressed();
 }
 
 /**
@@ -1120,7 +1101,6 @@ static void rarch_main_cmd_get_state(event_cmd_state_t *cmd,
  **/
 int rarch_main_iterate(void)
 {
-   unsigned i;
    retro_input_t trigger_input;
    event_cmd_state_t    cmd        = {0};
    int ret                         = 0;
@@ -1190,21 +1170,9 @@ int rarch_main_iterate(void)
    if (global->system.camera_callback.caps)
       driver_camera_poll();
 
-   /* Update binds for analog dpad modes. */
-   for (i = 0; i < settings->input.max_users; i++)
-   {
-      if (!settings->input.analog_dpad_mode[i])
-         continue;
-
-      input_push_analog_dpad(settings->input.binds[i],
-            settings->input.analog_dpad_mode[i]);
-      input_push_analog_dpad(settings->input.autoconf_binds[i],
-            settings->input.analog_dpad_mode[i]);
-   }
-
    if ((settings->video.frame_delay > 0) && !driver->nonblock_state)
          rarch_sleep(settings->video.frame_delay);
-   
+
    if (driver->preempt_data)
       preempt_pre_frame((preempt_t*)driver->preempt_data);
 #ifdef HAVE_NETPLAY
@@ -1214,15 +1182,6 @@ int rarch_main_iterate(void)
 
    /* Run libretro for one frame. */
    pretro_run();
-
-   for (i = 0; i < settings->input.max_users; i++)
-   {
-      if (!settings->input.analog_dpad_mode[i])
-         continue;
-
-      input_pop_analog_dpad(settings->input.binds[i]);
-      input_pop_analog_dpad(settings->input.autoconf_binds[i]);
-   }
 
    if (global->bsv.movie)
       bsv_movie_set_frame_end(global->bsv.movie);

@@ -31,6 +31,7 @@
 
 #include "configuration.h"
 #include "input/input_remapping.h"
+#include "input/input_joypad.h"
 
 #ifdef HAVE_MENU
 #include "menu/menu.h"
@@ -1571,6 +1572,9 @@ bool event_command(enum event_command cmd)
             RARCH_LOG("Hotkeys %s.\n",
                      global->hotkeys_disabled ? "Enabled" : "Disabled");
          }
+         break;
+      case EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS:
+         input_joypad_update_analog_dpad_params();
          break;
       case EVENT_CMD_NONE:
       default:

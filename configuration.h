@@ -279,12 +279,14 @@ typedef struct settings
       bool autoconfigured[MAX_USERS];
 
       unsigned libretro_device[MAX_USERS];
-      unsigned analog_dpad_mode[MAX_USERS];
       unsigned libretro_device_scope;
 
       bool remap_binds_enable;
       bool rumble_enable;
-      float axis_threshold;
+      unsigned analog_dpad_mode;
+      float analog_diagonal_sensitivity;
+      float analog_dpad_deadzone;
+      unsigned analog_dpad_scope;
       unsigned joypad_map[MAX_USERS];
       char device_names[MAX_USERS][64];
       bool autodetect_enable;
@@ -303,7 +305,7 @@ typedef struct settings
       float overlay_shift_x;
       bool overlay_shift_y_lock_edges;
       unsigned overlay_shift_xy_scope;
-      
+
       float dpad_diagonal_sensitivity;  /* diagonal-to-normal ratio (percentage) */
       float abxy_diagonal_sensitivity;
       float touch_ellipse_magnify;  /* hack for inaccurate touchscreens */

@@ -286,13 +286,6 @@ static void state_tracker_update_input(state_tracker_t *tracker)
    if (!driver->input)
       return;
 
-   for (i = 0; i < 2; i++)
-      input_push_analog_dpad(settings->input.binds[i],
-            settings->input.analog_dpad_mode[i]);
-   for (i = 0; i < MAX_USERS; i++)
-      input_push_analog_dpad(settings->input.autoconf_binds[i],
-            settings->input.analog_dpad_mode[i]);
-
    if (!driver->block_libretro_input)
    {
       for (i = 4; i < 16; i++)
@@ -303,11 +296,6 @@ static void state_tracker_update_input(state_tracker_t *tracker)
                   binds, 1, RETRO_DEVICE_JOYPAD, 0, buttons[i - 4]) ? 1 : 0) << i;
       }
    }
-
-   for (i = 0; i < 2; i++)
-      input_pop_analog_dpad(settings->input.binds[i]);
-   for (i = 0; i < MAX_USERS; i++)
-      input_pop_analog_dpad(settings->input.autoconf_binds[i]);
 
    for (i = 0; i < 2; i++)
       tracker->input_state[i] = state[i];

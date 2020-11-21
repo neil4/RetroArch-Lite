@@ -24,6 +24,97 @@
 #include "../config.h"
 #endif
 
+/* Analog to Dpad
+ * defaults: 8-way symmetry, 33% deadzone */
+static float analog_dpad_high_slope  = 2.4142f;
+static float analog_dpad_low_slope   = 0.4142f;
+static float analog_dpad_deadzone_sq = 0.1111f;
+bool analog_dpad_state_utd;  /* todo: a better way to flag updates */
+
+void input_joypad_update_analog_dpad_params()
+{
+   settings_t *settings  = config_get_ptr();
+   const float diag_sens = settings->input.analog_diagonal_sensitivity;
+   float deadzone        = settings->input.analog_dpad_deadzone / 100.0f;
+   float f               = 2.0f * diag_sens / (100.0f + diag_sens);
+
+   float high_angle  /* 67.5 deg max */
+      = (f * (0.375*M_PI) + (1.0f - f) * (0.25*M_PI));
+   float low_angle   /* 22.5 deg min */
+      = (f * (0.125*M_PI) + (1.0f - f) * (0.25*M_PI));
+
+   analog_dpad_high_slope = tan(high_angle);
+   analog_dpad_low_slope  = tan(low_angle);
+
+   analog_dpad_deadzone_sq = deadzone * deadzone;
+}
+
+static inline uint8_t input_joypad_analog_eightway_state(int16_t x_axis,
+                                                         int16_t y_axis)
+{
+   float x, y;
+   float abs_slope;
+
+   x = (float)x_axis / 0x8000;
+   y = (float)-y_axis / 0x8000;
+
+   if (x*x + y*y < analog_dpad_deadzone_sq)
+      return 0;
+
+   if (x == 0.0f)
+     x = 0.0001f;
+   abs_slope = fabs(y/x);
+
+   if (x > 0.0f)
+   {
+      if (y > 0.0f)
+      {  /* Q1 */
+         if (abs_slope > analog_dpad_high_slope)
+            return (1 << RETRO_DEVICE_ID_JOYPAD_UP);
+         else if (abs_slope < analog_dpad_low_slope)
+            return (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT);
+         else
+            return ((1 << RETRO_DEVICE_ID_JOYPAD_UP) |
+                    (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT));
+      }
+      else
+      {  /* Q4 */
+         if (abs_slope > analog_dpad_high_slope)
+            return (1 << RETRO_DEVICE_ID_JOYPAD_DOWN);
+         else if (abs_slope < analog_dpad_low_slope)
+            return (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT);
+         else
+            return ((1 << RETRO_DEVICE_ID_JOYPAD_DOWN) |
+                    (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT));
+      }
+   }
+   else
+   {
+      if (y > 0.0f)
+      {  /* Q2 */
+         if (abs_slope > analog_dpad_high_slope)
+            return (1 << RETRO_DEVICE_ID_JOYPAD_UP);
+         else if (abs_slope < analog_dpad_low_slope)
+            return (1 << RETRO_DEVICE_ID_JOYPAD_LEFT);
+         else
+            return ((1 << RETRO_DEVICE_ID_JOYPAD_UP) |
+                    (1 << RETRO_DEVICE_ID_JOYPAD_LEFT));
+      }
+      else
+      {  /* Q3 */
+         if (abs_slope > analog_dpad_high_slope)
+            return (1 << RETRO_DEVICE_ID_JOYPAD_DOWN);
+         else if (abs_slope < analog_dpad_low_slope)
+            return (1 << RETRO_DEVICE_ID_JOYPAD_LEFT);
+         else
+            return ((1 << RETRO_DEVICE_ID_JOYPAD_DOWN) |
+                    (1 << RETRO_DEVICE_ID_JOYPAD_LEFT));
+      }
+   }
+
+   return 0;
+}
+
 /**
  * input_joypad_name:  
  * @drv                     : Input device driver handle.
@@ -86,10 +177,10 @@ bool input_joypad_pressed(
       const struct retro_keybind *binds,
       unsigned key)
 {
-   float scaled_axis;
-   int16_t  axis;
-   uint32_t joyaxis;
    uint64_t joykey;
+   unsigned analog_idx;
+   int16_t analog_x, analog_y;
+   static int8_t analog_dpad_state;
    const struct retro_keybind *auto_binds = NULL;
    settings_t *settings = config_get_ptr();
    unsigned joy_idx = settings->input.joypad_map[port];
@@ -109,13 +200,25 @@ bool input_joypad_pressed(
    if (drv->button(joy_idx, (uint16_t)joykey))
       return true;
 
-   joyaxis = binds[key].joyaxis;
-   if (joyaxis == AXIS_NONE)
-      joyaxis = auto_binds[key].joyaxis;
+   if (key < 8 && settings->input.analog_dpad_mode)
+   {
+      if (!analog_dpad_state_utd)
+      {
+         analog_idx = settings->input.analog_dpad_mode - 1;
+         analog_x = input_joypad_analog(drv, port, analog_idx,
+                          RETRO_DEVICE_ID_ANALOG_X, binds);
+         analog_y = input_joypad_analog(drv, port, analog_idx,
+                          RETRO_DEVICE_ID_ANALOG_Y, binds);
 
-   axis        = drv->axis(joy_idx, joyaxis);
-   scaled_axis = (float)abs(axis) / 0x8000;
-   return scaled_axis > settings->input.axis_threshold;
+         analog_dpad_state = input_joypad_analog_eightway_state(analog_x,
+                                                                analog_y);
+         analog_dpad_state_utd = true;
+      }
+
+      return (1 << key) & analog_dpad_state;
+   }
+
+   return false;
 }
 
 /**

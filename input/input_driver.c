@@ -22,6 +22,7 @@
 #include "../general.h"
 #include "../libretro.h"
 
+extern bool analog_dpad_state_utd;
 
 static const input_driver_t *input_drivers[] = {
 #ifdef __CELLOS_LV2__
@@ -256,6 +257,7 @@ void input_driver_poll(void)
    const input_driver_t *input = input_get_ptr(driver);
 
    input->poll(driver->input_data);
+   analog_dpad_state_utd = false;
 }
 
 
