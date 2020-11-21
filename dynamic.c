@@ -1156,21 +1156,19 @@ bool rarch_environment_cb(unsigned cmd, void *data)
             result |= 2;
          if (driver->video_active)
             result |= 1;
+         if (preempt_in_preframe(driver->preempt_data))
+         {
+            result &= ~(1|2);
+            result |= 4;
+         }
          #ifdef HAVE_NETWORKING
-         if (driver->netplay_data)
+         else if (driver->netplay_data)
          {
             if (netplay_is_replaying(driver->netplay_data))
                result &= ~(1|2);
             result |= 4;
          }
-         else
          #endif
-         if (driver->preempt_data)
-         {
-            if (preempt_skip_av(driver->preempt_data))
-               result &= ~(1|2);
-            result |= 4;
-         }
          if (data != NULL)
          {
             int* result_p = (int*)data;

@@ -43,19 +43,20 @@ struct preempt
    size_t replay_ptr;
 
    bool in_replay;
+   bool in_preframe;
 };
 
 /**
- * preempt_skip_av:
- * @preempt       : pointer to preempt object
+ * preempt_in_preframe:
+ * @preempt           : pointer to preempt object
  * 
- * Returns: true if audio & video will be skipped this frame, false if not
+ * Returns: true if audio & video should be skipped and fast savestates used
  **/
-bool preempt_skip_av(preempt_t *preempt)
+bool preempt_in_preframe(preempt_t *preempt)
 {
    if (!preempt)
       return false;
-   return preempt->in_replay;
+   return preempt->in_preframe;
 }
 
 void input_poll_preempt(void)
@@ -210,8 +211,6 @@ static void preempt_update_serialize_size(preempt_t *preempt)
       deinit_preempt();
       return;
    }
-
-   preempt->in_replay = false;
 }
 
 /**
@@ -223,6 +222,7 @@ static void preempt_update_serialize_size(preempt_t *preempt)
  **/
 void preempt_pre_frame(preempt_t *preempt)
 {
+   preempt->in_preframe = true;
    input_poll_preframe();
    
    if (preempt->in_replay)
@@ -230,6 +230,8 @@ void preempt_pre_frame(preempt_t *preempt)
       if (preempt->state_size < pretro_serialize_size())
       {
          preempt_update_serialize_size(preempt);
+         preempt->in_preframe = false;
+         preempt->in_replay   = false;
          return;
       }
       pretro_unserialize(preempt->buffer[preempt->start_ptr],
@@ -251,6 +253,7 @@ void preempt_pre_frame(preempt_t *preempt)
    pretro_serialize(preempt->buffer[preempt->start_ptr],
                     preempt->state_size);
    preempt->start_ptr = PREEMPT_NEXT_PTR(preempt->start_ptr);
+   preempt->in_preframe = false;
 }
 
 void deinit_preempt(void)

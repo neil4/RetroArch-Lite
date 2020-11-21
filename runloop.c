@@ -1205,13 +1205,12 @@ int rarch_main_iterate(void)
    if ((settings->video.frame_delay > 0) && !driver->nonblock_state)
          rarch_sleep(settings->video.frame_delay);
    
-#ifdef HAVE_NETPLAY
-   if (driver->netplay_data)
-      netplay_pre_frame((netplay_t*)driver->netplay_data);
-   else
-#endif
    if (driver->preempt_data)
       preempt_pre_frame((preempt_t*)driver->preempt_data);
+#ifdef HAVE_NETPLAY
+   else if (driver->netplay_data)
+      netplay_pre_frame((netplay_t*)driver->netplay_data);
+#endif
 
    /* Run libretro for one frame. */
    pretro_run();

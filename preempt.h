@@ -23,12 +23,12 @@
 typedef struct preempt preempt_t;
 
 /**
- * preempt_skip_av:
+ * preempt_in_preframe:
  * @preempt       : pointer to preempt object
  * 
- * Returns: true if audio & video will be skipped this frame, false if not
+ * Returns: true if audio & video should be skipped and fast savestates used
  **/
-bool preempt_skip_av(preempt_t *preempt);
+bool preempt_in_preframe(preempt_t *preempt);
 
 void input_poll_preempt(void);
 
