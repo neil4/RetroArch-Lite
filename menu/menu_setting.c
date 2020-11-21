@@ -4139,7 +4139,7 @@ static bool setting_append_list_main_menu_options(
 
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_RESTART_CONTENT),
-            menu_hash_to_str(MENU_LABEL_VALUE_RESTART_CONTENT),
+            global->libretro_no_content ? "Restart" : "Restart ROM",
             group_info.name,
             subgroup_info.name,
             parent_group);

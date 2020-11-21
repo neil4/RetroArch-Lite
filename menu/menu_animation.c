@@ -514,20 +514,20 @@ static float menu_animation_ticker_bounce(char *s, size_t len, uint64_t idx,
          g_tick_frames + (g_tick_frames>>1) : g_tick_frames;
 
    /* Wrap long strings in options with some kind of ticker line. */
-   ticker_period     = 2 * (str_len - len) + 6;
+   ticker_period     = 2 * (str_len - len) + 8;
    phase             = (idx / tick_frames) % ticker_period;
 
-   phase_left_stop   = 3;
+   phase_left_stop   = 4;
    phase_left_moving = phase_left_stop + (str_len - len);
-   phase_right_stop  = phase_left_moving + 3;
+   phase_right_stop  = phase_left_moving + 4;
 
    left_offset       = phase - phase_left_stop;
    right_offset      = (str_len - len) - (phase - phase_right_stop);
 
    /* Ticker period:
-    * [Wait at left (3 ticks),
+    * [Wait at left (4 ticks),
     * Progress to right(type_len - w),
-    * Wait at right (3 ticks),
+    * Wait at right (4 ticks),
     * Progress to left].
     */
    if (phase < phase_left_stop)
