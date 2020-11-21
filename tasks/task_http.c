@@ -94,7 +94,6 @@ static int cb_core_updater_download(void *data, size_t len)
    char output_path[PATH_MAX_LENGTH] = {0};
    char buf[PATH_MAX_LENGTH]         = {0};
    settings_t              *settings = config_get_ptr();
-   global_t                  *global = global_get_ptr();
    data_runloop_t           *runloop = rarch_main_data_get_ptr();
 
    if (!data)
@@ -121,9 +120,6 @@ static int cb_core_updater_download(void *data, size_t len)
       remove(output_path);
    }
 #endif
-   /* refresh installed core list */
-   core_info_list_free(global->core_info);
-   global->core_info = core_info_list_new(INSTALLED_CORES);
 
    path_libretro_name(buf, runloop->http.msg_filename);
    core_info_queue_download(buf);
@@ -139,15 +135,16 @@ static int cb_core_info_download(void *data, size_t len)
    settings_t *settings              = config_get_ptr();
    global_t *global                  = global_get_ptr();
    data_runloop_t *runloop           = rarch_main_data_get_ptr();
+   int ret                           = -1;
 
    if (!data)
-      return -1;
+      goto end;
    
    fill_pathname_join(output_path, settings->libretro_info_path,
          runloop->http.msg_filename, sizeof(output_path));
 
    if (!write_file(output_path, data, len))
-      return -1;
+      goto end;
    
    snprintf(buf, sizeof(buf), "Download complete: %s.",
          runloop->http.msg_filename);
@@ -166,7 +163,9 @@ static int cb_core_info_download(void *data, size_t len)
       remove(output_path);
    }
 #endif
-   
+
+   ret = 0;
+end:
    /* Refresh installed core info */
    core_info_list_free(global->core_info);
    global->core_info = core_info_list_new(INSTALLED_CORES);
@@ -174,7 +173,7 @@ static int cb_core_info_download(void *data, size_t len)
    /* Refresh core updater (or core list) menu */
    event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
 
-   return 0;
+   return ret;
 }
 
 
@@ -454,6 +453,7 @@ static int rarch_main_data_http_iterate_transfer(void *data)
       return -1;
    }
 
+   start_usec = 0;
    return 0;
 }
 
