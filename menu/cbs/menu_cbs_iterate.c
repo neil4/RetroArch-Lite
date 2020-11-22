@@ -468,6 +468,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
 static void delete_shader_preset(menu_list_t *menu_list)
 {
    char file_path[PATH_MAX_LENGTH] = {0};
+   char msg[NAME_MAX_LENGTH]       = {0};
    const char *menu_dir            = NULL;
    const char *menu_label          = NULL;
    settings_t *settings            = config_get_ptr();
@@ -490,8 +491,10 @@ static void delete_shader_preset(menu_list_t *menu_list)
       rarch_main_msg_queue_push("Error deleting shader preset", 1, 100, true);
    else
    {
-      rarch_main_msg_queue_push("Deleted shader preset", 1, 100, true);
+      snprintf(msg, NAME_MAX_LENGTH, "Deleted %s", path_basename(file_path));
+      rarch_main_msg_queue_push(msg, 1, 100, true);
       menu_entries_set_refresh();
+
       if (!strcmp(file_path, settings->video.shader_path))
       {
          settings->video.shader_path[0] = '\0';
@@ -506,7 +509,9 @@ static void delete_shader_preset(menu_list_t *menu_list)
 
 static void delete_core_file(menu_list_t *menu_list)
 {
-   char core_path[PATH_MAX_LENGTH] = {0};
+   global_t *global                = global_get_ptr();
+   char core_name[NAME_MAX_LENGTH] = {0};
+   char buf[PATH_MAX_LENGTH]       = {0};
    const char *menu_dir            = NULL;
    const char *menu_label          = NULL;
    menu_entry_t entry;
@@ -520,14 +525,20 @@ static void delete_core_file(menu_list_t *menu_list)
    selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
    menu_entry_get(&entry, selected, NULL, false);
    
-   fill_pathname_join(core_path, menu_dir, entry.path, PATH_MAX_LENGTH);
+   fill_pathname_join(buf, menu_dir, entry.path, PATH_MAX_LENGTH);
    
    /* delete core */
-   if (remove(core_path))
+   if (remove(buf))
       rarch_main_msg_queue_push("Error deleting core", 1, 100, true);
    else
    {
-      rarch_main_msg_queue_push("Deleted core", 1, 100, true);
+      if (!core_info_list_get_core_name(global->core_info,
+            entry.path, core_name, PATH_MAX_LENGTH))
+         strlcpy(core_name, entry.path, NAME_MAX_LENGTH);
+
+      snprintf(buf, PATH_MAX_LENGTH, "Deleted %s", core_name);
+      rarch_main_msg_queue_push(buf, 1, 100, true);
+
       menu_entries_set_refresh();
       event_command(EVENT_CMD_CORE_INFO_INIT);
    }
