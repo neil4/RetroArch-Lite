@@ -1146,6 +1146,45 @@ static int menu_displaylist_parse_generic(menu_displaylist_info_t *info, bool *n
    return 0;
 }
 
+/* Returns nav index of @path, or nav index of the directory leading to it. */
+static unsigned menu_displaylist_path_nav_idx(file_list_t *list, char *path)
+{
+   menu_list_t *menu_list = menu_list_get_ptr();
+   const char *menu_dir   = NULL;
+   const char *menu_label = NULL;
+   unsigned start, i;
+
+   menu_list_get_last_stack(menu_list, &menu_dir, &menu_label, NULL, NULL);
+   if (strstr(path, menu_dir) != path)
+      return 0;
+
+   start = strlen(menu_dir) + 1;
+   if (path[start-1] == '\0')
+      return 0;
+
+   /* Look for exact match. */
+   for (i = 0; i < list->size; i++)
+   {
+      if (list->list[i].type == MENU_FILE_DIRECTORY)
+         continue;
+
+      if (!strcmp(path + start, list->list[i].path))
+         return i;
+   }
+
+   /* Look for directory leading to path. */
+   for (i = 0; i < list->size; i++)
+   {
+      if (list->list[i].type != MENU_FILE_DIRECTORY)
+         continue;
+
+      if (strstr(path + start, list->list[i].path) == path + start)
+         return i;
+   }
+
+   return 0;
+}
+
 int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
 {
    size_t i, j, list_size;
@@ -1400,23 +1439,6 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          
          need_push = true;
          break;
-      case DISPLAYLIST_OVERLAYS:
-         /* Highlight the currently used overlay */
-         menu_list_clear(info->list);
-         if (menu_displaylist_parse_generic(info, &need_sort) == 0)
-         {
-            need_refresh = true;
-            need_push    = true;
-         }
-         for (i = 0; i < info->list->size; i++)
-         {
-            if ( !strcmp(path_basename(settings->input.overlay), info->list->list[i].path) )
-            {
-               menu_navigation_set(nav, i, true);
-               break;
-            }
-         }
-         break;
       case DISPLAYLIST_DEFAULT:
       case DISPLAYLIST_CORES:
       case DISPLAYLIST_CORES_DETECTED:
@@ -1431,11 +1453,47 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
       case DISPLAYLIST_RECORD_CONFIG_FILES:
       case DISPLAYLIST_CONFIG_FILES:
       case DISPLAYLIST_THEMES:
+      case DISPLAYLIST_OVERLAYS:
          menu_list_clear(info->list);
          if (menu_displaylist_parse_generic(info, &need_sort) == 0)
          {
             need_refresh = true;
             need_push    = true;
+         }
+
+         /* Set nav index leading to in-use path */
+         switch (type)
+         {
+            case DISPLAYLIST_OVERLAYS:
+               buf = settings->input.overlay;
+               break;
+            case DISPLAYLIST_SHADER_PRESET:
+               buf = settings->video.shader_path;
+               break;
+            case DISPLAYLIST_VIDEO_FILTERS:
+               buf = settings->video.softfilter_plugin;
+               break;
+            case DISPLAYLIST_AUDIO_FILTERS:
+               buf = settings->audio.dsp_plugin;
+               break;
+            case DISPLAYLIST_REMAP_FILES:
+               buf = settings->input.remapping_path;
+               break;
+            case DISPLAYLIST_THEMES:
+               buf = settings->menu.theme;
+               break;
+            case DISPLAYLIST_CHEAT_FILES:
+               buf = settings->cheat_database;
+               break;
+            default:
+               buf = NULL;
+         }
+
+         if (buf)
+         {
+            i = menu_displaylist_path_nav_idx(info->list, buf);
+            if (i != 0)
+               menu_navigation_set(nav, i, true);
          }
          break;
    }
