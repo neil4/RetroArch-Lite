@@ -687,6 +687,8 @@ static void config_set_defaults(void)
       if (!global->has_set_libretro_device[i])
          settings->input.libretro_device[i] = RETRO_DEVICE_JOYPAD;
    }
+
+   settings->input.axis_threshold              = axis_threshold;
    settings->input.analog_dpad_mode            = ANALOG_DPAD_NONE;
    settings->input.analog_diagonal_sensitivity = analog_diagonal_sensitivity;
    settings->input.analog_dpad_deadzone        = analog_dpad_deadzone;
@@ -1423,6 +1425,7 @@ static bool config_load_file(const char *path, bool set_defaults)
       *settings->audio.filter_dir = '\0';
 
    CONFIG_GET_BOOL_BASE(conf, settings, input.remap_binds_enable, "input_remap_binds_enable");
+   CONFIG_GET_FLOAT_BASE(conf, settings, input.axis_threshold, "input_axis_threshold");
    CONFIG_GET_INT_BASE(conf, settings, input.analog_dpad_mode, "input_analog_dpad_mode");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.analog_diagonal_sensitivity, "input_analog_diagonal_sensitivity");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.analog_dpad_deadzone, "input_analog_dpad_deadzone");
@@ -1983,6 +1986,8 @@ bool config_save_file(const char *path)
 
    if (settings->input.max_users_scope == GLOBAL)
       config_set_int(conf, "input_max_users", settings->input.max_users);
+   config_set_float(conf, "input_axis_threshold",
+         settings->input.axis_threshold);
    config_set_bool(conf, "input_rumble_enable",
          settings->input.rumble_enable);
    config_set_bool(conf, "ui_companion_start_on_boot", settings->ui.companion_start_on_boot);

@@ -283,6 +283,7 @@ typedef struct settings
 
       bool remap_binds_enable;
       bool rumble_enable;
+      float axis_threshold;
       unsigned analog_dpad_mode;
       float analog_diagonal_sensitivity;
       float analog_dpad_deadzone;

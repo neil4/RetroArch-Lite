@@ -3259,7 +3259,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_INPUT_AXIS_THRESHOLD:
          snprintf(s, len,
-               " -- Defines axis threshold.\n"
+               " -- Analog to digital threshold.\n"
                " \n"
                "How far an axis must be tilted to result\n"
                "in a button press.\n"
@@ -6329,6 +6329,19 @@ static bool setting_append_list_input_options(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation =
       &setting_get_string_representation_uint_scope_index;
+
+   CONFIG_FLOAT(
+         settings->input.axis_threshold,
+         "input_axis_threshold",
+         "Analog Trigger Threshold",
+         axis_threshold,
+         "%.2f",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 1.0, 0.01, true, true);
    
    if (driver && driver->input && driver->input->set_rumble)
    {
