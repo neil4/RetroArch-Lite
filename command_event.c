@@ -967,6 +967,8 @@ bool event_command(enum event_command cmd)
 
          event_command(EVENT_CMD_PREPARE_DUMMY);
          event_command(EVENT_CMD_LOAD_CORE_DEINIT);
+
+         menu_navigation_set(menu_navigation_get_ptr(), 0, true);
          
          global->content_is_init = false;
          break;
