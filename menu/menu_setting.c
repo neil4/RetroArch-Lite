@@ -6465,8 +6465,8 @@ static bool setting_append_list_overlay_options(
    CONFIG_BOOL(
          settings->input.overlay_shift_y_lock_edges,
          "input_overlay_adjust_vertical_lock_edges",
-         "  Clamp Edge Buttons",
-         false,
+         "  Lock Edge Buttons",
+         overlay_shift_y_lock_edges,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,
@@ -6492,6 +6492,22 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
+   CONFIG_UINT(
+         settings->input.overlay_shift_xy_scope,
+         "input_overlay_adjust_vert_horiz_scope",
+         settings->menu.show_advanced_settings ?
+         "  Scope (X & Y)" : "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+
    CONFIG_BOOL(
          settings->input.overlay_adjust_aspect,
          "input_overlay_adjust_aspect",
@@ -6505,6 +6521,7 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_UINT(
          settings->input.overlay_aspect_ratio_index,
@@ -6532,7 +6549,8 @@ static bool setting_append_list_overlay_options(
    CONFIG_FLOAT(
          settings->input.overlay_bisect_aspect_ratio,
          "input_overlay_bisect_aspect_ratio",
-         "  Bisect to Aspect",
+         settings->menu.show_advanced_settings ?
+         "  Bisect to Aspect" : "Bisect to Aspect Ratio",
          overlay_bisect_aspect_ratio,
          "%.2f",
          group_info.name,
@@ -6544,9 +6562,9 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
 
    CONFIG_UINT(
-         settings->input.overlay_shift_xy_scope,
-         "input_overlay_adjust_vert_horiz_scope",
-         "  Scope (Shift & Aspect)",
+         settings->input.overlay_aspect_scope,
+         "input_overlay_aspect_scope",
+         "  Scope",
          GLOBAL,
          group_info.name,
          subgroup_info.name,
