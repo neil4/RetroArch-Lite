@@ -791,10 +791,7 @@ static int menu_input_pointer(unsigned *action)
    if (
          menu_input->pointer.pressed[0]    ||
          menu_input->pointer.oldpressed[0] ||
-         menu_input->pointer.back          ||
-         menu_input->pointer.dragging      ||
-         (menu_input->pointer.dy != 0)     ||
-         (menu_input->pointer.dx != 0)
+         menu_input->pointer.back
       )
       anim->is_active = true;
 
@@ -960,13 +957,13 @@ static int pointer_tap(menu_file_list_cbs_t *cbs,
 static int menu_input_pointer_post_iterate(menu_file_list_cbs_t *cbs,
       menu_entry_t *entry, unsigned action)
 {
-   int ret                  = 0;
-   menu_display_t *disp     = menu_display_get_ptr();
-   menu_list_t *menu_list   = menu_list_get_ptr();
-   menu_input_t *menu_input = menu_input_get_ptr();
-   driver_t *driver         = driver_get_ptr();
-   settings_t *settings     = config_get_ptr();
-   static retro_time_t ptr_start_time;
+   int ret                    = 0;
+   menu_display_t *disp       = menu_display_get_ptr();
+   menu_list_t *menu_list     = menu_list_get_ptr();
+   menu_input_t *menu_input   = menu_input_get_ptr();
+   driver_t *driver           = driver_get_ptr();
+   settings_t *settings       = config_get_ptr();
+   menu_framebuf_t *frame_buf = menu_display_fb_get_ptr();
 
    if (!menu_input)
       return -1;
@@ -991,9 +988,9 @@ static int menu_input_pointer_post_iterate(menu_file_list_cbs_t *cbs,
          menu_input->pointer.old_x         = menu_input->pointer.x;
          menu_input->pointer.old_y         = menu_input->pointer.y;
          menu_input->pointer.oldpressed[0] = true;
-         ptr_start_time = rarch_get_time_usec();
       }
-      else if (rarch_get_time_usec() - ptr_start_time > 125000)
+      else if (abs(menu_input->pointer.y - menu_input->pointer.start_y) > frame_buf->height / 20
+            || abs(menu_input->pointer.x - menu_input->pointer.start_x) > frame_buf->width / 20)
       {
          menu_input->pointer.dragging = true;
          menu_input->pointer.dx       = menu_input->pointer.x - menu_input->pointer.old_x;
@@ -1011,10 +1008,7 @@ static int menu_input_pointer_post_iterate(menu_file_list_cbs_t *cbs,
             if (menu_input->pointer.start_y < disp->header_height)
                menu_list_pop_stack(menu_list);
             else if (menu_input->pointer.ptr <= menu_list_get_size(menu_list)-1)
-            {
-               menu_input->pointer.oldpressed[0] = false;
                ret = pointer_tap(cbs, entry, action);
-            }
          }
 
          menu_input->pointer.oldpressed[0] = false;
