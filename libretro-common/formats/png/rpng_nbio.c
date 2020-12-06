@@ -98,6 +98,22 @@ static bool png_read_plte_into_buf(uint8_t *buf,
    return true;
 }
 
+static bool png_read_trns_into_buf(uint8_t *buf,
+      uint32_t *palette, unsigned entries)
+{
+   unsigned i;
+
+   if (entries > 256)
+      return false;
+
+   buf += 8;
+
+   for (i = 0; i < entries; i++, palette++)
+      *palette = (*palette & 0x00ffffff) | (unsigned)buf[i] << 24;
+
+   return true;
+}
+
 bool rpng_nbio_load_image_argb_iterate(uint8_t *buf, struct rpng_t *rpng, unsigned *ret)
 {
    unsigned i;
@@ -143,7 +159,7 @@ bool rpng_nbio_load_image_argb_iterate(uint8_t *buf, struct rpng_t *rpng, unsign
          {
             unsigned entries = chunk.size / 3;
 
-            if (!rpng->has_ihdr || rpng->has_plte || rpng->has_iend || rpng->has_idat)
+            if (!rpng->has_ihdr || rpng->has_plte || rpng->has_iend || rpng->has_idat || rpng->has_trns)
                goto error;
 
             if (chunk.size % 3)
@@ -154,6 +170,19 @@ bool rpng_nbio_load_image_argb_iterate(uint8_t *buf, struct rpng_t *rpng, unsign
 
             rpng->has_plte = true;
          }
+         break;
+
+         case PNG_CHUNK_tRNS:
+         if (rpng->has_idat)
+            return false;
+
+         if (rpng->ihdr.color_type == PNG_IHDR_COLOR_PLT)
+         {
+            if (!png_read_trns_into_buf(buf, rpng->palette, chunk.size))
+               return false;
+         }
+
+         rpng->has_trns = true;
          break;
 
       case PNG_CHUNK_IDAT:

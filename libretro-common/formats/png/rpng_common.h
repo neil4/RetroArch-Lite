@@ -49,6 +49,7 @@ enum png_chunk_type
    PNG_CHUNK_IHDR,
    PNG_CHUNK_IDAT,
    PNG_CHUNK_PLTE,
+   PNG_CHUNK_tRNS,
    PNG_CHUNK_IEND
 };
 

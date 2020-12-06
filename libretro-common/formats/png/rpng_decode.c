@@ -45,6 +45,7 @@ enum png_chunk_type png_chunk_type(const struct png_chunk *chunk)
       { "IDAT", PNG_CHUNK_IDAT },
       { "IEND", PNG_CHUNK_IEND },
       { "PLTE", PNG_CHUNK_PLTE },
+      { "tRNS", PNG_CHUNK_tRNS },
    };
 
    for (i = 0; i < ARRAY_SIZE(chunk_map); i++)

@@ -94,6 +94,7 @@ struct rpng_t
    bool has_idat;
    bool has_iend;
    bool has_plte;
+   bool has_trns;
    struct idat_buffer idat_buf;
    struct png_ihdr ihdr;
    uint8_t *buff_data;
