@@ -859,7 +859,7 @@ static void rgui_render_background(void)
 static void rgui_render_messagebox(const char *message)
 {
    size_t i;
-   int x, y, line_len;
+   int x, y;
    unsigned width, glyphs_width, height;
    struct string_list *list   = NULL;
    menu_handle_t *menu        = menu_driver_get_ptr();
@@ -919,10 +919,10 @@ static void rgui_render_messagebox(const char *message)
    for (i = 0; i < list->size; i++)
    {
       const char *msg = list->elems[i].data;
-      line_len        = strlen(msg);
-      int offset_x    = FONT_WIDTH_STRIDE * (glyphs_width - line_len) / 2;
+      unsigned msglen = min(strlen(msg), RGUI_TERM_WIDTH);
+      int offset_x    = FONT_WIDTH_STRIDE * (glyphs_width - msglen) / 2;
       int offset_y    = FONT_HEIGHT_STRIDE * i;
-      blit_line(msg, line_len, x + 8 + offset_x, y + 8 + offset_y,
+      blit_line(msg, msglen, x + 8 + offset_x, y + 8 + offset_y,
             0, rgui_normal_16b);
    }
 
