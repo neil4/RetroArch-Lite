@@ -74,7 +74,7 @@ struct dinput_input
    int mouse_y;
    int lightgun_x;
    int lightgun_y;
-   bool mouse_l, mouse_r, mouse_m, mouse_wu, mouse_wd, mouse_hwu, mouse_hwd;
+   bool mouse_l, mouse_r, mouse_m, mouse_b4, mouse_b5, mouse_wu, mouse_wd, mouse_hwu, mouse_hwd;
    struct pointer_status pointer_head;  /* dummy head for easier iteration */
 };
 
@@ -213,6 +213,8 @@ static void dinput_poll(void *data)
       di->mouse_l  = mouse_state.rgbButtons[0];
       di->mouse_r  = mouse_state.rgbButtons[1];
       di->mouse_m  = mouse_state.rgbButtons[2];
+      di->mouse_b4 = mouse_state.rgbButtons[3];
+      di->mouse_b5 = mouse_state.rgbButtons[4];
 
       /* No simple way to get absolute coordinates
        * for RETRO_DEVICE_POINTER. Just use Win32 APIs. */
@@ -303,14 +305,16 @@ static int16_t dinput_lightgun_mouse_state(struct dinput_input *di, unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
          return di->lightgun_y;
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
-         return di->mouse_l && !di->mouse_r;
+         return di->mouse_l && !di->mouse_m;
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A: /* cursor */
-         return di->mouse_m && !di->mouse_r;
+         return di->mouse_r && !di->mouse_m;
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
-         return di->mouse_m && di->mouse_r;
+         return di->mouse_b4 || (di->mouse_r && di->mouse_m);
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_C:
+         return di->mouse_b5 || (di->mouse_l && di->mouse_m);
       case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
-         return di->mouse_l && di->mouse_r;
+         return di->mouse_m;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
          return abs(di->lightgun_y) >= 0x7fbb;
       case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:

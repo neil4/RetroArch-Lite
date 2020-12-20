@@ -210,18 +210,20 @@ static int16_t x_lightgun_mouse_state(x11_input_t *x11, unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
          return x11->lightgun_y;
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
-         return x11->mouse_l && !x11->mouse_r;
+         return x11->mouse_l && !x11->mouse_m;
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A: /* cursor */
-         return x11->mouse_m && !x11->mouse_r;
+         return x11->mouse_r && !x11->mouse_m;
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
-         return x11->mouse_m && x11->mouse_r;
+         return x11->mouse_r && x11->mouse_m;
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_C:
+         return x11->mouse_l && x11->mouse_m;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
          return abs(x11->lightgun_y) >= 0x7fbb;
       case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
          return x11->mouse_l && (abs(x11->lightgun_y) >= 0x7fbb);
       case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
-         return x11->mouse_l && x11->mouse_r;
+         return x11->mouse_m;
    }
 
    return 0;
@@ -265,7 +267,7 @@ static int16_t x_input_state(void *data,
             break;
          else
 #endif
-         return x_lightgun_mouse_state(id);
+         return x_lightgun_mouse_state(x11, id);
    }
 
    return 0;

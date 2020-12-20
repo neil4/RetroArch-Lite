@@ -103,7 +103,7 @@ struct udev_input
 
    int16_t mouse_x;
    int16_t mouse_y;
-   bool mouse_l, mouse_r, mouse_m, mouse_wu, mouse_wd, mouse_whu, mouse_whd;
+   bool mouse_l, mouse_r, mouse_m, mouse_b4, mouse_b5, mouse_wu, mouse_wd, mouse_whu, mouse_whd;
 };
 
 #ifdef HAVE_XKBCOMMON
@@ -218,6 +218,14 @@ static void udev_handle_mouse(udev_input_t *udev,
 
             case BTN_MIDDLE:
                udev->mouse_m = event->value;
+               break;
+
+            case BTN_BACK:
+               udev->mouse_b4 = event->value;
+               break;
+
+            case BTN_FORWARD:
+               udev->mouse_b5 = event->value;
                break;
             default:
                break;
@@ -481,15 +489,16 @@ static int16_t udev_lightgun_state(udev_input_t *udev, unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_Y:
          return udev->mouse_y;
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
-         return udev->mouse_l;
-      case RETRO_DEVICE_ID_LIGHTGUN_CURSOR:
-         return udev->mouse_m;
-      case RETRO_DEVICE_ID_LIGHTGUN_TURBO:
-         return udev->mouse_r;
+         return udev->mouse_l && !udev->mouse_m;
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_A:
+         return udev->mouse_r && !udev->mouse_m;
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_B:
+         return udev->mouse_b4 || (udev->mouse_r && udev->mouse_m);
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_C:
+         return udev->mouse_b5 || (udev->mouse_l && udev->mouse_m);
       case RETRO_DEVICE_ID_LIGHTGUN_START:
-         return udev->mouse_m && udev->mouse_r; 
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
-         return udev->mouse_m && udev->mouse_l; 
+         return udev->mouse_m;
    }
 
    return 0;
