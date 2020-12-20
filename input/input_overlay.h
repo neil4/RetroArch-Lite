@@ -285,7 +285,7 @@ typedef struct input_overlay_state
    /* Left X, Left Y, Right X, Right Y */
    int16_t analog[4]; 
 
-   uint16_t lightgun_x, lightgun_y;
+   int16_t lightgun_x, lightgun_y;
    bool lightgun_ptr_active;
    
    uint32_t keys[RETROK_LAST / 32 + 1];

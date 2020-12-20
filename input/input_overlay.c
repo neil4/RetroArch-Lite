@@ -2005,6 +2005,8 @@ static INLINE int16_t overlay_lightgun_state(unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
          return driver->overlay_state.lightgun_y;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
+         if (abs(driver->overlay_state.lightgun_y) >= 0x7d6f)
+            return 1; /* else fall through */
       case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
          if (driver->overlay_state.buttons
              & (UINT64_C(1) << RARCH_LIGHTGUN_RELOAD))
