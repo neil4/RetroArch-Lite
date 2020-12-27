@@ -230,26 +230,6 @@ static int action_start_shader_action_parameter(unsigned type, const char *label
    return 0;
 }
 
-static int action_start_shader_action_preset_parameter(unsigned type, const char *label)
-{
-#ifdef HAVE_SHADER_MANAGER
-   struct video_shader *shader = NULL;
-   struct video_shader_parameter *param = NULL;
-   menu_handle_t *menu = menu_driver_get_ptr();
-   if (!menu)
-      return -1;
-
-   if (!(shader = menu->shader))
-      return 0;
-
-   param = &shader->parameters[type - MENU_SETTINGS_SHADER_PRESET_PARAMETER_0];
-   param->current = param->initial;
-   param->current = min(max(param->minimum, param->current), param->maximum);
-#endif
-
-   return 0;
-}
-
 static int action_start_shader_pass(unsigned type, const char *label)
 {
 #ifdef HAVE_SHADER_MANAGER
@@ -463,9 +443,6 @@ static int menu_cbs_init_bind_start_compare_type(menu_file_list_cbs_t *cbs,
    else if (type >= MENU_SETTINGS_SHADER_PARAMETER_0
          && type <= MENU_SETTINGS_SHADER_PARAMETER_LAST)
       cbs->action_start = action_start_shader_action_parameter;
-   else if (type >= MENU_SETTINGS_SHADER_PRESET_PARAMETER_0
-         && type <= MENU_SETTINGS_SHADER_PRESET_PARAMETER_LAST)
-      cbs->action_start = action_start_shader_action_preset_parameter;
    else if (type >= MENU_SETTINGS_LIBRETRO_PERF_COUNTERS_BEGIN &&
          type <= MENU_SETTINGS_LIBRETRO_PERF_COUNTERS_END)
       cbs->action_start = action_start_performance_counters_core;

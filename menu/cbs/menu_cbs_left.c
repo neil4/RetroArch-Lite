@@ -74,39 +74,6 @@ static int shader_action_parameter_l(unsigned type, const char *label)
    return 0;
 }
 
-static int shader_action_parameter_preset_left(unsigned type, const char *label,
-      bool wraparound)
-{
-#ifdef HAVE_SHADER_MANAGER
-   struct video_shader_parameter *param = NULL;
-   menu_handle_t *menu = menu_driver_get_ptr();
-   struct video_shader *shader = menu ? menu->shader : NULL;
-   if (!menu || !shader)
-      return -1;
-
-   param = &shader->parameters[type - MENU_SETTINGS_SHADER_PRESET_PARAMETER_0];
-
-   shader_action_parameter_left_common(param, shader);
-#endif
-   return 0;
-}
-
-static int shader_action_parameter_preset_l(unsigned type, const char *label)
-{
-#ifdef HAVE_SHADER_MANAGER
-   struct video_shader_parameter *param = NULL;
-   menu_handle_t *menu = menu_driver_get_ptr();
-   struct video_shader *shader = menu ? menu->shader : NULL;
-   if (!menu || !shader)
-      return -1;
-
-   param = &shader->parameters[type - MENU_SETTINGS_SHADER_PRESET_PARAMETER_0];
-
-   shader_action_parameter_l_common(param, shader);
-#endif
-   return 0;
-}
-
 static int action_left_cheat(unsigned type, const char *label,
       bool wraparound)
 {
@@ -520,12 +487,6 @@ static int menu_cbs_init_bind_left_compare_type(menu_file_list_cbs_t *cbs,
    {
       cbs->action_left = shader_action_parameter_left;
       cbs->action_l = shader_action_parameter_l;
-   }
-   else if (type >= MENU_SETTINGS_SHADER_PRESET_PARAMETER_0
-         && type <= MENU_SETTINGS_SHADER_PRESET_PARAMETER_LAST)
-   {
-      cbs->action_left = shader_action_parameter_preset_left;
-      cbs->action_l = shader_action_parameter_preset_l;
    }
    else if (type >= MENU_SETTINGS_CHEAT_BEGIN
          && type <= MENU_SETTINGS_CHEAT_END)

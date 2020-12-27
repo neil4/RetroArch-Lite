@@ -385,8 +385,8 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          }
          break;
          
-   case MENU_ACTION_L:  /* ten strides at a time */
-      if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
+      case MENU_ACTION_L:  /* ten strides at a time */
+         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
          {
             custom->x     -= 10*stride_x;
             custom->width += 10*stride_x;

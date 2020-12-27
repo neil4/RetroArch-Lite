@@ -298,42 +298,6 @@ static void menu_action_setting_disp_set_label_shader_parameter(
 #endif
 }
 
-static void menu_action_setting_disp_set_label_shader_preset_parameter(
-      file_list_t* list,
-      unsigned *w, unsigned type, unsigned i,
-      const char *label,
-      char *s, size_t len,
-      const char *entry_label,
-      const char *path,
-      char *s2, size_t len2)
-{
-#if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_HLSL)
-   const struct video_shader_parameter *param = NULL;
-#endif
-   menu_handle_t *menu    = menu_driver_get_ptr();
-   if (!menu)
-      return;
-
-   (void)menu;
-
-   *s = '\0';
-   *w = 19;
-   strlcpy(s2, path, len2);
-
-#if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_HLSL)
-   if (!menu->shader)
-      return;
-
-   param = &menu->shader->parameters[type - MENU_SETTINGS_SHADER_PRESET_PARAMETER_0];
-
-   if (!param)
-      return;
-
-   snprintf(s, len, "%.2f [%.2f %.2f]",
-         param->current, param->minimum, param->maximum);
-#endif
-}
-
 static void menu_action_setting_disp_set_label_shader_scale_pass(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
@@ -967,10 +931,6 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
          && type <= MENU_SETTINGS_LIBRETRO_PERF_COUNTERS_END)
       cbs->action_get_value =
          menu_action_setting_disp_set_label_libretro_perf_counters;
-   else if (type >= MENU_SETTINGS_SHADER_PRESET_PARAMETER_0
-         && type <= MENU_SETTINGS_SHADER_PRESET_PARAMETER_LAST)
-      cbs->action_get_value =
-         menu_action_setting_disp_set_label_shader_preset_parameter;
    else if (type >= MENU_SETTINGS_SHADER_PARAMETER_0
          && type <= MENU_SETTINGS_SHADER_PARAMETER_LAST)
       cbs->action_get_value =

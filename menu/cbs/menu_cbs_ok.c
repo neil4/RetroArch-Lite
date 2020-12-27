@@ -1341,9 +1341,6 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
    else if (type >= MENU_SETTINGS_SHADER_PARAMETER_0
          && type <= MENU_SETTINGS_SHADER_PARAMETER_LAST)
       cbs->action_ok = NULL;
-   else if (type >= MENU_SETTINGS_SHADER_PRESET_PARAMETER_0
-         && type <= MENU_SETTINGS_SHADER_PRESET_PARAMETER_LAST)
-      cbs->action_ok = NULL;
    else if (type >= MENU_SETTINGS_CHEAT_BEGIN
          && type <= MENU_SETTINGS_CHEAT_END)
       cbs->action_ok = action_ok_cheat;
