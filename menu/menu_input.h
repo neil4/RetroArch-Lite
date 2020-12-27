@@ -59,7 +59,9 @@ typedef enum menu_action
    MENU_ACTION_SCROLL_UP,
    MENU_ACTION_TOGGLE,
    MENU_ACTION_L,
-   MENU_ACTION_R
+   MENU_ACTION_R,
+   MENU_ACTION_L2,
+   MENU_ACTION_R2
 } menu_action_t;
 
 enum mouse_action
@@ -70,6 +72,9 @@ enum mouse_action
    MOUSE_ACTION_BUTTON_L_TOGGLE,
    MOUSE_ACTION_BUTTON_L_SET_NAVIGATION,
    MOUSE_ACTION_BUTTON_R,
+   MOUSE_ACTION_BUTTON_M,
+   MOUSE_ACTION_BUTTON_BTN4,
+   MOUSE_ACTION_BUTTON_BTN5,
    MOUSE_ACTION_WHEEL_UP,
    MOUSE_ACTION_WHEEL_DOWN,
 };
@@ -127,8 +132,14 @@ typedef struct menu_input
       int16_t screen_y;
       bool    left;
       bool    right;
+      bool    middle;
+      bool    btn4;
+      bool    btn5;
       bool    oldleft;
       bool    oldright;
+      bool    oldmiddle;
+      bool    oldbtn4;
+      bool    oldbtn5;
       bool    wheelup;
       bool    wheeldown;
       bool    hwheelup;
@@ -151,8 +162,6 @@ typedef struct menu_input
       bool pressed[2];
       bool oldpressed[2];
       bool dragging;
-      bool back;
-      bool oldback;
       unsigned ptr;
    } pointer;
 

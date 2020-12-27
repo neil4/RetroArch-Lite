@@ -51,6 +51,8 @@ typedef struct menu_file_list_cbs
    int (*action_start)(unsigned type,  const char *label);
    int (*action_l)(unsigned type,  const char *label);
    int (*action_r)(unsigned type,  const char *label);
+   int (*action_l2)(unsigned type, const char *label, bool wraparound);
+   int (*action_r2)(unsigned type, const char *label, bool wraparound);
    int (*action_info)(unsigned type,  const char *label);
    int (*action_content_list_switch)(void *data, void *userdata, const char
          *path, const char *label, unsigned type);

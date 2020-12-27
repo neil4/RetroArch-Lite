@@ -558,6 +558,7 @@ int menu_cbs_init_bind_left(menu_file_list_cbs_t *cbs,
 
    cbs->action_left = bind_left_generic;
    cbs->action_l = bind_l_generic;
+   cbs->action_l2 = action_left_scroll;
 
    if (menu_cbs_init_bind_left_compare_label(cbs, label, label_hash, elem0) == 0)
       return 0;
