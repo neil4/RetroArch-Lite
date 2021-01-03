@@ -217,7 +217,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
                item.getSupportedExtensions());
          
          // Assume no content if no file extensions
-         if (item.getSupportsNoGame() || contentBrowser == null)
+         if (contentBrowser == null)
          {
             onDirectoryFragmentClosed("");
             return;
