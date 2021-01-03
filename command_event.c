@@ -1097,8 +1097,11 @@ bool event_command(enum event_command cmd)
 #ifdef HAVE_OVERLAY
          if (driver->osk_enable)
          {
-            if (!*settings->osk.overlay)
+            if (!settings->osk.enable || !*settings->osk.overlay)
+            {
+               driver->keyboard_linefeed_enable = false;
                break;
+            }
          }
          else
          {
