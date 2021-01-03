@@ -6757,7 +6757,8 @@ static bool setting_append_list_overlay_options(
          general_read_handler);
    menu_settings_list_current_add_values(list, list_info, "cfg");
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   if (!global->overlay_osk_key)
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);

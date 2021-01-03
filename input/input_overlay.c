@@ -642,7 +642,6 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    float width_mod, height_mod;
    uint32_t box_hash, key_hash;
    bool ret                             = true;
-   bool by_pixel                        = false;
    char overlay_desc_key[64]            = {0};
    char conf_key[64]                    = {0};
    char overlay_desc_normalized_key[64] = {0};
@@ -665,9 +664,7 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    input_overlay->fullscreen_image = config_get_string(ol->conf, conf_key, &key );
    if (key) free(key);
 
-   by_pixel = !normalized;
-
-   if (by_pixel && (width == 0 || height == 0))
+   if (!normalized && (width == 0 || height == 0))
    {
       RARCH_ERR("[Overlay]: Base overlay is not set and not using normalized coordinates.\n");
       return false;
@@ -745,7 +742,7 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    width_mod  = 1.0f;
    height_mod = 1.0f;
    
-   if (by_pixel)
+   if (!normalized)
    {
       width_mod  /= width;
       height_mod /= height;
@@ -845,6 +842,13 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    
    if ((desc->key_mask & MULTIBUTTON_AREA_MASK) != 0)
       input_overlay_desc_populate_eightway_vals(ol->conf, desc, ol_idx, desc_idx);
+
+   /* show keyboard overlay choice in menu */
+   if (desc->key_mask & (UINT64_C(1) << RARCH_OSK))
+   {
+      global_get_ptr()->overlay_osk_key = true;
+      menu_entries_set_refresh();
+   }
 
    input_overlay->pos ++;
 
@@ -2261,6 +2265,7 @@ void input_overlay_free(input_overlay_t *ol)
 
    free(ol->overlay_path);
    free(ol);
+   global_get_ptr()->overlay_osk_key = false;
 }
 
 /**

@@ -101,8 +101,6 @@ typedef struct global
    bool has_set_ups_pref;
    bool has_set_bps_pref;
    bool has_set_ips_pref;
-   
-   bool overrides_active;
 
    /* Config associated with global "default" config. */
    char config_path[PATH_MAX_LENGTH];
@@ -120,7 +118,6 @@ typedef struct global
    bool content_dir_override;
    bool info_dir_override;
    bool core_dir_override;
-
 
    /* A list of save types and associated paths for all content. */
    struct string_list *savefiles;
@@ -143,6 +140,7 @@ typedef struct global
 #ifdef HAVE_OVERLAY
    char overlay_dir[PATH_MAX_LENGTH];
    char osk_overlay_dir[PATH_MAX_LENGTH];
+   bool overlay_osk_key;
    bool overlay_lightgun_autotrigger;  /* trigger on x,y input */
    bool overlay_reverse_shift_x;
 #endif
