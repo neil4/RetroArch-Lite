@@ -376,21 +376,6 @@ static bool menu_input_poll_find_trigger(struct menu_bind_state *state,
    return false;
 }
 
-/* Workaround for misbound arrow keys */
-static enum retro_key keypad_to_arrow(enum retro_key code)
-{
-   if (code == RETROK_KP2)
-      return RETROK_DOWN;
-   if (code == RETROK_KP4)
-      return RETROK_LEFT;
-   if (code == RETROK_KP6)
-      return RETROK_RIGHT;
-   if (code == RETROK_KP8)
-      return RETROK_UP;
-   
-   return code;
-}
-
 static bool menu_input_hotkey_bind_keyboard_cb(void *data, unsigned code)
 {
    menu_input_t *menu_input = menu_input_get_ptr();
@@ -398,7 +383,6 @@ static bool menu_input_hotkey_bind_keyboard_cb(void *data, unsigned code)
    if (!menu_input)
       return false;
    
-   code = keypad_to_arrow(code);
    menu_input->binds.target->key = (enum retro_key)code;
    menu_input->binds.begin = menu_input->binds.last + 1;
 
@@ -425,7 +409,6 @@ static bool menu_input_retropad_bind_keyboard_cb(void *data, unsigned code)
    if (time_since_cb > 100000 && code != last_code)
    {
       last_code = code;
-      code = keypad_to_arrow(code);
       menu_input->binds.target->key = (enum retro_key)code;
       menu_input->binds.begin++;
       menu_input->binds.target++;

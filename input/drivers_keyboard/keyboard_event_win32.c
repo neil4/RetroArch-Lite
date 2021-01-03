@@ -23,9 +23,15 @@
 LRESULT win32_handle_keyboard_event(HWND hwnd, UINT message,
 		WPARAM wparam, LPARAM lparam)
 {
-   unsigned scancode = (lparam >> 16) & 0xff;
-   unsigned keycode = input_keymaps_translate_keysym_to_rk(scancode);
+   unsigned scancode, keycode;
    uint16_t mod = 0;
+
+   scancode = (lparam >> 16) & 0xff;
+   /* extended keys will map to dinput if the high bit is set */
+   if (lparam >> 24 & 0x1)
+      scancode |= 0x80;
+
+   keycode = input_keymaps_translate_keysym_to_rk(scancode);
 
    if (GetKeyState(VK_SHIFT)   & 0x80)
       mod |= RETROKMOD_SHIFT;
