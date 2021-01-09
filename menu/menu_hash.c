@@ -176,6 +176,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Settings";
       case MENU_LABEL_MENU_SETTINGS:
          return "Menu Settings";
+      case MENU_LABEL_INPUT_SETTINGS:
+         return "Input Settings";
       case MENU_LABEL_VIDEO_SETTINGS:
          return "Video Settings";
       case MENU_LABEL_QUIT_RETROARCH:

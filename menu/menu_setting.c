@@ -6015,7 +6015,7 @@ static bool setting_append_list_input_hotkey_options(
    if (!settings->menu.show_hotkey_menu)
       return true;
 
-   START_GROUP(group_info, "Input Hotkey Binds", parent_group);
+   START_GROUP(group_info, "Hotkey Binds", parent_group);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
@@ -6056,7 +6056,7 @@ static bool setting_append_list_input_options(
    driver_t   *driver   = driver_get_ptr();
    bool core_loaded     = *settings->libretro ? true : false;
 	
-   START_GROUP(group_info, "Input Settings", parent_group);
+   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_INPUT_SETTINGS), parent_group);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
@@ -8338,6 +8338,12 @@ rarch_setting_t *menu_setting_new(unsigned mask)
          goto error;
    }
    
+   if (mask & SL_FLAG_INPUT_OPTIONS)
+   {
+      if (!setting_append_list_input_options(&list, list_info, root))
+         goto error;
+   }
+   
    if (mask & SL_FLAG_VIDEO_OPTIONS)
    {
       if (!setting_append_list_video_options(&list, list_info, root))
@@ -8395,12 +8401,6 @@ rarch_setting_t *menu_setting_new(unsigned mask)
    if (mask & SL_FLAG_REWIND_OPTIONS)
    {
       if (!setting_append_list_rewind_options(&list, list_info, root))
-         goto error;
-   }
-   
-   if (mask & SL_FLAG_INPUT_OPTIONS)
-   {
-      if (!setting_append_list_input_options(&list, list_info, root))
          goto error;
    }
    
