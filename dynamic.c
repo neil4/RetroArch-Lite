@@ -713,6 +713,7 @@ bool rarch_environment_cb(unsigned cmd, void *data)
       {
          unsigned retro_id, retro_port;
          const struct retro_input_descriptor *desc = NULL;
+         bool any_set = false;
 
          memset(global->system.input_desc_btn, 0,
                sizeof(global->system.input_desc_btn));
@@ -787,13 +788,17 @@ bool rarch_environment_cb(unsigned cmd, void *data)
 
                if (!description)
                   continue;
+               any_set = true;
 
                RARCH_LOG("\tRetroPad, User %u, Button \"%s\" => \"%s\"\n",
                      p + 1, libretro_btn_desc[retro_id], description);
             }
          }
 
-         global->has_set_input_descriptors = true;
+         if (any_set)
+            global->has_set_input_descriptors = true;
+         else
+            global->has_set_input_descriptors = false;
 
          break;
       }
