@@ -854,6 +854,9 @@ static void parse_input(int argc, char *argv[])
    else if (*global->subsystem && optind < argc)
       set_special_paths(argv + optind, argc - optind);
    else
+      set_basename(global->fullpath);
+
+   if (!*global->fullpath)
       global->libretro_no_content = true;
 
    /* Copy SRM/state dirs used, so they can be reused on reentrancy. */

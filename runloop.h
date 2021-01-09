@@ -325,6 +325,7 @@ typedef struct global
    char error_string[PATH_MAX_LENGTH];
    jmp_buf error_sjlj_context;
 
+   bool libretro_supports_content;
    bool libretro_no_content;
    bool libretro_dummy;
    

@@ -1412,7 +1412,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          {
             size_t opts = core_option_size(global->system.core_options);
             
-            if (opts > 0)
+            if (opts > 0 && !global->libretro_no_content)
             {
                menu_list_push(info->list,
                   "Create ROM Options File",

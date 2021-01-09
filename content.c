@@ -601,8 +601,7 @@ bool init_content_file(void)
       attr.i  = global->system.info.block_extract;
       attr.i |= global->system.info.need_fullpath << 1;
       attr.i |= (!global->system.no_content) << 2;
-      string_list_append(content,
-            (global->libretro_no_content && settings->core.set_supports_no_game_enable) ? "" : global->fullpath, attr);
+      string_list_append(content, global->fullpath, attr);
    }
 
 #ifdef HAVE_ZLIB

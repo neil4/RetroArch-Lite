@@ -862,6 +862,12 @@ bool event_command(enum event_command cmd)
             if (menu)
                event_update_system_info(&global->menu.info,
                      &menu->load_no_content);
+
+            if (global->menu.info.valid_extensions
+                  && *global->menu.info.valid_extensions)
+               global->libretro_supports_content = true;
+            else
+               global->libretro_supports_content = false;
 #endif
          }
          break;

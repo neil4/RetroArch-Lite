@@ -3900,13 +3900,14 @@ static bool setting_append_list_main_menu_options(
    global_t      *global = global_get_ptr();
    settings_t  *settings = config_get_ptr();
    const char *main_menu = menu_hash_to_str(MENU_VALUE_MAIN_MENU);
+   bool core_loaded      = *settings->libretro ? true : false;
 
    START_GROUP(group_info, main_menu, parent_group);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
    
 #ifndef EXTERNAL_LAUNCHER
 #if defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT)
-   if (!*settings->libretro)  /* no core loaded */
+   if (!core_loaded)
    {
       CONFIG_ACTION(
             "core_list",
@@ -3928,7 +3929,7 @@ static bool setting_append_list_main_menu_options(
    }
    else  /* core loaded */
    {
-      if (!global->libretro_no_content)
+      if (global->libretro_supports_content)
       {
          CONFIG_ACTION(
                menu_hash_to_str(MENU_LABEL_LOAD_CONTENT),
@@ -3954,8 +3955,8 @@ static bool setting_append_list_main_menu_options(
       menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_UNLOAD_CORE);
    }
 #endif /* #if defined(HAVE_DYNAMIC)... */
-   if (!*settings->libretro
-       && global->core_info && core_info_list_num_info_files(global->core_info))
+   if (!core_loaded && global->core_info
+            && core_info_list_num_info_files(global->core_info))
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_DETECT_CORE_LIST),
@@ -3966,7 +3967,7 @@ static bool setting_append_list_main_menu_options(
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
    }
 #else /* #ifndef EXTERNAL_LAUNCHER */
-   if (!global->libretro_no_content)
+   if (global->libretro_supports_content)
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_LOAD_CONTENT),
@@ -3993,7 +3994,7 @@ static bool setting_append_list_main_menu_options(
             parent_group);
    
 #if defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT)
-   if (*settings->libretro && settings->menu.show_core_info)
+   if (core_loaded && settings->menu.show_core_info)
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_CORE_INFORMATION),
@@ -6053,7 +6054,7 @@ static bool setting_append_list_input_options(
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
    driver_t   *driver   = driver_get_ptr();
-   bool core_loaded = *settings->libretro ? true : false;
+   bool core_loaded     = *settings->libretro ? true : false;
 	
    START_GROUP(group_info, "Input Settings", parent_group);
 
@@ -7806,6 +7807,7 @@ static bool setting_append_list_directory_options(
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
    global_t *global     = global_get_ptr();
+   bool core_loaded     = *settings->libretro ? true : false;
    
    if (!settings->menu.show_directory_menu)
       return true;
@@ -7832,7 +7834,7 @@ static bool setting_append_list_directory_options(
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
 
-   if (*settings->libretro)
+   if (core_loaded)
    {
       CONFIG_DIR(
             settings->core_content_directory,
