@@ -1559,14 +1559,16 @@ static inline void input_overlay_undo_meta_overlap(input_overlay_state_t* out)
    uint64_t active_meta = out->buttons & META_KEY_MASK;
    uint64_t active_other = out->buttons & ~META_KEY_MASK;
    
-   if (active_meta && (active_other || (uint64_t)*out->analog))
+   if (active_meta && (active_other || *((uint64_t*)out->analog) != 0))
    {
       old_state = &driver_get_ptr()->old_overlay_state;
 
       if ( (active_other & old_state->buttons)
-           || ((uint32_t)out->analog[0] && (uint32_t)old_state->analog[0])
-           || ((uint32_t)out->analog[2] && (uint32_t)old_state->analog[2]) )
-        out->buttons = active_other;
+           || (*((uint32_t*)old_state->analog) != 0
+               && *((uint32_t*)out->analog) != 0)
+           || (*((uint32_t*)old_state->analog+1) != 0
+               && *((uint32_t*)out->analog+1) != 0) )
+         out->buttons = active_other;
       else
       {
          out->buttons = active_meta;
