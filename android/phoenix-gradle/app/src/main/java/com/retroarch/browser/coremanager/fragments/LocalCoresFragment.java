@@ -313,7 +313,10 @@ public final class LocalCoresFragment extends ListFragment
             }
 
             if (outFile.toString().endsWith(".zip"))
-               unzipCore(outFile);  // also deletes zip
+            {
+               unzipCore(outFile);
+               outFile.delete();
+            }
 
             if (!zipHasInfoFile)
             { // Install info file from the same directory, if not part of the .zip
@@ -398,7 +401,11 @@ public final class LocalCoresFragment extends ListFragment
                file = new File(zipFile.getParent().replace("/cores", "/info"), entry.getName());
                zipHasInfoFile = true;
             }
-            else {zis.getNextEntry(); continue;}
+            else
+            {
+               zis.getNextEntry();
+               continue;
+            }
 
             FileOutputStream fos = new FileOutputStream(file);
             int len;
@@ -428,11 +435,8 @@ public final class LocalCoresFragment extends ListFragment
          {
             // Can't do anything
          }
-
-         zipFile.delete();
       }
    }
-   
 
    public boolean RemoveCore(int position)
    {

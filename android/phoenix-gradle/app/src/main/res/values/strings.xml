@@ -11,7 +11,7 @@
     <!-- Core Manager -->
     <string name="installed_cores">Installed Cores</string>
     <string name="uninstall_core_message">Uninstall %1$s?</string>
-    <string name="backup_core_message">Copy %1$s to Backup Cores directory?</string>
+    <string name="backup_core_message">Back up %1$s?</string>
     <string name="purge_core_data_message">Purge data for %1$s?\nThis includes all settings, savefiles, savestates, and input remaps.\nDoes not include files in the System directory.</string>
     <string name="uninstall_failure">Failed to uninstall core: %1$s</string>
     <string name="uninstall_success">%1$s uninstalled.</string>

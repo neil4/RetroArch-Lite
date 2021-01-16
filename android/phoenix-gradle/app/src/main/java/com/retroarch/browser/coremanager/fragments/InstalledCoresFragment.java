@@ -1,6 +1,7 @@
 package com.retroarch.browser.coremanager.fragments;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,6 +46,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * {@link ListFragment} that displays all of the currently installed cores
@@ -382,25 +385,26 @@ public final class InstalledCoresFragment extends ListFragment
       
       SharedPreferences settings = UserPreferences.getPreferences(getActivity());
       String localCoresDir = settings.getBoolean("backup_cores_directory_enable", false) ?
-              settings.getString("backup_cores_directory", LocalCoresFragment.defaultLocalCoresDir) : LocalCoresFragment.defaultLocalCoresDir;
-      final File destFile = new File(localCoresDir,File.separator+item.getUnderlyingFile().getName());
-      boolean exists = destFile.exists();
+              settings.getString("backup_cores_directory", LocalCoresFragment.defaultLocalCoresDir)
+              : LocalCoresFragment.defaultLocalCoresDir;
+      final String zipPath = localCoresDir + "/" + item.getUnderlyingFile().getName()
+            .replace(".so",".zip");
+      final File destFile = new File(zipPath);
       
       if (!destFile.getParentFile().exists())
          destFile.getParentFile().mkdirs();
 
       alert.setTitle(R.string.confirm_title);
       alert.setMessage(String.format(getString(R.string.backup_core_message)
-                       + (exists ? "\nBackup exists and will be overwritten.": ""), item.getText()));
+                       + (destFile.exists() ? "\nBackup exists and will be overwritten." : ""), item.getText()));
       alert.setNegativeButton(R.string.no, null);
       alert.setPositiveButton(R.string.yes, new OnClickListener()
       {
          @Override
          public void onClick(DialogInterface dialog, int which)
          {
-            new BackupCoreOperation( getActivity(), item.getText() )
-                .execute( item.getUnderlyingFile().getAbsolutePath(),
-                          item.getUnderlyingFile().getName() );
+            new BackupCoreOperation(getActivity(), item.getText())
+                .execute(item.getUnderlyingFile().getAbsolutePath(), zipPath);
          }
       });
       alert.show();
@@ -447,75 +451,55 @@ public final class InstalledCoresFragment extends ListFragment
       @Override
       protected Void doInBackground(String... params)
       {
-         InputStream input = null;
-         OutputStream output = null;
-         URLConnection connection;
-         SharedPreferences settings = UserPreferences.getPreferences(getActivity());
-         
+         String libPath = params[0];
+         String zipPath = params[1];
+         FileInputStream fis = null;
+         FileOutputStream fos = null;
+         ZipOutputStream zos = null;
+         ZipEntry entry = null;
+         int chunkLen;
+         long fileLen;
+         long totalRead = 0;
+
+         File libFile = new File(libPath);
+         File infoFile = new File(libPath.replace("/cores/", "/info/")
+               .replace("_android.so", ".info"));
+         fileLen = (int) libFile.length();
+
          try
          {
-            URL url = new URL("file:"+params[0]);  // input URL
+            fis = new FileInputStream(libFile);
+            fos = new FileOutputStream(new File(zipPath));
+            zos = new ZipOutputStream(fos);
+            entry = new ZipEntry(libFile.getName());
+            byte[] buffer = new byte[8192];
 
-            connection = (URLConnection) url.openConnection();
-            connection.connect();
-
-            // Set up the streams
-            final int fileLen = connection.getContentLength();
-            String localCoresDir = settings.getBoolean("backup_cores_directory_enable", false) ?
-                  settings.getString("backup_cores_directory", LocalCoresFragment.defaultLocalCoresDir) : LocalCoresFragment.defaultLocalCoresDir;
-            final File outFile = new File(localCoresDir,File.separator + params[1]);
-
-            input = new BufferedInputStream(connection.getInputStream(), 8192);
-            output = new FileOutputStream(outFile);            
-
-            // Copy core to local cores directory.
-            //
-            long totalCopied = 0;
-            byte[] buffer = new byte[4096];
-            int countBytes;
-            while ((countBytes = input.read(buffer)) != -1)
+            zos.putNextEntry(entry);
+            while((chunkLen = fis.read(buffer)) >= 0)
             {
-               totalCopied += countBytes;
-               if (fileLen > 0)
-                  publishProgress((int) (totalCopied * 100 / fileLen));
-
-               output.write(buffer, 0, countBytes);
+               zos.write(buffer, 0, chunkLen);
+               totalRead += chunkLen;
+               publishProgress((int) (totalRead * 100 / fileLen));
             }
-            input.close();
-            output.close();
-            
-            { // Now copy the info file
-               String infoPath = params[0].replace("/cores/","/info/")
-                                          .replace("_android.so", ".info");
-               if (new File(infoPath).exists())
-               {
-                  url = new URL("file:" + infoPath);  // input URL
-                  connection = (URLConnection) url.openConnection();
-                  final File outInfoFile = new File( localCoresDir,
-                                                     File.separator+params[1].replace("_android.so",".info"));
-                  connection.connect();
-                  input = new BufferedInputStream(connection.getInputStream(), 8192);
-                  output = new FileOutputStream(outInfoFile); 
-                  while ((countBytes = input.read(buffer)) != -1)
-                     output.write(buffer, 0, countBytes);
-                  input.close();
-                  output.close();
-               }
+            fis.close();
+
+            if (infoFile.exists())
+            {
+               fis = new FileInputStream(infoFile);
+               entry = new ZipEntry(infoFile.getName());
+
+               zos.putNextEntry(entry);
+               while((chunkLen = fis.read(buffer)) >= 0)
+                  zos.write(buffer, 0, chunkLen);
+               fis.close();
             }
 
+            zos.close();
+            fos.close();
          }
-         catch (IOException ignored) {}
-         finally
+         catch (IOException ignored)
          {
-            try
-            {
-               if (output != null)
-                  output.close();
-
-               if (input != null)
-                  input.close();
-            }
-            catch (IOException ignored) {}
+            // Can't do anything.
          }
 
          return null;
