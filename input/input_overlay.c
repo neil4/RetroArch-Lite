@@ -1555,19 +1555,19 @@ static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
  */
 static inline void input_overlay_undo_meta_overlap(input_overlay_state_t* out)
 {
-   input_overlay_state_t* old_state;
+   input_overlay_state_t* old_state = &driver_get_ptr()->old_overlay_state;
    uint64_t active_meta = out->buttons & META_KEY_MASK;
    uint64_t active_other = out->buttons & ~META_KEY_MASK;
-   
-   if (active_meta && (active_other || *((uint64_t*)out->analog) != 0))
-   {
-      old_state = &driver_get_ptr()->old_overlay_state;
 
+   uint64_t* const analog64 = (uint64_t*)out->analog;
+   uint32_t* const analog32 = (uint32_t*)out->analog;
+   uint32_t* const analog32_old = (uint32_t*)old_state->analog;
+   
+   if (active_meta && (active_other || *analog64 != 0))
+   {
       if ( (active_other & old_state->buttons)
-           || (*((uint32_t*)old_state->analog) != 0
-               && *((uint32_t*)out->analog) != 0)
-           || (*((uint32_t*)old_state->analog+1) != 0
-               && *((uint32_t*)out->analog+1) != 0) )
+           || (analog32_old[0] != 0 && analog32[0] != 0)
+           || (analog32_old[1] != 0 && analog32[1] != 0) )
          out->buttons = active_other;
       else
       {
