@@ -801,14 +801,12 @@ static inline bool menu_input_value_can_step(rarch_setting_t *setting,
    else
    {
       if ( (entry->type >= MENU_SETTINGS_CORE_OPTION_START)
-           || (entry->type >= MENU_SETTINGS_INPUT_DESC_BEGIN &&
-               entry->type <= MENU_SETTINGS_INPUT_DESC_END)
-           || (entry->type >= MENU_SETTINGS_SHADER_PARAMETER_0 &&
-               entry->type <= MENU_SETTINGS_SHADER_PARAMETER_LAST)
-           || (!strcmp(entry->label,
-                       menu_hash_to_str(MENU_LABEL_VIDEO_SHADER_NUM_PASSES)))
            || (entry->type >= MENU_SETTINGS_CHEAT_BEGIN &&
-               entry->type <= MENU_SETTINGS_CHEAT_END) )
+               entry->type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
+           || (entry->type >= MENU_SETTINGS_SHADER_PARAMETER_0 &&
+               entry->type <= MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_INDEX)
+           || (!strcmp(entry->label,
+                     menu_hash_to_str(MENU_LABEL_VIDEO_SHADER_NUM_PASSES))) )
          return true;
    }
 

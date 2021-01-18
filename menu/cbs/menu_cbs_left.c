@@ -25,6 +25,8 @@
 #include "../../general.h"
 #include "../../retroarch.h"
 
+extern int setting_action_left_libretro_device_type(
+      void *data, bool wraparound);
 
 #ifdef HAVE_SHADER_MANAGER
 static void shader_action_parameter_left_common(
@@ -396,6 +398,19 @@ static int disk_options_disk_idx_left(unsigned type, const char *label,
    return 0;
 }
 
+static int action_left_libretro_device_type(unsigned type, const char *label,
+      bool wraparound)
+{
+   rarch_setting_t setting;
+   setting.index_offset = type - MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN;
+
+   menu_entries_set_refresh();
+   scoped_settings_touched = true;
+   settings_touched = true;
+
+   return setting_action_left_libretro_device_type(&setting, wraparound);
+}
+
 static int bind_left_generic(unsigned type, const char *label,
       bool wraparound)
 {
@@ -501,6 +516,9 @@ static int menu_cbs_init_bind_left_compare_type(menu_file_list_cbs_t *cbs,
       cbs->action_left = action_left_video_resolution;
    else if ((type >= MENU_SETTINGS_CORE_OPTION_START))
       cbs->action_left = core_setting_left;
+   else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
+         && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
+      cbs->action_left = action_left_libretro_device_type;
    else
    {
       switch (type)

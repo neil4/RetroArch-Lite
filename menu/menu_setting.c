@@ -756,14 +756,14 @@ static int setting_generic_action_set_max(void *data)
    return 0;
 }
 
-static int setting_action_start_libretro_device_type(void *data)
+int setting_action_start_libretro_device_type(void *data)
 {
    unsigned device, port = 0;
    rarch_setting_t *setting  = (rarch_setting_t*)data;
    settings_t      *settings = config_get_ptr();
    global_t        *global   = global_get_ptr();
 
-   if (setting_generic_action_start_default(setting) != 0)
+   if (!setting)
       return -1;
 
    port   = setting->index_offset;
@@ -833,7 +833,7 @@ static int setting_bind_action_start(void *data)
  ******* ACTION TOGGLE CALLBACK FUNCTIONS *******
 **/
 
-static int setting_action_left_libretro_device_type(
+int setting_action_left_libretro_device_type(
       void *data, bool wraparound)
 {
    unsigned current_device, current_idx, i, devices[128],
@@ -892,7 +892,7 @@ static int setting_action_left_libretro_device_type(
    return 0;
 }
 
-static int setting_action_right_libretro_device_type(
+int setting_action_right_libretro_device_type(
       void *data, bool wraparound)
 {
    unsigned current_device, current_idx, i, devices[128],
@@ -1835,7 +1835,7 @@ static void setting_get_string_representation_netplay_buffer_size(void *data,
       sprintf(s, "%uMB (Core specific)", *setting->value.unsigned_integer);
 }
 
-static void setting_get_string_representation_uint_libretro_device(void *data,
+void setting_get_string_representation_uint_libretro_device(void *data,
       char *s, size_t len)
 {
    const struct retro_controller_description *desc = NULL;
@@ -6195,7 +6195,7 @@ static bool setting_append_list_input_options(
             settings->input.libretro_device[user],
             key_type[user],
             label_type[user],
-            user,
+            RETRO_DEVICE_JOYPAD,
             group_info.name,
             subgroup_info.name,
             parent_group,
@@ -8338,12 +8338,6 @@ rarch_setting_t *menu_setting_new(unsigned mask)
          goto error;
    }
    
-   if (mask & SL_FLAG_INPUT_OPTIONS)
-   {
-      if (!setting_append_list_input_options(&list, list_info, root))
-         goto error;
-   }
-   
    if (mask & SL_FLAG_VIDEO_OPTIONS)
    {
       if (!setting_append_list_video_options(&list, list_info, root))
@@ -8353,6 +8347,12 @@ rarch_setting_t *menu_setting_new(unsigned mask)
    if (mask & SL_FLAG_LATENCY_OPTIONS)
    {
       if (!setting_append_list_latency_options(&list, list_info, root))
+         goto error;
+   }
+
+   if (mask & SL_FLAG_INPUT_OPTIONS)
+   {
+      if (!setting_append_list_input_options(&list, list_info, root))
          goto error;
    }
    

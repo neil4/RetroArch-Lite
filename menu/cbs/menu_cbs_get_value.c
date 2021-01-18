@@ -24,6 +24,9 @@
 #include "../../performance.h"
 #include "../../intl/intl.h"
 
+extern void setting_get_string_representation_uint_libretro_device(void *data,
+      char *s, size_t len);
+
 const char axis_labels[4][128] = {
    RETRO_LBL_ANALOG_LEFT_X,
    RETRO_LBL_ANALOG_LEFT_Y,
@@ -853,6 +856,24 @@ static void menu_action_setting_disp_set_label(file_list_t* list,
    strlcpy(s2, path, len2);
 }
 
+static void menu_action_setting_disp_set_label_libretro_device(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   rarch_setting_t setting;
+   setting.index_offset = type - MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN;
+
+   *w = 19;
+   strlcpy(s2, path, len2);
+   setting_get_string_representation_uint_libretro_device(&setting,
+         s, len);
+}
+
 static int menu_cbs_init_bind_get_string_representation_compare_label(
       menu_file_list_cbs_t *cbs, uint32_t label_hash)
 {
@@ -935,6 +956,10 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
          && type <= MENU_SETTINGS_SHADER_PARAMETER_LAST)
       cbs->action_get_value =
          menu_action_setting_disp_set_label_shader_parameter;
+   else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
+         && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
+      cbs->action_get_value =
+         menu_action_setting_disp_set_label_libretro_device;
    else
    {
       switch (type)

@@ -896,7 +896,7 @@ static INLINE void menu_displaylist_push_remap(menu_displaylist_info_t *info,
                                                unsigned p, unsigned retro_id)
 {
    global_t *global        = global_get_ptr();
-   char desc_label[64]     = {0};
+   char desc_label[64];
    unsigned user           = p + 1;
    unsigned desc_offset    = retro_id;
    const char *description = NULL;
@@ -921,6 +921,7 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
    unsigned p, retro_id;
    settings_t *settings   = config_get_ptr();
    global_t   *global     = global_get_ptr();
+   char buf[32];
 
    menu_list_push(info->list,
          menu_hash_to_str(MENU_LABEL_VALUE_REMAP_FILE_LOAD),
@@ -945,6 +946,10 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
 
    for (p = 0; p < settings->input.max_users; p++)
    {
+      snprintf(buf, sizeof(buf), "User %u Virtual Device", p+1);
+      menu_list_push(info->list, buf, "",
+         MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN + p, 0, 0);
+
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_B);
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_A);
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_Y);
@@ -1317,7 +1322,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
             setting = menu_setting_find(menu_hash_to_str(MENU_LABEL_OVERLAY_SETTINGS));
          else
 #endif
-         setting = menu_setting_find(menu_hash_to_str(MENU_LABEL_INPUT_SETTINGS));
+         setting = menu_setting_find(menu_hash_to_str(MENU_LABEL_VIDEO_SETTINGS));
 
          for (; setting->type != ST_NONE; setting++)
          {

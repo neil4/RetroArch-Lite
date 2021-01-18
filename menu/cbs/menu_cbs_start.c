@@ -30,6 +30,8 @@
 
 #include "../../input/input_remapping.h"
 
+extern int setting_action_start_libretro_device_type(void *data);
+
 static int action_start_remap_file_load(unsigned type, const char *label)
 {
    settings_t *settings = config_get_ptr();
@@ -392,6 +394,18 @@ static int action_start_lookup_setting(unsigned type, const char *label)
    return menu_setting_set(type, label, MENU_ACTION_START, false);
 }
 
+static int action_start_libretro_device_type(unsigned type, const char *label)
+{
+   rarch_setting_t setting;
+   setting.index_offset = type - MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN;
+
+   menu_entries_set_refresh();
+   scoped_settings_touched = true;
+   settings_touched = true;
+
+   return setting_action_start_libretro_device_type(&setting);
+}
+
 int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
       uint32_t hash)
 {
@@ -454,6 +468,9 @@ static int menu_cbs_init_bind_start_compare_type(menu_file_list_cbs_t *cbs,
       cbs->action_start = action_start_performance_counters_frontend;
    else if ((type >= MENU_SETTINGS_CORE_OPTION_START))
       cbs->action_start = action_start_core_setting;
+   else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
+         && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
+      cbs->action_start = action_start_libretro_device_type;
    else
       return -1;
 
