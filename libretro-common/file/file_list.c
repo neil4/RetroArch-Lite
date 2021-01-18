@@ -25,6 +25,7 @@
 #include <file/file_list.h>
 #include <compat/strcasestr.h>
 #include <compat/posix_string.h>
+#include "../../menu/menu.h"
 #include "../../runloop.h"
 
 static inline void set_mame_title(file_list_t *list, const char *path)
@@ -74,7 +75,8 @@ void file_list_push(file_list_t *list,
    if (path)
    {
       list->list[list->size].path       = strdup(path);
-      set_mame_title(list, path);
+      if (type == MENU_FILE_PLAIN)
+         set_mame_title(list, path);
    }
 
    list->size++;
