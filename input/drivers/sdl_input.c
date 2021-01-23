@@ -39,7 +39,7 @@ typedef struct sdl_input
    int mouse_x, mouse_y;
    int mouse_abs_x, mouse_abs_y;
    int mouse_l, mouse_r, mouse_m, mouse_b4, mouse_b5, mouse_wu, mouse_wd, mouse_wl, mouse_wr;
-   int lightgun_x, lightgun_y;
+   int16_t lightgun_x, lightgun_y;
 } sdl_input_t;
 
 static void *sdl_input_init(void)
@@ -324,22 +324,11 @@ static const input_device_driver_t *sdl_get_joypad_driver(void *data)
 static void sdl_poll_mouse(sdl_input_t *sdl)
 {
    Uint8 btn = SDL_GetRelativeMouseState(&sdl->mouse_x, &sdl->mouse_y);
-   struct video_viewport vp;
 
    SDL_GetMouseState(&sdl->mouse_abs_x, &sdl->mouse_abs_y);
 
-   if (video_driver_viewport_info(&vp))
-   {
-      sdl->lightgun_x = (2 * (sdl->mouse_abs_x - vp.x) * 0x7fff)
-                        / (int)vp.width - 0x7fff;
-      sdl->lightgun_x = max(sdl->lightgun_x, -0x7fff);
-      sdl->lightgun_x = min(sdl->lightgun_x, 0x7fff);
-
-      sdl->lightgun_y = (2 * (sdl->mouse_abs_y - vp.y) * 0x7fff)
-                        / (int)vp.height - 0x7fff;
-      sdl->lightgun_y = max(sdl->lightgun_y, -0x7fff);
-      sdl->lightgun_y = min(sdl->lightgun_y, 0x7fff);
-   }
+   input_translate_coord_viewport(sdl->mouse_abs_x, sdl->mouse_abs_y,
+            &sdl->lightgun_x, &sdl->lightgun_y, NULL, NULL);
 
    sdl->mouse_l  = SDL_BUTTON(SDL_BUTTON_LEFT)      & btn ? 1 : 0;
    sdl->mouse_r  = SDL_BUTTON(SDL_BUTTON_RIGHT)     & btn ? 1 : 0;

@@ -42,7 +42,7 @@ typedef struct x11_input
    bool mouse_l, mouse_r, mouse_m, mouse_wu, mouse_wd;
    int mouse_x, mouse_y;
    int mouse_last_x, mouse_last_y;
-   int lightgun_x, lightgun_y;
+   int16_t lightgun_x, lightgun_y;
 
    bool grab_mouse;
 } x11_input_t;
@@ -309,21 +309,12 @@ static void x_input_poll_mouse(x11_input_t *x11)
    x11->mouse_m  = mask & Button2Mask; 
    x11->mouse_r  = mask & Button3Mask;
 
-   if (video_driver_viewport_info(&vp))
-   {
-      x11->lightgun_x = (2 * (x11->mouse_x - vp.x) * 0x7fff)
-                        / (int)vp.width - 0x7fff;
-      x11->lightgun_x = max(x11->lightgun_x, -0x7fff);
-      x11->lightgun_x = min(x11->lightgun_x, 0x7fff);
-
-      x11->lightgun_y = (2 * (x11->mouse_y - vp.y) * 0x7fff)
-                        / (int)vp.height - 0x7fff;
-      x11->lightgun_y = max(x11->lightgun_y, -0x7fff);
-      x11->lightgun_y = min(x11->lightgun_y, 0x7fff);
-   }
+   input_translate_coord_viewport(x11->mouse_x, x11->mouse_y,
+            &x11->lightgun_x, &x11->lightgun_y, NULL, NULL);
 
    /* Somewhat hacky, but seem to do the job. */
-   if (x11->grab_mouse && video_driver_focus())
+   if (x11->grab_mouse && video_driver_focus()
+       && video_driver_viewport_info(&vp))
    {
       int mid_w, mid_h;
 

@@ -146,31 +146,36 @@ bool input_translate_coord_viewport(int mouse_x, int mouse_y,
    if (!video_driver_viewport_info(&vp))
       return false;
 
-   scaled_screen_x = (2 * mouse_x * 0x7fff) / (int)vp.full_width - 0x7fff;
-   scaled_screen_y = (2 * mouse_y * 0x7fff) / (int)vp.full_height - 0x7fff;
-   if (scaled_screen_x < -0x7fff || scaled_screen_x > 0x7fff)
-      scaled_screen_x = -0x8000; /* OOB */
-   if (scaled_screen_y < -0x7fff || scaled_screen_y > 0x7fff)
-      scaled_screen_y = -0x8000; /* OOB */
+   if (res_screen_x && res_screen_y)
+   {
+      scaled_screen_x = (2 * mouse_x * 0x7fff) / (int)vp.full_width - 0x7fff;
+      scaled_screen_y = (2 * mouse_y * 0x7fff) / (int)vp.full_height - 0x7fff;
+      if (scaled_screen_x < -0x7fff || scaled_screen_x > 0x7fff)
+         scaled_screen_x = -0x8000; /* OOB */
+      if (scaled_screen_y < -0x7fff || scaled_screen_y > 0x7fff)
+         scaled_screen_y = -0x8000; /* OOB */
+
+      *res_screen_x = scaled_screen_x;
+      *res_screen_y = scaled_screen_y;
+   }
    
    mouse_x -= vp.x;
    mouse_y -= vp.y;
 
-   scaled_x = (2 * mouse_x * 0x7fff) / (int)vp.width - 0x7fff;
-   scaled_y = (2 * mouse_y * 0x7fff) / (int)vp.height - 0x7fff;
-   if (scaled_x < -0x7fff)
-      scaled_x = -0x7fff;
-   else if (scaled_x > 0x7fff)
-      scaled_x = 0x7fff;
-   if (scaled_y < -0x7fff) 
-      scaled_y = -0x7fff;
-   else if (scaled_y > 0x7fff)
-      scaled_y = 0x7fff;
+   if (res_x && res_y)
+   {
+      scaled_x = (2 * mouse_x * 0x7fff) / (int)vp.width - 0x7fff;
+      scaled_y = (2 * mouse_y * 0x7fff) / (int)vp.height - 0x7fff;
+      if (scaled_x < -0x7fff)
+         scaled_x = -0x7fff;
+      else if (scaled_x > 0x7fff)
+         scaled_x = 0x7fff;
+      if (scaled_y < -0x7fff || scaled_y > 0x7fff)
+         scaled_y = -0x8000; /* OOB */
 
-   *res_x = scaled_x;
-   *res_y = scaled_y;
-   *res_screen_x = scaled_screen_x;
-   *res_screen_y = scaled_screen_y;
+      *res_x = scaled_x;
+      *res_y = scaled_y;
+   }
 
    return true;
 }

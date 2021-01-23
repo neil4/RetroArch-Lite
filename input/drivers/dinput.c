@@ -72,8 +72,8 @@ struct dinput_input
    int mouse_rel_y;
    int mouse_x;
    int mouse_y;
-   int lightgun_x;
-   int lightgun_y;
+   int16_t lightgun_x;
+   int16_t lightgun_y;
    bool mouse_l, mouse_r, mouse_m, mouse_b4, mouse_b5, mouse_wu, mouse_wd, mouse_hwu, mouse_hwd;
    struct pointer_status pointer_head;  /* dummy head for easier iteration */
 };
@@ -179,7 +179,6 @@ static void dinput_poll(void *data)
 {
    struct dinput_input *di = (struct dinput_input*)data;
    driver_t *driver = driver_get_ptr();
-   struct video_viewport vp;
 
    memset(di->state, 0, sizeof(di->state));
    if (di->keyboard)
@@ -224,18 +223,8 @@ static void dinput_poll(void *data)
       di->mouse_x = point.x;
       di->mouse_y = point.y;
 
-      if (video_driver_viewport_info(&vp))
-      {
-         di->lightgun_x = (2 * (di->mouse_x - vp.x) * 0x7fff)
-                          / (int)vp.width - 0x7fff;
-         di->lightgun_x = max(di->lightgun_x, -0x7fff);
-         di->lightgun_x = min(di->lightgun_x, 0x7fff);
-
-         di->lightgun_y = (2 * (di->mouse_y - vp.y) * 0x7fff)
-                          / (int)vp.height - 0x7fff;
-         di->lightgun_y = max(di->lightgun_y, -0x7fff);
-         di->lightgun_y = min(di->lightgun_y, 0x7fff);
-      }
+      input_translate_coord_viewport(di->mouse_x, di->mouse_y,
+            &di->lightgun_x, &di->lightgun_y, NULL, NULL);
    }
 
    if (di->joypad)
