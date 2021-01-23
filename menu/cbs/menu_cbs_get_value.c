@@ -874,6 +874,22 @@ static void menu_action_setting_disp_set_label_libretro_device(
          s, len);
 }
 
+static void menu_action_setting_disp_set_label_libretro_scope(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   settings_t *settings = config_get_ptr();
+
+   *w = 19;
+   strlcpy(s2, path, len2);
+   strlcpy(s, scope_lut[settings->input.libretro_device_scope].name, len);
+}
+
 static int menu_cbs_init_bind_get_string_representation_compare_label(
       menu_file_list_cbs_t *cbs, uint32_t label_hash)
 {
@@ -923,6 +939,10 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
       case MENU_LABEL_CONFIGURATIONS:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_configurations;
+         break;
+      case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
+         cbs->action_get_value =
+            menu_action_setting_disp_set_label_libretro_scope;
          break;
       default:
          return - 1;

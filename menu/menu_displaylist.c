@@ -949,7 +949,14 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
       snprintf(buf, sizeof(buf), "User %u Virtual Device", p+1);
       menu_list_push(info->list, buf, "",
          MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN + p, 0, 0);
+   }
 
+   menu_list_push(info->list, settings->input.max_users > 1 ?
+         "  Scope (Virtual Devices)" : "  Scope (Virtual Device)",
+         menu_hash_to_str(MENU_LABEL_LIBRETRO_DEVICE_SCOPE), 0, 0, 0);
+
+   for (p = 0; p < settings->input.max_users; p++)
+   {
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_B);
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_A);
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_Y);

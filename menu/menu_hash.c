@@ -324,6 +324,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "video_shared_context";
       case MENU_LABEL_DUMMY_ON_CORE_SHUTDOWN:
          return "dummy_on_core_shutdown";
+      case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
+         return "libretro_device_scope";
       case MENU_VALUE_SECONDS:
          return "seconds";
       case MENU_VALUE_OFF:

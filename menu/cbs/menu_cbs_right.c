@@ -377,6 +377,26 @@ static int action_right_libretro_device_type(unsigned type, const char *label,
    return setting_action_right_libretro_device_type(&setting, wraparound);
 }
 
+static int action_right_libretro_device_scope(unsigned type, const char *label,
+      bool wraparound)
+{
+   settings_t *settings = config_get_ptr();
+   global_t   *global   = global_get_ptr();
+
+   if (settings->input.libretro_device_scope < global->max_scope)
+      settings->input.libretro_device_scope += 1;
+   return 0;
+}
+
+static int action_r_libretro_device_scope(unsigned type, const char *label)
+{
+   settings_t *settings = config_get_ptr();
+   global_t   *global   = global_get_ptr();
+
+   settings->input.libretro_device_scope = global->max_scope;
+   return 0;
+}
+
 static int bind_right_generic(unsigned type, const char *label,
        bool wraparound)
 {
@@ -520,6 +540,10 @@ static int menu_cbs_init_bind_right_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_INFO:
          cbs->action_right = action_right_scroll;
+         break;
+      case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
+         cbs->action_right = action_right_libretro_device_scope;
+         cbs->action_r = action_r_libretro_device_scope;
          break;
       default:
          return -1;

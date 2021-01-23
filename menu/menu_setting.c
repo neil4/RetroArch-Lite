@@ -6250,7 +6250,8 @@ static bool setting_append_list_input_options(
    CONFIG_UINT(
          settings->input.libretro_device_scope,
          "input_libretro_device_scope",
-         "  Scope (Virtual Devices)",
+         settings->input.max_users > 1 ?
+         "  Scope (Virtual Devices)" : "  Scope (Virtual Device)",
          (core_loaded ? THIS_CORE : GLOBAL),
          group_info.name,
          subgroup_info.name,
