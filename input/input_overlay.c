@@ -1903,13 +1903,22 @@ static INLINE void input_overlay_mouse_poll()
 static INLINE void input_overlay_update_mouse_scale()
 {
    struct retro_system_av_info* av_info = video_viewport_get_system_av_info();
+   float content_aspect, adj_x, adj_y;
 
    if (av_info)
    {
       const struct retro_game_geometry *geom =
          (const struct retro_game_geometry*)&av_info->geometry;
-      ol_mouse.scale_x = (float)geom->base_width / (float)0x7fff;
-      ol_mouse.scale_y = (float)geom->base_height / (float)0x7fff;
+
+      content_aspect = (float)geom->base_width / geom->base_height;
+
+      adj_x = disp_aspect > content_aspect ?
+         (disp_aspect / content_aspect) : 1.0f;
+      adj_y = content_aspect > disp_aspect ?
+         (content_aspect / disp_aspect) : 1.0f;
+
+      ol_mouse.scale_x = (adj_x * geom->base_width) / (float)0x7fff;
+      ol_mouse.scale_y = (adj_y * geom->base_height) / (float)0x7fff;
    }
 }
 
@@ -2094,10 +2103,12 @@ void input_overlay_poll(input_overlay_t *overlay_device)
          /* Assume mouse or lightgun pointer if all buttons were missed */
          if (!state->ptr_count)
          {
-            state->ptr_x = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
-                                              RETRO_DEVICE_ID_POINTER_X);
-            state->ptr_y = input_driver_state(NULL, 0, RETRO_DEVICE_POINTER, i,
-                                              RETRO_DEVICE_ID_POINTER_Y);
+            state->ptr_x = input_driver_state(NULL, 0, overlay_lightgun_active ?
+               RETRO_DEVICE_POINTER : RARCH_DEVICE_POINTER_SCREEN, i,
+               RETRO_DEVICE_ID_POINTER_X);
+            state->ptr_y = input_driver_state(NULL, 0, overlay_lightgun_active ?
+               RETRO_DEVICE_POINTER : RARCH_DEVICE_POINTER_SCREEN, i,
+               RETRO_DEVICE_ID_POINTER_Y);
          }
          state->ptr_count++;
       }
