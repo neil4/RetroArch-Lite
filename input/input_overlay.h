@@ -200,6 +200,7 @@ struct overlay
    bool fullscreen_image;
    
    bool lightgun_overlay;
+   bool mouse_overlay;
 
    char name[64];
 
@@ -285,8 +286,9 @@ typedef struct input_overlay_state
    /* Left X, Left Y, Right X, Right Y */
    int16_t analog[4]; 
 
-   int16_t lightgun_x, lightgun_y;
-   bool lightgun_ptr_active;
+   /* Mouse and Lightgun */
+   int16_t ptr_x, ptr_y;
+   uint8_t ptr_count;
    
    uint32_t keys[RETROK_LAST / 32 + 1];
 } input_overlay_state_t;

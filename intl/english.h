@@ -72,7 +72,6 @@
 #define RETRO_LBL_SLOWMOTION "Slowmotion"
 #define RETRO_LBL_TOGGLE_HOTKEYS "Toggle Hotkeys"
 #define RETRO_LBL_LIGHTGUN_TRIGGER "Lightgun Trigger"
-#define RETRO_LBL_LIGHTGUN_RELOAD "Lightgun Reload"
 #define RETRO_LBL_LIGHTGUN_AUX_A "Lightgun Aux A"
 #define RETRO_LBL_LIGHTGUN_AUX_B "Lightgun Aux B"
 #define RETRO_LBL_LIGHTGUN_AUX_C "Lightgun Aux C"
