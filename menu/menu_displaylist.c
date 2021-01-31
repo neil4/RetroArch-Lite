@@ -121,12 +121,12 @@ static bool core_is_installed(const char* libretro_name)
 static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
 {
    core_info_list_t* core_info = core_info_list_new(DOWNLOADABLE_CORES);
-   char* buf = calloc(NAME_MAX_LENGTH,sizeof(char));
-   char first_missing[NAME_MAX_LENGTH];
-   size_t num_missing = 0;
+   char buf[NAME_MAX_LENGTH] = {0};
    char* path;
-   static bool info_update_attempted;
+   bool missing_info = false;
    int i;
+
+   static bool info_update_attempted;
 
    for (i = 0; i < list->size; i += 1)
    {
@@ -141,25 +141,19 @@ static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
          file_list_set_userdata(list, i, strdup("[#]"));
 
       /* put display_name in 'alt' */
-      if (!core_info_list_get_display_name(core_info, buf, buf, NAME_MAX_LENGTH)
-          && !num_missing++)
-         strlcpy(first_missing, buf, NAME_MAX_LENGTH);
+      if (!core_info_list_get_display_name(core_info, buf, buf, NAME_MAX_LENGTH))
+          missing_info = true;
       menu_list_set_alt_at_offset(list, i, buf);
    }
    
    /* queue info file download */
-   if (!info_update_attempted && num_missing)
+   if (!info_update_attempted && missing_info)
    {
-      if (num_missing == 1)
-         core_info_queue_download(first_missing);
-      else
-         core_info_queue_download(NULL); /* download all (info.zip) */
+      core_info_queue_download();
       info_update_attempted = true;
    }
    
-   
    core_info_list_free(core_info);
-   free(buf);
    return 0;
 }
 

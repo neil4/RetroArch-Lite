@@ -93,6 +93,7 @@ static int cb_core_updater_download(void *data, size_t len)
 {
    char output_path[PATH_MAX_LENGTH] = {0};
    char buf[PATH_MAX_LENGTH]         = {0};
+   global_t *global                  = global_get_ptr();
    settings_t              *settings = config_get_ptr();
    data_runloop_t           *runloop = rarch_main_data_get_ptr();
 
@@ -121,8 +122,12 @@ static int cb_core_updater_download(void *data, size_t len)
    }
 #endif
 
-   path_libretro_name(buf, runloop->http.msg_filename);
-   core_info_queue_download(buf);
+   /* Refresh installed core info */
+   core_info_list_free(global->core_info);
+   global->core_info = core_info_list_new(INSTALLED_CORES);
+
+   /* Refresh core updater (or core list) menu */
+   event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
 
    return 0;
 }
@@ -177,28 +182,16 @@ end:
 }
 
 
-void core_info_queue_download(const char* libretro_name)
+void core_info_queue_download()
 {
 #ifdef HAVE_NETWORKING
    char info_path[PATH_MAX_LENGTH] = {0};
    settings_t *settings            = config_get_ptr();
    data_runloop_t *runloop         = rarch_main_data_get_ptr();
 
-   if (!libretro_name)
-   {
-      fill_pathname_join(info_path, settings->network.buildbot_assets_url,
-                         "frontend/info.zip", PATH_MAX_LENGTH);
-      strlcpy(runloop->http.msg_filename, "info.zip", NAME_MAX_LENGTH);
-   }
-   else
-   {
-      strlcpy(runloop->http.msg_filename, libretro_name, NAME_MAX_LENGTH);
-      strlcat(runloop->http.msg_filename, "_libretro.info", NAME_MAX_LENGTH);
-
-      fill_pathname_join(info_path, settings->network.buildbot_assets_url,
-                         "frontend/info/", PATH_MAX_LENGTH);
-      strlcat(info_path, runloop->http.msg_filename, PATH_MAX_LENGTH);
-   }
+   fill_pathname_join(info_path, settings->network.buildbot_assets_url,
+         "frontend/info.zip", PATH_MAX_LENGTH);
+   strlcpy(runloop->http.msg_filename, "info.zip", NAME_MAX_LENGTH);
 
    rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, info_path,
          "cb_core_info_download", 0, 1, false);
