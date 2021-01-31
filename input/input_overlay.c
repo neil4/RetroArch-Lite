@@ -1341,7 +1341,7 @@ static INLINE void input_overlay_connect_mouse(input_overlay_t *ol)
    {
       ol_mouse.prev_x = 0;
       ol_mouse.prev_y = 0;
-      rarch_main_msg_queue_push("mouse active", 2, 60, true);
+      rarch_main_msg_queue_push("Mouse active", 2, 60, true);
    }
 }
 
@@ -1875,11 +1875,11 @@ static INLINE void input_overlay_mouse_poll()
       else if (ol_mouse.hold)
          ol_mouse.hold = 0x0;
    }
-   else if (now_usec - start_usec > 1000000)
+   else if (now_usec - start_usec > 500000)
       ol_mouse.click = 0x0; /* remove any stale click */
 
-   swiping = abs(state->ptr_x - x_start) > 0x300 ||
-             abs(state->ptr_y - y_start) > 0x300;
+   swiping = abs(state->ptr_x - x_start) > 0x200 ||
+             abs(state->ptr_y - y_start) > 0x200;
    brief   = (now_usec - start_usec) < 200000;
    longer  = (now_usec - start_usec) > 250000;
 
@@ -1888,7 +1888,11 @@ static INLINE void input_overlay_mouse_poll()
       if (brief && !state->ptr_count && !ol_mouse.click)
          ol_mouse.click = (1 << (max_ptr_count - 1));
       else if (longer && state->ptr_count)
+      {
          ol_mouse.hold = (1 << (state->ptr_count - 1));
+         if (driver->input->overlay_haptic_feedback)
+            driver->input->overlay_haptic_feedback();
+      }
    }
 
    if (!state->ptr_count)
@@ -2060,7 +2064,7 @@ static INLINE uint64_t menu_analog_dpad_state(const int16_t analog_x,
  **/
 void input_overlay_poll(input_overlay_t *overlay_device)
 {
-   unsigned i, j, device;
+   unsigned i, j, device, ptr_device;
    uint16_t key_mod                 = 0;
    driver_t *driver                 = driver_get_ptr();
    input_overlay_state_t *state     = &driver->overlay_state;
@@ -2088,26 +2092,28 @@ void input_overlay_poll(input_overlay_t *overlay_device)
          i++)
    {
       input_overlay_state_t polled_data;
+      uint64_t* const p64_analog = (uint64_t*)polled_data.analog;
+
       int16_t x = input_driver_state(NULL, 0,
             device, i, RETRO_DEVICE_ID_POINTER_X);
       int16_t y = input_driver_state(NULL, 0,
             device, i, RETRO_DEVICE_ID_POINTER_Y);
 
       input_overlay_poll_iterate(overlay_device, &polled_data, i, x, y);
-
       state->buttons |= polled_data.buttons;
 
       if ((overlay_lightgun_active || overlay_mouse_active)
-          && polled_data.buttons == 0ULL && !overlay_device->blocked)
+          && polled_data.buttons == 0ULL && *p64_analog == 0LL
+          && !overlay_device->blocked)
       {
          /* Assume mouse or lightgun pointer if all buttons were missed */
          if (!state->ptr_count)
          {
-            state->ptr_x = input_driver_state(NULL, 0, overlay_lightgun_active ?
-               RETRO_DEVICE_POINTER : RARCH_DEVICE_POINTER_SCREEN, i,
+            ptr_device = overlay_lightgun_active ?
+               RETRO_DEVICE_POINTER : RARCH_DEVICE_POINTER_SCREEN;
+            state->ptr_x = input_driver_state(NULL, 0, ptr_device, i,
                RETRO_DEVICE_ID_POINTER_X);
-            state->ptr_y = input_driver_state(NULL, 0, overlay_lightgun_active ?
-               RETRO_DEVICE_POINTER : RARCH_DEVICE_POINTER_SCREEN, i,
+            state->ptr_y = input_driver_state(NULL, 0, ptr_device, i,
                RETRO_DEVICE_ID_POINTER_Y);
          }
          state->ptr_count++;
