@@ -1,16 +1,11 @@
 package com.retroarch.browser.coremanager.fragments;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -34,6 +29,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
+import android.util.Pair;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -47,8 +43,8 @@ import android.widget.Toast;
 import java.util.Collections;
 import android.content.SharedPreferences;
 
-import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.preferences.util.UserPreferences;
+import static com.retroarch.browser.coremanager.CoreManagerActivity.getTitlePair;
 
 import com.retroarchlite.R;
 
@@ -79,10 +75,12 @@ public final class DownloadableCoresFragment extends ListFragment
    public static final String BUILDBOT_BASE_URL = "http://buildbot.libretro.com";
    public static String BUILDBOT_CORE_URL_ARM = BUILDBOT_BASE_URL + "/nightly/android/latest/armeabi-v7a/";
    public static String BUILDBOT_CORE_URL_INTEL = BUILDBOT_BASE_URL + "/nightly/android/latest/x86/";
-   public static final String BUILDBOT_INFO_URL = BUILDBOT_BASE_URL + "/assets/frontend/info/";
+   public static final String BUILDBOT_INFO_URL = BUILDBOT_BASE_URL + "/assets/frontend/info.zip";
    
    protected OnCoreDownloadedListener coreDownloadedListener = null;
    public static DownloadableCoresAdapter sAdapter = null;
+   private static boolean InfoFileMissing = false;
+   private static boolean InfoDownloadAttempted = false;
    
    @Override
    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -202,11 +200,28 @@ public final class DownloadableCoresFragment extends ListFragment
       }
    }
    
-   protected void reSortCores()
+   public void reSortCores()
    {
+      if (sAdapter == null)
+         return;
+
       final ArrayList<DownloadableCore> cores = new ArrayList<DownloadableCore>();
       for (int i = 0; i < sAdapter.getCount(); i++)
-         cores.add(sAdapter.getItem(i));
+      {
+         DownloadableCore item = sAdapter.getItem(i);
+
+         // Assume .info was flagged missing & then downloaded if systemName empty.
+         if (!item.getSystemName().isEmpty())
+            cores.add(item);
+         else
+         {
+            final String infoPath = getContext().getApplicationInfo().dataDir + "/info/"
+                  + item.getCoreName() + ".info";
+
+            Pair<String,String> pair = getTitlePair(infoPath); // (name,mfr+system)
+            cores.add(new DownloadableCore(pair.first, pair.second, item.getCoreURL()));
+         }
+      }
       Collections.sort(cores);
       sAdapter.clear();
       sAdapter.addAll(cores);
@@ -216,12 +231,22 @@ public final class DownloadableCoresFragment extends ListFragment
       editor.apply();
    }
 
+   protected void downloadInfoFiles()
+   {
+      try
+      {
+         new DownloadCoreOperation(getContext(), "info.zip")
+               .execute(BUILDBOT_INFO_URL, "info.zip");
+      }
+      catch (Exception e) {}
+      InfoDownloadAttempted = true;
+   }
+
    // Async event responsible for populating the Downloadable Cores list.
    private final class PopulateCoresListOperation extends AsyncTask<Void, Void, ArrayList<DownloadableCore>>
    {
       // Acts as an object reference to an adapter in a list view.
       private final DownloadableCoresAdapter adapter;
-      private String systemName;
 
       /**
        * Constructor
@@ -252,10 +277,15 @@ public final class DownloadableCoresFragment extends ListFragment
                Element coreElement = coreElements.get(i);
 
                final String coreURL = BUILDBOT_BASE_URL + coreElement.attr("href");
-               final String coreFileName = coreURL.substring(coreURL.lastIndexOf("/") + 1);
-               final String infoURL = BUILDBOT_INFO_URL + coreFileName.replace("_android.so.zip", ".info");
+               final String infoPath = getContext().getApplicationInfo().dataDir + "/info/"
+                     + coreURL.substring(coreURL.lastIndexOf("/") + 1)
+                              .replace("_android.so.zip", ".info");
 
-               downloadableCores.add(new DownloadableCore(getCoreName(infoURL), systemName, coreURL));
+               Pair<String,String> pair = getTitlePair(infoPath); // (name,mfr+system)
+               if (new File(infoPath).exists() == false)
+                  InfoFileMissing = true;
+
+               downloadableCores.add(new DownloadableCore(pair.first, pair.second, coreURL));
             }
             
             // sort by system name
@@ -280,98 +310,22 @@ public final class DownloadableCoresFragment extends ListFragment
          if (result.isEmpty())
             Toast.makeText(adapter.getContext(), R.string.download_core_list_error, Toast.LENGTH_SHORT).show();
          else
+         {
             adapter.addAll(result);
-      }
-
-      // Downloads the info file if there is none, and parses it for the corename key/value pair.
-      private String getCoreName(String urlPath)
-      {
-         String name = "";
-         systemName = "";  // reset this string in case it's not given in the info file
-
-         try
-         {
-            URL url;
-            File localInfo = new File(adapter.getContext().getApplicationInfo().dataDir + "/info/", urlPath.substring(urlPath.lastIndexOf('/') + 1));
-            
-            if ( localInfo.exists() )
-               url = localInfo.toURI().toURL();
-            else
-               url = new URL(urlPath);
-            final BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
-         
-            // Read from info file, be it local or remote
-            String str;
-            final StringBuilder sb = new StringBuilder();
-            while ((str = br.readLine()) != null)
-               sb.append(str).append("\n");
-            br.close();
-
-            // Write the info file if need be
-            if ( !localInfo.exists() )
-            {
-               BufferedWriter bw = new BufferedWriter(new FileWriter(localInfo));
-               bw.append(sb);
-               bw.close();
-            }
-            
-            // Read the core name and system name
-            String[] lines = sb.toString().split("\n");
-            String infoDispName = "Unknown";
-            String infoCoreName = "Unknown";
-            String infoSysName = "Unknown";
-            boolean haveDn = false, haveCn = false, haveSn = false;
-
-            for (String line : lines)
-            {
-               if (!haveDn && line.startsWith("display_name"))
-               {
-                  infoDispName = line.split("=")[1].trim().replace("\"", "");
-                  haveDn = true;
-               }
-               if (!haveCn && line.startsWith("corename"))
-               {
-                  infoCoreName = line.split("=")[1].trim().replace("\"", "");
-                  haveCn = true;
-               }
-               if (!haveSn && line.startsWith("systemname"))
-               {
-                  infoSysName = line.split("=")[1].trim().replace("\"", "");
-                  haveSn = true;
-               }
-               if (haveDn && haveCn && haveSn)
-                  break;
-            }
-
-            name = ModuleWrapper.bestCoreTitle(infoDispName, infoCoreName);
-            systemName = ModuleWrapper.bestSysTitle(infoDispName, infoSysName);
-         } // end try
-         catch (FileNotFoundException fnfe)
-         {
-            // Can't find the info file. Name it the same thing as the package.
-            final int start = urlPath.lastIndexOf('/') + 1;
-            final int end = urlPath.lastIndexOf('.');
-            if (end == -1)
-               name = urlPath.substring(start);
-            else
-               name = urlPath.substring(start, end);
+            if (InfoFileMissing && !InfoDownloadAttempted)
+               downloadInfoFiles();
          }
-         catch (IOException ioe)
-         {
-            name = "Report this: " + ioe.getMessage();
-         }
-
-         return name;
       }
    }
 
-   // Executed when the user confirms a core download.
+
    public final class DownloadCoreOperation extends AsyncTask<String, Integer, Void>
    {
       private final ProgressDialog dlg;
       private final Context ctx;
       private final String coreName;
       private boolean overwrite = false;
+      private boolean isInfoZip;
       
       /**
        * Constructor
@@ -384,6 +338,7 @@ public final class DownloadableCoresFragment extends ListFragment
          this.dlg = new ProgressDialog(ctx);
          this.ctx = ctx;
          this.coreName = coreName;
+         this.isInfoZip = coreName.equals("info.zip");
       }
 
       @Override
@@ -406,7 +361,8 @@ public final class DownloadableCoresFragment extends ListFragment
          InputStream is = null;
          OutputStream os = null;
          HttpURLConnection connection = null;
-         final File zipPath = new File(ctx.getApplicationInfo().dataDir + "/cores/", params[1]);
+         final File zipPath = new File(ctx.getApplicationInfo().dataDir
+               + (isInfoZip ? "/info/" : "/cores/"), params[1]);
 
          try
          {
@@ -448,28 +404,7 @@ public final class DownloadableCoresFragment extends ListFragment
             }
 
             if (!isCancelled())
-            {
-               unzipCore(zipPath);
-
-               // Update info file for downloaded core
-               String infoUrlPath = BUILDBOT_INFO_URL
-                                    + params[1].replace("_android.so.zip", ".info");
-               File outputPath = new File(ctx.getApplicationInfo().dataDir + "/info/",
-                     infoUrlPath.substring(infoUrlPath.lastIndexOf('/') + 1));
-
-               url = new URL(infoUrlPath);
-               final BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
-               final StringBuilder sb = new StringBuilder();
-               BufferedWriter bw = new BufferedWriter(new FileWriter(outputPath));
-
-               String str;
-               while ((str = br.readLine()) != null)
-                  sb.append(str).append("\n");
-
-               br.close();
-               bw.append(sb);
-               bw.close();
-            }
+               unzipFile(zipPath);
          }
          catch (IOException ignored)
          {
@@ -479,7 +414,7 @@ public final class DownloadableCoresFragment extends ListFragment
          {
             try
             {
-               if (zipPath.exists())  // normally deleted in unzipCore
+               if (zipPath.exists())
                   zipPath.delete();
 
                if (os != null)
@@ -518,9 +453,10 @@ public final class DownloadableCoresFragment extends ListFragment
          // Invoke callback to update the installed cores list.
          if (coreDownloadedListener != null)
             coreDownloadedListener.onCoreDownloaded();
-         
-         Toast.makeText(this.ctx, this.coreName + (overwrite ? " updated." : " installed."),
-                        Toast.LENGTH_LONG).show();
+
+         if (!isInfoZip)
+            Toast.makeText(this.ctx, this.coreName + (overwrite ? " updated." : " installed."),
+                           Toast.LENGTH_LONG).show();
       }
 
       @Override
@@ -531,7 +467,7 @@ public final class DownloadableCoresFragment extends ListFragment
       }
    }
 
-   private static void unzipCore(File zipFile)
+   private static void unzipFile(File zipFile)
    {
       ZipInputStream zis = null;
 
@@ -574,8 +510,6 @@ public final class DownloadableCoresFragment extends ListFragment
          {
             // Can't do anything
          }
-
-         zipFile.delete();
       }
    }
 }

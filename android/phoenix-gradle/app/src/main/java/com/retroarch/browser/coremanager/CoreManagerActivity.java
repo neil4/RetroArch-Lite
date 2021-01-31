@@ -1,6 +1,7 @@
 package com.retroarch.browser.coremanager;
 
 
+import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.coremanager.fragments.DownloadableCoresFragment;
 import com.retroarch.browser.coremanager.fragments.LocalCoresFragment;
 import com.retroarch.browser.coremanager.fragments.InstalledCoresFragment;
@@ -17,7 +18,14 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBar.TabListener;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Pair;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 import com.retroarchlite.R;
 
@@ -117,6 +125,7 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
    public void onCoreDownloaded()
    {
       updateInstalledCoreList();
+      downloadableCoresFragment.reSortCores();
    }
 
    @Override
@@ -134,6 +143,67 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
          if (icf != null)
             icf.updateInstalledCoresList();
       }
+   }
+
+   // Returns best core title and mfr+system title
+   public static Pair<String,String> getTitlePair(String infoFilePath)
+   {
+      String name = "";
+      String system = "";
+      String display_name = "";
+
+      try
+      {
+         File inputFile = new File(infoFilePath);
+
+         String str;
+         BufferedReader br = new BufferedReader(
+               new InputStreamReader(new FileInputStream(inputFile)));
+         StringBuilder sb = new StringBuilder();
+
+         while ((str = br.readLine()) != null)
+            sb.append(str).append("\n");
+         br.close();
+
+         String[] lines = sb.toString().split("\n");
+         for (String line : lines) {
+            if (line.contains("corename")) {
+               name = line.split("=")[1].trim().replace("\"", "");
+               break;
+            }
+         }
+         for (String line : lines) {
+            if (line.contains("systemname")) {
+               system = line.split("=")[1].trim().replace("\"", "");
+               break;
+            }
+         }
+         for (String line : lines) {
+            if (line.contains("display_name")) {
+               display_name = line.split("=")[1].trim().replace("\"", "");
+               break;
+            }
+         }
+
+         name = ModuleWrapper.bestCoreTitle(display_name, name);
+         system = ModuleWrapper.bestSystemTitle(display_name, system);
+      }
+      catch (FileNotFoundException fnfe)
+      {
+         // Can't find the info file. Name it the same thing as the package.
+         final int start = infoFilePath.lastIndexOf('/') + 1;
+         final int end = infoFilePath.lastIndexOf('.');
+         if (end == -1)
+            name = infoFilePath.substring(start);
+         else
+            name = infoFilePath.substring(start, end);
+      }
+      catch (IOException ioe)
+      {
+         name = "Report this: " + ioe.getMessage();
+      }
+
+      return new Pair<>(name,system);
    }
 
    // Adapter for the core manager ViewPager.

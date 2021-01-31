@@ -1,15 +1,11 @@
 package com.retroarch.browser.coremanager.fragments;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.zip.ZipEntry;
@@ -24,6 +20,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
+import android.util.Pair;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -35,6 +32,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.retroarch.browser.preferences.util.UserPreferences;
+import static com.retroarch.browser.coremanager.CoreManagerActivity.getTitlePair;
 
 import com.retroarchlite.R;
 
@@ -59,8 +57,7 @@ public final class LocalCoresFragment extends ListFragment
    
    private ListView coreList = null;
    private OnCoreCopiedListener coreCopiedListener = null;
-   
-   protected String systemName;
+
    protected DownloadableCoresAdapter adapter = null;
    private static SharedPreferences sharedSettings = null;
    
@@ -175,9 +172,15 @@ public final class LocalCoresFragment extends ListFragment
             // Allow any name ending in .so or .zip
             String searchStr = (coreName.contains("_android.") ? "_android" : "")
                                + (isZip ? (coreName.contains(".so.") ? ".so.zip" : ".zip" ) : ".so" );
-            String infoPath = localCoresDir + File.separator + coreName.replace(searchStr, ".info");
+            String infoPath = localCoresDir + "/" + coreName.replace(searchStr, ".info");
 
-            cores.add(new DownloadableCore(getCoreName(infoPath), systemName, urlPath));
+            if (new File(infoPath).exists() == false)
+               infoPath = getContext().getApplicationInfo().dataDir
+                     + "/info/" + coreName.replace(searchStr, ".info");
+
+            Pair<String,String> pair = getTitlePair(infoPath); // (name,mfr+system)
+
+            cores.add(new DownloadableCore(pair.first, pair.second, urlPath));
          }
 
          Collections.sort(cores);
@@ -188,65 +191,6 @@ public final class LocalCoresFragment extends ListFragment
       {
          Log.e("PopulateCoresList", e.toString());
       }
-   }
-   
-   // gets name from .info filePath
-   private String getCoreName(String filePath)
-   {
-      String name = "";
-      systemName = "";
-
-      try
-      {
-         File inputFile = new File(filePath);
-         File installedFile = new File( adapter.getContext().getApplicationInfo().dataDir + "/info/",
-                                        filePath.substring(filePath.lastIndexOf(File.separator) + 1));
-         URL url;
-         if (inputFile.exists())
-            url = inputFile.toURI().toURL();
-         else if (installedFile.exists())
-            url = installedFile.toURI().toURL();
-         else
-            return name;
-         
-         String str;
-         BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
-         StringBuilder sb = new StringBuilder();
-         while ((str = br.readLine()) != null)
-            sb.append(str).append("\n");
-         br.close();
-
-         // Now read the core name
-         String[] lines = sb.toString().split("\n");
-         for (String line : lines) {
-            if (line.contains("corename")) {
-               name = line.split("=")[1].trim().replace("\"", "");
-               break;
-            }
-         }
-         for (String line : lines) {
-            if (line.contains("systemname")) {
-               systemName = line.split("=")[1].trim().replace("\"", "");
-               break;
-            }
-         }
-      }
-      catch (FileNotFoundException fnfe)
-      {
-         // Can't find the info file. Name it the same thing as the package.
-         final int start = filePath.lastIndexOf('/') + 1;
-         final int end = filePath.lastIndexOf('.');
-         if (end == -1)
-            name = filePath.substring(start);
-         else
-            name = filePath.substring(start, end);
-      }
-      catch (IOException ioe)
-      {
-         name = "Report this: " + ioe.getMessage();
-      }
-
-      return name;
    }
 
 

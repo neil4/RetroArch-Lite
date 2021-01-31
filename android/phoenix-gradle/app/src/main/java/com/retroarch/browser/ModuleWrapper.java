@@ -368,7 +368,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    @Override
    public String getSubText()
    {
-      return systemName;
+      return bestSystemTitle(displayName, systemName);
    }
 
    @Override
@@ -396,21 +396,18 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    {
       int i = displayName.indexOf('(');
       int j = displayName.lastIndexOf(')');
-      if (i > -1 && j > i+1)
+      if (i > -1 && j > i+1 && j - i > coreName.length())
          return displayName.substring(i+1, j);
       else
          return coreName;
    }
 
-   public static String bestSysTitle(String displayName, String systemName)
+   public static String bestSystemTitle(String displayName, String systemName)
    {
-      if (!displayName.contains(" - "))
-         return systemName;
-
       int i = displayName.indexOf('(');
-      if (i > 0)
+      if (i > 1)
          return displayName.substring(0, i).trim();
       else
-         return displayName;
+         return systemName;
    }
 }
