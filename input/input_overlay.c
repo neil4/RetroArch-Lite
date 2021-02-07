@@ -1738,19 +1738,19 @@ static bool inside_hitbox(const struct overlay_desc *desc, float x, float y)
 }
 
 /**
- * input_overlay_poll_iterate:
+ * input_overlay_poll_buttons_iterate:
  * @ol                    : Overlay handle.
  * @out                   : Polled output data.
  * @ptr_idx               : Pointer index.
  * @norm_x                : Normalized X coordinate.
  * @norm_y                : Normalized Y coordinate.
  *
- * Polls input overlay for a single input pointer.
+ * Polls input overlay buttons for a single input pointer.
  *
  * @norm_x and @norm_y are the result of
  * input_translate_coord_viewport().
  **/
-static INLINE void input_overlay_poll_iterate(
+static INLINE void input_overlay_poll_buttons_iterate(
       input_overlay_t *ol, input_overlay_state_t *out,
       uint8_t ptr_idx, int16_t norm_x, int16_t norm_y)
 {
@@ -2099,7 +2099,7 @@ void input_overlay_poll(input_overlay_t *overlay_device)
       int16_t y = input_driver_state(NULL, 0,
             device, i, RETRO_DEVICE_ID_POINTER_Y);
 
-      input_overlay_poll_iterate(overlay_device, &polled_data, i, x, y);
+      input_overlay_poll_buttons_iterate(overlay_device, &polled_data, i, x, y);
       state->buttons |= polled_data.buttons;
 
       if ((overlay_lightgun_active || overlay_mouse_active)

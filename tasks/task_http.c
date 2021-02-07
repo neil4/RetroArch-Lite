@@ -252,13 +252,9 @@ static bool rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
    if (!http->cb || http->cb(data, len) < 0)
    {
       rv = false;
-      /* Notify user unless this is a missing info file, which is common */
-      if (strcmp("info", path_get_extension(http->msg_filename)))
-      {
-         snprintf(msg, sizeof(msg),
-                  "Transfer Failed\nStatus %i", net_http_status(http->handle));
-         rarch_main_data_http_cancel_transfer(http, msg);
-      }
+      snprintf(msg, sizeof(msg),
+            "Transfer Failed\nStatus %i", net_http_status(http->handle));
+      rarch_main_data_http_cancel_transfer(http, msg);
    }
 
    net_http_delete(http->handle);

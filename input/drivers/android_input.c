@@ -55,8 +55,6 @@ struct input_pointer
 {
    int16_t x, y;
    int16_t full_x, full_y;
-   /* Ellipse values, for internal use on fullscreen overlays */
-   float orientation, touch_major, touch_minor;
 };
 
 extern void set_ellipse(uint8_t, const float, const float, const float);
