@@ -720,7 +720,6 @@ static void config_set_defaults(void)
 
    *settings->cheat_database = '\0';
    *settings->cheat_settings_path = '\0';
-   *settings->resampler_directory = '\0';
    *settings->screenshot_directory = '\0';
    *settings->system_directory = '\0';
    *settings->extraction_directory = '\0';
@@ -853,9 +852,6 @@ static void config_set_defaults(void)
    if (*g_defaults.screenshot_dir)
       strlcpy(settings->screenshot_directory,
             g_defaults.screenshot_dir, sizeof(settings->screenshot_directory));
-   if (*g_defaults.resampler_dir)
-      strlcpy(settings->resampler_directory,
-            g_defaults.resampler_dir, sizeof(settings->resampler_directory));
 #ifdef HAVE_MENU
    if (*g_defaults.content_dir)
       strlcpy(settings->menu_content_directory,
@@ -1443,7 +1439,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    config_get_path(conf, "core_updater_buildbot_assets_url",
          settings->network.buildbot_assets_url, sizeof(settings->network.buildbot_assets_url));
    CONFIG_GET_BOOL_BASE(conf, settings, network.buildbot_auto_extract_archive, "core_updater_auto_extract_archive");
-   
+
    for (i = 0; i < settings->input.max_users; i++)
    {
       char buf[64] = {0};
@@ -1556,7 +1552,6 @@ static bool config_load_file(const char *path, bool set_defaults)
       }
    }
    
-   config_get_path(conf, "resampler_directory", settings->resampler_directory, sizeof(settings->resampler_directory));
    config_get_path(conf, "extraction_directory", settings->extraction_directory, sizeof(settings->extraction_directory));
    config_get_path(conf, "input_remapping_directory", settings->input_remapping_directory, sizeof(settings->input_remapping_directory));
    config_get_path(conf, "core_assets_directory", settings->core_assets_directory, sizeof(settings->core_assets_directory));
@@ -1984,33 +1979,48 @@ bool config_save_file(const char *path)
 
    RARCH_LOG("Saving config at path: \"%s\"\n", path);
 
-   if (settings->input.max_users_scope == GLOBAL)
-      config_set_int(conf, "input_max_users", settings->input.max_users);
-   config_set_float(conf, "input_axis_threshold",
-         settings->input.axis_threshold);
-   config_set_bool(conf, "input_rumble_enable",
-         settings->input.rumble_enable);
-   config_set_bool(conf, "ui_companion_start_on_boot", settings->ui.companion_start_on_boot);
-   config_set_bool(conf, "video_gpu_record", settings->video.gpu_record);
-   config_set_bool(conf, "input_remap_binds_enable",
-         settings->input.remap_binds_enable);
-   if (settings->input.analog_dpad_scope == GLOBAL)
-   {
-      config_set_int(conf, "input_analog_dpad_mode",
-            settings->input.analog_dpad_mode);
-      config_set_float(conf, "input_analog_diagonal_sensitivity",
-            settings->input.analog_diagonal_sensitivity);
-      config_set_float(conf, "input_analog_dpad_deadzone",
-            settings->input.analog_dpad_deadzone);
-   }
+#ifdef HAVE_MENU
+   if (!global->content_dir_override)
+      config_set_path(conf, "rgui_browser_directory",
+            *settings->menu_content_directory ?
+            settings->menu_content_directory : "default");
+   config_set_path(conf, "rgui_config_directory",
+         *settings->menu_config_directory ?
+         settings->menu_config_directory : "default");
+#endif
+   config_set_path(conf, "system_directory",
+         *settings->system_directory ?
+         settings->system_directory : "default");
+   if (!global->core_dir_override)
+      config_set_path(conf,  "libretro_directory", settings->libretro_directory);
+   if (!global->info_dir_override)
+      config_set_path(conf,  "libretro_info_path", settings->libretro_info_path);
 
-   config_set_bool(conf, "netplay_client_swap_input",
-         settings->input.netplay_client_swap_input);
-   config_set_bool(conf, "autoconfig_descriptor_label_show",
-         settings->input.autoconfig_descriptor_label_show);
+   config_set_path(conf, "savefile_directory",
+         *global->savefile_dir ? global->savefile_dir : "default");
+   config_set_bool(conf, "sort_savefiles_enable",
+         settings->sort_savefiles_enable);
+   config_set_bool(conf, "sram_file_compression",
+         settings->sram_file_compression);
+   config_set_bool(conf, "block_sram_overwrite",
+         settings->block_sram_overwrite);
+   config_set_int(conf,  "autosave_interval", settings->autosave_interval);
+
+   config_set_path(conf, "savestate_directory",
+         *global->savestate_dir ? global->savestate_dir : "default");
+   config_set_bool(conf, "sort_savestates_enable",
+         settings->sort_savestates_enable);
+   config_set_bool(conf, "savestate_file_compression",
+         settings->savestate_file_compression);
+   config_set_bool(conf, "savestate_auto_index",
+         settings->savestate_auto_index);
+   config_set_bool(conf, "savestate_auto_save",
+         settings->savestate_auto_save);
+   config_set_bool(conf, "savestate_auto_load",
+         settings->savestate_auto_load);
+
    config_set_bool(conf, "load_dummy_on_core_shutdown",
                    settings->load_dummy_on_core_shutdown);
-   config_set_bool(conf,  "fps_show", settings->fps_show);
    config_set_bool(conf,  "ui_menubar_enable", settings->ui.menubar_enable);
 
    config_set_path(conf,  "recording_output_directory", global->record.output_dir);
@@ -2018,31 +2028,37 @@ bool config_save_file(const char *path)
 
    config_set_bool(conf,  "suspend_screensaver_enable", settings->ui.suspend_screensaver_enable);
 
-   if (!global->core_dir_override)
-      config_set_path(conf,  "libretro_directory", settings->libretro_directory);
-
-   if (!global->info_dir_override)
-      config_set_path(conf,  "libretro_info_path", settings->libretro_info_path);
-   config_set_path(conf,  "cheat_database_path", settings->cheat_database);
-
    config_set_bool(conf, "rewind_enable", settings->rewind_enable);
    config_set_int(conf, "rewind_buffer_size", settings->rewind_buffer_size);
-
-   config_set_int(conf,   "audio_latency", settings->audio.latency);
-   
-   if (settings->audio.sync_scope == GLOBAL)
-      config_set_bool(conf, "audio_sync", settings->audio.sync);
-
-   config_set_int(conf,   "audio_block_frames", settings->audio.block_frames);
    config_set_int(conf,   "rewind_granularity", settings->rewind_granularity);
+
+   config_set_string(conf,"video_driver", settings->video.driver);
+   config_set_int(conf,   "video_monitor_index", settings->video.monitor_index);
+   config_set_string(conf,"video_context_driver", settings->video.context_driver);
+   config_set_bool(conf,  "video_shared_context", settings->video.shared_context);
+   config_set_float(conf, "video_refresh_rate", settings->video.refresh_rate);
+   config_set_bool(conf,  "fps_show", settings->fps_show);
+   if (settings->video.vsync_scope == GLOBAL)
+   {
+      config_set_bool(conf,"video_vsync", settings->video.vsync);
+      config_set_int(conf, "video_swap_interval", settings->video.swap_interval);
+   }
+   config_set_bool(conf, "video_fake_swap_interval", settings->video.fake_swap_interval);
    config_set_float(conf, "video_aspect_ratio", settings->video.aspect_ratio);
    config_set_bool(conf,  "video_aspect_ratio_auto", settings->video.aspect_ratio_auto);
-   config_set_bool(conf,  "video_windowed_fullscreen",
-         settings->video.windowed_fullscreen);
-   config_set_float(conf, "video_scale", settings->video.scale);
-   config_set_int(conf,   "autosave_interval", settings->autosave_interval);
-   config_set_bool(conf,  "video_crop_overscan", settings->video.crop_overscan);
-   config_set_bool(conf,  "video_scale_integer", settings->video.scale_integer);
+
+   if (settings->video.aspect_ratio_idx_scope == GLOBAL)
+   {
+      config_set_int(conf, "custom_viewport_width",
+            custom_vp->width);
+      config_set_int(conf, "custom_viewport_height",
+            custom_vp->height);
+      config_set_int(conf, "custom_viewport_x",
+            custom_vp->x);
+      config_set_int(conf, "custom_viewport_y",
+            custom_vp->y);
+   }
+
 #ifdef GEKKO
    config_set_int(conf,   "video_viwidth", settings->video.viwidth);
    config_set_bool(conf,  "video_vfilter", settings->video.vfilter);
@@ -2050,18 +2066,65 @@ bool config_save_file(const char *path)
    config_set_bool(conf, "video_smooth", settings->video.smooth);
    if (settings->video.threaded_scope == GLOBAL)
       config_set_bool(conf, "video_threaded", settings->video.threaded);
-   
-   config_set_bool(conf,  "video_shared_context", settings->video.shared_context);
-   
    config_set_bool(conf,  "video_force_srgb_disable",
          settings->video.force_srgb_disable);
    config_set_bool(conf,  "video_fullscreen", settings->video.fullscreen);
-   config_set_float(conf, "video_refresh_rate", settings->video.refresh_rate);
-   config_set_int(conf,   "video_monitor_index",
-         settings->video.monitor_index);
+   config_set_bool(conf,  "video_windowed_fullscreen",
+         settings->video.windowed_fullscreen);
+   config_set_float(conf, "video_scale", settings->video.scale);
+   config_set_bool(conf,  "video_crop_overscan", settings->video.crop_overscan);
+   config_set_bool(conf,  "video_scale_integer", settings->video.scale_integer);
    config_set_int(conf,   "video_fullscreen_x", settings->video.fullscreen_x);
    config_set_int(conf,   "video_fullscreen_y", settings->video.fullscreen_y);
-   config_set_string(conf,"video_driver", settings->video.driver);
+   config_set_bool(conf,  "video_gpu_record", settings->video.gpu_record);
+   
+#ifdef HAVE_GL_SYNC
+   if (settings->video.hard_sync_scope == GLOBAL)
+   {
+      config_set_bool(conf, "video_hard_sync", settings->video.hard_sync);
+      config_set_int(conf, "video_hard_sync_frames", settings->video.hard_sync_frames);
+   }
+#endif
+   if (settings->preempt_frames_scope == GLOBAL)
+      config_set_int(conf, "preempt_frames", settings->preempt_frames);
+   if (settings->video.frame_delay_scope == GLOBAL)
+      config_set_int(conf, "video_frame_delay", settings->video.frame_delay);
+   config_set_bool(conf,  "video_black_frame_insertion",
+         settings->video.black_frame_insertion);
+   config_set_bool(conf,  "video_disable_composition",
+         settings->video.disable_composition);
+   config_set_bool(conf,  "pause_nonactive", settings->pause_nonactive);
+   config_set_bool(conf, "video_gpu_screenshot", settings->video.gpu_screenshot);
+   
+   if (settings->video.rotation_scope == GLOBAL)
+      config_set_int(conf, "video_rotation", settings->video.rotation);
+   
+   config_set_path(conf, "screenshot_directory",
+         *settings->screenshot_directory ?
+         settings->screenshot_directory : "default");
+   
+   if (settings->video.aspect_ratio_idx_scope == GLOBAL)
+      config_set_int(conf, "aspect_ratio_index", settings->video.aspect_ratio_idx);
+
+   config_set_path(conf, "video_shader_dir",
+         *settings->video.shader_dir ?
+         settings->video.shader_dir : "default");
+   config_set_path(conf, "video_filter_dir",
+         *settings->video.filter_dir ?
+         settings->video.filter_dir : "default");
+   if (settings->video.filter_shader_scope == GLOBAL)
+   {
+      config_set_path(conf, "video_filter", settings->video.softfilter_plugin);
+      config_set_path(conf, "video_shader", settings->video.shader_path);
+   }
+
+   config_set_float(conf, "video_font_size", settings->video.font_size);
+   config_set_bool(conf,  "video_font_enable", settings->video.font_enable);
+   config_set_path(conf,  "video_font_path", settings->video.font_path);
+   config_set_float(conf, "video_message_pos_x", settings->video.msg_pos_x);
+   config_set_float(conf, "video_message_pos_y", settings->video.msg_pos_y);
+   config_set_float(conf, "video_font_size", settings->video.font_size);
+
 #ifdef HAVE_MENU
    config_set_bool(conf, "dpi_override_enable", settings->menu.dpi.override_enable);
    config_set_int (conf, "dpi_override_value", settings->menu.dpi.override_value);
@@ -2086,128 +2149,7 @@ bool config_save_file(const char *path)
       config_set_float(conf, "rgui_particle_effect_speed_factor", settings->menu.rgui_particle_effect_speed_factor);
 #endif
    }
-#endif
-   
-   if (settings->video.vsync_scope == GLOBAL)
-   {
-      config_set_bool(conf,  "video_vsync", settings->video.vsync);
-      config_set_int(conf, "video_swap_interval", settings->video.swap_interval);
-   }
-   config_set_bool(conf, "video_fake_swap_interval", settings->video.fake_swap_interval);
-   
-#ifdef HAVE_GL_SYNC
-   if (settings->video.hard_sync_scope == GLOBAL)
-   {
-      config_set_bool(conf, "video_hard_sync", settings->video.hard_sync);
-      config_set_int(conf, "video_hard_sync_frames", settings->video.hard_sync_frames);
-   }
-#endif
-   if (settings->video.frame_delay_scope == GLOBAL)
-      config_set_int(conf, "video_frame_delay", settings->video.frame_delay);
-   config_set_bool(conf,  "video_black_frame_insertion",
-         settings->video.black_frame_insertion);
-   config_set_bool(conf,  "video_disable_composition",
-         settings->video.disable_composition);
-   config_set_bool(conf,  "pause_nonactive", settings->pause_nonactive);
-   config_set_bool(conf, "video_gpu_screenshot", settings->video.gpu_screenshot);
-   
-   if (settings->video.rotation_scope == GLOBAL)
-      config_set_int(conf, "video_rotation", settings->video.rotation);
-   
-   config_set_path(conf, "screenshot_directory",
-         *settings->screenshot_directory ?
-         settings->screenshot_directory : "default");
-   
-   if (settings->video.aspect_ratio_idx_scope == GLOBAL)
-      config_set_int(conf, "aspect_ratio_index", settings->video.aspect_ratio_idx);
-   
-   if (settings->video.filter_shader_scope == GLOBAL)
-   {
-      config_set_path(conf, "video_filter", settings->video.softfilter_plugin);
-      config_set_path(conf, "video_shader", settings->video.shader_path);
-   }
-   
-   if (settings->preempt_frames_scope == GLOBAL)
-      config_set_int(conf, "preempt_frames", settings->preempt_frames);
-   
-   config_set_string(conf, "audio_device", settings->audio.device);
-   if (settings->audio.dsp_scope == GLOBAL)
-      config_set_string(conf, "audio_dsp_plugin", settings->audio.dsp_plugin);
-   config_set_string(conf, "core_updater_buildbot_url", settings->network.buildbot_url);
-   config_set_string(conf, "core_updater_buildbot_assets_url", settings->network.buildbot_assets_url);
-   config_set_bool(conf, "core_updater_auto_extract_archive", settings->network.buildbot_auto_extract_archive);
-   config_set_string(conf, "camera_device", settings->camera.device);
-   config_set_bool(conf, "camera_allow", settings->camera.allow);
-   config_set_bool(conf, "audio_rate_control", settings->audio.rate_control);
-   config_set_float(conf, "audio_rate_control_delta",
-         settings->audio.rate_control_delta);
-   if (settings->audio.max_timing_skew_scope == GLOBAL)
-      config_set_float(conf, "audio_max_timing_skew",
-                       settings->audio.max_timing_skew);
-   if (settings->audio.volume_scope == GLOBAL)
-      config_set_float(conf, "audio_volume", settings->audio.volume);
-   config_set_string(conf, "video_context_driver", settings->video.context_driver);
-   config_set_string(conf, "audio_driver", settings->audio.driver);
-   config_set_bool(conf, "audio_enable", settings->audio.enable);
-   config_set_bool(conf, "audio_mute_enable", settings->audio.mute_enable);
-   config_set_int(conf, "audio_out_rate", settings->audio.out_rate);
 
-   config_set_bool(conf, "location_allow", settings->location.allow);
-
-   config_set_float(conf, "video_font_size", settings->video.font_size);
-   config_set_bool(conf,  "video_font_enable", settings->video.font_enable);
-
-   if (!global->has_set_ups_pref)
-      config_set_bool(conf, "ups_pref", global->ups_pref);
-   if (!global->has_set_bps_pref)
-      config_set_bool(conf, "bps_pref", global->bps_pref);
-   if (!global->has_set_ips_pref)
-      config_set_bool(conf, "ips_pref", global->ips_pref);
-
-   config_set_path(conf, "system_directory",
-         *settings->system_directory ?
-         settings->system_directory : "default");
-   config_set_path(conf, "extraction_directory",
-         settings->extraction_directory);
-   config_set_path(conf, "input_remapping_directory",
-         settings->input_remapping_directory);
-   config_set_path(conf, "resampler_directory",
-         settings->resampler_directory);
-   config_set_string(conf, "audio_resampler", settings->audio.resampler);
-   config_set_path(conf, "savefile_directory",
-         *global->savefile_dir ? global->savefile_dir : "default");
-   config_set_path(conf, "savestate_directory",
-         *global->savestate_dir ? global->savestate_dir : "default");
-   config_set_path(conf, "video_shader_dir",
-         *settings->video.shader_dir ?
-         settings->video.shader_dir : "default");
-   config_set_path(conf, "video_filter_dir",
-         *settings->video.filter_dir ?
-         settings->video.filter_dir : "default");
-   config_set_path(conf, "audio_filter_dir",
-         *settings->audio.filter_dir ?
-         settings->audio.filter_dir : "default");
-
-   config_set_path(conf, "core_assets_directory",
-         *settings->core_assets_directory ?
-         settings->core_assets_directory : "default");
-   config_set_path(conf, "assets_directory",
-         *settings->assets_directory ?
-         settings->assets_directory : "default");
-   config_set_path(conf, "dynamic_wallpapers_directory",
-         *settings->dynamic_wallpapers_directory ?
-         settings->dynamic_wallpapers_directory : "default");
-   config_set_path(conf, "boxarts_directory",
-         *settings->boxarts_directory ?
-         settings->boxarts_directory : "default");
-#ifdef HAVE_MENU
-   if (!global->content_dir_override)
-      config_set_path(conf, "rgui_browser_directory",
-            *settings->menu_content_directory ?
-            settings->menu_content_directory : "default");
-   config_set_path(conf, "rgui_config_directory",
-         *settings->menu_config_directory ?
-         settings->menu_config_directory : "default");
    config_set_bool(conf, "rgui_show_start_screen",
          settings->menu_show_start_screen);
    config_set_bool(conf, "menu_navigation_wraparound_vertical_enable",
@@ -2246,12 +2188,121 @@ bool config_save_file(const char *path)
    config_set_bool(conf, "show_recording_menu", settings->menu.show_recording_menu);
    config_set_bool(conf, "show_core_updater_menu", settings->menu.show_core_updater_menu);
    config_set_bool(conf, "show_font_menu", settings->menu.show_font_menu);
-#endif /* HAVE_MENU */
+#endif
 
-   config_set_path(conf, "joypad_autoconfig_dir",
-         settings->input.autoconfig_dir);
+   config_set_string(conf, "core_updater_buildbot_url", settings->network.buildbot_url);
+   config_set_string(conf, "core_updater_buildbot_assets_url", settings->network.buildbot_assets_url);
+   config_set_bool(conf, "core_updater_auto_extract_archive", settings->network.buildbot_auto_extract_archive);
+
+   config_set_string(conf, "camera_device", settings->camera.device);
+   config_set_bool(conf, "camera_allow", settings->camera.allow);
+
+   config_set_string(conf, "audio_driver", settings->audio.driver);
+   config_set_bool(conf,   "audio_enable", settings->audio.enable);
+   if (settings->audio.sync_scope == GLOBAL)
+      config_set_bool(conf,"audio_sync", settings->audio.sync);
+   config_set_bool(conf,   "audio_rate_control", settings->audio.rate_control);
+   config_set_float(conf,  "audio_rate_control_delta",
+         settings->audio.rate_control_delta);
+   if (settings->audio.max_timing_skew_scope == GLOBAL)
+      config_set_float(conf, "audio_max_timing_skew",
+                       settings->audio.max_timing_skew);
+   if (settings->audio.volume_scope == GLOBAL)
+      config_set_float(conf, "audio_volume", settings->audio.volume);
+   config_set_bool(conf,  "audio_mute_enable", settings->audio.mute_enable);
+   config_set_int(conf,   "audio_out_rate", settings->audio.out_rate);
+   config_set_string(conf,"audio_device", settings->audio.device);
+   config_set_int(conf,   "audio_latency", settings->audio.latency);
+   config_set_int(conf,   "audio_block_frames", settings->audio.block_frames);
+   if (settings->audio.dsp_scope == GLOBAL)
+      config_set_string(conf, "audio_dsp_plugin", settings->audio.dsp_plugin);
+   config_set_string(conf, "audio_resampler", settings->audio.resampler);
+   config_set_path(conf, "audio_filter_dir",
+         *settings->audio.filter_dir ?
+         settings->audio.filter_dir : "default");
+
+   config_set_bool(conf, "location_allow", settings->location.allow);
+
+   if (!global->has_set_ups_pref)
+      config_set_bool(conf, "ups_pref", global->ups_pref);
+   if (!global->has_set_bps_pref)
+      config_set_bool(conf, "bps_pref", global->bps_pref);
+   if (!global->has_set_ips_pref)
+      config_set_bool(conf, "ips_pref", global->ips_pref);
+
+   config_set_path(conf, "extraction_directory",
+         settings->extraction_directory);
+   config_set_path(conf, "core_assets_directory",
+         *settings->core_assets_directory ?
+         settings->core_assets_directory : "default");
+   config_set_path(conf, "assets_directory",
+         *settings->assets_directory ?
+         settings->assets_directory : "default");
+   config_set_path(conf, "dynamic_wallpapers_directory",
+         *settings->dynamic_wallpapers_directory ?
+         settings->dynamic_wallpapers_directory : "default");
+   config_set_path(conf, "boxarts_directory",
+         *settings->boxarts_directory ?
+         settings->boxarts_directory : "default");
+
+   config_set_string(conf, "input_driver", settings->input.driver);
+   config_set_string(conf, "input_joypad_driver",
+         settings->input.joypad_driver);
+   config_set_string(conf, "input_keyboard_layout",
+         settings->input.keyboard_layout);
+
+   for (i = 0; i < settings->input.max_users; i++)
+   {
+      char cfg[64] = {0};
+      snprintf(cfg, sizeof(cfg), "input_player%u_joypad_index", i + 1);
+      config_set_int(conf, cfg, settings->input.joypad_map[i]);
+
+      if (settings->input.libretro_device_scope == GLOBAL)
+      {
+         snprintf(cfg, sizeof(cfg), "input_libretro_device_p%u", i + 1);
+         config_set_int(conf, cfg, settings->input.libretro_device[i]);
+      }
+   }
+
+   for (i = 0; i < settings->input.max_users; i++)
+      save_keybinds_user(conf, i);
+
+   config_set_int(conf, "menu_ok_btn",          settings->menu_ok_btn);
+   config_set_int(conf, "menu_cancel_btn",      settings->menu_cancel_btn);
+   config_set_int(conf, "menu_search_btn",      settings->menu_search_btn);
+   config_set_int(conf, "menu_info_btn",        settings->menu_info_btn);
+   config_set_int(conf, "menu_default_btn",     settings->menu_default_btn);
+   config_set_int(conf, "menu_scroll_down_btn", settings->menu_scroll_down_btn);
+   config_set_int(conf, "menu_scroll_up_btn",   settings->menu_scroll_up_btn);
+
+   config_set_bool(conf, "auto_remaps_enable",
+         settings->auto_remaps_enable);
+   config_set_path(conf, "input_remapping_directory",
+         settings->input_remapping_directory);
    config_set_bool(conf, "input_autodetect_enable",
          settings->input.autodetect_enable);
+   config_set_path(conf, "joypad_autoconfig_dir",
+         settings->input.autoconfig_dir);
+   config_set_bool(conf, "autoconfig_descriptor_label_show",
+         settings->input.autoconfig_descriptor_label_show);
+
+   if (settings->input.max_users_scope == GLOBAL)
+      config_set_int(conf, "input_max_users", settings->input.max_users);
+   config_set_float(conf, "input_axis_threshold",
+         settings->input.axis_threshold);
+   config_set_bool(conf, "input_rumble_enable",
+         settings->input.rumble_enable);
+   config_set_bool(conf, "input_remap_binds_enable",
+         settings->input.remap_binds_enable);
+   if (settings->input.analog_dpad_scope == GLOBAL)
+   {
+      config_set_int(conf, "input_analog_dpad_mode",
+            settings->input.analog_dpad_mode);
+      config_set_float(conf, "input_analog_diagonal_sensitivity",
+            settings->input.analog_diagonal_sensitivity);
+      config_set_float(conf, "input_analog_dpad_deadzone",
+            settings->input.analog_dpad_deadzone);
+   }
 
 #ifdef HAVE_OVERLAY
    config_set_path(conf, "overlay_directory",
@@ -2263,6 +2314,11 @@ bool config_save_file(const char *path)
       config_set_bool(conf, "input_overlay_enable", settings->input.overlay_enable);
       config_set_float(conf, "input_overlay_scale", settings->input.overlay_scale);
    }
+
+   config_set_path(conf, "osk_overlay_directory",
+         *global->osk_overlay_dir ? global->osk_overlay_dir : "default");
+   config_set_path(conf, "input_osk_overlay", settings->osk.overlay);
+   config_set_bool(conf, "input_osk_overlay_enable", settings->osk.enable);
    
    if (settings->input.overlay_opacity_scope == GLOBAL)
       config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
@@ -2303,16 +2359,41 @@ bool config_save_file(const char *path)
    }
 
    config_set_float(conf, "input_vibrate_time", settings->input.vibrate_time);
-
-   config_set_path(conf, "osk_overlay_directory",
-         *global->osk_overlay_dir ? global->osk_overlay_dir : "default");
-   config_set_path(conf, "input_osk_overlay", settings->osk.overlay);
-   config_set_bool(conf, "input_osk_overlay_enable", settings->osk.enable);
 #endif
 
-   config_set_path(conf, "video_font_path", settings->video.font_path);
-   config_set_float(conf, "video_message_pos_x", settings->video.msg_pos_x);
-   config_set_float(conf, "video_message_pos_y", settings->video.msg_pos_y);
+   config_set_float(conf, "fastforward_ratio", settings->fastforward_ratio);
+   
+   if (settings->throttle_setting_scope == GLOBAL)
+   {
+      config_set_bool(conf, "core_throttle_enable", settings->core_throttle_enable);
+      config_set_bool(conf, "throttle_using_core_fps", settings->throttle_using_core_fps);
+   }
+   
+   config_set_float(conf, "slowmotion_ratio", settings->slowmotion_ratio);
+
+#ifdef HAVE_NETPLAY
+   config_set_bool(conf, "netplay_mode", global->netplay_is_client);
+   config_set_string(conf, "netplay_ip_address", global->netplay_server);
+   config_set_int(conf, "netplay_ip_port", global->netplay_port);
+   config_set_int(conf, "netplay_delay_frames", global->netplay_sync_frames);
+   config_set_bool(conf, "netplay_client_swap_input",
+         settings->input.netplay_client_swap_input);
+#endif
+   config_set_string(conf, "netplay_nickname", settings->username);
+   config_set_int(conf, "user_language", settings->user_language);
+
+   config_set_int(conf, "libretro_log_level", settings->libretro_log_level);
+   config_set_bool(conf, "log_verbosity", global->verbosity);
+   config_set_bool(conf, "perfcnt_enable", global->perfcnt_enable);
+
+   config_set_bool(conf, "core_set_supports_no_game_enable",
+                   settings->core.set_supports_no_game_enable);
+
+   config_set_int(conf, "archive_mode", settings->archive.mode);
+
+   config_set_bool(conf, "ui_companion_start_on_boot", settings->ui.companion_start_on_boot);
+
+   config_set_path(conf, "cheat_database_path", settings->cheat_database);
 
    config_set_bool(conf, "gamma_correction",
          global->console.screen.gamma_correction);
@@ -2327,102 +2408,10 @@ bool config_save_file(const char *path)
          global->console.screen.soft_filter_index);
    config_set_int(conf, "current_resolution_id",
          global->console.screen.resolutions.current.id);
-   
-   if (settings->video.aspect_ratio_idx_scope == GLOBAL)
-   {
-      config_set_int(conf, "custom_viewport_width",
-            custom_vp->width);
-      config_set_int(conf, "custom_viewport_height",
-            custom_vp->height);
-      config_set_int(conf, "custom_viewport_x",
-            custom_vp->x);
-      config_set_int(conf, "custom_viewport_y",
-            custom_vp->y);
-   }
-
-   config_set_float(conf, "video_font_size", settings->video.font_size);
-
-   config_set_bool(conf, "block_sram_overwrite",
-         settings->block_sram_overwrite);
-   config_set_bool(conf, "savestate_auto_index",
-         settings->savestate_auto_index);
-   config_set_bool(conf, "savestate_auto_save",
-         settings->savestate_auto_save);
-   config_set_bool(conf, "savestate_auto_load",
-         settings->savestate_auto_load);
-
-   config_set_float(conf, "fastforward_ratio", settings->fastforward_ratio);
-   
-   if (settings->throttle_setting_scope == GLOBAL)
-   {
-      config_set_bool(conf, "core_throttle_enable", settings->core_throttle_enable);
-      config_set_bool(conf, "throttle_using_core_fps", settings->throttle_using_core_fps);
-   }
-   
-   config_set_float(conf, "slowmotion_ratio", settings->slowmotion_ratio);
 
    config_set_int(conf, "sound_mode", global->console.sound.mode);
-
-#ifdef HAVE_NETPLAY
-   config_set_bool(conf, "netplay_mode", global->netplay_is_client);
-   config_set_string(conf, "netplay_ip_address", global->netplay_server);
-   config_set_int(conf, "netplay_ip_port", global->netplay_port);
-   config_set_int(conf, "netplay_delay_frames", global->netplay_sync_frames);
-#endif
-   config_set_string(conf, "netplay_nickname", settings->username);
-   config_set_int(conf, "user_language", settings->user_language);
-
-   config_set_bool(conf, "custom_bgm_enable",
+   config_set_bool(conf,"custom_bgm_enable",
          global->console.sound.system_bgm_enable);
-
-   config_set_string(conf, "input_driver", settings->input.driver);
-   config_set_string(conf, "input_joypad_driver",
-         settings->input.joypad_driver);
-   config_set_string(conf, "input_keyboard_layout",
-         settings->input.keyboard_layout);
-   
-   for (i = 0; i < settings->input.max_users; i++)
-   {
-      char cfg[64] = {0};
-      snprintf(cfg, sizeof(cfg), "input_player%u_joypad_index", i + 1);
-      config_set_int(conf, cfg, settings->input.joypad_map[i]);
-
-      if (settings->input.libretro_device_scope == GLOBAL)
-      {
-         snprintf(cfg, sizeof(cfg), "input_libretro_device_p%u", i + 1);
-         config_set_int(conf, cfg, settings->input.libretro_device[i]);
-      }
-   }
-
-   for (i = 0; i < settings->input.max_users; i++)
-      save_keybinds_user(conf, i);
-
-   config_set_bool(conf, "auto_remaps_enable",
-         settings->auto_remaps_enable);
-   config_set_bool(conf, "sort_savefiles_enable",
-         settings->sort_savefiles_enable);
-   config_set_bool(conf, "sort_savestates_enable",
-         settings->sort_savestates_enable);
-   config_set_bool(conf, "savestate_file_compression",
-         settings->savestate_file_compression);
-   config_set_bool(conf, "sram_file_compression",
-         settings->sram_file_compression);
-   config_set_int(conf, "libretro_log_level", settings->libretro_log_level);
-   config_set_bool(conf, "log_verbosity", global->verbosity);
-   config_set_bool(conf, "perfcnt_enable", global->perfcnt_enable);
-
-   config_set_bool(conf, "core_set_supports_no_game_enable",
-                   settings->core.set_supports_no_game_enable);
-
-   config_set_int(conf, "archive_mode", settings->archive.mode);
-
-   config_set_int(conf, "menu_ok_btn",          settings->menu_ok_btn);
-   config_set_int(conf, "menu_cancel_btn",      settings->menu_cancel_btn);
-   config_set_int(conf, "menu_search_btn",      settings->menu_search_btn);
-   config_set_int(conf, "menu_info_btn",        settings->menu_info_btn);
-   config_set_int(conf, "menu_default_btn",     settings->menu_default_btn);
-   config_set_int(conf, "menu_scroll_down_btn", settings->menu_scroll_down_btn);
-   config_set_int(conf, "menu_scroll_up_btn",   settings->menu_scroll_up_btn);
 
    ret = config_file_write(conf, path);
    config_file_free(conf);
@@ -2527,6 +2516,21 @@ static void scoped_config_file_save(unsigned scope)
 
    /* Populate config
     * Higher scopes are more specific and mask lower scopes */
+
+   if (scope == THIS_CORE)
+   {
+      config_set_path(conf, "rgui_browser_directory",
+                      settings->core_content_directory);
+      config_set_bool(conf, "video_shared_context",
+                      settings->video.shared_context);
+      config_set_bool(conf, "load_dummy_on_core_shutdown",
+                      settings->load_dummy_on_core_shutdown);
+      config_set_bool(conf, "core_set_supports_no_game_enable",
+                      settings->core.set_supports_no_game_enable);
+      config_set_bool(conf, "rewind_enable", settings->rewind_enable);
+      config_set_int(conf, "rewind_buffer_size", settings->rewind_buffer_size);
+   }
+
    if (settings->audio.sync_scope == scope)
       config_set_bool(conf, "audio_sync", settings->audio.sync);
    else if (settings->audio.sync_scope < scope)
@@ -2581,6 +2585,76 @@ static void scoped_config_file_save(unsigned scope)
    {
       config_remove_entry(conf, "video_hard_sync");
       config_remove_entry(conf, "video_hard_sync_frames");
+   }
+
+   if (settings->preempt_frames_scope == scope)
+      config_set_int(conf, "preempt_frames", settings->preempt_frames);
+   else if (settings->preempt_frames_scope < scope)
+      config_remove_entry(conf, "preempt_frames");
+
+   if (settings->video.aspect_ratio_idx_scope == scope)
+   {
+      config_set_int(conf, "aspect_ratio_index",
+                     settings->video.aspect_ratio_idx);
+      if (settings->video.aspect_ratio_idx == ASPECT_RATIO_CUSTOM)
+      {
+         const video_viewport_t *p_custom_vp
+            = (const video_viewport_t*) video_viewport_get_custom();
+         config_set_int(conf, "custom_viewport_width", p_custom_vp->width);
+         config_set_int(conf, "custom_viewport_height", p_custom_vp->height);
+         config_set_int(conf, "custom_viewport_x", p_custom_vp->x);
+         config_set_int(conf, "custom_viewport_y", p_custom_vp->y);
+      }
+   }
+   else if (settings->video.aspect_ratio_idx_scope < scope)
+   {
+      config_remove_entry(conf, "aspect_ratio_index");
+      config_remove_entry(conf, "custom_viewport_width");
+      config_remove_entry(conf, "custom_viewport_height");
+      config_remove_entry(conf, "custom_viewport_x");
+      config_remove_entry(conf, "custom_viewport_y");
+   }
+
+   if (settings->video.rotation_scope == scope)
+      config_set_int(conf, "video_rotation", settings->video.rotation);
+   else if (settings->video.rotation_scope < scope)
+      config_remove_entry(conf, "video_rotation");
+
+   if (settings->video.filter_shader_scope == scope)
+   {
+      if (!*settings->video.softfilter_plugin)
+         config_set_path(conf, "video_filter", EXPLICIT_NULL);
+      else
+         config_set_path(conf, "video_filter",
+                         settings->video.softfilter_plugin);
+
+      if (!*settings->video.shader_path)
+         config_set_path(conf, "video_shader", EXPLICIT_NULL);
+      else
+         config_set_path(conf, "video_shader", settings->video.shader_path);
+   }
+   else if (settings->video.filter_shader_scope < scope)
+   {
+      config_remove_entry(conf, "video_filter");
+      config_remove_entry(conf, "video_shader");
+   }
+
+   if (settings->video.frame_delay_scope == scope)
+      config_set_int(conf, "video_frame_delay", settings->video.frame_delay);
+   else if (settings->video.frame_delay_scope < scope)
+      config_remove_entry(conf, "video_frame_delay");
+
+   if (settings->throttle_setting_scope == scope)
+   {
+      config_set_bool(conf, "core_throttle_enable",
+                      settings->core_throttle_enable);
+      config_set_bool(conf, "throttle_using_core_fps",
+                      settings->throttle_using_core_fps);
+   }
+   else if (settings->throttle_setting_scope < scope)
+   {
+      config_remove_entry(conf, "core_throttle_enable");
+      config_remove_entry(conf, "throttle_using_core_fps");
    }
 
 #ifdef HAVE_OVERLAY
@@ -2655,49 +2729,6 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "input_overlay_opacity");
 #endif /* HAVE_OVERLAY */
 
-   if (settings->throttle_setting_scope == scope)
-   {
-      config_set_bool(conf, "core_throttle_enable",
-                      settings->core_throttle_enable);
-      config_set_bool(conf, "throttle_using_core_fps",
-                      settings->throttle_using_core_fps);
-   }
-   else if (settings->throttle_setting_scope < scope)
-   {
-      config_remove_entry(conf, "core_throttle_enable");
-      config_remove_entry(conf, "throttle_using_core_fps");
-   }
-
-   if (settings->video.aspect_ratio_idx_scope == scope)
-   {
-      config_set_int(conf, "aspect_ratio_index",
-                     settings->video.aspect_ratio_idx);
-      const video_viewport_t *p_custom_vp
-         = (const video_viewport_t*) video_viewport_get_custom();
-      config_set_int(conf, "custom_viewport_width", p_custom_vp->width);
-      config_set_int(conf, "custom_viewport_height", p_custom_vp->height);
-      config_set_int(conf, "custom_viewport_x", p_custom_vp->x);
-      config_set_int(conf, "custom_viewport_y", p_custom_vp->y);
-   }
-   else if (settings->video.aspect_ratio_idx_scope < scope)
-   {
-      config_remove_entry(conf, "aspect_ratio_index");
-      config_remove_entry(conf, "custom_viewport_width");
-      config_remove_entry(conf, "custom_viewport_height");
-      config_remove_entry(conf, "custom_viewport_x");
-      config_remove_entry(conf, "custom_viewport_y");
-   }
-
-   if (settings->video.rotation_scope == scope)
-      config_set_int(conf, "video_rotation", settings->video.rotation);
-   else if (settings->video.rotation_scope < scope)
-      config_remove_entry(conf, "video_rotation");
-
-   if (settings->video.frame_delay_scope == scope)
-      config_set_int(conf, "video_frame_delay", settings->video.frame_delay);
-   else if (settings->video.frame_delay_scope < scope)
-      config_remove_entry(conf, "video_frame_delay");
-
    if (settings->input.max_users_scope == scope)
       config_set_int(conf, "input_max_users", settings->input.max_users);
    else if (settings->input.max_users_scope < scope)
@@ -2735,25 +2766,6 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "input_analog_diagonal_sensitivity");
       config_remove_entry(conf, "input_analog_dpad_deadzone");
    }
-
-   if (settings->video.filter_shader_scope == scope)
-   {
-      if (!*settings->video.softfilter_plugin)
-         config_set_path(conf, "video_filter", EXPLICIT_NULL);
-      else
-         config_set_path(conf, "video_filter",
-                         settings->video.softfilter_plugin);
-
-      if (!*settings->video.shader_path)
-         config_set_path(conf, "video_shader", EXPLICIT_NULL);
-      else
-         config_set_path(conf, "video_shader", settings->video.shader_path);
-   }
-   else if (settings->video.filter_shader_scope < scope)
-   {
-      config_remove_entry(conf, "video_filter");
-      config_remove_entry(conf, "video_shader");
-   }
    
 #ifdef HAVE_MENU
    if (settings->menu.theme_scope == scope)
@@ -2782,26 +2794,6 @@ static void scoped_config_file_save(unsigned scope)
 #endif
    }
 #endif
-   
-   if (settings->preempt_frames_scope == scope)
-      config_set_int(conf, "preempt_frames", settings->preempt_frames);
-   else if (settings->preempt_frames_scope < scope)
-      config_remove_entry(conf, "preempt_frames");
-      
-   /* Core specific settings */
-   if (scope == THIS_CORE)
-   {
-      config_set_path(conf, "rgui_browser_directory",
-                      settings->core_content_directory);
-      config_set_bool(conf, "video_shared_context",
-                      settings->video.shared_context);
-      config_set_bool(conf, "load_dummy_on_core_shutdown",
-                      settings->load_dummy_on_core_shutdown);
-      config_set_bool(conf, "core_set_supports_no_game_enable",
-                      settings->core.set_supports_no_game_enable);
-      config_set_bool(conf, "rewind_enable", settings->rewind_enable);
-      config_set_int(conf, "rewind_buffer_size", settings->rewind_buffer_size);
-   }
 
    /* Create/update or delete config file */
    if (conf->entries)

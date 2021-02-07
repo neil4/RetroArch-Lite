@@ -83,7 +83,6 @@ struct defaults
    char port_dir[PATH_MAX_LENGTH];
    char shader_dir[PATH_MAX_LENGTH];
    char savestate_dir[PATH_MAX_LENGTH];
-   char resampler_dir[PATH_MAX_LENGTH];
    char sram_dir[PATH_MAX_LENGTH];
    char screenshot_dir[PATH_MAX_LENGTH];
    char system_dir[PATH_MAX_LENGTH];
