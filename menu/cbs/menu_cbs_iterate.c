@@ -272,7 +272,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
    int stride_x = 1, stride_y = 1;
    menu_displaylist_info_t info     = {0};
    struct retro_game_geometry *geom = NULL;
-   const char *base_msg             = NULL;
+   const char *fmt                  = NULL;
    unsigned type                    = 0;
    video_viewport_t *custom         = video_viewport_get_custom();
    menu_display_t *disp             = menu_display_get_ptr();
@@ -280,6 +280,8 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
    menu_list_t *menu_list           = menu_list_get_ptr();
    settings_t *settings             = config_get_ptr();
    struct retro_system_av_info *av_info = video_viewport_get_system_av_info();
+
+   static video_viewport_t start_vp;
 
    if (!menu_list)
       return -1;
@@ -305,6 +307,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          else if (custom->height >= (unsigned)stride_y)
             custom->height -= stride_y;
 
+         start_vp.width = 0;  /* flag start_vp reset */
          break;
 
       case MENU_ACTION_DOWN:
@@ -317,6 +320,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          else
             custom->height += stride_y;
 
+         start_vp.width = 0;
          break;
 
       case MENU_ACTION_LEFT:
@@ -327,6 +331,8 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          }
          else if (custom->width >= (unsigned)stride_x)
             custom->width -= stride_x;
+
+         start_vp.width = 0;
          break;
 
       case MENU_ACTION_RIGHT:
@@ -338,6 +344,8 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          }
          else
             custom->width += stride_x;
+
+         start_vp.width = 0;
          break;
 
       case MENU_ACTION_CANCEL:
@@ -353,6 +361,8 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
 
             menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
          }
+         else
+            start_vp.width = 0;
          break;
 
       case MENU_ACTION_OK:
@@ -369,6 +379,8 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
 
             menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
          }
+         else
+            start_vp.width = 0;
          break;
 
       case MENU_ACTION_START:  /* reset to default aspect */
@@ -382,31 +394,75 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
             custom->height  = vp.full_height;
             custom->x       = (vp.full_width - custom->width) / 2;
             custom->y       = 0;
+
+            start_vp = *custom;
+         }
+         break;
+
+      case MENU_ACTION_L:  /* zoom out */
+         if (!settings->video.scale_integer && custom->height > 2)
+         {
+            if (!start_vp.width)
+               start_vp = *custom;
+
+            custom->height -= 2;
+            custom->y      += 1;
+
+            custom->width   = custom->height *
+               (start_vp.width / (float)start_vp.height) + 0.5f;
+            custom->x       = start_vp.x +
+               ((start_vp.width - (float)custom->width) / 2.0f) + 0.5f;
          }
          break;
          
-      case MENU_ACTION_L:  /* ten strides at a time */
-         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
+      case MENU_ACTION_R:  /* zoom in */
+         if (!settings->video.scale_integer)
          {
-            custom->x     -= 10*stride_x;
-            custom->width += 10*stride_x;
+            if (!start_vp.width)
+               start_vp = *custom;
+
+            custom->height += 2;
+            custom->y      -= 1;
+
+            custom->width   = custom->height *
+               (start_vp.width / (float)start_vp.height) + 0.5f;
+            custom->x       = start_vp.x +
+               ((start_vp.width - (float)custom->width) / 2.0f) + 0.5f;
          }
-         else if (custom->width >= (unsigned)(10*stride_x))
-            custom->width -= 10*stride_x;
 
          break;
-         
-      case MENU_ACTION_R:  /* ten strides at a time */
-         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
+
+      case MENU_ACTION_L2:  /* shift up or left */
+         if (!settings->video.scale_integer)
          {
-            if (custom->width >= (unsigned)(10*stride_x))
+            if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
             {
-               custom->x += 10*stride_x;
-               custom->width -= 10*stride_x;
+               custom->y  -= 1;
+               start_vp.y -= 1;
+            }
+            else
+            {
+               custom->x  -= 1;
+               start_vp.x -= 1;
             }
          }
-         else
-            custom->width += 10*stride_x;
+
+         break;
+
+      case MENU_ACTION_R2:  /* shift down or right */
+         if (!settings->video.scale_integer)
+         {
+            if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
+            {
+               custom->y  += 1;
+               start_vp.y += 1;
+            }
+            else
+            {
+               custom->x  += 1;
+               start_vp.x += 1;
+            }
+         }
 
          break;
 
@@ -425,16 +481,15 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
 
    if (settings->video.scale_integer)
    {
-      custom->x     = 0;
-      custom->y     = 0;
-      custom->width = ((custom->width + geom->base_width - 1) /
+      custom->x      = 0;
+      custom->y      = 0;
+      custom->width  = ((custom->width + geom->base_width - 1) /
             geom->base_width) * geom->base_width;
       custom->height = ((custom->height + geom->base_height - 1) /
             geom->base_height) * geom->base_height;
-      base_msg       = "Set scale";
+      fmt            = "Set scale (%ux%u, %u x %u scale)";
        
-      snprintf(s, len, "%s (%4ux%4u, %u x %u scale)",
-            base_msg,
+      snprintf(s, len, fmt,
             custom->width, custom->height,
             custom->width / geom->base_width,
             custom->height / geom->base_height);
@@ -442,12 +497,18 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
    else
    {
       if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
-         base_msg = "Set Upper-Left Corner";
+         fmt = "Set Upper-Left Corner (%d, %d : %ux%u)\n"
+               " D-Pad : Move Corner\n"
+               " L / R : Scale      \n"
+               "L2 / R2: Shift Y    ";
       else
-         base_msg = "Set Bottom-Right Corner";
+         fmt = "Set Bottom-Right Corner (%d, %d : %ux%u)\n"
+               " D-Pad : Move Corner\n"
+               " L / R : Scale      \n"
+               "L2 / R2: Shift X    ";
 
-      snprintf(s, len, "%s (%d, %d : %4ux%4u)",
-            base_msg, custom->x, custom->y, custom->width, custom->height);
+      snprintf(s, len, fmt,
+            custom->x, custom->y, custom->width, custom->height);
    }
 
    menu_driver_render_messagebox(s);
