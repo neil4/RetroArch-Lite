@@ -1337,7 +1337,10 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
 
 static INLINE void input_overlay_connect_mouse(input_overlay_t *ol)
 {
-   if ((overlay_mouse_active = ol->active->mouse_overlay))
+   bool old_mouse_active = overlay_mouse_active;
+   overlay_mouse_active = ol->active->mouse_overlay;
+
+   if (overlay_mouse_active && !old_mouse_active)
    {
       ol_mouse.prev_x = 0;
       ol_mouse.prev_y = 0;
@@ -1857,7 +1860,7 @@ static INLINE void input_overlay_mouse_poll()
 
    static int x_start, y_start, max_ptr_count;
    static retro_time_t start_usec;
-   static bool ignore_new;
+   static bool ignore_new_buttons;
 
    if (state->ptr_count != old_state->ptr_count)
    {
@@ -1883,7 +1886,7 @@ static INLINE void input_overlay_mouse_poll()
    brief   = (now_usec - start_usec) < 200000;
    longer  = (now_usec - start_usec) > 250000;
 
-   if (!swiping && !ignore_new)
+   if (!swiping && !ignore_new_buttons)
    {
       if (brief && !state->ptr_count && !ol_mouse.click)
          ol_mouse.click = (1 << (max_ptr_count - 1));
@@ -1897,11 +1900,11 @@ static INLINE void input_overlay_mouse_poll()
 
    if (!state->ptr_count)
    {
-      ignore_new    = false;
+      ignore_new_buttons = false;
       max_ptr_count = 0;
    }
    else if (longer)
-      ignore_new = true;
+      ignore_new_buttons = true;
 }
 
 static INLINE void input_overlay_update_mouse_scale()
@@ -2070,8 +2073,8 @@ void input_overlay_poll(input_overlay_t *overlay_device)
    input_overlay_state_t *state     = &driver->overlay_state;
    input_overlay_state_t *old_state = &driver->old_overlay_state;
 
-   unsigned ptr_count;
-   static unsigned old_ptr_count = 0;
+   unsigned input_count;
+   static unsigned old_input_count = 0;
 
    if (overlay_device->state != OVERLAY_STATUS_ALIVE)
       return;
@@ -2128,7 +2131,7 @@ void input_overlay_poll(input_overlay_t *overlay_device)
          if (polled_data.analog[j])
             state->analog[j] = polled_data.analog[j];
    }
-   ptr_count = i;
+   input_count = i;
 
    if (overlay_mouse_active)
       input_overlay_mouse_poll();
@@ -2186,21 +2189,21 @@ void input_overlay_poll(input_overlay_t *overlay_device)
       state->buttons |= menu_analog_dpad_state(state->analog[0],
                                                state->analog[1]);
 
-   if (ptr_count)
+   if (input_count)
       input_overlay_post_poll(overlay_device);
    else
       input_overlay_poll_clear(overlay_device);
 
    /* haptic feedback on button presses or direction changes */
    if ( driver->input->overlay_haptic_feedback
-        && ptr_count >= old_ptr_count
+        && input_count >= old_input_count
         && state->buttons != old_state->buttons
         && !overlay_device->blocked )
    {
       driver->input->overlay_haptic_feedback();
    }
 
-   old_ptr_count = ptr_count;
+   old_input_count = input_count;
 }
 
 static INLINE int16_t overlay_mouse_state(unsigned id)
