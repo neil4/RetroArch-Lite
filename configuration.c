@@ -1964,16 +1964,16 @@ bool config_save_file(const char *path)
 {
    unsigned i           = 0;
    bool ret             = false;
+   config_file_t *conf  = scoped_conf[GLOBAL];
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
    const video_viewport_t *custom_vp = (const video_viewport_t*)
       video_viewport_get_custom();
-   config_file_t *conf;
 
-   config_file_free(scoped_conf[GLOBAL]);
-   scoped_conf[GLOBAL] = NULL;
-
-   conf = config_file_new(NULL);
+   if (!conf)
+      conf = config_file_new(path);
+   if (!conf)
+      conf = config_file_new(NULL);
    if (!conf)
       return false;
 
@@ -2415,6 +2415,7 @@ bool config_save_file(const char *path)
 
    ret = config_file_write(conf, path);
    config_file_free(conf);
+   scoped_conf[GLOBAL] = NULL;
    return ret;
 }
 
@@ -2494,14 +2495,10 @@ static void scoped_config_file_save(unsigned scope)
    char fullpath[PATH_MAX_LENGTH]   = {0};
    global_t *global                 = global_get_ptr();
    settings_t *settings             = config_get_ptr();
-   config_file_t* conf;
+   config_file_t* conf              = scoped_conf[scope];
    unsigned i;
-
-   config_file_free(scoped_conf[scope]);
-   scoped_conf[scope] = NULL;
-
-   conf = config_file_new(NULL);
-   if (!conf)
+   
+   if (!global || !settings)
       return;
    
    /* Set scoped cfg path */
@@ -2511,6 +2508,18 @@ static void scoped_config_file_save(unsigned scope)
    fill_pathname_join(directory, settings->menu_config_directory,
                       global->libretro_name, PATH_MAX_LENGTH);
    fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
+   
+   /* Edit existing config if it exists. Unscoped settings will be removed. */
+   if (!conf)
+   {
+      conf = config_file_new(fullpath);
+      if (!conf)
+      {
+         conf = config_file_new(NULL);
+         if (!conf)
+            return;
+      }
+   }
 
    RARCH_LOG("Saving scoped config at path: \"%s\"\n", fullpath);
 
@@ -2807,6 +2816,7 @@ static void scoped_config_file_save(unsigned scope)
    
    /* Cleanup */
    config_file_free(conf);
+   scoped_conf[scope] = NULL;
 }
 
 void scoped_config_files_save()
