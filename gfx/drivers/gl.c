@@ -1483,13 +1483,15 @@ static INLINE void gl_draw_texture(gl_t *gl)
    glEnable(GL_BLEND);
 
    if (gl->menu_texture_full_screen)
-   {
       glViewport(0, 0, width, height);
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-      glViewport(gl->vp.x, gl->vp.y, gl->vp.width, gl->vp.height);
-   }
    else
-      glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+      glViewport(max(0, min(gl->vp.x, (int)width - (int)gl->vp.width)),
+                 max(0, min(gl->vp.y, (int)height - (int)gl->vp.height)),
+                 min(width, gl->vp.width),
+                 min(height, gl->vp.height));
+
+   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+   glViewport(gl->vp.x, gl->vp.y, gl->vp.width, gl->vp.height);
 
    glDisable(GL_BLEND);
 
