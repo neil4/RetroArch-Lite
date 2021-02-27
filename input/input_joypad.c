@@ -35,7 +35,7 @@
 static float analog_dpad_high_slope  = 2.4142f;
 static float analog_dpad_low_slope   = 0.4142f;
 static float analog_dpad_deadzone_sq = 0.1111f;
-bool analog_dpad_state_utd;  /* todo: a better way to flag updates */
+int16_t analog_dpad_state_utd;  /* todo: a better way to flag updates */
 
 void input_joypad_update_analog_dpad_params()
 {
@@ -189,7 +189,7 @@ bool input_joypad_pressed(
    uint64_t joykey;
    unsigned analog_idx;
    int16_t analog_x, analog_y;
-   static int64_t analog_dpad_state;
+   static int64_t analog_dpad_state[MAX_USERS];
    const struct retro_keybind *auto_binds = NULL;
    settings_t *settings = config_get_ptr();
    unsigned joy_idx = settings->input.joypad_map[port];
@@ -211,7 +211,7 @@ bool input_joypad_pressed(
 
    if (((UINT64_C(1) << key) & DPAD_MASK) && settings->input.analog_dpad_mode)
    {
-      if (!analog_dpad_state_utd)
+      if ((analog_dpad_state_utd & (1 << port)) == 0)
       {
          analog_idx = settings->input.analog_dpad_mode - 1;
          analog_x = input_joypad_analog(drv, port, analog_idx,
@@ -219,12 +219,12 @@ bool input_joypad_pressed(
          analog_y = input_joypad_analog(drv, port, analog_idx,
                           RETRO_DEVICE_ID_ANALOG_Y, binds);
 
-         analog_dpad_state = input_joypad_analog_eightway_state(analog_x,
-                                                                analog_y);
-         analog_dpad_state_utd = true;
+         analog_dpad_state[port] = input_joypad_analog_eightway_state(
+                                         analog_x, analog_y);
+         analog_dpad_state_utd |= (1 << port);
       }
 
-      return ((UINT64_C(1) << key) & analog_dpad_state);
+      return ((UINT64_C(1) << key) & analog_dpad_state[port]);
    }
 
    joyaxis = binds[key].joyaxis;
