@@ -517,6 +517,7 @@ static int action_ok_remap_file_load(const char *path,
          NULL, NULL);
 
    fill_pathname_join(remap_path, menu_path, path, sizeof(remap_path));
+   input_remapping_set_defaults();
    input_remapping_load_file(remap_path);
 
    menu_list_flush_stack(menu_list,
