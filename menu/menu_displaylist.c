@@ -1179,7 +1179,7 @@ static unsigned menu_displaylist_path_nav_idx(file_list_t *list, char *path)
    }
 
    /* Look for directory leading to path. */
-   for (i = 0; i < list->size; i++)
+   for (i = list->size - 1; i < list->size; i--)
    {
       if (list->list[i].type != MENU_FILE_DIRECTORY)
          continue;
