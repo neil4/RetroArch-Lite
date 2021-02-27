@@ -1220,7 +1220,6 @@ int rarch_main_init(int argc, char *argv[])
    event_command(EVENT_CMD_CONTROLLERS_INIT);
    event_command(EVENT_CMD_RECORD_INIT);
    event_command(EVENT_CMD_CHEATS_INIT);
-   event_command(EVENT_CMD_REMAPPING_INIT);
 
    event_command(EVENT_CMD_SAVEFILES_INIT);
 #if defined(GEKKO) && defined(HW_RVL)

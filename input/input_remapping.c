@@ -137,15 +137,11 @@ int remap_file_load_auto()
          strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
       }
    }
+
+   input_remapping_set_defaults();
    
-   if ( path_file_exists(fullpath)
-        && input_remapping_load_file(fullpath) )
-      strlcpy(settings->input.remapping_path, fullpath, PATH_MAX_LENGTH);
-   else
-   {  /* fall back to default mapping */
+   if (!path_file_exists(fullpath) || !input_remapping_load_file(fullpath))
       settings->input.remapping_path[0] = '\0';
-      input_remapping_set_defaults();
-   }
 
    return 0;
 }

@@ -689,16 +689,6 @@ static bool event_save_auto_state(void)
    return true;
 }
 
-static void event_init_remapping(void)
-{
-   settings_t *settings = config_get_ptr();
-
-   if (!settings->input.remap_binds_enable)
-      return;
-
-   input_remapping_load_file(settings->input.remapping_path);
-}
-
 /**
  * event_save_state
  * @path            : Path to state.
@@ -1013,12 +1003,6 @@ bool event_command(enum event_command cmd)
       case EVENT_CMD_CHEATS_INIT:
          event_command(EVENT_CMD_CHEATS_DEINIT);
          event_init_cheats();
-         break;
-      case EVENT_CMD_REMAPPING_DEINIT:
-         break;
-      case EVENT_CMD_REMAPPING_INIT:
-         event_command(EVENT_CMD_REMAPPING_DEINIT);
-         event_init_remapping();
          break;
       case EVENT_CMD_REWIND_DEINIT:
          if (!global)
