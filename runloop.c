@@ -747,11 +747,6 @@ static bool check_block_hotkey(bool enable_hotkey)
       &settings->input.binds[0][RARCH_ENABLE_HOTKEY];
    const struct retro_keybind *autoconf_bind = 
       &settings->input.autoconf_binds[0][RARCH_ENABLE_HOTKEY];
-   
-   /* Don't block the check to RARCH_ENABLE_HOTKEY
-    * unless we're really supposed to. */
-   driver->block_hotkey             = 
-      input_driver_keyboard_mapping_is_blocked();
 
    /* If we haven't bound anything to this, 
     * always allow hotkeys. */
