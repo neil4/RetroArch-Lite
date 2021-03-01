@@ -32,6 +32,7 @@
 #include "performance.h"
 #include "input/keyboard_line.h"
 #include "input/input_remapping.h"
+#include "input/input_joypad_to_keyboard.h"
 #include "audio/audio_driver.h"
 #include "audio/audio_utils.h"
 #include "retroarch_logger.h"
@@ -180,6 +181,9 @@ static int16_t input_state(unsigned port, unsigned device,
       if (id < RARCH_CUSTOM_BIND_LIST_END || device == RETRO_DEVICE_KEYBOARD)
          res = input_driver_state(libretro_input_binds, port, device, idx, id);
 
+      if (device == RETRO_DEVICE_KEYBOARD)
+         res |= input_joykbd_state(id);
+
 #ifdef HAVE_OVERLAY
       if (settings->input.overlay_enable)
          res |= input_overlay_state(port, device, idx, id);
@@ -211,6 +215,8 @@ static void input_poll(void)
    if (driver->overlay)
       input_overlay_poll(driver->overlay);
 #endif
+
+   input_joykbd_poll();
 
 #ifdef HAVE_COMMAND
    if (driver->command)

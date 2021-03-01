@@ -29,6 +29,7 @@
 #include "../../performance.h"
 
 #include "../../input/input_remapping.h"
+#include "../../input/input_joypad_to_keyboard.h"
 
 extern int setting_action_start_libretro_device_type(void *data);
 
@@ -210,6 +211,20 @@ static int action_start_input_desc(unsigned type, const char *label)
    else
       settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] =
          inp_desc_button_index_offset - RARCH_FIRST_CUSTOM_BIND;
+
+   return 0;
+}
+
+static int action_start_joykey_input_desc(unsigned type, const char *label)
+{
+   unsigned joykey_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
+   uint16_t joy_btn  = joykbd_bind_list[joykey_list_offset].btn;
+   enum retro_key rk = joykbd_bind_list[joykey_list_offset].rk;
+
+   (void)label;
+
+   if (joy_btn < RARCH_FIRST_CUSTOM_BIND)
+      input_joykbd_remove_bind(rk, joy_btn);
 
    return 0;
 }
@@ -482,6 +497,9 @@ static int menu_cbs_init_bind_start_compare_type(menu_file_list_cbs_t *cbs,
    else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
          && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
       cbs->action_start = action_start_libretro_device_type;
+   else if (type >= MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN
+         && type <= MENU_SETTINGS_INPUT_JOYKBD_LIST_END)
+      cbs->action_start = action_start_joykey_input_desc;
    else
       return -1;
 

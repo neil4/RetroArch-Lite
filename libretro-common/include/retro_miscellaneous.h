@@ -176,9 +176,9 @@ typedef struct
 #define BIT64_GET(a, bit) (!!((a) &   (1ULL << ((bit) & 63))))
 #define BIT64_CLEAR_ALL(a)   ((a) = 0)
 
-#define BIT128_SET(a, bit)   ((a).data[(bit) >> 5] |=  (1 << ((bit) & 31))
-#define BIT128_CLEAR(a, bit) ((a).data[(bit) >> 5] &= ~(1 << ((bit) & 31)))
-#define BIT128_GET(a, bit)   ((a).data[(bit) >> 5] &   (1 << ((bit) & 31)))
-#define BIT128_CLEAR_ALL(a)  memset(&(a), 0, sizeof(a));
+#define BITARRAY32_SET(a, bit)   ((a)[(bit) >> 5] |=  (1 << ((bit) & 31)))
+#define BITARRAY32_CLEAR(a, bit) ((a)[(bit) >> 5] &= ~(1 << ((bit) & 31)))
+#define BITARRAY32_GET(a, bit)   ((a)[(bit) >> 5] &   (1 << ((bit) & 31)))
+#define BITARRAY32_CLEAR_ALL(a)  memset((a), 0, sizeof(a));
 
 #endif

@@ -20,6 +20,7 @@
 #include "retroarch_logger.h"
 #include "performance.h"
 #include "preempt.h"
+#include "input/input_joypad_to_keyboard.h"
 #include <file/file_path.h>
 #include <string.h>
 #include <ctype.h>
@@ -799,6 +800,8 @@ bool rarch_environment_cb(unsigned cmd, void *data)
             global->has_set_input_descriptors = true;
          else
             global->has_set_input_descriptors = false;
+
+         input_joykbd_update_enabled();
 
          break;
       }

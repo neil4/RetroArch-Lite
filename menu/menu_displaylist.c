@@ -35,6 +35,8 @@
 #include "../performance.h"
 #include "../tasks/tasks.h"
 #include "../input/input_remapping.h"
+#include "../input/input_keymaps.h"
+#include "../input/input_joypad_to_keyboard.h"
 
 #ifdef HAVE_NETWORKING
 extern char *core_buf;
@@ -886,6 +888,26 @@ static int menu_displaylist_parse_options_cheats(menu_displaylist_info_t *info)
    return 0;
 }
 
+static INLINE void menu_displaylist_push_joykbd_binds(
+      menu_displaylist_info_t *info)
+{
+   char desc_label[64];
+   char rk_buf[64];
+   unsigned i;
+
+   for (i = 0; i < JOYKBD_LIST_LEN; i++)
+   {
+      enum retro_key rk = joykbd_bind_list[i].rk;
+
+      input_keymaps_translate_rk_to_str(rk, rk_buf, sizeof(rk_buf));
+      rk_buf[0] -= 32; /* uppercase 1st letter */
+      snprintf(desc_label, sizeof(desc_label), "Keyboard %s: ", rk_buf);
+
+      menu_list_push(info->list, desc_label, "",
+         MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN + i, 0, 0);
+   }
+}
+
 static INLINE void menu_displaylist_push_remap(menu_displaylist_info_t *info,
                                                unsigned p, unsigned retro_id)
 {
@@ -915,6 +937,7 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
    unsigned p, retro_id;
    settings_t *settings   = config_get_ptr();
    global_t   *global     = global_get_ptr();
+   bool        kbd_shown  = false;
    char buf[32];
 
    menu_list_push(info->list,
@@ -951,6 +974,14 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
 
    for (p = 0; p < settings->input.max_users; p++)
    {
+      if ((RETRO_DEVICE_MASK & settings->input.libretro_device[p])
+             == RETRO_DEVICE_KEYBOARD && !kbd_shown)
+      {
+         menu_displaylist_push_joykbd_binds(info);
+         kbd_shown = true;
+         continue;
+      }
+
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_B);
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_A);
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_Y);
@@ -1240,8 +1271,9 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          menu_list_clear(info->list);
          if (!global->has_set_input_descriptors)
          {
-            rarch_main_msg_queue_push("Defaulting to RetroPad input "
-                                      "descriptors.", 1, 180, true);
+            if (!joykbd_enabled)
+               rarch_main_msg_queue_push("Defaulting to RetroPad input "
+                                         "descriptors.", 1, 180, true);
             input_remapping_set_default_desc();
          }
          ret = menu_displaylist_parse_options_remappings(info);

@@ -22,6 +22,8 @@
 #include "../menu_shader.h"
 #include "../menu_navigation.h"
 
+#include "../../input/input_joypad_to_keyboard.h"
+
 #include "../../general.h"
 #include "../../retroarch.h"
 
@@ -124,6 +126,46 @@ int action_r_input_desc(unsigned type, const char *label)
       settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = RARCH_FIRST_CUSTOM_BIND - 1;
    else
       settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = 4 - 1;
+
+   return 0;
+}
+
+static int action_right_joykey_input_desc(unsigned type, const char *label,
+      bool wraparound)
+{
+   unsigned joykey_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
+   uint16_t joy_btn  = joykbd_bind_list[joykey_list_offset].btn;
+   enum retro_key rk = joykbd_bind_list[joykey_list_offset].rk;
+
+   /* Treat NO_BTN as leftmost value */
+   if (joy_btn < RARCH_FIRST_CUSTOM_BIND - 1)
+   {
+      input_joykbd_remove_bind(rk, joy_btn);
+      joy_btn++;
+      input_joykbd_add_bind(rk, joy_btn);
+   }
+   else if (joy_btn > RARCH_FIRST_CUSTOM_BIND - 1)
+   {
+      joy_btn = 0;
+      input_joykbd_add_bind(rk, joy_btn);
+   }
+
+   return 0;
+}
+
+static int action_r_joykey_input_desc(unsigned type, const char *label)
+{
+   unsigned joykey_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
+   uint16_t joy_btn  = joykbd_bind_list[joykey_list_offset].btn;
+   enum retro_key rk = joykbd_bind_list[joykey_list_offset].rk;
+
+   /* Treat NO_BTN as leftmost value */
+   if (joy_btn != RARCH_FIRST_CUSTOM_BIND - 1)
+   {
+      input_joykbd_remove_bind(rk, joy_btn);
+      joy_btn = RARCH_FIRST_CUSTOM_BIND - 1;
+      input_joykbd_add_bind(rk, joy_btn);
+   }
 
    return 0;
 }
@@ -433,6 +475,12 @@ static int menu_cbs_init_bind_right_compare_type(menu_file_list_cbs_t *cbs,
    else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
          && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
       cbs->action_right = action_right_libretro_device_type;
+   else if (type >= MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN
+         && type <= MENU_SETTINGS_INPUT_JOYKBD_LIST_END)
+   {
+      cbs->action_right = action_right_joykey_input_desc;
+      cbs->action_r = action_r_joykey_input_desc;
+   }
    else
    {
       switch (type)

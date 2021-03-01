@@ -22,6 +22,8 @@
 #include "../general.h"
 #include "../dynamic.h"
 #include "../libretro.h"
+#include "input_keymaps.h"
+#include "input_joypad_to_keyboard.h"
 
 #define MAX_REMAP_DESCS 20
 
@@ -94,6 +96,21 @@ bool input_remapping_load_file(const char *path)
          if (config_get_int(conf, key_ident[RARCH_FIRST_CUSTOM_BIND + j], &key_remap) && key_remap < 4)
             settings->input.remap_ids[i][RARCH_FIRST_CUSTOM_BIND + j] = key_remap;
       }
+   }
+
+   for (j = 0; j < JOYKBD_LIST_LEN; j++)
+   {
+      char buf[64]      = {0};
+      char rk_buf[64]   = {0};
+      enum retro_key rk = joykbd_bind_list[j].rk;
+      int joy_id        = NO_BTN;
+
+      input_keymaps_translate_rk_to_str(rk, rk_buf, sizeof(rk_buf));
+      snprintf(buf, sizeof(buf), "input_keyboard_%s", rk_buf);
+
+      if (config_get_int(conf, buf, &joy_id)
+            && joy_id < RARCH_FIRST_CUSTOM_BIND)
+         input_joykbd_add_bind(rk, joy_id);
    }
 
    config_file_free(conf);
@@ -192,6 +209,21 @@ bool input_remapping_save_file(const char *path)
       }
    }
 
+   for (j = 0; j < JOYKBD_LIST_LEN; j++)
+   {
+      char rk_buf[64]   = {0};
+      enum retro_key rk = joykbd_bind_list[j].rk;
+      uint16_t btn      = joykbd_bind_list[j].btn;
+
+      input_keymaps_translate_rk_to_str(rk, rk_buf, sizeof(rk_buf));
+      snprintf(buf, sizeof(buf), "input_keyboard_%s", rk_buf);
+
+      if (btn < RARCH_FIRST_CUSTOM_BIND)
+         config_set_int(conf, buf, btn);
+      else
+         config_remove_entry(conf, buf);
+   }
+
    ret = config_file_write(conf, remap_file);
    config_file_free(conf);
    
@@ -213,6 +245,8 @@ void input_remapping_set_defaults(void)
       for (j = 0; j < 4; j++)
          settings->input.remap_ids[i][RARCH_FIRST_CUSTOM_BIND + j] = j;
    }
+
+   input_joykbd_init_binds();
 }
 
 void input_remapping_state(unsigned port,

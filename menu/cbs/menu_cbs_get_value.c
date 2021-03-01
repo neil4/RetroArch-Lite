@@ -382,6 +382,29 @@ static void menu_action_setting_disp_set_label_input_desc(
    strlcpy(s2, path, len2);
 }
 
+static void menu_action_setting_disp_set_label_joykey_input_desc(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   settings_t *settings = config_get_ptr();
+   unsigned joykey_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
+   uint16_t joy_id             = joykbd_bind_list[joykey_list_offset].btn;
+
+   if (joy_id < RARCH_FIRST_CUSTOM_BIND)
+      snprintf(s, len, "%s",
+            settings->input.binds[0][joy_id].desc);
+   else
+      snprintf(s, len, "--");
+
+   *w = 19;
+   strlcpy(s2, path, len2);
+}
+
 static void menu_action_setting_disp_set_label_cheat(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
@@ -980,6 +1003,10 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
          && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
       cbs->action_get_value =
          menu_action_setting_disp_set_label_libretro_device;
+   else if (type >= MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN
+         && type <= MENU_SETTINGS_INPUT_JOYKBD_LIST_END)
+      cbs->action_get_value =
+         menu_action_setting_disp_set_label_joykey_input_desc;
    else
    {
       switch (type)
