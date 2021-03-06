@@ -215,15 +215,15 @@ static int action_start_input_desc(unsigned type, const char *label)
    return 0;
 }
 
-static int action_start_joykey_input_desc(unsigned type, const char *label)
+static int action_start_joykbd_input_desc(unsigned type, const char *label)
 {
-   unsigned joykey_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
-   uint16_t joy_btn  = joykbd_bind_list[joykey_list_offset].btn;
-   enum retro_key rk = joykbd_bind_list[joykey_list_offset].rk;
+   unsigned joykbd_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
+   uint16_t joy_btn  = joykbd_bind_list[joykbd_list_offset].btn;
+   enum retro_key rk = joykbd_bind_list[joykbd_list_offset].rk;
 
    (void)label;
 
-   if (joy_btn < RARCH_FIRST_CUSTOM_BIND)
+   if (joy_btn < NUM_JOYKBD_BTNS)
       input_joykbd_remove_bind(rk, joy_btn);
 
    return 0;
@@ -499,7 +499,7 @@ static int menu_cbs_init_bind_start_compare_type(menu_file_list_cbs_t *cbs,
       cbs->action_start = action_start_libretro_device_type;
    else if (type >= MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN
          && type <= MENU_SETTINGS_INPUT_JOYKBD_LIST_END)
-      cbs->action_start = action_start_joykey_input_desc;
+      cbs->action_start = action_start_joykbd_input_desc;
    else
       return -1;
 

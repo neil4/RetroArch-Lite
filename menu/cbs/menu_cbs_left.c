@@ -120,15 +120,15 @@ static int action_l_input_desc(unsigned type, const char *label)
    return 0;
 }
 
-static int action_left_joykey_input_desc(unsigned type, const char *label,
+static int action_left_joykbd_input_desc(unsigned type, const char *label,
       bool wraparound)
 {
-   unsigned joykey_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
-   uint16_t joy_btn  = joykbd_bind_list[joykey_list_offset].btn;
-   enum retro_key rk = joykbd_bind_list[joykey_list_offset].rk;
+   unsigned joykbd_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
+   uint16_t joy_btn  = joykbd_bind_list[joykbd_list_offset].btn;
+   enum retro_key rk = joykbd_bind_list[joykbd_list_offset].rk;
 
    /* Treat NO_BTN as leftmost value */
-   if (joy_btn < RARCH_FIRST_CUSTOM_BIND)
+   if (joy_btn < NUM_JOYKBD_BTNS)
    {
       input_joykbd_remove_bind(rk, joy_btn);
       joy_btn--;
@@ -138,14 +138,14 @@ static int action_left_joykey_input_desc(unsigned type, const char *label,
    return 0;
 }
 
-static int action_l_joykey_input_desc(unsigned type, const char *label)
+static int action_l_joykbd_input_desc(unsigned type, const char *label)
 {
-   unsigned joykey_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
-   uint16_t joy_btn  = joykbd_bind_list[joykey_list_offset].btn;
-   enum retro_key rk = joykbd_bind_list[joykey_list_offset].rk;
+   unsigned joykbd_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
+   uint16_t joy_btn  = joykbd_bind_list[joykbd_list_offset].btn;
+   enum retro_key rk = joykbd_bind_list[joykbd_list_offset].rk;
 
   /* Treat NO_BTN as leftmost value */
-   if (joy_btn < RARCH_FIRST_CUSTOM_BIND)
+   if (joy_btn < NUM_JOYKBD_BTNS)
       input_joykbd_remove_bind(rk, joy_btn);
 
    return 0;
@@ -577,8 +577,8 @@ static int menu_cbs_init_bind_left_compare_type(menu_file_list_cbs_t *cbs,
    else if (type >= MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN
          && type <= MENU_SETTINGS_INPUT_JOYKBD_LIST_END)
    {
-      cbs->action_left = action_left_joykey_input_desc;
-      cbs->action_l = action_l_joykey_input_desc;
+      cbs->action_left = action_left_joykbd_input_desc;
+      cbs->action_l = action_l_joykbd_input_desc;
    }
    else
    {

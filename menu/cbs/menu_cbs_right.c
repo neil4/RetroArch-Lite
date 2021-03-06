@@ -130,21 +130,21 @@ int action_r_input_desc(unsigned type, const char *label)
    return 0;
 }
 
-static int action_right_joykey_input_desc(unsigned type, const char *label,
+static int action_right_joykbd_input_desc(unsigned type, const char *label,
       bool wraparound)
 {
-   unsigned joykey_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
-   uint16_t joy_btn  = joykbd_bind_list[joykey_list_offset].btn;
-   enum retro_key rk = joykbd_bind_list[joykey_list_offset].rk;
+   unsigned joykbd_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
+   uint16_t joy_btn  = joykbd_bind_list[joykbd_list_offset].btn;
+   enum retro_key rk = joykbd_bind_list[joykbd_list_offset].rk;
 
    /* Treat NO_BTN as leftmost value */
-   if (joy_btn < RARCH_FIRST_CUSTOM_BIND - 1)
+   if (joy_btn < NUM_JOYKBD_BTNS - 1)
    {
       input_joykbd_remove_bind(rk, joy_btn);
       joy_btn++;
       input_joykbd_add_bind(rk, joy_btn);
    }
-   else if (joy_btn > RARCH_FIRST_CUSTOM_BIND - 1)
+   else if (joy_btn > NUM_JOYKBD_BTNS - 1)
    {
       joy_btn = 0;
       input_joykbd_add_bind(rk, joy_btn);
@@ -153,17 +153,17 @@ static int action_right_joykey_input_desc(unsigned type, const char *label,
    return 0;
 }
 
-static int action_r_joykey_input_desc(unsigned type, const char *label)
+static int action_r_joykbd_input_desc(unsigned type, const char *label)
 {
-   unsigned joykey_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
-   uint16_t joy_btn  = joykbd_bind_list[joykey_list_offset].btn;
-   enum retro_key rk = joykbd_bind_list[joykey_list_offset].rk;
+   unsigned joykbd_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
+   uint16_t joy_btn  = joykbd_bind_list[joykbd_list_offset].btn;
+   enum retro_key rk = joykbd_bind_list[joykbd_list_offset].rk;
 
    /* Treat NO_BTN as leftmost value */
-   if (joy_btn != RARCH_FIRST_CUSTOM_BIND - 1)
+   if (joy_btn != NUM_JOYKBD_BTNS - 1)
    {
       input_joykbd_remove_bind(rk, joy_btn);
-      joy_btn = RARCH_FIRST_CUSTOM_BIND - 1;
+      joy_btn = NUM_JOYKBD_BTNS - 1;
       input_joykbd_add_bind(rk, joy_btn);
    }
 
@@ -478,8 +478,8 @@ static int menu_cbs_init_bind_right_compare_type(menu_file_list_cbs_t *cbs,
    else if (type >= MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN
          && type <= MENU_SETTINGS_INPUT_JOYKBD_LIST_END)
    {
-      cbs->action_right = action_right_joykey_input_desc;
-      cbs->action_r = action_r_joykey_input_desc;
+      cbs->action_right = action_right_joykbd_input_desc;
+      cbs->action_r = action_r_joykbd_input_desc;
    }
    else
    {

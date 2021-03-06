@@ -20,6 +20,7 @@
 #include "../menu_shader.h"
 #include "../menu_hash.h"
 
+#include "../../input/input_common.h"
 #include "../../general.h"
 #include "../../performance.h"
 #include "../../intl/intl.h"
@@ -382,7 +383,7 @@ static void menu_action_setting_disp_set_label_input_desc(
    strlcpy(s2, path, len2);
 }
 
-static void menu_action_setting_disp_set_label_joykey_input_desc(
+static void menu_action_setting_disp_set_label_joykbd_input_desc(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
       const char *label,
@@ -392,12 +393,15 @@ static void menu_action_setting_disp_set_label_joykey_input_desc(
       char *s2, size_t len2)
 {
    settings_t *settings = config_get_ptr();
-   unsigned joykey_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
-   uint16_t joy_id             = joykbd_bind_list[joykey_list_offset].btn;
+   unsigned joykbd_list_offset = type - MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN;
+   uint16_t joy_id             = joykbd_bind_list[joykbd_list_offset].btn;
 
    if (joy_id < RARCH_FIRST_CUSTOM_BIND)
       snprintf(s, len, "%s",
             settings->input.binds[0][joy_id].desc);
+   else if (joy_id < NUM_JOYKBD_BTNS)
+      snprintf(s, len, "%s",
+            input_config_bind_map[joy_id].desc);
    else
       snprintf(s, len, "--");
 
@@ -1006,7 +1010,7 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
    else if (type >= MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN
          && type <= MENU_SETTINGS_INPUT_JOYKBD_LIST_END)
       cbs->action_get_value =
-         menu_action_setting_disp_set_label_joykey_input_desc;
+         menu_action_setting_disp_set_label_joykbd_input_desc;
    else
    {
       switch (type)

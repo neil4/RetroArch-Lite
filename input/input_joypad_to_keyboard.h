@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 #define JOYKBD_LIST_LEN 100
-#define JOYKBD_BIND_LIMIT 8
+#define NUM_JOYKBD_BTNS (RARCH_FIRST_CUSTOM_BIND + 8)
 
 struct joykbd_bind
 {

@@ -18,7 +18,7 @@
 extern const struct retro_keybind *libretro_input_binds[];
 
 /* Each bind is a linked list within @joykbd_bind_list */
-static struct joykbd_bind *joykbd_binds[RARCH_FIRST_CUSTOM_BIND];
+static struct joykbd_bind *joykbd_binds[NUM_JOYKBD_BTNS];
 
 static uint32_t joykbd_state[RETROK_LAST / 32 + 1];
 
@@ -162,7 +162,7 @@ void input_joykbd_add_bind(enum retro_key rk, uint8_t btn)
 {
    unsigned i;
 
-   if (btn >= RARCH_FIRST_CUSTOM_BIND)
+   if (btn >= NUM_JOYKBD_BTNS)
       return;
 
    /* find key */
@@ -171,7 +171,7 @@ void input_joykbd_add_bind(enum retro_key rk, uint8_t btn)
       return;
 
    /* unbind if bound */
-   if (joykbd_bind_list[i].btn < RARCH_FIRST_CUSTOM_BIND)
+   if (joykbd_bind_list[i].btn < NUM_JOYKBD_BTNS)
       input_joykbd_remove_bind(rk, joykbd_bind_list[i].btn);
 
    /* update head or link to tail*/
@@ -193,7 +193,7 @@ void input_joykbd_add_bind(enum retro_key rk, uint8_t btn)
 
 void input_joykbd_remove_bind(enum retro_key rk, uint8_t btn)
 {
-   struct joykbd_bind *bind = btn < RARCH_FIRST_CUSTOM_BIND ?
+   struct joykbd_bind *bind = btn < NUM_JOYKBD_BTNS ?
                               joykbd_binds[btn] : NULL;
    struct joykbd_bind *prev = NULL;
 
@@ -218,14 +218,14 @@ void input_joykbd_remove_bind(enum retro_key rk, uint8_t btn)
    bind->next = NULL;
 }
 
-static INLINE void input_joykbd_update_state(uint16_t btn_state)
+static INLINE void input_joykbd_update_state(uint32_t btn_state)
 {
    global_t *global = global_get_ptr();
    struct joykbd_bind *bind;
-   uint16_t diff, i;
+   uint32_t diff, i;
    bool down;
 
-   static uint16_t old_btn_state;
+   static uint32_t old_btn_state;
 
    if (btn_state == old_btn_state)
       return;
@@ -233,7 +233,7 @@ static INLINE void input_joykbd_update_state(uint16_t btn_state)
    diff = btn_state ^ old_btn_state;
    old_btn_state = btn_state;
 
-   for (i = 0; i < RARCH_FIRST_CUSTOM_BIND; i++)
+   for (i = 0; i < NUM_JOYKBD_BTNS; i++)
    {
       if ((diff & (1 << i)) == 0)
          continue;
@@ -264,17 +264,20 @@ static INLINE void input_joykbd_update_state(uint16_t btn_state)
  **/
 void input_joykbd_poll()
 {
-   uint16_t btn_state = driver_get_ptr()->overlay_state.buttons;
+   uint32_t btn_state = driver_get_ptr()->overlay_state.buttons;
    uint8_t i;
 
    if (menu_driver_alive() || !joykbd_enabled)
       return;
 
    input_driver_keyboard_mapping_set_block(true);
-   for (i = 0; i < RARCH_FIRST_CUSTOM_BIND; i++)
+   for (i = 0; i < NUM_JOYKBD_BTNS; i++)
    {
+      if (joykbd_binds[i] == NULL)
+         continue;
+
       if (input_driver_state(libretro_input_binds,
-            0, RETRO_DEVICE_JOYPAD, 0, i))
+             0, RETRO_DEVICE_JOYPAD, 0, i))
          btn_state |= (1 << i);
    }
    input_driver_keyboard_mapping_set_block(false);

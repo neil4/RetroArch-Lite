@@ -109,7 +109,7 @@ bool input_remapping_load_file(const char *path)
       snprintf(buf, sizeof(buf), "input_keyboard_%s", rk_buf);
 
       if (config_get_int(conf, buf, &joy_id)
-            && joy_id < RARCH_FIRST_CUSTOM_BIND)
+            && joy_id < NUM_JOYKBD_BTNS)
          input_joykbd_add_bind(rk, joy_id);
    }
 
@@ -218,7 +218,7 @@ bool input_remapping_save_file(const char *path)
       input_keymaps_translate_rk_to_str(rk, rk_buf, sizeof(rk_buf));
       snprintf(buf, sizeof(buf), "input_keyboard_%s", rk_buf);
 
-      if (btn < RARCH_FIRST_CUSTOM_BIND)
+      if (btn < NUM_JOYKBD_BTNS)
          config_set_int(conf, buf, btn);
       else
          config_remove_entry(conf, buf);
