@@ -499,12 +499,12 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
       if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
          fmt = "Set Upper-Left Corner (%d, %d : %ux%u)\n"
                " D-Pad : Move Corner\n"
-               " L / R : Scale      \n"
+               " L / R : Zoom       \n"
                "L2 / R2: Shift Y    ";
       else
          fmt = "Set Bottom-Right Corner (%d, %d : %ux%u)\n"
                " D-Pad : Move Corner\n"
-               " L / R : Scale      \n"
+               " L / R : Zoom       \n"
                "L2 / R2: Shift X    ";
 
       snprintf(s, len, fmt,
