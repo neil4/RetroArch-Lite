@@ -83,6 +83,7 @@ struct joykbd_bind joykbd_bind_list[JOYKBD_LIST_LEN] = {
    {.rk = RETROK_PERIOD,       .btn = NO_BTN, .next = NULL},
    {.rk = RETROK_SLASH,        .btn = NO_BTN, .next = NULL},
    {.rk = RETROK_SEMICOLON,    .btn = NO_BTN, .next = NULL},
+   {.rk = RETROK_QUOTE,        .btn = NO_BTN, .next = NULL},
    {.rk = RETROK_EQUALS,       .btn = NO_BTN, .next = NULL},
    {.rk = RETROK_LEFTBRACKET,  .btn = NO_BTN, .next = NULL},
    {.rk = RETROK_BACKSLASH,    .btn = NO_BTN, .next = NULL},
