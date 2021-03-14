@@ -261,45 +261,48 @@ public final class DownloadableCoresFragment extends ListFragment
       @Override
       protected ArrayList<DownloadableCore> doInBackground(Void... params)
       {
+         final ArrayList<DownloadableCore> downloadableCores = new ArrayList<DownloadableCore>();
+
          try
          {
-            final Connection conn = Build.CPU_ABI.startsWith("arm") ?
-                                       Jsoup.connect(BUILDBOT_CORE_URL_ARM)
-                                       : Jsoup.connect(BUILDBOT_CORE_URL_INTEL);
-            final Elements coreElements = conn.get().body().getElementsByClass("fb-n").select("a");
+            String buildbotURL = (Build.CPU_ABI.startsWith("arm") ?
+                  BUILDBOT_CORE_URL_ARM : BUILDBOT_CORE_URL_INTEL);
 
-            final ArrayList<DownloadableCore> downloadableCores = new ArrayList<DownloadableCore>();
+            HttpURLConnection conn = (HttpURLConnection) new URL(buildbotURL + ".index")
+                  .openConnection();
+            conn.connect();
 
-            // NOTE: Start from 1 to skip the ".." (parent directory element)
-            //       Set this to zero if directory-based browsing becomes a thing.
-            for (int i = 1; i < coreElements.size(); i++)
+            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK)
             {
-               Element coreElement = coreElements.get(i);
+               Log.i("IndexDownload", "HTTP response code not OK. Response code: "
+                     + conn.getResponseCode());
+               return downloadableCores;
+            }
 
-               final String coreURL = BUILDBOT_BASE_URL + coreElement.attr("href");
-               final String infoPath = getContext().getApplicationInfo().dataDir + "/info/"
-                     + coreURL.substring(coreURL.lastIndexOf("/") + 1)
-                              .replace("_android.so.zip", ".info");
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 
-               Pair<String,String> pair = getTitlePair(infoPath); // (name,mfr+system)
-               if (new File(infoPath).exists() == false)
+            for (String fileName; (fileName = br.readLine()) != null;)
+            {
+               String coreURL  = buildbotURL + fileName;
+               String infoPath = getContext().getApplicationInfo().dataDir + "/info/"
+                     + fileName.replace("_android.so.zip", ".info");
+
+               Pair<String,String> pair = getTitlePair(infoPath); // (name, mfr+system)
+               if (!new File(infoPath).exists())
                   InfoFileMissing = true;
 
                downloadableCores.add(new DownloadableCore(pair.first, pair.second, coreURL));
             }
-            
-            // sort by system name
-            Collections.sort(downloadableCores);
 
-            return downloadableCores;
+            Collections.sort(downloadableCores);
+            br.close();
          }
          catch (IOException e)
          {
             Log.e("PopulateCoresListOp", e.toString());
-
-            // Make a dummy entry to notify an error.
-            return new ArrayList<DownloadableCore>();
          }
+
+         return downloadableCores;
       }
 
       @Override
