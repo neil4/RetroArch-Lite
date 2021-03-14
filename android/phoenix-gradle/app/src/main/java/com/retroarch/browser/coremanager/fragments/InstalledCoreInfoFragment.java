@@ -1,10 +1,5 @@
 package com.retroarch.browser.coremanager.fragments;
 
-import java.io.File;
-
-import com.retroarchlite.R;
-import com.retroarch.browser.ModuleWrapper;
-
 import android.content.Context;
 import android.graphics.Point;
 import android.graphics.Typeface;
@@ -14,9 +9,15 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.retroarch.browser.ModuleWrapper;
+import com.retroarchlite.R;
+
+import java.io.File;
 
 /**
  * Fragment that displays information about a selected core.
@@ -89,11 +90,11 @@ public final class InstalledCoreInfoFragment extends DialogFragment
       Point size = new Point();
       display.getSize(size);
 
-      ViewGroup.LayoutParams params = getDialog().getWindow().getAttributes();
+      WindowManager.LayoutParams params = getDialog().getWindow().getAttributes();
       if (size.x > size.y)
          params.width = (50 * size.x) / 100;
 
-      getDialog().getWindow().setAttributes((android.view.WindowManager.LayoutParams) params);
+      getDialog().getWindow().setAttributes(params);
    }
 
    /**

@@ -1,11 +1,11 @@
 package com.retroarch.browser;
 
-import java.io.File;
+import android.graphics.drawable.Drawable;
 
 import com.retroarch.browser.preferences.util.ConfigFile;
 import com.retroarchlite.R;
 
-import android.graphics.drawable.Drawable;
+import java.io.File;
 
 public final class FileWrapper implements IconAdapterItem, Comparable<FileWrapper> {
 

@@ -1,15 +1,15 @@
 package com.retroarch.browser.preferences.util;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
-
-import android.util.Log;
 
 /**
  * Represents a configuration file that works off of a key-value pair
@@ -204,12 +204,7 @@ public final class ConfigFile
     */
    public String getString(String key)
    {
-      String ret = map.get(key);
-
-      if (ret != null)
-         return ret;
-      else
-         return null;
+      return map.get(key);
    }
 
    /**

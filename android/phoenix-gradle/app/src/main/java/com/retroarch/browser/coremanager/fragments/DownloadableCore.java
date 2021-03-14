@@ -9,7 +9,7 @@ final class DownloadableCore implements Comparable<DownloadableCore>
    private final String systemName;
    private final String coreURL;
    private final String shortURL;
-   public boolean isLocal;
+   public final boolean isLocal;
    public static boolean sortBySystem;
       
    /**

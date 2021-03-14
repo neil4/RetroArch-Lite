@@ -7,8 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.retroarchlite.R;
 import com.retroarch.browser.ModuleWrapper;
+import com.retroarchlite.R;
 
 /**
  * Underlying {@link Fragment} that manages layout functionality
@@ -30,7 +30,7 @@ public class InstalledCoresManagerFragment extends Fragment implements Installed
    }
 
    @Override
-   public void onCoreItemClicked(int position, ModuleWrapper core)
+   public void onCoreItemClicked(ModuleWrapper core)
    {
       InstalledCoreInfoFragment cif = InstalledCoreInfoFragment.newInstance(core);
       cif.show(getFragmentManager(), "cif");

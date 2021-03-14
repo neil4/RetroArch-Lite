@@ -80,7 +80,7 @@
     <string name="one_sixty_ms">160ms (High)</string>
 
     <!-- Refresh Rate Set OS Class -->
-    <string name="using_os_reported_refresh_rate">Using OS-reported refresh rate of: %1$s Hz</string>
+    <string name="using_os_reported_refresh_rate">Using OS-reported refresh rate of: %1$f Hz</string>
 
     <!-- Input Settings -->
     <string name="input_options">Input</string>

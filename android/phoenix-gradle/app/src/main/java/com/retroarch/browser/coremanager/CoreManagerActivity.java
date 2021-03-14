@@ -1,13 +1,6 @@
 package com.retroarch.browser.coremanager;
 
 
-import com.retroarch.browser.ModuleWrapper;
-import com.retroarch.browser.coremanager.fragments.DownloadableCoresFragment;
-import com.retroarch.browser.coremanager.fragments.LocalCoresFragment;
-import com.retroarch.browser.coremanager.fragments.InstalledCoresFragment;
-import com.retroarch.browser.coremanager.fragments.InstalledCoresManagerFragment;
-import com.retroarch.browser.mainmenu.MainMenuActivity;
-
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -20,14 +13,20 @@ import android.support.v7.app.ActionBar.TabListener;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Pair;
 
+import com.retroarch.browser.ModuleWrapper;
+import com.retroarch.browser.coremanager.fragments.DownloadableCoresFragment;
+import com.retroarch.browser.coremanager.fragments.InstalledCoresFragment;
+import com.retroarch.browser.coremanager.fragments.InstalledCoresManagerFragment;
+import com.retroarch.browser.coremanager.fragments.LocalCoresFragment;
+import com.retroarch.browser.mainmenu.MainMenuActivity;
+import com.retroarchlite.R;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-
-import com.retroarchlite.R;
 
 /**
  * Activity which provides the base for viewing installed cores,
@@ -72,7 +71,7 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
             actionBar.setSelectedNavigationItem(position);
          }
       });
-      
+
       installedCoresFragment = new InstalledCoresManagerFragment();
       localCoresFragment = new LocalCoresFragment();
       downloadableCoresFragment = new DownloadableCoresFragment();

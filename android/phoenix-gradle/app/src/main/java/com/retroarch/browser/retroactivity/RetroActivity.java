@@ -1,6 +1,7 @@
 package com.retroarch.browser.retroactivity;
 
 import android.view.View;
+
 import com.retroarch.browser.mainmenu.MainMenuActivity;
 import com.retroarch.browser.preferences.util.UserPreferences;
 

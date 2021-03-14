@@ -1,7 +1,5 @@
 package com.retroarch.browser.preferences.util;
 
-import com.retroarchlite.R;
-
 import android.content.Context;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
@@ -9,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.retroarchlite.R;
 
 public final class SeekbarPreference extends DialogPreference implements SeekBar.OnSeekBarChangeListener {
 

@@ -16,8 +16,6 @@
 
 package com.retroarch.browser.preferences.fragments.util;
 
-import com.retroarchlite.R;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,6 +32,8 @@ import android.view.View.OnKeyListener;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.retroarchlite.R;
+
 public abstract class PreferenceListFragment extends Fragment implements PreferenceManagerCompat.OnPreferenceTreeClickListener
 {
     private static final String PREFERENCES_TAG = "android:preferences";
@@ -49,17 +49,15 @@ public abstract class PreferenceListFragment extends Fragment implements Prefere
     private static final int FIRST_REQUEST_CODE = 100;
 
     private static final int MSG_BIND_PREFERENCES = 1;
-    private Handler mHandler = new Handler()
+    private final Handler mHandler = new Handler()
     {
         @Override
         public void handleMessage(Message msg)
         {
-            switch (msg.what)
-            {
-                case MSG_BIND_PREFERENCES:
-                    bindPreferences();
-                    break;
-            }
+           if (msg.what == MSG_BIND_PREFERENCES)
+           {
+              bindPreferences();
+           }
         }
     };
 
@@ -330,7 +328,7 @@ public abstract class PreferenceListFragment extends Fragment implements Prefere
         mHandler.post(mRequestFocus);
     }
 
-    private OnKeyListener mListOnKeyListener = new OnKeyListener()
+    private final OnKeyListener mListOnKeyListener = new OnKeyListener()
     {
         @Override
         public boolean onKey(View v, int keyCode, KeyEvent event)
@@ -338,7 +336,6 @@ public abstract class PreferenceListFragment extends Fragment implements Prefere
             Object selectedItem = mList.getSelectedItem();
             if (selectedItem instanceof Preference)
             {
-                @SuppressWarnings("unused")
                 View selectedView = mList.getSelectedView();
                 //return ((Preference)selectedItem).onKey(
                 //        selectedView, keyCode, event);

@@ -1,13 +1,18 @@
 package com.retroarch.browser;
 
-import java.util.List;
-
-import android.content.*;
-import android.graphics.drawable.*;
-import android.view.*;
-import android.widget.*;
+import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import com.retroarchlite.R;
+
+import java.util.List;
 
 /**
  * Represents an item that is capable
@@ -25,21 +30,21 @@ interface IconAdapterItem {
     * 
     * @return true if this item is enabled; false otherwise.
     */
-   public boolean isEnabled();
+   boolean isEnabled();
 
    /**
     * Gets the title text of this IconAdapterItem.
     * 
     * @return the title text of this IconAdapterItem.
     */
-   public String getText();
+   String getText();
 
    /**
     * Gets the subtitle text of this IconAdapterItem.
     * 
     * @return the subtitle text of this IconAdapterItem.
     */
-   public String getSubText();
+   String getSubText();
 
    /**
     * Gets the resource ID of the icon to display
@@ -49,7 +54,7 @@ interface IconAdapterItem {
     * 
     * @return the resource ID of this IconAdapterItem's icon.
     */
-   public int getIconResourceId();
+   int getIconResourceId();
 
    /**
     * Gets the actual {@link Drawable} object that represents
@@ -59,7 +64,7 @@ interface IconAdapterItem {
     * 
     * @return the actual {@link Drawable} of this IconAdapterItem's icon.
     */
-   public Drawable getIconDrawable();
+   Drawable getIconDrawable();
 }
 
 

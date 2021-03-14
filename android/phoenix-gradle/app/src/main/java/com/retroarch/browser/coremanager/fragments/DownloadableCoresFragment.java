@@ -1,28 +1,11 @@
 package com.retroarch.browser.coremanager.fragments;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -40,13 +23,27 @@ import android.view.ViewGroup;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.Toast;
-import java.util.Collections;
-import android.content.SharedPreferences;
 
 import com.retroarch.browser.preferences.util.UserPreferences;
-import static com.retroarch.browser.coremanager.CoreManagerActivity.getTitlePair;
-
 import com.retroarchlite.R;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import static com.retroarch.browser.coremanager.CoreManagerActivity.getTitlePair;
 
 /**
  * {@link ListFragment} that is responsible for showing
@@ -77,7 +74,7 @@ public final class DownloadableCoresFragment extends ListFragment
    public static String BUILDBOT_CORE_URL_INTEL = BUILDBOT_BASE_URL + "/nightly/android/latest/x86/";
    public static final String BUILDBOT_INFO_URL = BUILDBOT_BASE_URL + "/assets/frontend/info.zip";
    
-   protected OnCoreDownloadedListener coreDownloadedListener = null;
+   protected static OnCoreDownloadedListener coreDownloadedListener = null;
    public static DownloadableCoresAdapter sAdapter = null;
    private static boolean InfoFileMissing = false;
    private static boolean InfoDownloadAttempted = false;
@@ -131,8 +128,8 @@ public final class DownloadableCoresFragment extends ListFragment
          @Override
          public void onClick(DialogInterface dialog, int which)
          {
-      // Begin downloading the core.
-      DownloadCore(getActivity(), core);
+            // Begin downloading the core.
+            DownloadCore(getActivity(), core);
          }
       });
       notification.show();
@@ -202,10 +199,10 @@ public final class DownloadableCoresFragment extends ListFragment
    
    public void reSortCores()
    {
-      if (sAdapter == null)
+      if (sAdapter == null || getContext() == null)
          return;
 
-      final ArrayList<DownloadableCore> cores = new ArrayList<DownloadableCore>();
+      final ArrayList<DownloadableCore> cores = new ArrayList<>();
       for (int i = 0; i < sAdapter.getCount(); i++)
       {
          DownloadableCore item = sAdapter.getItem(i);
@@ -238,7 +235,7 @@ public final class DownloadableCoresFragment extends ListFragment
          new DownloadCoreOperation(getContext(), "info.zip")
                .execute(BUILDBOT_INFO_URL, "info.zip");
       }
-      catch (Exception e) {}
+      catch (Exception ignored) {}
       InfoDownloadAttempted = true;
    }
 
@@ -261,7 +258,7 @@ public final class DownloadableCoresFragment extends ListFragment
       @Override
       protected ArrayList<DownloadableCore> doInBackground(Void... params)
       {
-         final ArrayList<DownloadableCore> downloadableCores = new ArrayList<DownloadableCore>();
+         final ArrayList<DownloadableCore> downloadableCores = new ArrayList<>();
 
          try
          {
@@ -322,13 +319,13 @@ public final class DownloadableCoresFragment extends ListFragment
    }
 
 
-   public final class DownloadCoreOperation extends AsyncTask<String, Integer, Void>
+   public static final class DownloadCoreOperation extends AsyncTask<String, Integer, Void>
    {
       private final ProgressDialog dlg;
       private final Context ctx;
       private final String coreName;
       private boolean overwrite = false;
-      private boolean isInfoZip;
+      private final boolean isInfoZip;
       
       /**
        * Constructor

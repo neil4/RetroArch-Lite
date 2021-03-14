@@ -1,8 +1,8 @@
 package com.retroarch.browser.coremanager.fragments;
 
-import java.util.List;
-
 import android.text.TextUtils;
+
+import java.util.List;
 
 /**
  * Represents a single list item within the InstalledCoreInfoFragment.

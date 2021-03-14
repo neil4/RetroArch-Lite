@@ -1,17 +1,18 @@
 package com.retroarch.browser.preferences.fragments;
 
-import com.retroarchlite.R;
-import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
-import com.retroarch.browser.dirfragment.DirectoryFragment.OnDirectoryFragmentClosedListener;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.Preference;
-import android.preference.PreferenceManager;
 import android.preference.Preference.OnPreferenceClickListener;
+import android.preference.PreferenceManager;
 import android.view.Display;
 import android.view.WindowManager;
 import android.widget.Toast;
+
 import com.retroarch.browser.dirfragment.DirectoryFragment;
+import com.retroarch.browser.dirfragment.DirectoryFragment.OnDirectoryFragmentClosedListener;
+import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
+import com.retroarchlite.R;
 
 /**
  * A {@link PreferenceListFragment} responsible for handling the video preferences.

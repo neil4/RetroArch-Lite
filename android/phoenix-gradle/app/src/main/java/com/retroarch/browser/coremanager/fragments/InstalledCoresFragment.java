@@ -1,16 +1,5 @@
 package com.retroarch.browser.coremanager.fragments;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import com.retroarchlite.R;
-import com.retroarch.browser.ModuleWrapper;
-import com.retroarch.browser.preferences.util.UserPreferences;
-import com.retroarch.browser.coremanager.CoreManagerActivity;
-
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -21,24 +10,35 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+
+import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.dirfragment.DirectoryFragment;
-import static com.retroarch.browser.preferences.util.UserPreferences.getPreferences;
+import com.retroarch.browser.preferences.util.UserPreferences;
+import com.retroarchlite.R;
+
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import static com.retroarch.browser.preferences.util.UserPreferences.getPreferences;
 
 /**
  * {@link ListFragment} that displays all of the currently installed cores
@@ -66,12 +66,11 @@ public final class InstalledCoresFragment extends ListFragment
    {
       /**
        * The action to perform when a core is selected within the list view.
-       * 
-       * @param position The position of the item in the list.
+       *
        * @param core     A reference to the actual {@link ModuleWrapper}
        *                 represented by that list item.
        */
-      void onCoreItemClicked(int position, ModuleWrapper core);
+      void onCoreItemClicked(ModuleWrapper core);
    }
 
    @Override
@@ -104,7 +103,7 @@ public final class InstalledCoresFragment extends ListFragment
    @Override
    public void onListItemClick(ListView l, View v, int position, long id)
    {
-      callback.onCoreItemClicked(position, adapter.getItem(position));
+      callback.onCoreItemClicked(adapter.getItem(position));
 
       // Set the item as checked so it highlights in the two-fragment view.
       getListView().setItemChecked(position, true);
@@ -161,7 +160,7 @@ public final class InstalledCoresFragment extends ListFragment
    private List<ModuleWrapper> getInstalledCoresList()
    {
       // The list of items that will be added to the adapter backing this ListFragment.
-      final List<ModuleWrapper> items = new ArrayList<ModuleWrapper>();
+      final List<ModuleWrapper> items = new ArrayList<>();
       
       // Populate the list
       final File[] libs = new File(getActivity().getApplicationInfo().dataDir, "/cores").listFiles();
@@ -265,9 +264,8 @@ public final class InstalledCoresFragment extends ListFragment
    public static String sanitizedLibretroName(String path)
    {
       int startIndex = path.lastIndexOf('/') + 1;
-      String sanitizedName = path.substring(startIndex, path.indexOf("_libretro", startIndex));
 
-      return sanitizedName;
+      return path.substring(startIndex, path.indexOf("_libretro", startIndex));
    }
 
    /**
@@ -355,7 +353,7 @@ public final class InstalledCoresFragment extends ListFragment
          public void onClick(DialogInterface dialog, int which)
          {
             // Begin downloading the core.
-            CoreManagerActivity.downloadableCoresFragment.DownloadCore(getContext(), core);
+            new DownloadableCoresFragment.DownloadCoreOperation(getContext(), core.getCoreName()).execute(core.getCoreURL(), core.getShortURLName());
          }
       });
       notification.show();
@@ -444,10 +442,10 @@ public final class InstalledCoresFragment extends ListFragment
       {
          String libPath = params[0];
          String zipPath = params[1];
-         FileInputStream fis = null;
-         FileOutputStream fos = null;
-         ZipOutputStream zos = null;
-         ZipEntry entry = null;
+         FileInputStream fis;
+         FileOutputStream fos;
+         ZipOutputStream zos;
+         ZipEntry entry;
          int chunkLen;
          long fileLen;
          long totalRead = 0;

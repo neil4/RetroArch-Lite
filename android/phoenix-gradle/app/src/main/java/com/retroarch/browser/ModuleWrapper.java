@@ -1,19 +1,18 @@
 package com.retroarch.browser;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
+import android.os.Environment;
+
 import com.retroarch.browser.preferences.util.ConfigFile;
+import com.retroarch.browser.preferences.util.UserPreferences;
+import com.retroarchlite.R;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import android.content.Context;
-import android.graphics.drawable.Drawable;
-import android.content.SharedPreferences;
-import android.os.Environment;
-import com.retroarch.browser.preferences.util.UserPreferences;
-
-import com.retroarchlite.R;
 
 /**
  * Wrapper class that encapsulates a libretro core 
@@ -23,7 +22,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
 {
    private final File file;
    private final String displayName;
-   private String coreName;
+   private final String coreName;
    private final List<String> manufacturer;
    private final String systemName;
    private final List<String> license;
@@ -33,9 +32,9 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    private final List<String> permissions;
    private final List<String> requiredHwApi;
    private int firmwareCount = 0;
-   private String firmwares;
-   private boolean is64bit;
-   private boolean showAbi;
+   private final String firmwares;
+   private final boolean is64bit;
+   private final boolean showAbi;
 
    /**
     * Constructor
@@ -165,22 +164,22 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < this.firmwareCount; i++)
             {
-               String key = "firmware" + Integer.toString(i) + "_desc";
+               String key = "firmware" + i + "_desc";
                sb.append((infoFile.keyExists(key)) ? infoFile.getString(key) : "N/A");
 
-               key = "firmware" + Integer.toString(i) + "_path";
+               key = "firmware" + i + "_path";
                String rel_path = ((infoFile.keyExists(key)) ? infoFile.getString(key) : "?");
-               sb.append("\n   path:  system/" + rel_path);
+               sb.append("\n   path:  system/").append(rel_path);
 
-               key = "firmware" + Integer.toString(i) + "_opt";
-               sb.append( "\n   status:  "
-                          + (new File(sys_dir + "/" + rel_path).exists() ?
+               key = "firmware" + i + "_opt";
+               sb.append( "\n   status:  ")
+                 .append(new File(sys_dir + "/" + rel_path).exists() ?
                              "present" : "missing")
-                          + ", "
-                          + ((infoFile.keyExists(key)) ?
+                 .append(", ")
+                 .append(((infoFile.keyExists(key)) ?
                              (infoFile.getBoolean(key) ? "required" : "optional")
-                             : "unknown if required") );
-               sb.append('\n');
+                              : "unknown if required"))
+                 .append('\n');
             }
             this.firmwares = sb.toString();
          }

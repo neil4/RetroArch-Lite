@@ -16,12 +16,6 @@
 
 package com.retroarch.browser.preferences.fragments.util;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -29,6 +23,12 @@ import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.util.Log;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 class PreferenceManagerCompat
 {
@@ -97,7 +97,7 @@ class PreferenceManagerCompat
                     {
                         if (method.getName().equals("onPreferenceTreeClick"))
                         {
-                            return Boolean.valueOf(listener.onPreferenceTreeClick((PreferenceScreen) args[0], (Preference) args[1]));
+                            return listener.onPreferenceTreeClick((PreferenceScreen) args[0], (Preference) args[1]);
                         }
                         else
                         {
@@ -138,8 +138,7 @@ class PreferenceManagerCompat
         {
             Method m = PreferenceManager.class.getDeclaredMethod("inflateFromIntent", Intent.class, PreferenceScreen.class);
             m.setAccessible(true);
-            PreferenceScreen prefScreen = (PreferenceScreen) m.invoke(manager, intent, screen);
-            return prefScreen;
+           return (PreferenceScreen) m.invoke(manager, intent, screen);
         }
         catch (Exception e)
         {
@@ -156,7 +155,6 @@ class PreferenceManagerCompat
      * @param resId The resource ID of the XML to inflate.
      * @return The root hierarchy (if one was not provided, the new hierarchy's
      *         root).
-     * @hide
      */
     static PreferenceScreen inflateFromResource(PreferenceManager manager, Activity activity, int resId, PreferenceScreen screen)
     {
@@ -164,8 +162,7 @@ class PreferenceManagerCompat
         {
             Method m = PreferenceManager.class.getDeclaredMethod("inflateFromResource", Context.class, int.class, PreferenceScreen.class);
             m.setAccessible(true);
-            PreferenceScreen prefScreen = (PreferenceScreen) m.invoke(manager, activity, resId, screen);
-            return prefScreen;
+           return (PreferenceScreen) m.invoke(manager, activity, resId, screen);
         }
         catch (Exception e)
         {

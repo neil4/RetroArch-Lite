@@ -20,7 +20,6 @@ import com.retroarch.browser.preferences.fragments.InputPreferenceFragment;
 import com.retroarch.browser.preferences.fragments.PathPreferenceFragment;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
 import com.retroarch.browser.preferences.util.UserPreferences;
-
 import com.retroarchlite.R;
 
 /**

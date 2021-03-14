@@ -1,11 +1,12 @@
 package com.retroarch.browser.preferences.fragments;
 
-import com.retroarchlite.R;
-import com.retroarch.browser.dirfragment.DirectoryFragment;
-import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
+
+import com.retroarch.browser.dirfragment.DirectoryFragment;
+import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
+import com.retroarchlite.R;
 
 /**
  * A {@link PreferenceListFragment} responsible for handling the input preferences.

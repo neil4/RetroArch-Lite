@@ -1,9 +1,5 @@
 package com.retroarch.browser;
 
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL10;
-
-
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.opengl.GLES20;
@@ -13,8 +9,11 @@ import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.retroarchlite.R;
 import com.retroarch.browser.preferences.util.UserPreferences;
+import com.retroarchlite.R;
+
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
 
 /**
  * {@link Activity} subclass that provides the functionality
@@ -36,7 +35,7 @@ public final class DisplayRefreshRateTest extends Activity {
       private double mStartTime = 0.0;
       private int mNumFrames = 0;
 
-      private Activity activity;
+      private final Activity activity;
 
       public Renderer(Activity activity) {
          this.activity = activity;

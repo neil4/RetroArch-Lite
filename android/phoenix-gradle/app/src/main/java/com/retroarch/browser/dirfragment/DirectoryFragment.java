@@ -16,6 +16,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
@@ -27,11 +28,14 @@ import com.retroarch.browser.NativeInterface;
 import com.retroarch.browser.preferences.PreferenceActivity;
 import com.retroarch.browser.preferences.util.ConfigFile;
 import com.retroarch.browser.preferences.util.UserPreferences;
-
-import java.util.*;
-import java.io.*;
-
 import com.retroarchlite.R;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 
 /**
@@ -59,7 +63,7 @@ public class DirectoryFragment extends DialogFragment
    public static final class BackStackItem implements Parcelable
    {
       protected final String path;
-      protected boolean parentIsBack;
+      protected final boolean parentIsBack;
 
       public BackStackItem(String path, boolean parentIsBack)
       {
@@ -212,7 +216,7 @@ public class DirectoryFragment extends DialogFragment
       bundle.putInt("titleResId", -88);
       bundle.putString("title", title);
       
-      String extArray[] = new String[exts.size()];
+      String[] extArray = new String[exts.size()];
       int i = 0;
       for (String ext : exts)
       {
@@ -247,7 +251,7 @@ public class DirectoryFragment extends DialogFragment
       // Set supported extensions
       if (!isDirectoryTarget)
       {
-         String extArray[] = getArguments().getStringArray("exts");
+         String[] extArray = getArguments().getStringArray("exts");
          if ( extArray != null && extArray.length > 0 )
             addAllowedExts(extArray);
          else
@@ -301,13 +305,13 @@ public class DirectoryFragment extends DialogFragment
       Point size = new Point();
       display.getSize(size);
 
-      ViewGroup.LayoutParams params = getDialog().getWindow().getAttributes();
+      WindowManager.LayoutParams params = getDialog().getWindow().getAttributes();
       if (size.x > size.y)
          params.width = (65 * size.x) / 100;
       else
          params.width = (85 * size.x) / 100;
 
-      getDialog().getWindow().setAttributes((android.view.WindowManager.LayoutParams) params);
+      getDialog().getWindow().setAttributes(params);
    }
 
    private final OnItemClickListener onItemClickListener = new OnItemClickListener()
@@ -507,10 +511,10 @@ public class DirectoryFragment extends DialogFragment
       adapter.notifyDataSetChanged();
    }
     
-   public static boolean ExtractZipWithPrompt(Context context,
-                                              final String zipPath,
-                                              final String destDir,
-                                              final String quickDesc)
+   public static void ExtractZipWithPrompt(Context context,
+                                           final String zipPath,
+                                           final String destDir,
+                                           final String quickDesc)
    {
       final Toast successToast = Toast.makeText(context, "Zip contents extracted.", Toast.LENGTH_SHORT);
 
@@ -530,7 +534,7 @@ public class DirectoryFragment extends DialogFragment
                         else
                            successToast.show();
                      }
-                     catch (IOException e) {}
+                     catch (IOException ignored) {}
                   }
                })
          .setNegativeButton("No", new DialogInterface.OnClickListener()
@@ -539,15 +543,13 @@ public class DirectoryFragment extends DialogFragment
          });
       Dialog dialog = builder.create();
       dialog.show();
-
-      return true;
    }
    
    public boolean RestoreDirFromZip(final String zipPath,
                                     final String zipSubDir,
                                     final String destDir)
    {
-      boolean success = false;
+      boolean success;
       try
       {
          File dir = new File(destDir); 

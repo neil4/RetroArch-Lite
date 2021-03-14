@@ -3,11 +3,11 @@ package com.retroarch.browser.mainmenu;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.ComponentName;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,14 +23,18 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
+
 import com.retroarch.browser.IconAdapter;
 import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.NativeInterface;
 import com.retroarch.browser.coremanager.fragments.InstalledCoresFragment;
 import com.retroarch.browser.dirfragment.DirectoryFragment;
 import com.retroarch.browser.dirfragment.DirectoryFragment.OnDirectoryFragmentClosedListener;
+import com.retroarch.browser.preferences.PreferenceActivity;
 import com.retroarch.browser.preferences.util.UserPreferences;
 import com.retroarch.browser.retroactivity.RetroActivity;
+import com.retroarchlite.R;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -40,8 +44,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.retroarchlite.R;
 
 /**
  * {@link FragmentActivity} subclass that provides all of the
@@ -144,16 +146,13 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
    @Override
    public boolean onOptionsItemSelected(MenuItem aItem)
    {
-      switch (aItem.getItemId())
+      if (aItem.getItemId() == R.id.settings)
       {
-      case R.id.settings:
-         Intent rset = new Intent(this, com.retroarch.browser.preferences.PreferenceActivity.class);
+         Intent rset = new Intent(this, PreferenceActivity.class);
          startActivity(rset);
          return true;
-
-      default:
-         return super.onOptionsItemSelected(aItem);
       }
+      return super.onOptionsItemSelected(aItem);
    }
    
    public void createList()
@@ -227,7 +226,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
          contentBrowser.setOnDirectoryFragmentClosedListener(this);
 
          String startPath = prefs.getString(libretroName + "_directory", "");
-         if (startPath.isEmpty() || new File(startPath).exists() == false)
+         if (startPath.isEmpty() || !new File(startPath).exists())
             startPath = prefs.getString("rgui_browser_directory", "");
          if (!startPath.isEmpty() && new File(startPath).exists())
             contentBrowser.setStartDirectory(startPath);
@@ -275,7 +274,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
 
       dialog.show();
       try{ assetsThread.join(); }
-      catch (InterruptedException e) {};
+      catch (InterruptedException ignored) {}
    }
 
    // Extract assets from native code. Doing it from Java side is apparently unbearably slow ...
@@ -295,7 +294,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
          outputCacheVersion.writeInt(getVersionCode());
          outputCacheVersion.close();
       }
-      catch (IOException e)
+      catch (IOException ignored)
       {}
    }
 

@@ -5,16 +5,15 @@ import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
-
-import com.retroarch.browser.NativeInterface;
-import com.retroarchlite.R;
-import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
-
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.widget.Toast;
+
+import com.retroarch.browser.NativeInterface;
 import com.retroarch.browser.dirfragment.DirectoryFragment;
+import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
+import com.retroarchlite.R;
 
 /**
  * A {@link PreferenceListFragment} that handles the general settings.

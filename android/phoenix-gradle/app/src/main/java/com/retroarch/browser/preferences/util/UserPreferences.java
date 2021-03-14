@@ -1,20 +1,14 @@
 package com.retroarch.browser.preferences.util;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
-import android.media.AudioTrack;
-import android.os.Build;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.os.Environment;
+
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Utility class for retrieving, saving, or loading preferences.

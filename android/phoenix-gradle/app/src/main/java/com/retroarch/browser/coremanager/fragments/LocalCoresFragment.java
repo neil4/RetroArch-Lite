@@ -1,16 +1,5 @@
 package com.retroarch.browser.coremanager.fragments;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -32,9 +21,20 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.retroarch.browser.preferences.util.UserPreferences;
-import static com.retroarch.browser.coremanager.CoreManagerActivity.getTitlePair;
-
 import com.retroarchlite.R;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import static com.retroarch.browser.coremanager.CoreManagerActivity.getTitlePair;
 
 /**
  * {@link ListFragment} that is responsible for showing local backup
@@ -54,8 +54,7 @@ public final class LocalCoresFragment extends ListFragment
 
    private String localCoresDir;
    public static String defaultLocalCoresDir = UserPreferences.defaultBaseDir + "/cores32";
-   
-   private ListView coreList = null;
+
    private OnCoreCopiedListener coreCopiedListener = null;
 
    protected DownloadableCoresAdapter adapter = null;
@@ -73,8 +72,8 @@ public final class LocalCoresFragment extends ListFragment
       sharedSettings = UserPreferences.getPreferences(getActivity());
       localCoresDir = sharedSettings.getBoolean("backup_cores_directory_enable", false) ?
             sharedSettings.getString("backup_cores_directory", defaultLocalCoresDir) : defaultLocalCoresDir;
-         
-      coreList = (ListView) inflater.inflate(R.layout.coremanager_listview, container, false);
+
+      ListView coreList = (ListView) inflater.inflate(R.layout.coremanager_listview, container, false);
       registerForContextMenu(coreList);
 
       adapter = new DownloadableCoresAdapter(getActivity(), android.R.layout.simple_list_item_2);
@@ -143,14 +142,11 @@ public final class LocalCoresFragment extends ListFragment
    {
       final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
 
-      switch (item.getItemId())
+      if (item.getItemId() == R.id.remove_localcore)
       {
-         case R.id.remove_localcore:
-            return RemoveCore(info.position);
-
-         default:
-            return super.onContextItemSelected(item);
+         return RemoveCore(info.position);
       }
+      return super.onContextItemSelected(item);
    }
    
    void PopulateCoresList()
@@ -158,12 +154,12 @@ public final class LocalCoresFragment extends ListFragment
       try
       {
          final File[] files = new File(localCoresDir).listFiles();
-         final ArrayList<DownloadableCore> cores = new ArrayList<DownloadableCore>();
+         final ArrayList<DownloadableCore> cores = new ArrayList<>();
 
-         for (int i = 0; i < files.length; i++)
+         for (File file : files)
          {
-            String urlPath = files[i].toURI().toURL().toString();
-            String coreName = files[i].getName();
+            String urlPath = file.toURI().toURL().toString();
+            String coreName = file.getName();
 
             boolean isZip = coreName.endsWith(".zip");
             if (!isZip && !coreName.endsWith(".so"))
@@ -171,14 +167,14 @@ public final class LocalCoresFragment extends ListFragment
 
             // Allow any name ending in .so or .zip
             String searchStr = (coreName.contains("_android.") ? "_android" : "")
-                               + (isZip ? (coreName.contains(".so.") ? ".so.zip" : ".zip" ) : ".so" );
+                  + (isZip ? (coreName.contains(".so.") ? ".so.zip" : ".zip") : ".so");
             String infoPath = localCoresDir + "/" + coreName.replace(searchStr, ".info");
 
-            if (new File(infoPath).exists() == false)
+            if (!new File(infoPath).exists())
                infoPath = getContext().getApplicationInfo().dataDir
                      + "/info/" + coreName.replace(searchStr, ".info");
 
-            Pair<String,String> pair = getTitlePair(infoPath); // (name,mfr+system)
+            Pair<String, String> pair = getTitlePair(infoPath); // (name,mfr+system)
 
             cores.add(new DownloadableCore(pair.first, pair.second, urlPath));
          }
@@ -248,7 +244,7 @@ public final class LocalCoresFragment extends ListFragment
             //
             long copied = 0;
             byte[] buffer = new byte[4096];
-            int bufLen = 0;
+            int bufLen;
             while ((bufLen = is.read(buffer)) != -1)
             {
                copied += bufLen;
