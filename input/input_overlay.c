@@ -73,10 +73,9 @@ typedef struct ellipse_px
    float minor_px[MAX_TOUCH];
 } ellipse_px_t;
 
-static overlay_aspect_mod_vals_t ar_mod;
+static overlay_aspect_mod_vals_t ol_ar_mod;
 static overlay_mouse_vals_t ol_mouse;
-static ellipse_px_t ellipse;
-static uint8_t overlay_ptr_idx;
+static ellipse_px_t ol_ellipse;
 
 const struct overlay_eightway_vals menu_analog_vals = {
    UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_UP,
@@ -118,14 +117,14 @@ void set_ellipse(uint8_t idx,
    if (idx >= MAX_TOUCH)
       return;
    
-   ellipse.orientation[idx] = orientation;
-   ellipse.major_px[idx] = major_px;
-   ellipse.minor_px[idx] = minor_px;
+   ol_ellipse.orientation[idx] = orientation;
+   ol_ellipse.major_px[idx] = major_px;
+   ol_ellipse.minor_px[idx] = minor_px;
 }
 
 void reset_ellipse(uint8_t idx)
 {
-   ellipse.major_px[idx] = 0;
+   ol_ellipse.major_px[idx] = 0;
 }
 
 /**
@@ -259,11 +258,11 @@ static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
    settings_t* settings = config_get_ptr();
    
    /* initialize AR mod vals to defaults */
-   ar_mod.w              = 1.0f;
-   ar_mod.x_center_shift = 0.0f;
-   ar_mod.x_bisect_shift = 0.0f;
-   ar_mod.h              = 1.0f;
-   ar_mod.y_center_shift = 0.0f;
+   ol_ar_mod.w              = 1.0f;
+   ol_ar_mod.x_center_shift = 0.0f;
+   ol_ar_mod.x_bisect_shift = 0.0f;
+   ol_ar_mod.h              = 1.0f;
+   ol_ar_mod.y_center_shift = 0.0f;
 
    video_driver_get_size(&disp_width, &disp_height);
    disp_aspect = (float)disp_width / disp_height;
@@ -281,13 +280,13 @@ static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
    
    if (disp_aspect > ol_aspect * 1.01)
    {
-      ar_mod.w = ol_aspect / disp_aspect;
-      ar_mod.x_center_shift = (1.0f - ar_mod.w) / 2.0f;
+      ol_ar_mod.w = ol_aspect / disp_aspect;
+      ol_ar_mod.x_center_shift = (1.0f - ol_ar_mod.w) / 2.0f;
    }
    else if (ol_aspect > disp_aspect * 1.01)
    {
-      ar_mod.h = disp_aspect / ol_aspect;
-      ar_mod.y_center_shift = (1.0f - ar_mod.h) / 2.0f;
+      ol_ar_mod.h = disp_aspect / ol_aspect;
+      ol_ar_mod.y_center_shift = (1.0f - ol_ar_mod.h) / 2.0f;
    }
 
    /* adjust for scale to keep bisect aspect setting relative to display */
@@ -295,10 +294,10 @@ static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
                    / settings->input.overlay_scale;
    max_bisect = disp_aspect / settings->input.overlay_scale;
    bisect_aspect = min(bisect_aspect, max_bisect);
-   if (bisect_aspect > ol_aspect * ar_mod.h)
+   if (bisect_aspect > ol_aspect * ol_ar_mod.h)
    {
       bisect_w = bisect_aspect / disp_aspect;
-      ar_mod.x_bisect_shift = (bisect_w - ar_mod.w) / 2.0f;
+      ol_ar_mod.x_bisect_shift = (bisect_w - ol_ar_mod.w) / 2.0f;
    }
 }
 
@@ -347,18 +346,18 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
    if (settings->input.overlay_adjust_aspect)
    {
       /* adjust aspect */
-      desc->x = desc->x_orig * ar_mod.w;
-      desc->y = desc->y_orig * ar_mod.h;
-      desc->range_x = desc->range_x_orig * ar_mod.w;
-      desc->range_y = desc->range_y_orig * ar_mod.h;
+      desc->x = desc->x_orig * ol_ar_mod.w;
+      desc->y = desc->y_orig * ol_ar_mod.h;
+      desc->range_x = desc->range_x_orig * ol_ar_mod.w;
+      desc->range_y = desc->range_y_orig * ol_ar_mod.h;
 
       /* re-center and bisect */
-      desc->x += ar_mod.x_center_shift;
+      desc->x += ol_ar_mod.x_center_shift;
       if (desc->x > 0.5f)
-         desc->x += ar_mod.x_bisect_shift;
+         desc->x += ol_ar_mod.x_bisect_shift;
       else if (desc->x < 0.5f)
-         desc->x -= ar_mod.x_bisect_shift;
-      desc->y += ar_mod.y_center_shift;
+         desc->x -= ol_ar_mod.x_bisect_shift;
+      desc->y += ol_ar_mod.y_center_shift;
    }
    else
    {
@@ -1580,6 +1579,7 @@ static inline uint64_t fourway_direction(const struct overlay_eightway_vals* val
  * Approximates ellipse as a diamond and checks vertex overlap with @vals.
  */
 static inline uint64_t eightway_ellipse_coverage(const struct overlay_eightway_vals* vals,
+                                                 const uint8_t ptr_idx,
                                                  const float x_ellipse_offset,
                                                  const float y_ellipse_offset)
 {
@@ -1595,7 +1595,7 @@ static inline uint64_t eightway_ellipse_coverage(const struct overlay_eightway_v
    uint64_t state = UINT64_C(0);
    
    /* for pointer tools */
-   if (ellipse.major_px[overlay_ptr_idx] == 0)
+   if (ol_ellipse.major_px[ptr_idx] == 0)
       return fourway_direction(vals, x_ellipse_offset, y_ellipse_offset);
 
    /* hack for inaccurate touchscreens */
@@ -1603,13 +1603,13 @@ static inline uint64_t eightway_ellipse_coverage(const struct overlay_eightway_v
 
    /* normalize radii by screen height to keep aspect ratio */
    video_driver_get_size(&screen_width, &screen_height);
-   radius_major = boost * ellipse.major_px[overlay_ptr_idx] / (2*screen_height);
-   radius_minor = boost * ellipse.minor_px[overlay_ptr_idx] / (2*screen_height);
+   radius_major = boost * ol_ellipse.major_px[ptr_idx] / (2*screen_height);
+   radius_minor = boost * ol_ellipse.minor_px[ptr_idx] / (2*screen_height);
    
    /* get axis endpoints */
-   major_angle = ellipse.orientation[overlay_ptr_idx] > 0 ?
-      ((float)M_PI/2 - ellipse.orientation[overlay_ptr_idx])
-      : ((float)(-M_PI)/2 - ellipse.orientation[overlay_ptr_idx]);
+   major_angle = ol_ellipse.orientation[ptr_idx] > 0 ?
+      ((float)M_PI/2 - ol_ellipse.orientation[ptr_idx])
+      : ((float)(-M_PI)/2 - ol_ellipse.orientation[ptr_idx]);
    sin_major = sin(major_angle);
    cos_major = cos(major_angle);
    sin_minor = major_angle > 0 ? cos_major : -cos_major;
@@ -1654,6 +1654,7 @@ static inline uint64_t eightway_ellipse_coverage(const struct overlay_eightway_v
  **/
 static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
                                       unsigned area_type,
+                                      const uint8_t ptr_idx,
                                       const float x, const float y)
 {
    settings_t* settings = config_get_ptr();
@@ -1669,7 +1670,7 @@ static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
       state |= eightway_direction(vals, x_offset, y_offset);
    
    if (method != VECTOR)
-      state |= eightway_ellipse_coverage(vals, x_offset, y_offset);
+      state |= eightway_ellipse_coverage(vals, ptr_idx, x_offset, y_offset);
    
    return state;
 }
@@ -1683,20 +1684,21 @@ static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
  */
 static inline void input_overlay_undo_meta_overlap(input_overlay_state_t* out)
 {
-   input_overlay_state_t* old_state = &driver_get_ptr()->old_overlay_state;
-   uint64_t active_meta = out->buttons & META_KEY_MASK;
+   uint64_t active_meta  = out->buttons & META_KEY_MASK;
    uint64_t active_other = out->buttons & ~META_KEY_MASK;
-
-   uint64_t* const analog64 = (uint64_t*)out->analog;
-   uint32_t* const analog32 = (uint32_t*)out->analog;
-   uint32_t* const analog32_old = (uint32_t*)old_state->analog;
+   uint32_t* analog32    = (uint32_t*)out->analog;
    
-   if (active_meta && (active_other || *analog64 != 0))
+   if (active_meta && (active_other || analog32[0] != 0 || analog32[1] != 0))
    {
+      input_overlay_state_t* old_state = &driver_get_ptr()->old_overlay_state;
+      uint32_t* analog32_old           = (uint32_t*)old_state->analog;
+
       if ( (active_other & old_state->buttons)
            || (analog32_old[0] != 0 && analog32[0] != 0)
            || (analog32_old[1] != 0 && analog32[1] != 0) )
+      {
          out->buttons = active_other;
+      }
       else
       {
          out->buttons = active_meta;
@@ -1755,14 +1757,13 @@ static bool inside_hitbox(const struct overlay_desc *desc, float x, float y)
  **/
 static INLINE void input_overlay_poll_buttons_iterate(
       input_overlay_t *ol, input_overlay_state_t *out,
-      uint8_t ptr_idx, int16_t norm_x, int16_t norm_y)
+      const uint8_t ptr_idx, int16_t norm_x, int16_t norm_y)
 {
    size_t i, j;
    float x, y;
    bool ignore_other = false;
    struct overlay_desc *descs = ol->active->descs;
 
-   overlay_ptr_idx = ptr_idx;
    memset(out, 0, sizeof(*out));
 
    if (!ol->enable)
@@ -1798,19 +1799,19 @@ static INLINE void input_overlay_poll_buttons_iterate(
          ignore_other = true;
          memset(out,0,sizeof(*out));
          for (j = 0; j < i; j++)
-            descs[j].updated &= ~(1 << overlay_ptr_idx);
+            descs[j].updated &= ~(1 << ptr_idx);
       }
 
-      desc->updated |= (1 << overlay_ptr_idx);
+      desc->updated |= (1 << ptr_idx);
 
       if (desc->type == OVERLAY_TYPE_BUTTONS)
       {
          out->buttons |= desc->key_mask;
 
          if (desc->key_mask & (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA))
-            out->buttons |= eightway_state(desc, DPAD_AREA, x, y);
+            out->buttons |= eightway_state(desc, DPAD_AREA, ptr_idx, x, y);
          else if (desc->key_mask & (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA))
-            out->buttons |= eightway_state(desc, ABXY_AREA, x, y);
+            out->buttons |= eightway_state(desc, ABXY_AREA, ptr_idx, x, y);
 
          if (desc->key_mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
             ol->next_index = desc->next_index;
