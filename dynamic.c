@@ -875,6 +875,7 @@ bool rarch_environment_cb(unsigned cmd, void *data)
             case RETRO_HW_CONTEXT_OPENGL_CORE:
                RARCH_LOG("Requesting core OpenGL context (%u.%u).\n",
                      cb->version_major, cb->version_minor);
+               core_set_shared_context = true;
                break;
 #endif
 
