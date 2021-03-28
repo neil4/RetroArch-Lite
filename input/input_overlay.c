@@ -1851,7 +1851,7 @@ static INLINE void input_overlay_poll_buttons_iterate(
    input_overlay_undo_meta_overlap(out);
 }
 
-static INLINE void input_overlay_mouse_poll()
+static INLINE void input_overlay_poll_mouse()
 {
    driver_t*              driver    = driver_get_ptr();
    input_overlay_state_t* state     = &driver->overlay_state;
@@ -1859,7 +1859,7 @@ static INLINE void input_overlay_mouse_poll()
    retro_time_t           now_usec  = rarch_get_time_usec();
    bool swiping, brief, longer;
 
-   static int x_start, y_start, max_ptr_count;
+   static int x_start, y_start, peak_ptr_count;
    static retro_time_t start_usec;
    static bool ignore_new_buttons;
 
@@ -1873,8 +1873,8 @@ static INLINE void input_overlay_mouse_poll()
 
       if (state->ptr_count > old_state->ptr_count)
       {  /* pointer added */
-         max_ptr_count = max(state->ptr_count, max_ptr_count);
-         start_usec    = now_usec;
+         peak_ptr_count = max(state->ptr_count, peak_ptr_count);
+         start_usec     = now_usec;
       }
       else if (ol_mouse.hold)
          ol_mouse.hold = 0x0;
@@ -1889,8 +1889,8 @@ static INLINE void input_overlay_mouse_poll()
 
    if (!swiping && !ignore_new_buttons)
    {
-      if (brief && !state->ptr_count && !ol_mouse.click)
-         ol_mouse.click = (1 << (max_ptr_count - 1));
+      if (brief && !state->ptr_count)
+         ol_mouse.click = (1 << (peak_ptr_count - 1));
       else if (longer && state->ptr_count)
       {
          ol_mouse.hold = (1 << (state->ptr_count - 1));
@@ -1902,7 +1902,7 @@ static INLINE void input_overlay_mouse_poll()
    if (!state->ptr_count)
    {
       ignore_new_buttons = false;
-      max_ptr_count = 0;
+      peak_ptr_count = 0;
    }
    else if (longer)
       ignore_new_buttons = true;
@@ -2135,7 +2135,7 @@ void input_overlay_poll(input_overlay_t *overlay_device)
    input_count = i;
 
    if (overlay_mouse_active)
-      input_overlay_mouse_poll();
+      input_overlay_poll_mouse();
 
    if (OVERLAY_GET_KEY(state, RETROK_LSHIFT)
        || OVERLAY_GET_KEY(state, RETROK_RSHIFT))
