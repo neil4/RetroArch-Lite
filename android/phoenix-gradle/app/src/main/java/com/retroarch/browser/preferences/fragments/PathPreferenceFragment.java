@@ -6,6 +6,7 @@ import android.preference.Preference.OnPreferenceClickListener;
 
 import com.retroarch.browser.dirfragment.DirectoryFragment;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
+import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
 
 /**
@@ -19,8 +20,7 @@ public final class PathPreferenceFragment extends PreferenceListFragment impleme
       super.onCreate(savedInstanceState);
 
       // Add path preferences from the XML.
-      final String sharedId = getString(R.string.app_id);
-      if (sharedId.contains("64"))
+      if (BuildConfig.APPLICATION_ID.contains("64"))
          addPreferencesFromResource(R.xml.path_preferences_64);
       else
          addPreferencesFromResource(R.xml.path_preferences_32);

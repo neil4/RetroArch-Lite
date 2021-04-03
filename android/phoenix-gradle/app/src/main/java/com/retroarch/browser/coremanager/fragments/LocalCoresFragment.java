@@ -21,6 +21,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.retroarch.browser.preferences.util.UserPreferences;
+import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
 
 import java.io.File;
@@ -66,8 +67,7 @@ public final class LocalCoresFragment extends ListFragment
    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
    {
       super.onCreateView(inflater, container, savedInstanceState);
-      final String sharedId = getString(R.string.app_id);
-      if (sharedId.contains("64"))
+      if (BuildConfig.APPLICATION_ID.contains("64"))
          defaultLocalCoresDir = defaultLocalCoresDir.replace("cores32", "cores64");
       sharedSettings = UserPreferences.getPreferences(getActivity());
       localCoresDir = sharedSettings.getBoolean("backup_cores_directory_enable", false) ?

@@ -25,6 +25,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.retroarch.browser.preferences.util.UserPreferences;
+import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
 
 import java.io.BufferedInputStream;
@@ -86,8 +87,7 @@ public final class DownloadableCoresFragment extends ListFragment
       final ListView coreList = (ListView) inflater.inflate(R.layout.coremanager_listview, container, false);
       registerForContextMenu(coreList);
 
-      final String appId = getString(R.string.app_id);
-      if (appId.endsWith("64"))
+      if (BuildConfig.APPLICATION_ID.contains("64"))
       {
          BUILDBOT_CORE_URL_ARM = BUILDBOT_CORE_URL_ARM.replace("armeabi-v7a","arm64-v8a");
          BUILDBOT_CORE_URL_INTEL = BUILDBOT_CORE_URL_INTEL.replace("x86", "x86_64");

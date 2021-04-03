@@ -26,6 +26,7 @@ import android.widget.Toast;
 import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.dirfragment.DirectoryFragment;
 import com.retroarch.browser.preferences.util.UserPreferences;
+import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
 
 import java.io.File;
@@ -92,8 +93,7 @@ public final class InstalledCoresFragment extends ListFragment
 
       registerForContextMenu(getListView());
 
-      final String appId = getString(R.string.app_id);
-      if (appId.endsWith("64"))
+      if (BuildConfig.APPLICATION_ID.contains("64"))
       {
          BUILDBOT_CORE_URL_ARM = BUILDBOT_CORE_URL_ARM.replace("armeabi-v7a","arm64-v8a");
          BUILDBOT_CORE_URL_INTEL = BUILDBOT_CORE_URL_INTEL.replace("x86", "x86_64");
