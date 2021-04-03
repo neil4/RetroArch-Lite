@@ -540,7 +540,7 @@ static void input_overlay_update_aspect_and_shift(struct overlay *ol)
    struct overlay_desc* desc;
    size_t i;
 
-   if (!ol)
+   if (!ol || ol->fullscreen_image || driver_get_ptr()->osk_enable)
       return;
 
    input_overlay_update_aspect_ratio_vals(ol);
@@ -548,8 +548,7 @@ static void input_overlay_update_aspect_and_shift(struct overlay *ol)
    for (i = 0; i < ol->size; i++)
    {
       desc = &ol->descs[i];
-      if (!ol->fullscreen_image)
-         input_overlay_desc_adjust_aspect_and_shift(desc);
+      input_overlay_desc_adjust_aspect_and_shift(desc);
       input_overlay_desc_init_imagebox(desc);
       input_overlay_desc_init_hitbox(desc);
    }
@@ -1063,9 +1062,9 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
          }
          break;
       case OVERLAY_IMAGE_TRANSFER_DESC_DONE:
-         if (!driver_get_ptr()->osk_enable)
-            input_overlay_update_aspect_and_shift(&ol->overlays[ol->pos]);
+         input_overlay_update_aspect_and_shift(&ol->overlays[ol->pos]);
          input_overlay_scale(&ol->overlays[ol->pos], ol->deferred.scale_factor);
+
          if (ol->pos == 0)
             input_overlay_load_overlays_resolve_iterate(ol);
          ol->pos += 1;
