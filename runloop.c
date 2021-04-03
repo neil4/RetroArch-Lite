@@ -853,6 +853,12 @@ static void rarch_main_iterate_linefeed_overlay(void)
    {
       driver->osk_enable = false;
       event_command(EVENT_CMD_OVERLAY_INIT);
+
+      if (driver->overlay)
+      {
+         rarch_main_data_overlay_finish();
+         driver->overlay->blocked = true;
+      }
       return;
    }
    else if (!driver->osk_enable && driver->keyboard_linefeed_enable)

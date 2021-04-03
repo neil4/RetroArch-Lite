@@ -428,6 +428,8 @@ static void engine_handle_cmd(void)
             android_input_set_sensor_state(driver->input_data, 0,
                   RETRO_SENSOR_ACCELEROMETER_ENABLE,
                   android_app->accelerometer_event_rate);
+
+         rarch_main_data_overlay_finish();
          break;
       case APP_CMD_LOST_FOCUS:
          runloop->is_paused = true;

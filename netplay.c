@@ -342,7 +342,7 @@ static bool netplay_get_cmd(netplay_t *netplay)
    return netplay_cmd_nak(netplay);
 }
 
-static bool hold_B_to_cancel_iterate(const unsigned hold_limit)
+static bool hold_back_to_cancel_iterate(const unsigned hold_limit)
 {
    settings_t *settings       = config_get_ptr();
    driver_t *driver           = driver_get_ptr();
@@ -351,7 +351,7 @@ static bool hold_B_to_cancel_iterate(const unsigned hold_limit)
    static unsigned hold_count;
 
 #ifdef HAVE_OVERLAY
-   accelerate_overlay_load();
+   rarch_main_data_overlay_finish();
 #endif
 
    netplay->cbs.poll_cb();
@@ -425,7 +425,7 @@ static int poll_input(netplay_t *netplay, bool block)
          return -1;
       }
       
-      if (hold_B_to_cancel_iterate(6))
+      if (hold_back_to_cancel_iterate(6))
          return -1;
 
       RARCH_LOG("Network is stalling, resending packet... Attempt # %u\n",
@@ -746,7 +746,7 @@ static bool wait_for_client(int *fd, struct sockaddr *other_addr,
       if ( socket_select(*fd + 1, &fds, NULL, NULL, &tmp_tv) > 0
            && FD_ISSET(*fd, &fds) )
          return true;
-      else if (hold_B_to_cancel_iterate(4))
+      else if (hold_back_to_cancel_iterate(4))
          return false;
       
       rarch_sleep(RETRY_MS);

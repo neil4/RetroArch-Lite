@@ -47,7 +47,7 @@ void rarch_main_data_overlay_image_upload_iterate(void *data);
 
 void rarch_main_data_overlay_iterate(void *data);
 
-void accelerate_overlay_load();
+void rarch_main_data_overlay_finish();
 #endif
 
 void rarch_main_data_nbio_iterate(void *runloop);
