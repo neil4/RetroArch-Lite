@@ -455,6 +455,8 @@ void uninit_video_input(void)
 {
    driver_t *driver = driver_get_ptr();
 
+   if (!driver->osk_enable)
+      input_overlay_set_marker(driver->overlay);
    event_command(EVENT_CMD_OVERLAY_DEINIT);
 
    if (

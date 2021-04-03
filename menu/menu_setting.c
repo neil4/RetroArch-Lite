@@ -3853,10 +3853,13 @@ static void overlay_enable_toggle_change_handler(void *data)
    if (!setting)
       return;
 
-   if (setting->value.boolean)
+   if (*setting->value.boolean)
       event_command(EVENT_CMD_OVERLAY_INIT);
    else
+   {
       event_command(EVENT_CMD_OVERLAY_DEINIT);
+      input_overlay_set_marker(NULL);
+   }
 }
 #endif
 

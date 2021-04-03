@@ -958,9 +958,9 @@ bool input_overlay_load_overlays_resolve_iterate(input_overlay_t *ol)
       goto error;
    }
 
-   if (ol->resolve_pos == 0)
+   if (ol->resolve_pos == ol->index)
    {  
-      ol->active = &ol->overlays[0];
+      ol->active = &ol->overlays[ol->index];
       
       input_overlay_load_active(ol, ol->deferred.opacity);
       input_overlay_enable(ol, ol->deferred.enable);
@@ -1367,6 +1367,22 @@ bool input_overlay_new_done(input_overlay_t *ol)
    return true;
 }
 
+void input_overlay_set_marker(input_overlay_t *ol)
+{
+   global_t *global = global_get_ptr();
+
+   if (ol)
+   {
+      strlcpy(global->overlay_marker.path, ol->overlay_path, PATH_MAX_LENGTH);
+      global->overlay_marker.index = ol->index;
+   }
+   else
+   {
+      global->overlay_marker.path[0] = '\0';
+      global->overlay_marker.index   = 0;
+   }
+}
+
 static bool input_overlay_load_overlays_init(input_overlay_t *ol)
 {
    if (!config_get_uint(ol->conf, "overlays", &ol->config.overlays.size))
@@ -1410,6 +1426,7 @@ input_overlay_t *input_overlay_new(const char *path, bool enable,
 {
    input_overlay_t *ol = (input_overlay_t*)calloc(1, sizeof(*ol));
    driver_t *driver    = driver_get_ptr();
+   global_t *global    = global_get_ptr();
 
    if (!ol)
       goto error;
@@ -1444,6 +1461,14 @@ input_overlay_t *input_overlay_new(const char *path, bool enable,
    ol->pos                   = 0;
 
    input_overlay_load_overlays_init(ol);
+
+   if (!driver->osk_enable)
+   {
+      if (!strncmp(path, global->overlay_marker.path, PATH_MAX_LENGTH))
+         ol->index = global->overlay_marker.index;
+      else
+         input_overlay_set_marker(NULL);
+   }
 
    input_overlay_update_eightway_diag_sens();
 
@@ -2378,7 +2403,7 @@ int16_t input_overlay_state(unsigned port, unsigned device_base,
  * screen.
  **/
 void input_overlay_next(input_overlay_t *ol, float opacity)
-{  
+{
    if (!ol)
       return;
 

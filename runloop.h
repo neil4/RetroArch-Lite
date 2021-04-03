@@ -143,6 +143,11 @@ typedef struct global
    bool overlay_osk_key;
    bool overlay_lightgun_autotrigger;  /* trigger on x,y input */
    bool overlay_reverse_shift_x;
+   struct
+   {
+      char path[PATH_MAX_LENGTH];
+      unsigned index;
+   } overlay_marker;
 #endif
 
    bool block_patch;

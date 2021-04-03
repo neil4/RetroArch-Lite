@@ -847,27 +847,20 @@ static int rarch_main_iterate_quit(void)
 #ifdef HAVE_OVERLAY
 static void rarch_main_iterate_linefeed_overlay(void)
 {
-   static char prev_overlay_restore = false;
-   driver_t *driver                 = driver_get_ptr();
+   driver_t *driver = driver_get_ptr();
 
    if (driver->osk_enable && !driver->keyboard_linefeed_enable)
    {
-      driver->osk_enable    = false;
-      prev_overlay_restore  = true;
-      event_command(EVENT_CMD_OVERLAY_DEINIT);
+      driver->osk_enable = false;
+      event_command(EVENT_CMD_OVERLAY_INIT);
       return;
    }
    else if (!driver->osk_enable && driver->keyboard_linefeed_enable)
    {
-      driver->osk_enable    = true;
-      prev_overlay_restore  = false;
+      input_overlay_set_marker(driver->overlay);
+      driver->osk_enable = true;
       event_command(EVENT_CMD_OVERLAY_INIT);
       return;
-   }
-   else if (prev_overlay_restore)
-   {
-      event_command(EVENT_CMD_OVERLAY_INIT);
-      prev_overlay_restore = false;
    }
 }
 #endif
