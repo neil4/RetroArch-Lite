@@ -1780,36 +1780,39 @@ static bool inside_hitbox(const struct overlay_desc *desc, float x, float y)
 }
 
 /**
- * input_overlay_poll_buttons_iterate:
+ * input_overlay_poll_descs:
  * @ol                    : Overlay handle.
  * @out                   : Polled output data.
  * @ptr_idx               : Pointer index.
  * @norm_x                : Normalized X coordinate.
  * @norm_y                : Normalized Y coordinate.
  *
- * Polls input overlay buttons for a single input pointer.
+ * Polls overlay descriptors for a single input pointer.
  *
  * @norm_x and @norm_y are the result of
  * input_translate_coord_viewport().
+ *
+ * Returns true if pointer is inside any hitbox.
  **/
-static INLINE void input_overlay_poll_buttons_iterate(
+static INLINE bool input_overlay_poll_descs(
       input_overlay_t *ol, input_overlay_state_t *out,
       const uint8_t ptr_idx, int16_t norm_x, int16_t norm_y)
 {
    size_t i, j;
    float x, y;
-   bool ignore_other = false;
    struct overlay_desc *descs = ol->active->descs;
+   bool exclusive_desc_hit    = false;
+   bool any_desc_hit          = false;
 
    memset(out, 0, sizeof(*out));
 
    if (!ol->enable)
    {
       ol->blocked = false;
-      return;
+      return false;
    }
    if (ol->blocked)
-      return;
+      return false;
 
    /* norm_x and norm_y is in [-0x7fff, 0x7fff] range,
     * like RETRO_DEVICE_POINTER. */
@@ -1821,19 +1824,19 @@ static INLINE void input_overlay_poll_buttons_iterate(
    x /= ol->active->scale_w;
    y /= ol->active->scale_h;
 
-   for (i = 0; i < ol->active->size; i++)
+   for (i = 0; i < ol->active->size && !exclusive_desc_hit; i++)
    {
       struct overlay_desc *desc = &descs[i];
 
-      if (!desc)
-         continue;
       if (!inside_hitbox(desc, x, y))
          continue;
+
+      any_desc_hit = true;
 
       if (desc->range_mod_exclusive
           && desc->range_x_mod > desc->range_x_hitbox)
       {
-         ignore_other = true;
+         exclusive_desc_hit = true;
          memset(out,0,sizeof(*out));
          for (j = 0; j < i; j++)
             descs[j].updated &= ~(1 << ptr_idx);
@@ -1880,12 +1883,12 @@ static INLINE void input_overlay_poll_buttons_iterate(
                * ol->active->scale_h;
          }
       }
-
-      if (ignore_other)
-         break;
    }
 
-   input_overlay_undo_meta_overlap(ol, out, ptr_idx);
+   if (!exclusive_desc_hit)
+      input_overlay_undo_meta_overlap(ol, out, ptr_idx);
+
+   return any_desc_hit;
 }
 
 static INLINE void input_overlay_poll_mouse()
@@ -2133,21 +2136,26 @@ void input_overlay_poll(input_overlay_t *overlay_device)
          i++)
    {
       input_overlay_state_t polled_data;
-      uint64_t* const p64_analog = (uint64_t*)polled_data.analog;
 
       int16_t x = input_driver_state(NULL, 0,
             device, i, RETRO_DEVICE_ID_POINTER_X);
       int16_t y = input_driver_state(NULL, 0,
             device, i, RETRO_DEVICE_ID_POINTER_Y);
 
-      input_overlay_poll_buttons_iterate(overlay_device, &polled_data, i, x, y);
-      state->buttons |= polled_data.buttons;
-
-      if ((overlay_lightgun_active || overlay_mouse_active)
-          && polled_data.buttons == 0ULL && *p64_analog == 0LL
-          && !overlay_device->blocked)
+      if (input_overlay_poll_descs(overlay_device, &polled_data, i, x, y))
       {
-         /* Assume mouse or lightgun pointer if all buttons were missed */
+         state->buttons |= polled_data.buttons;
+
+         for (j = 0; j < ARRAY_SIZE(state->keys); j++)
+            state->keys[j] |= polled_data.keys[j];
+
+         for (j = 0; j < 4; j++)
+            if (polled_data.analog[j])
+               state->analog[j] = polled_data.analog[j];
+      }
+      else if ((overlay_lightgun_active || overlay_mouse_active)
+                  && !overlay_device->blocked)
+      {  /* Assume mouse or lightgun pointer if all descriptors were missed */
          if (!state->ptr_count)
          {
             ptr_device = overlay_lightgun_active ?
@@ -2157,18 +2165,11 @@ void input_overlay_poll(input_overlay_t *overlay_device)
             state->ptr_y = input_driver_state(NULL, 0, ptr_device, i,
                RETRO_DEVICE_ID_POINTER_Y);
          }
+
          state->ptr_count++;
       }
-
-      for (j = 0; j < ARRAY_SIZE(state->keys); j++)
-         state->keys[j] |= polled_data.keys[j];
-
-      /* Fingers pressed later take prio and matched up
-       * with overlay poll priorities. */
-      for (j = 0; j < 4; j++)
-         if (polled_data.analog[j])
-            state->analog[j] = polled_data.analog[j];
    }
+
    input_count = i;
 
    if (overlay_mouse_active)
