@@ -157,10 +157,6 @@ enum event_command
    /* Flip netplay players. */
    EVENT_CMD_NETPLAY_FLIP_PLAYERS,
    EVENT_CMD_PREEMPT_FRAMES_UPDATE,
-   /* Initializes BSV movie. */
-   EVENT_CMD_BSV_MOVIE_INIT,
-   /* Deinitializes BSV movie. */
-   EVENT_CMD_BSV_MOVIE_DEINIT,
    /* Initializes command interface. */
    EVENT_CMD_COMMAND_INIT,
    /* Deinitialize command interface. */
@@ -213,7 +209,6 @@ typedef struct event_cmd_state
    bool disk_prev_pressed;
    bool disk_next_pressed;
    bool disk_eject_pressed;
-   bool movie_record;
    bool save_state_pressed;
    bool load_state_pressed;
    bool slowmotion_pressed;

@@ -158,47 +158,6 @@ static void event_save_files(void)
    }
 }
 
-static void event_init_movie(void)
-{
-   settings_t *settings = config_get_ptr();
-   global_t   *global   = global_get_ptr();
-
-   if (global->bsv.movie_start_playback)
-   {
-      if (!(global->bsv.movie = bsv_movie_init(global->bsv.movie_start_path,
-                  RARCH_MOVIE_PLAYBACK)))
-      {
-         RARCH_ERR("Failed to load movie file: \"%s\".\n",
-               global->bsv.movie_start_path);
-         rarch_fail(1, "event_init_movie()");
-      }
-
-      global->bsv.movie_playback = true;
-      rarch_main_msg_queue_push("Starting movie playback.", 2, 180, false);
-      RARCH_LOG("Starting movie playback.\n");
-      settings->rewind_granularity = 1;
-   }
-   else if (global->bsv.movie_start_recording)
-   {
-      char msg[PATH_MAX_LENGTH] = {0};
-      snprintf(msg, sizeof(msg), "Starting movie record to \"%s\".",
-            global->bsv.movie_start_path);
-
-      if (!(global->bsv.movie = bsv_movie_init(global->bsv.movie_start_path,
-                  RARCH_MOVIE_RECORD)))
-      {
-         rarch_main_msg_queue_push("Failed to start movie record.", 1, 180, true);
-         RARCH_ERR("Failed to start movie record.\n");
-         return;
-      }
-
-      rarch_main_msg_queue_push(msg, 1, 180, true);
-      RARCH_LOG("Starting movie record to \"%s\".\n",
-            global->bsv.movie_start_path);
-      settings->rewind_granularity = 1;
-   }
-}
-
 /**
  * event_disk_control_set_eject:
  * @new_state            : Eject or close the virtual drive tray.
@@ -485,14 +444,12 @@ static void event_init_cheats(void)
 {
    bool allow_cheats = true;
    driver_t *driver  = driver_get_ptr();
-   global_t *global  = global_get_ptr();
 
    (void)driver;
 
 #ifdef HAVE_NETPLAY
    allow_cheats &= !driver->netplay_data;
 #endif
-   allow_cheats &= !global->bsv.movie;
 
    if (!allow_cheats)
       return;
@@ -632,7 +589,6 @@ static bool event_init_content(void)
       RARCH_LOG("Skipping SRAM load.\n");
 
    event_load_auto_state();
-   event_command(EVENT_CMD_BSV_MOVIE_INIT);
    event_command(EVENT_CMD_NETPLAY_INIT);
    event_command(EVENT_CMD_PREEMPT_FRAMES_UPDATE);
 
@@ -874,11 +830,6 @@ bool event_command(enum event_command cmd)
 #endif
          break;
       case EVENT_CMD_LOAD_STATE:
-         /* Immutable - disallow savestate load when 
-          * we absolutely cannot change game state. */
-         if (global->bsv.movie)
-            return false;
-
          event_main_state(cmd);
 #ifdef HAVE_NETPLAY
          if (driver->netplay_data && !netplay_send_savestate())
@@ -1360,18 +1311,6 @@ bool event_command(enum event_command cmd)
          event_command(EVENT_CMD_MSG_QUEUE_DEINIT);
          rarch_main_msg_queue_init();
          rarch_main_data_init_queues();
-         break;
-      case EVENT_CMD_BSV_MOVIE_DEINIT:
-         if (!global)
-            break;
-
-         if (global->bsv.movie)
-            bsv_movie_free(global->bsv.movie);
-         global->bsv.movie = NULL;
-         break;
-      case EVENT_CMD_BSV_MOVIE_INIT:
-         event_command(EVENT_CMD_BSV_MOVIE_DEINIT);
-         event_init_movie();
          break;
       case EVENT_CMD_NETPLAY_TOGGLE:
 #ifdef HAVE_NETPLAY

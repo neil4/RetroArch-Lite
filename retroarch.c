@@ -197,9 +197,6 @@ static void print_help(const char *arg0)
           "                        Connect a generic device into PORT of the device (1 to %d).\n", MAX_USERS);
    puts("                        Format is PORT:ID, where ID is a number corresponding to the particular device.");
 
-   puts("  -P, --bsvplay=FILE    Playback a BSV movie file.");
-   puts("  -R, --bsvrecord=FILE  Start recording a BSV movie file from the beginning.");
-   puts("      --eof-exit        Exit upon reaching the end of the BSV movie file.");
    puts("  -M, --sram-mode=MODE  SRAM handling mode. MODE can be 'noload-nosave',\n"
         "                        'noload-save', 'load-nosave' or 'load-save'.\n"
         "                        Note: 'noload-save' implies that save files *WILL BE OVERWRITTEN*.");
@@ -508,8 +505,6 @@ static void parse_input(int argc, char *argv[])
       { "dualanalog",   1, NULL, 'A' },
       { "device",       1, NULL, 'd' },
       { "savestate",    1, NULL, 'S' },
-      { "bsvplay",      1, NULL, 'P' },
-      { "bsvrecord",    1, NULL, 'R' },
       { "sram-mode",    1, NULL, 'M' },
 #ifdef HAVE_NETPLAY
       { "host",         0, NULL, 'H' },
@@ -552,9 +547,7 @@ static void parse_input(int argc, char *argv[])
 #endif
 
 
-#define BSV_MOVIE_ARG "P:R:M:"
-
-   const char *optstring = "hs:fvS:A:c:U:DN:d:" BSV_MOVIE_ARG NETPLAY_ARG DYNAMIC_ARG FFMPEG_RECORD_ARG;
+   const char *optstring = "hs:fvS:A:c:U:DN:d:" NETPLAY_ARG DYNAMIC_ARG FFMPEG_RECORD_ARG;
    settings_t *settings = config_get_ptr();
 
    for (;;)
@@ -674,13 +667,6 @@ static void parse_input(int argc, char *argv[])
             }
             break;
 #endif
-         case 'P':
-         case 'R':
-            strlcpy(global->bsv.movie_start_path, optarg,
-                  sizeof(global->bsv.movie_start_path));
-            global->bsv.movie_start_playback  = (c == 'P');
-            global->bsv.movie_start_recording = (c == 'R');
-            break;
 
          case 'M':
             if (!strcmp(optarg, "noload-nosave"))
@@ -814,7 +800,6 @@ static void parse_input(int argc, char *argv[])
                   exit(0);
 
                case RA_OPT_EOF_EXIT:
-                  global->bsv.eof_exit = true;
                   break;
 
                case RA_OPT_VERSION:
@@ -962,8 +947,6 @@ void rarch_fill_pathnames(void)
    global_t   *global   = global_get_ptr();
 
    rarch_init_savefile_paths();
-   fill_pathname(global->bsv.movie_path, global->savefile_name, "",
-         sizeof(global->bsv.movie_path));
 
    if (!*global->basename)
       return;
@@ -1415,7 +1398,6 @@ void rarch_main_deinit(void)
 
    event_command(EVENT_CMD_REWIND_DEINIT);
    event_command(EVENT_CMD_CHEATS_DEINIT);
-   event_command(EVENT_CMD_BSV_MOVIE_DEINIT);
 
    event_command(EVENT_CMD_AUTOSAVE_STATE);
 

@@ -53,7 +53,6 @@ extern "C" {
 #define MENU_LABEL_FRAME_ADVANCE                                               0xd80302a1U
 #define MENU_LABEL_FPS_SHOW                                                    0x5ea1e10eU
 #define MENU_LABEL_VALUE_FPS_SHOW                                              0x92588792U
-#define MENU_LABEL_MOVIE_RECORD_TOGGLE                                         0xa2d2ff04U
 #define MENU_LABEL_L_X_PLUS                                                    0xd7370d4bU
 #define MENU_LABEL_L_X_MINUS                                                   0xbde0aaf3U
 #define MENU_LABEL_L_Y_PLUS                                                    0xd98c35ecU

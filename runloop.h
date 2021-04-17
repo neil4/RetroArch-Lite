@@ -24,7 +24,6 @@
 #include "configuration.h"
 #include "rewind.h"
 #include "autosave.h"
-#include "movie.h"
 #include "cheats.h"
 
 #ifdef __cplusplus
@@ -218,21 +217,6 @@ typedef struct global
       size_t size;
       bool frame_is_reverse;
    } rewind;
-
-   struct
-   {
-      /* Movie playback/recording support. */
-      bsv_movie_t *movie;
-      char movie_path[PATH_MAX_LENGTH];
-      bool movie_playback;
-      bool eof_exit;
-
-      /* Immediate playback/recording. */
-      char movie_start_path[PATH_MAX_LENGTH];
-      bool movie_start_recording;
-      bool movie_start_playback;
-      bool movie_end;
-   } bsv;
 
    bool sram_load_disable;
    bool sram_save_disable;

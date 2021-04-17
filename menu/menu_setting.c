@@ -3361,10 +3361,6 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                " -- Frame advance when content is paused.");
          break;
-      case MENU_LABEL_MOVIE_RECORD_TOGGLE:
-         snprintf(s, len,
-               " -- Toggle between recording and not.");
-         break;
       case MENU_LABEL_L_X_PLUS:
       case MENU_LABEL_L_X_MINUS:
       case MENU_LABEL_L_Y_PLUS:

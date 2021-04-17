@@ -210,9 +210,6 @@ static void check_rewind(bool pressed)
          rarch_main_msg_queue_push(RETRO_MSG_REWINDING, 0,
                runloop->is_paused ? 1 : 30, true);
          pretro_unserialize(buf, global->rewind.size);
-
-         if (global->bsv.movie)
-            bsv_movie_frame_rewind(global->bsv.movie);
       }
       else
          rarch_main_msg_queue_push(RETRO_MSG_REWIND_REACHED_END,
@@ -226,7 +223,7 @@ static void check_rewind(bool pressed)
       cnt = (cnt + 1) % (settings->rewind_granularity ?
             settings->rewind_granularity : 1); /* Avoid possible SIGFPE. */
 
-      if ((cnt == 0) || global->bsv.movie)
+      if (cnt == 0)
       {
          void *state = NULL;
          state_manager_push_where(global->rewind.state, &state);
@@ -260,106 +257,6 @@ static void check_slowmotion(bool slowmotion_pressed)
 
    rarch_main_msg_queue_push(global->rewind.frame_is_reverse ?
          "Slow motion rewind" : "Slow motion", 0, 1, true);
-}
-
-static bool check_movie_init(void)
-{
-   char path[PATH_MAX_LENGTH]   = {0};
-   char msg[PATH_MAX_LENGTH]    = {0};
-   bool ret                     = true;
-   settings_t *settings         = config_get_ptr();
-   global_t *global             = global_get_ptr();
-   
-   if (global->bsv.movie)
-      return false;
-
-   settings->rewind_granularity = 1;
-
-   if (settings->state_slot > 0)
-   {
-      snprintf(path, sizeof(path), "%s%d.bsv",
-            global->bsv.movie_path, settings->state_slot);
-   }
-   else
-   {
-      snprintf(path, sizeof(path), "%s.bsv",
-            global->bsv.movie_path);
-   }
-
-   snprintf(msg, sizeof(msg), "Starting movie record to \"%s\".", path);
-
-   global->bsv.movie = bsv_movie_init(path, RARCH_MOVIE_RECORD);
-
-   if (!global->bsv.movie)
-      ret = false;
-
-   rarch_main_msg_queue_push(global->bsv.movie ?
-         msg : "Failed to start movie record.", 1, 180, true);
-
-   if (global->bsv.movie)
-      RARCH_LOG("Starting movie record to \"%s\".\n", path);
-   else
-      RARCH_ERR("Failed to start movie record.\n");
-
-   return ret;
-}
-
-/**
- * check_movie_record:
- *
- * Checks if movie is being recorded.
- *
- * Returns: true (1) if movie is being recorded, otherwise false (0).
- **/
-static bool check_movie_record(void)
-{
-   global_t *global = global_get_ptr();
-   if (!global->bsv.movie)
-      return false;
-
-   rarch_main_msg_queue_push(
-         RETRO_MSG_MOVIE_RECORD_STOPPING, 2, 180, true);
-   RARCH_LOG(RETRO_LOG_MOVIE_RECORD_STOPPING);
-
-   event_command(EVENT_CMD_BSV_MOVIE_DEINIT);
-
-   return true;
-}
-
-/**
- * check_movie_playback:
- *
- * Checks if movie is being played.
- *
- * Returns: true (1) if movie is being played, otherwise false (0).
- **/
-static bool check_movie_playback(void)
-{
-   global_t *global = global_get_ptr();
-   if (!global->bsv.movie_end)
-      return false;
-
-   rarch_main_msg_queue_push(
-         RETRO_MSG_MOVIE_PLAYBACK_ENDED, 1, 180, false);
-   RARCH_LOG(RETRO_LOG_MOVIE_PLAYBACK_ENDED);
-
-   event_command(EVENT_CMD_BSV_MOVIE_DEINIT);
-
-   global->bsv.movie_end      = false;
-   global->bsv.movie_playback = false;
-
-   return true;
-}
-
-static bool check_movie(void)
-{
-   global_t *global = global_get_ptr();
-
-   if (global->bsv.movie_playback)
-      return check_movie_playback();
-   if (!global->bsv.movie)
-      return check_movie_init();
-   return check_movie_record();
 }
 
 #define SHADER_EXT_GLSL      0x7c976537U
@@ -587,9 +484,6 @@ static int do_state_checks(event_cmd_state_t *cmd)
    check_rewind(cmd->rewind_pressed);
    check_slowmotion(cmd->slowmotion_pressed);
 
-   if (cmd->movie_record)
-      check_movie();
-
    check_shader_dir(cmd->shader_next_pressed, cmd->shader_prev_pressed);
 
    if (cmd->disk_eject_pressed)
@@ -626,7 +520,6 @@ static int do_state_checks(event_cmd_state_t *cmd)
  * b) Quit key was pressed.
  * c) Frame count exceeds or equals maximum amount of frames to run.
  * d) Video driver no longer alive.
- * e) End of BSV movie and BSV EOF exit is true. (TODO/FIXME - explain better)
  *
  * Returns: 1 if any of the above conditions are true, otherwise 0.
  **/
@@ -636,12 +529,11 @@ static INLINE int time_to_exit(event_cmd_state_t *cmd)
    global_t  *global             = global_get_ptr();
    bool shutdown_pressed         = global->system.shutdown;
    bool video_alive              = video_driver_is_alive();
-   bool movie_end                = (global->bsv.movie_end && global->bsv.eof_exit);
    uint64_t frame_count          = video_driver_get_frame_count();
    bool frame_count_end          = (runloop->frames.video.max && 
          frame_count >= runloop->frames.video.max);
 
-   if (shutdown_pressed || cmd->quit_key_pressed || frame_count_end || movie_end
+   if (shutdown_pressed || cmd->quit_key_pressed || frame_count_end
          || !video_alive)
       return 1;
    return 0;
@@ -1064,7 +956,6 @@ static void rarch_main_cmd_get_state(event_cmd_state_t *cmd,
    cmd->disk_prev_pressed           = BIT64_GET(trigger_input, RARCH_DISK_PREV);
    cmd->disk_next_pressed           = BIT64_GET(trigger_input, RARCH_DISK_NEXT);
    cmd->disk_eject_pressed          = BIT64_GET(trigger_input, RARCH_DISK_EJECT_TOGGLE);
-   cmd->movie_record                = BIT64_GET(trigger_input, RARCH_MOVIE_RECORD_TOGGLE);
    cmd->save_state_pressed          = BIT64_GET(trigger_input, RARCH_SAVE_STATE_KEY);
    cmd->load_state_pressed          = BIT64_GET(trigger_input, RARCH_LOAD_STATE_KEY);
    cmd->slowmotion_pressed          = BIT64_GET(input, RARCH_SLOWMOTION);
@@ -1157,9 +1048,6 @@ int rarch_main_iterate(void)
 #if defined(HAVE_THREADS)
    lock_autosave();
 #endif
-      
-   if (global->bsv.movie)
-      bsv_movie_set_frame_start(global->bsv.movie);
 
    if (global->system.camera_callback.caps)
       driver_camera_poll();
@@ -1176,9 +1064,6 @@ int rarch_main_iterate(void)
 
    /* Run libretro for one frame. */
    pretro_run();
-
-   if (global->bsv.movie)
-      bsv_movie_set_frame_end(global->bsv.movie);
 
 #ifdef HAVE_NETPLAY
    if (driver->netplay_data)

@@ -1548,12 +1548,6 @@ bool init_netplay(void)
    if (!global->netplay_enable)
       return false;
 
-   if (global->bsv.movie_start_playback)
-   {
-      RARCH_WARN(RETRO_LOG_MOVIE_STARTED_INIT_NETPLAY_FAILED);
-      return false;
-   }
-
    retro_set_default_callbacks(&cbs);
 
    if (global->netplay_is_client)

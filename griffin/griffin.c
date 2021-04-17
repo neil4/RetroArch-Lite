@@ -664,7 +664,6 @@ RETROARCH
 /*============================================================
 RECORDING
 ============================================================ */
-#include "../movie.c"
 #include "../record/record_driver.c"
 #include "../record/drivers/record_null.c"
 
