@@ -219,25 +219,29 @@ retro_input_t input_driver_keys_pressed(void)
    driver_t            *driver = driver_get_ptr();
    const input_driver_t *input = input_get_ptr(driver);
 
-   for (key = 0; key < RARCH_BIND_LIST_END; key++)
+   if (!driver->block_libretro_input)
    {
-      bool state = false;
-      if ( (!driver->block_libretro_input && key < RARCH_CUSTOM_BIND_LIST_END)
-           || !driver->block_hotkey )
-         state = input->key_pressed(driver->input_data, key);
+      for (key = 0; key < RARCH_CUSTOM_BIND_LIST_END; key++)
+         if (input->key_pressed(driver->input_data, key))
+            ret |= (1ULL << key);
+   }
+
+   if (!driver->block_hotkey)
+   {
+      for (key = RARCH_FIRST_META_KEY; key < RARCH_BIND_LIST_END; key++)
+         if (input->key_pressed(driver->input_data, key))
+            ret |= (1ULL << key);
+   }
 
 #ifdef HAVE_OVERLAY
-      state = state || (driver->overlay_state.buttons & (1ULL << key));
+   ret |= driver->overlay_state.buttons;
 #endif
 
 #ifdef HAVE_COMMAND
-      if (driver->command)
-         state = state || rarch_cmd_get(driver->command, key);
+   if (driver->command)
+      ret |= rarch_cmd_state(driver->command);
 #endif
 
-      if (state)
-         ret |= (1ULL << key);
-   }
    return ret;
 }
 

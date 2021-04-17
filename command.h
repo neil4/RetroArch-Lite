@@ -24,6 +24,8 @@
 #include <stdint.h>
 #include <boolean.h>
 
+#include "input/input_driver.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,6 +42,8 @@ void rarch_cmd_poll(rarch_cmd_t *handle);
 void rarch_cmd_set(rarch_cmd_t *handle, unsigned id);
 
 bool rarch_cmd_get(rarch_cmd_t *handle, unsigned id);
+
+retro_input_t rarch_cmd_state(rarch_cmd_t *handle);
 
 #if defined(HAVE_NETWORK_CMD) && defined(HAVE_NETPLAY)
 bool network_cmd_send(const char *cmd);

@@ -55,7 +55,7 @@ struct rarch_cmd
    int net_fd;
 #endif
 
-   bool state[RARCH_BIND_LIST_END];
+   retro_input_t state;
 };
 
 #if defined(HAVE_NETWORK_CMD) && defined(HAVE_NETPLAY)
@@ -311,7 +311,7 @@ static void parse_sub_msg(rarch_cmd_t *handle, const char *tok)
             RARCH_ERR("Command \"%s\" failed.\n", arg);
       }
       else
-         handle->state[map[index].id] = true;
+         handle->state |= (1ULL << map[index].id);
    }
    else
       RARCH_WARN("Unrecognized command \"%s\" received.\n", tok);
@@ -331,13 +331,17 @@ static void parse_msg(rarch_cmd_t *handle, char *buf)
 
 void rarch_cmd_set(rarch_cmd_t *handle, unsigned id)
 {
-   if (id < RARCH_BIND_LIST_END)
-      handle->state[id] = true;
+   handle->state |= (1ULL << id);
 }
 
 bool rarch_cmd_get(rarch_cmd_t *handle, unsigned id)
 {
-   return id < RARCH_BIND_LIST_END && handle->state[id];
+   return (handle->state & (1ULL << id));
+}
+
+retro_input_t rarch_cmd_state(rarch_cmd_t *handle)
+{
+   return handle->state;
 }
 
 #if defined(HAVE_NETWORK_CMD) && defined(HAVE_NETPLAY)
@@ -524,7 +528,7 @@ static void stdin_cmd_poll(rarch_cmd_t *handle)
 
 void rarch_cmd_poll(rarch_cmd_t *handle)
 {
-   memset(handle->state, 0, sizeof(handle->state));
+   handle->state = 0ULL;
 
 #if defined(HAVE_NETWORK_CMD) && defined(HAVE_NETPLAY)
    network_cmd_poll(handle);
