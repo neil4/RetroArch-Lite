@@ -82,10 +82,11 @@ void rarch_main_data_overlay_finish()
    driver_t       *driver  = driver_get_ptr();
    data_runloop_t *runloop = rarch_main_data_get_ptr();
 
-   if (!driver || rarch_main_is_idle())
+   if (!driver)
       return;
 
-   while ( driver->overlay
+   while ( !rarch_main_is_idle()
+           && driver->overlay
            && driver->overlay->state != OVERLAY_STATUS_ALIVE
            && driver->overlay->state != OVERLAY_STATUS_NONE )
    {
