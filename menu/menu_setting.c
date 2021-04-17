@@ -3880,7 +3880,7 @@ static void menu_swap_ok_cancel_toggle_change_handler(void *data)
    if (!setting)
       return;
 
-   if (setting->value.boolean && *setting->value.boolean)
+   if (*setting->value.boolean)
    {
       settings->menu_ok_btn          = default_menu_btn_cancel;
       settings->menu_cancel_btn      = default_menu_btn_ok;

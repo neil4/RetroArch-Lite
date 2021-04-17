@@ -278,12 +278,12 @@ static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
       ol_aspect = overlay_aspectratio_lut
                         [settings->input.overlay_aspect_ratio_index].value;
    
-   if (disp_aspect > ol_aspect * 1.01)
+   if (disp_aspect > ol_aspect * 1.001)
    {
       ol_ar_mod.w = ol_aspect / disp_aspect;
       ol_ar_mod.x_center_shift = (1.0f - ol_ar_mod.w) / 2.0f;
    }
-   else if (ol_aspect > disp_aspect * 1.01)
+   else if (ol_aspect > disp_aspect * 1.001)
    {
       ol_ar_mod.h = disp_aspect / ol_aspect;
       ol_ar_mod.y_center_shift = (1.0f - ol_ar_mod.h) / 2.0f;
@@ -353,9 +353,9 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
 
       /* re-center and bisect */
       desc->x += ol_ar_mod.x_center_shift;
-      if (desc->x > 0.5f)
+      if (desc->x > 0.5001f)
          desc->x += ol_ar_mod.x_bisect_shift;
-      else if (desc->x < 0.5f)
+      else if (desc->x < 0.4999f)
          desc->x -= ol_ar_mod.x_bisect_shift;
       desc->y += ol_ar_mod.y_center_shift;
    }
@@ -740,11 +740,9 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
 
             if (desc->key_mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
             {
-               char overlay_target_key[64] = {0};
-
-               snprintf(overlay_target_key, sizeof(overlay_target_key),
+               snprintf(conf_key, sizeof(conf_key),
                      "overlay%u_desc%u_next_target", ol_idx, desc_idx);
-               config_get_array(ol->conf, overlay_target_key,
+               config_get_array(ol->conf, conf_key,
                      desc->next_index_name, sizeof(desc->next_index_name));
             }
          }
