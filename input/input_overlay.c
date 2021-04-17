@@ -1700,13 +1700,17 @@ static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
 }
 
 /**
- * input_overlay_undo_meta_overlap
- * @param out                 : overlay state for a single pointer
+ * input_overlay_undo_meta_overlap:
+ * @ol                            : Overlay handle.
+ * @out                           : overlay state for a single pointer.
+ * @ptr_idx                       : Pointer index.
  *
  * Disallows simultaneous use of meta keys with other controls by the same
  * pointer. Meta keys take priority unless other controls were already active.
  */
-static inline void input_overlay_undo_meta_overlap(input_overlay_state_t* out)
+static inline void input_overlay_undo_meta_overlap(input_overlay_t *ol,
+                                                   input_overlay_state_t* out,
+                                                   const uint8_t ptr_idx)
 {
    uint64_t active_meta  = out->buttons & META_KEY_MASK;
    uint64_t active_other = out->buttons & ~META_KEY_MASK;
@@ -1716,18 +1720,27 @@ static inline void input_overlay_undo_meta_overlap(input_overlay_state_t* out)
    {
       input_overlay_state_t* old_state = &driver_get_ptr()->old_overlay_state;
       uint32_t* analog32_old           = (uint32_t*)old_state->analog;
+      struct overlay_desc *descs       = ol->active->descs;
+      bool undo_meta;
+      size_t i;
 
       if ( (active_other & old_state->buttons)
            || (analog32_old[0] != 0 && analog32[0] != 0)
            || (analog32_old[1] != 0 && analog32[1] != 0) )
       {
          out->buttons = active_other;
+         undo_meta = true;
       }
       else
       {
          out->buttons = active_meta;
          memset(out->analog, 0, 4*sizeof(int16_t));
+         undo_meta = false;
       }
+
+      for (i = 0; i < ol->active->size; i++)
+         if (!((descs[i].key_mask & META_KEY_MASK) == 0ULL) == undo_meta)
+            descs[i].updated &= ~(1 << ptr_idx);
    }
 }
 
@@ -1858,7 +1871,7 @@ static INLINE void input_overlay_poll_buttons_iterate(
 
          out->analog[base + 0] = clamp_float(x_val_sat, -1.0f, 1.0f) * 32767.0f;
          out->analog[base + 1] = clamp_float(y_val_sat, -1.0f, 1.0f) * 32767.0f;
-         
+
          if (desc->movable)
          {
             desc->delta_x = clamp_float(x_dist, -desc->range_x, desc->range_x)
@@ -1871,8 +1884,8 @@ static INLINE void input_overlay_poll_buttons_iterate(
       if (ignore_other)
          break;
    }
-   
-   input_overlay_undo_meta_overlap(out);
+
+   input_overlay_undo_meta_overlap(ol, out, ptr_idx);
 }
 
 static INLINE void input_overlay_poll_mouse()
@@ -2413,7 +2426,7 @@ void input_overlay_next(input_overlay_t *ol, float opacity)
 
    input_overlay_connect_mouse(ol);
    input_overlay_connect_lightgun(ol);
-   
+
    ol->blocked = true;
    ol->next_index = (ol->index + 1) % ol->size;
 }
