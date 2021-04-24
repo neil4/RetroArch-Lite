@@ -459,15 +459,13 @@ void uninit_video_input(void)
       input_overlay_set_marker(driver->overlay);
    event_command(EVENT_CMD_OVERLAY_DEINIT);
 
-   if (
-         !driver->input_data_own &&
-         (driver->input_data != driver->video_data)
-      )
+   if (!driver->video_cache_context)
+      video_driver_free_hw_context();
+
+   if (driver->input_data != driver->video_data)
       input_driver_free();
 
-   if (
-         !driver->video_data_own &&
-         driver->video_data &&
+   if (  driver->video_data &&
          driver->video &&
          driver->video->free)
       driver->video->free(driver->video_data);
@@ -476,7 +474,6 @@ void uninit_video_input(void)
 
    deinit_video_filter();
 
-   video_driver_unset_callback();
    event_command(EVENT_CMD_SHADER_DIR_DEINIT);
    video_monitor_compute_fps_statistics();
 }
@@ -1201,15 +1198,6 @@ struct retro_hw_render_callback *video_driver_callback(void)
    return &video_state.hw_render_callback;
 }
 
-void video_driver_unset_callback(void)
-{
-   struct retro_hw_render_callback *hw_render =
-      video_driver_callback();
-
-   if (hw_render)
-      hw_render = NULL;
-}
-
 bool video_driver_frame_filter(const void *data,
       unsigned width, unsigned height,
       size_t pitch,
@@ -1273,12 +1261,10 @@ void video_driver_set_pixel_format(enum retro_pixel_format fmt)
 
 void video_driver_free_hw_context()
 {
-   driver_t *driver = driver_get_ptr();
-   
-   struct retro_hw_render_callback *hw_render = 
+   struct retro_hw_render_callback *hw_render =
       (struct retro_hw_render_callback*)video_driver_callback();
 
-   if (hw_render->context_destroy && !driver->video_cache_context)
+   if (hw_render->context_destroy)
       hw_render->context_destroy();
 
    memset(hw_render, 0, sizeof(*hw_render));

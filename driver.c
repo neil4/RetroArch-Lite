@@ -369,17 +369,6 @@ void init_drivers(int flags)
    driver_t *driver   = driver_get_ptr();
    global_t *global   = global_get_ptr();
 
-   if (flags & DRIVER_VIDEO)
-      driver->video_data_own = false;
-   if (flags & DRIVER_AUDIO)
-      driver->audio_data_own = false;
-   if (flags & DRIVER_INPUT)
-      driver->input_data_own = false;
-   if (flags & DRIVER_CAMERA)
-      driver->camera_data_own = false;
-   if (flags & DRIVER_LOCATION)
-      driver->location_data_own = false;
-
 #ifdef HAVE_MENU
    /* By default, we want the menu to persist through driver reinits. */
    driver->menu_data_own = true;
@@ -459,39 +448,33 @@ void uninit_drivers(int flags)
    }
 #endif
 
-   if ((flags & DRIVER_LOCATION) && !driver->location_data_own)
+   if (flags & DRIVER_LOCATION)
    {
       uninit_location();
       driver->location_data = NULL;
    }
 
-   if ((flags & DRIVER_CAMERA) && !driver->camera_data_own)
+   if (flags & DRIVER_CAMERA)
    {
       uninit_camera();
       driver->camera_data = NULL;
    }
 
+   if (flags & DRIVERS_VIDEO_INPUT)
+   {
+      uninit_video_input();
+      driver->video_data = NULL;
+   }
+
    if (flags & DRIVER_AUDIO)
       uninit_audio();
 
-   if (flags & DRIVERS_VIDEO_INPUT)
-      uninit_video_input();
-
    if (flags & DRIVER_VIDEO)
-   {
-      const struct retro_hw_render_callback *hw_render = 
-         (const struct retro_hw_render_callback*)video_driver_callback();
-
-      if (hw_render->context_destroy && !driver->video_cache_context)
-         hw_render->context_destroy();
-   }
-
-   if ((flags & DRIVER_VIDEO) && !driver->video_data_own)
       driver->video_data = NULL;
 
-   if ((flags & DRIVER_INPUT) && !driver->input_data_own)
+   if (flags & DRIVER_INPUT)
       driver->input_data = NULL;
 
-   if ((flags & DRIVER_AUDIO) && !driver->audio_data_own)
+   if (flags & DRIVER_AUDIO)
       driver->audio_data = NULL;
 }

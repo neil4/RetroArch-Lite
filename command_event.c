@@ -1171,18 +1171,17 @@ bool event_command(enum event_command cmd)
          init_drivers(DRIVER_AUDIO);
          break;
       case EVENT_CMD_RESET_CONTEXT:
-         if (!runloop->is_paused)
-         {
-            event_command(EVENT_CMD_AUDIO_STOP);
-            video_driver_cached_frame();
-         }
+      {
+         struct retro_hw_render_callback hwr_copy;
+         struct retro_hw_render_callback *hwr = video_driver_callback();
 
+         memcpy(&hwr_copy, hwr, sizeof(hwr_copy));
          event_command(EVENT_CMD_DRIVERS_DEINIT);
-         event_command(EVENT_CMD_DRIVERS_INIT);
+         memcpy(hwr, &hwr_copy, sizeof(hwr_copy));
 
-         if (!runloop->is_paused)
-            event_command(EVENT_CMD_AUDIO_START);
+         event_command(EVENT_CMD_DRIVERS_INIT);
          break;
+      }
       case EVENT_CMD_QUIT_RETROARCH:
          rarch_main_set_state(RARCH_ACTION_STATE_FORCE_QUIT);
          break;
