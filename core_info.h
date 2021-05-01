@@ -51,6 +51,7 @@ typedef struct
    char *databases;
    char *notes;
    char *required_hw_api;
+   char *description;
    struct string_list *system_manufacturer_list;
    struct string_list *categories_list;
    struct string_list *databases_list;
@@ -111,12 +112,14 @@ bool core_info_list_get_info(core_info_list_t *list,
 
 const char *core_info_list_get_all_extensions(core_info_list_t *list);
 
-bool core_info_list_get_display_name(core_info_list_t *list,
+bool core_info_list_get_display_name(core_info_list_t *core_info_list,
       const char *path, char *buf, size_t size);
 
 bool core_info_list_get_core_name(core_info_list_t *core_info_list,
       const char *path, char *buf, size_t size);
 
+bool core_info_list_get_description(core_info_list_t *core_info_list,
+      const char *path, char *buf, size_t size, bool as_messagebox);
 
 #ifdef __cplusplus
 }

@@ -358,6 +358,74 @@ void menu_driver_free(menu_handle_t *menu)
       driver->free(menu);
 }
 
+/**
+ * menu_driver_wrap_text:
+ * @param buf           : Output buffer
+ * @param text          : Input
+ * @param title         : Title; can be NULL
+ * @param buf_len       : Output buffer array length
+ *
+ * Wraps @text for a messagebox, removing any existing newlines.
+ * Not for text already formatted for a messagebox.
+ *
+ **/
+void menu_driver_wrap_text(char *buf, const char *text,
+      const char *title, const unsigned buf_len)
+{
+   const unsigned max_line_len = 48; /* todo: driver dependent */
+   const unsigned search_len   = 12;
+
+   unsigned msg_size = (title ? strlen(title) : 0) + strlen(text) + 1;
+   unsigned i, line_start;
+
+   msg_size = min(msg_size, buf_len);
+
+   if (title)
+   {
+      strlcpy(buf, title, msg_size);
+      strlcat(buf, "\n", msg_size);
+      line_start = strlen(buf);
+      strlcat(buf, text, msg_size);
+   }
+   else
+   {
+      strlcpy(buf, text, msg_size);
+      line_start = 0;
+   }
+
+   /* Remove any existing newlines */
+   for (i = line_start; i < msg_size; i++)
+   {
+      if (buf[i] == '\n')
+         buf[i] = ' ';
+   }
+
+   /* Replace space with newline near each max_line_len interval */
+   for (i = line_start + max_line_len; i < msg_size - 1;
+        i = line_start + max_line_len)
+   {
+      while (!isspace(buf[i]) && i > line_start + (max_line_len - search_len))
+         i--;
+
+      if (isspace(buf[i]))
+         buf[i] = '\n';
+      else
+      {
+         /* Can't find a space; split last word. */
+         msg_size = min(msg_size + 3, buf_len); /* +3 to insert ..\n */
+         i = line_start + max_line_len;
+
+         /* Shift text right and insert ..\n */
+         memmove(buf + (i+1), buf + (i-2), msg_size - (i-2));
+         buf[i-2] = '.';
+         buf[i-1] = '.';
+         buf[i]   = '\n';
+      }
+
+      line_start = i + 1;
+   }
+}
+
 void menu_driver_render_messagebox(const char *msg)
 {
    const menu_ctx_driver_t *driver = menu_ctx_driver_get_ptr();

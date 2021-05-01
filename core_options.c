@@ -98,66 +98,20 @@ void core_option_get(core_option_manager_t *opt, struct retro_variable *var)
    var->value = NULL;
 }
 
-/**
- * core_option_copy_info_as_messagebox:
- * @option              : Pointer to core option struct
- * @option_def          : Pointer to core option definition
- *
- * Creates messagebox suitable info text in @option from the sublabel info
- * text in @option_def.  (RA Lite doesn't have menu sublabels)
- */
 static void core_option_copy_info_as_messagebox(struct core_option *option,
       const struct retro_core_option_definition *option_def)
 {
-   const unsigned max_line_len = 45;
-   unsigned info_len = strlen(option_def->desc)
-                       + strlen(option_def->info) + 3;  /* +3 for :\n and \0 */
-   unsigned i, line_start, line_end;
-   char* tmp;
+   char title[NAME_MAX_LENGTH];
+   unsigned len;
 
-   option->info = calloc(info_len, sizeof(char));
+   strlcpy(title, option_def->desc, NAME_MAX_LENGTH);
+   strlcat(title, ":", NAME_MAX_LENGTH);
 
-   /* Use desc for messagebox title */
-   strlcpy(option->info, option_def->desc, info_len);
-   strlcat(option->info, ":\n", info_len);
-   strlcat(option->info, option_def->info, info_len);
+   len = strlen(title) + strlen(option_def->info)
+         + 10; /* leave room for "..\n" insertions and '\0' */
+   option->info = malloc(len * sizeof(char));
 
-   line_start = strlen(option_def->desc) + 3;
-
-   /* Replace any existing newlines with spaces. */
-   for (i = line_start; i < info_len; i++)
-   {
-      if (option->info[i] == '\n')
-         option->info[i] = ' ';
-   }
-
-   /* Replace space with newline near each max_line_len interval */
-   for (i = line_start + max_line_len; i < info_len;)
-   {
-      while (option->info[i] != ' ' && i > line_start + max_line_len/2)
-         i--;
-
-      if (option->info[i] == ' ')
-         option->info[i] = '\n';
-      else
-      {  /* edge case: can't find a space */
-         info_len += 4;  /* +4 to insert ...\n */
-         line_end = line_start + (max_line_len - 3);
-
-         tmp = option->info;
-         option->info = calloc(info_len, sizeof(char));
-
-         strncpy(option->info, tmp, line_end);
-         strlcat(option->info, "...\n", info_len);
-         strlcat(option->info, tmp + line_end, info_len);
-         i = line_end + 4;  /* put index on '\n' */
-
-         free(tmp);
-      }
-
-      line_start = i + 1;
-      i = line_start + max_line_len;
-   }
+   menu_driver_wrap_text(option->info, option_def->info, title, len);
 }
 
 /* From RA v1.8.5 core_option_manager_parse_option */

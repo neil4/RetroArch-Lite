@@ -102,6 +102,84 @@ static void core_info_list_resolve_all_firmware(
    }
 }
 
+static void core_info_parse_installed(core_info_t *core_info)
+{
+   unsigned fw_count = 0;
+
+   config_get_string(core_info->data, "display_name",
+         &core_info->display_name);
+   config_get_string(core_info->data, "corename",
+         &core_info->core_name);
+   config_get_string(core_info->data, "systemname",
+         &core_info->systemname);
+
+   if (config_get_string(core_info->data, "manufacturer",
+            &core_info->system_manufacturer) &&
+         core_info->system_manufacturer)
+      core_info->system_manufacturer_list =
+         string_split(core_info->system_manufacturer, "|");
+
+   config_get_uint(core_info->data, "firmware_count", &fw_count);
+   core_info->firmware_count = fw_count;
+   if (config_get_string(core_info->data, "supported_extensions",
+            &core_info->supported_extensions) &&
+         core_info->supported_extensions)
+      core_info->supported_extensions_list =
+         string_split(core_info->supported_extensions, "|");
+
+   if (config_get_string(core_info->data, "authors",
+            &core_info->authors) &&
+         core_info->authors)
+      core_info->authors_list =
+         string_split(core_info->authors, "|");
+
+   if (config_get_string(core_info->data, "permissions",
+            &core_info->permissions) &&
+         core_info->permissions)
+      core_info->permissions_list =
+         string_split(core_info->permissions, "|");
+
+   if (config_get_string(core_info->data, "license",
+            &core_info->licenses) &&
+         core_info->licenses)
+      core_info->licenses_list =
+         string_split(core_info->licenses, "|");
+
+   if (config_get_string(core_info->data, "categories",
+            &core_info->categories) &&
+         core_info->categories)
+      core_info->categories_list =
+         string_split(core_info->categories, "|");
+
+   if (config_get_string(core_info->data, "database",
+            &core_info->databases) &&
+         core_info->databases)
+      core_info->databases_list =
+         string_split(core_info->databases, "|");
+
+   if (config_get_string(core_info->data, "notes",
+            &core_info->notes) &&
+         core_info->notes)
+      core_info->note_list = string_split(core_info->notes, "|");
+
+   if (config_get_string(core_info->data, "required_hw_api",
+            &core_info->required_hw_api) &&
+         core_info->required_hw_api)
+      core_info->required_hw_api_list = string_split(
+            core_info->required_hw_api, "|");
+
+   config_get_bool(core_info->data, "supports_no_game",
+         &core_info->supports_no_game);
+}
+
+static void core_info_parse_downloadable(core_info_t *core_info)
+{
+   config_get_string(core_info->data, "display_name",
+         &core_info->display_name);
+   config_get_string(core_info->data, "description",
+         &core_info->description);
+}
+
 core_info_list_t *core_info_list_new(enum info_list_target target)
 {
    size_t i;
@@ -158,70 +236,10 @@ core_info_list_t *core_info_list_new(enum info_list_target target)
 
       if (core_info[i].data)
       {
-         unsigned count = 0;
-         config_get_string(core_info[i].data, "display_name",
-               &core_info[i].display_name);
-         config_get_string(core_info[i].data, "corename",
-               &core_info[i].core_name);
-         config_get_string(core_info[i].data, "systemname",
-               &core_info[i].systemname);
-
-         if (config_get_string(core_info[i].data, "manufacturer",
-                  &core_info[i].system_manufacturer) &&
-               core_info[i].system_manufacturer)
-            core_info[i].system_manufacturer_list =
-               string_split(core_info[i].system_manufacturer, "|");
-
-         config_get_uint(core_info[i].data, "firmware_count", &count);
-         core_info[i].firmware_count = count;
-         if (config_get_string(core_info[i].data, "supported_extensions",
-                  &core_info[i].supported_extensions) &&
-               core_info[i].supported_extensions)
-            core_info[i].supported_extensions_list =
-               string_split(core_info[i].supported_extensions, "|");
-
-         if (config_get_string(core_info[i].data, "authors",
-                  &core_info[i].authors) &&
-               core_info[i].authors)
-            core_info[i].authors_list =
-               string_split(core_info[i].authors, "|");
-
-         if (config_get_string(core_info[i].data, "permissions",
-                  &core_info[i].permissions) &&
-               core_info[i].permissions)
-            core_info[i].permissions_list =
-               string_split(core_info[i].permissions, "|");
-
-         if (config_get_string(core_info[i].data, "license",
-                  &core_info[i].licenses) &&
-               core_info[i].licenses)
-            core_info[i].licenses_list =
-               string_split(core_info[i].licenses, "|");
-
-         if (config_get_string(core_info[i].data, "categories",
-                  &core_info[i].categories) &&
-               core_info[i].categories)
-            core_info[i].categories_list =
-               string_split(core_info[i].categories, "|");
-
-         if (config_get_string(core_info[i].data, "database",
-                  &core_info[i].databases) &&
-               core_info[i].databases)
-            core_info[i].databases_list =
-               string_split(core_info[i].databases, "|");
-
-         if (config_get_string(core_info[i].data, "notes",
-                  &core_info[i].notes) &&
-               core_info[i].notes)
-            core_info[i].note_list = string_split(core_info[i].notes, "|");
-
-         if (config_get_string(core_info[i].data, "required_hw_api",
-                  &core_info[i].required_hw_api) &&
-               core_info[i].required_hw_api)
-            core_info[i].required_hw_api_list = string_split(core_info[i].required_hw_api, "|");
-
-         config_get_bool(core_info[i].data, "supports_no_game",
-               &core_info[i].supports_no_game);
+         if (target == DOWNLOADABLE_CORES)
+            core_info_parse_downloadable(&core_info[i]);
+         else
+            core_info_parse_installed(&core_info[i]);
       }
 
       if (!core_info[i].display_name)
@@ -315,9 +333,11 @@ bool core_info_list_get_display_name(core_info_list_t *core_info_list,
    for (i = 0; i < core_info_list->count; i++)
    {
       const core_info_t *info = &core_info_list->list[i];
-      if (!strcmp(path_basename(info->path), path_basename(path))
-            && info->display_name)
+      if (!strcmp(path_basename(info->path), path_basename(path)))
       {
+         if (!info->display_name)
+            return false;
+
          strlcpy(buf, info->display_name, size);
          return true;
       }
@@ -337,10 +357,40 @@ bool core_info_list_get_core_name(core_info_list_t *core_info_list,
    for (i = 0; i < core_info_list->count; i++)
    {
       const core_info_t *info = &core_info_list->list[i];
-      if (!strcmp(path_basename(info->path), path_basename(path))
-            && info->core_name)
+      if (!strcmp(path_basename(info->path), path_basename(path)))
       {
+         if (!info->core_name)
+            return false;
+
          strlcpy(buf, info->core_name, size);
+         return true;
+      }
+   }
+
+   return false;
+}
+
+bool core_info_list_get_description(core_info_list_t *core_info_list,
+      const char *path, char *buf, size_t size, bool as_messagebox)
+{
+   size_t i;
+
+   if (!core_info_list)
+      return false;
+
+   for (i = 0; i < core_info_list->count; i++)
+   {
+      const core_info_t *info = &core_info_list->list[i];
+      if (!strcmp(path_basename(info->path), path_basename(path)))
+      {
+         if (!info->description)
+            return false;
+
+         if (as_messagebox)
+            menu_driver_wrap_text(buf, info->description, NULL, size);
+         else
+            strlcpy(buf, info->description, size);
+
          return true;
       }
    }

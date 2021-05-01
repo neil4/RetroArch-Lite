@@ -120,21 +120,28 @@ static bool core_is_installed(const char* libretro_name)
    return false;
 }
 
-static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
+static void menu_displaylist_get_downloadable_core_info(file_list_t* list)
 {
-   core_info_list_t* core_info = core_info_list_new(DOWNLOADABLE_CORES);
-   char buf[NAME_MAX_LENGTH] = {0};
-   char* path;
+   global_t *global  = global_get_ptr();
    bool missing_info = false;
+   char buf[NAME_MAX_LENGTH];
+   char* path;
    int i;
 
-   static bool info_update_attempted;
+   static uint8_t num_calls;
+   static bool need_update;
+
+   if (global->core_info_dl == NULL || (need_update && num_calls < 2))
+   {
+      core_info_list_free(global->core_info_dl);
+      global->core_info_dl = core_info_list_new(DOWNLOADABLE_CORES);
+   }
 
    for (i = 0; i < list->size; i += 1)
    {
       path = list->list[i].path;
       if (!path)
-         return -1;
+         return;
 
       path_libretro_name(buf, path);
 
@@ -143,20 +150,20 @@ static int menu_displaylist_get_core_updater_displaynames(file_list_t* list)
          file_list_set_userdata(list, i, strdup("[#]"));
 
       /* put display_name in 'alt' */
-      if (!core_info_list_get_display_name(core_info, buf, buf, NAME_MAX_LENGTH))
+      if (!core_info_list_get_display_name(
+               global->core_info_dl, buf, buf, NAME_MAX_LENGTH))
           missing_info = true;
       menu_list_set_alt_at_offset(list, i, buf);
    }
    
    /* queue info file download */
-   if (!info_update_attempted && missing_info)
+   if (missing_info && num_calls == 0)
    {
       core_info_queue_download();
-      info_update_attempted = true;
+      need_update = true;
    }
-   
-   core_info_list_free(core_info);
-   return 0;
+
+   num_calls++;
 }
 
 static int menu_displaylist_parse_core_info(menu_displaylist_info_t *info)
@@ -1324,7 +1331,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          
          if (info->list->size > 0)
          {
-            menu_displaylist_get_core_updater_displaynames(info->list);
+            menu_displaylist_get_downloadable_core_info(info->list);
             need_sort    = true;
             need_push    = true;
             need_refresh = true;

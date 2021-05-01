@@ -858,7 +858,7 @@ static void rgui_render_background(void)
 
 static void rgui_render_messagebox(const char *message)
 {
-   size_t i;
+   size_t i, num_lines;
    int x, y;
    unsigned width, glyphs_width, height;
    struct string_list *list   = NULL;
@@ -881,8 +881,9 @@ static void rgui_render_messagebox(const char *message)
 
    width        = 0;
    glyphs_width = 0;
+   num_lines    = min(list->size, (frame_buf->height - (6 + 10)) / FONT_HEIGHT_STRIDE);
 
-   for (i = 0; i < list->size; i++)
+   for (i = 0; i < num_lines; i++)
    {
       unsigned line_width;
       char     *msg   = list->elems[i].data;
@@ -902,7 +903,7 @@ static void rgui_render_messagebox(const char *message)
       glyphs_width = max(glyphs_width, msglen);
    }
 
-   height = FONT_HEIGHT_STRIDE * list->size + 6 + 10;
+   height = FONT_HEIGHT_STRIDE * num_lines + 6 + 10;
    x      = (frame_buf->width - width) / 2;
    y      = (frame_buf->height - height) / 2;
 
@@ -916,7 +917,7 @@ static void rgui_render_messagebox(const char *message)
    fill_rect(frame_buf, x, y + 5, 5,
          height - 5, rgui_border_filler);
 
-   for (i = 0; i < list->size; i++)
+   for (i = 0; i < num_lines; i++)
    {
       const char *msg = list->elems[i].data;
       unsigned msglen = min(strlen(msg), RGUI_TERM_WIDTH);

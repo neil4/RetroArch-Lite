@@ -74,7 +74,8 @@ typedef struct global
 
    struct string_list *temporary_content;
 
-   core_info_list_t *core_info;
+   core_info_list_t *core_info;    /* installed */
+   core_info_list_t *core_info_dl; /* downloadable */
    core_info_t *core_info_current;
    config_file_t *mame_list;  /* .zip to MAME title mapping */
 
