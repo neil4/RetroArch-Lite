@@ -105,12 +105,10 @@ static void core_option_copy_info_as_messagebox(struct core_option *option,
    unsigned len;
 
    strlcpy(title, option_def->desc, NAME_MAX_LENGTH);
-   strlcat(title, ":", NAME_MAX_LENGTH);
+   len = strlcat(title, ":", NAME_MAX_LENGTH);
+   len += strlen(option_def->info) + 10; /* add room for ..\n insertions */
 
-   len = strlen(title) + strlen(option_def->info)
-         + 10; /* leave room for "..\n" insertions and '\0' */
    option->info = malloc(len * sizeof(char));
-
    menu_driver_wrap_text(option->info, option_def->info, title, len);
 }
 

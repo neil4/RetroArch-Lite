@@ -1485,10 +1485,12 @@ static INLINE void gl_draw_texture(gl_t *gl)
    if (gl->menu_texture_full_screen)
       glViewport(0, 0, width, height);
    else
-      glViewport(max(0, min(gl->vp.x, (int)width - (int)gl->vp.width)),
-                 max(0, min(gl->vp.y, (int)height - (int)gl->vp.height)),
-                 min(width, gl->vp.width),
-                 min(height, gl->vp.height));
+   {
+      int tmp_x = min(gl->vp.x, (int)width - (int)gl->vp.width);
+      int tmp_y = min(gl->vp.y, (int)height - (int)gl->vp.height);
+      glViewport(max(0, tmp_x),            max(0, tmp_y),
+                 min(width, gl->vp.width), min(height, gl->vp.height));
+   }
 
    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
    glViewport(gl->vp.x, gl->vp.y, gl->vp.width, gl->vp.height);

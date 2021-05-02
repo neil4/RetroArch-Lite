@@ -375,23 +375,21 @@ void menu_driver_wrap_text(char *buf, const char *text,
    const unsigned max_line_len = 48; /* todo: driver dependent */
    const unsigned search_len   = 12;
 
-   unsigned msg_size = (title ? strlen(title) + 1 : 0) + strlen(text) + 1;
-   unsigned i, line_start;
-
-   msg_size = min(msg_size, buf_len);
+   unsigned msg_size, line_start, i;
 
    if (title)
    {
-      strlcpy(buf, title, msg_size);
-      strlcat(buf, "\n", msg_size);
-      line_start = strlen(buf);
-      strlcat(buf, text, msg_size);
+      strlcpy(buf, title, buf_len);
+      line_start = strlcat(buf, "\n", buf_len);
+      msg_size   = strlcat(buf, text, buf_len) + 1;
    }
    else
    {
-      strlcpy(buf, text, msg_size);
+      msg_size   = strlcpy(buf, text, buf_len) + 1;
       line_start = 0;
    }
+
+   msg_size = min(msg_size, buf_len);
 
    /* Remove any existing newlines */
    for (i = line_start; i < msg_size; i++)
