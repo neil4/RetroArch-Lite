@@ -375,7 +375,7 @@ void menu_driver_wrap_text(char *buf, const char *text,
    const unsigned max_line_len = 48; /* todo: driver dependent */
    const unsigned search_len   = 12;
 
-   unsigned msg_size = (title ? strlen(title) : 0) + strlen(text) + 1;
+   unsigned msg_size = (title ? strlen(title) + 1 : 0) + strlen(text) + 1;
    unsigned i, line_start;
 
    msg_size = min(msg_size, buf_len);
@@ -416,13 +416,21 @@ void menu_driver_wrap_text(char *buf, const char *text,
          i = line_start + max_line_len;
 
          /* Shift text right and insert ..\n */
-         memmove(buf + (i+1), buf + (i-2), msg_size - (i-2));
+         memmove(buf + (i+1), buf + (i-2), msg_size - (i+1));
          buf[i-2] = '.';
          buf[i-1] = '.';
          buf[i]   = '\n';
       }
 
       line_start = i + 1;
+   }
+
+   /* Check for truncation */
+   if (buf[msg_size-1])
+   {
+      buf[msg_size-3] = '.';
+      buf[msg_size-2] = '.';
+      buf[msg_size-1] = '\0';
    }
 }
 
