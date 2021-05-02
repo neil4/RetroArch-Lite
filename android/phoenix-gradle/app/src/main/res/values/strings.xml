@@ -22,15 +22,15 @@
     <!-- Core Manager Info Fragment -->
     <string name="core_info_displayNameTitle">Display Name</string>
     <string name="core_info_internalNameTitle">Internal Name</string>
-    <string name="core_info_systemNameTitle">Description</string>
+    <string name="core_info_systemNameTitle">System</string>
     <string name="core_info_author">Author(s)</string>
-    <string name="core_info_licenseTitle">Core License(s)</string>
+    <string name="core_info_licenseTitle">License(s)</string>
     <string name="core_info_manufacturer">Manufacturer</string>
-    <string name="core_info_permissions">Permissions</string>
     <string name="core_info_extensions">Supported File Extensions</string>
     <string name="core_info_required_hw_api">Required Graphics API</string>
     <string name="core_info_firmwares">Firmware</string>
     <string name="core_info_notes">Notes</string>
+    <string name="core_info_description">Description</string>
 
     <!-- Core Downloader Fragment -->
     <string name="download_core_confirm_msg">Download %1$s?</string>
@@ -40,7 +40,7 @@
 
     <!-- Core Downloader - Downloadable Cores Context Menu -->
     <string name="downloadable_cores_ctx_title">Actions</string>
-    <string name="downloadable_cores_ctx_goto_libretrodocs">Go to Libretro Docs page</string>
+    <string name="downloadable_cores_ctx_view_core_info">View Core Information</string>
     <string name="downloadable_cores_ctx_sort_by_name">Sort by Name</string>
     <string name="downloadable_cores_ctx_sort_by_system">Sort by Make &#38; System</string>
     

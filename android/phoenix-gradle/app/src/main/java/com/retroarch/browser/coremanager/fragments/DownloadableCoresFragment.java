@@ -4,9 +4,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -24,6 +22,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.preferences.util.UserPreferences;
 import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
@@ -158,34 +157,23 @@ public final class DownloadableCoresFragment extends ListFragment
 
       switch (item.getItemId())
       {
-         case R.id.go_to_libretrodocs_ctx_item:
+         case R.id.view_core_info_ctx_item:
          {
-            // todo: Docs pages have no naming convention, so maybe this shouldn't be a feature
-            String coreUrlPart = ((DownloadableCore)getListView().getItemAtPosition(info.position))
-                  .getCoreName().toLowerCase()
-                  .replace(' ', '_')
-                  .replace('-', '_')
-                  .replace('.', '_')
-                  .replace(",", "")
-                  .replace("+", "plus")
-                  .replace("_git", "")
-                  .replace("_svn", "")
-                  .replaceFirst(".+/", "")
-                  .replaceFirst("_\\(.+\\)", "");
-            if (coreUrlPart.matches(".+_[0-9]+_.+"))
-               coreUrlPart = coreUrlPart.replaceFirst("_", "");
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW,
-                  Uri.parse("http://docs.libretro.com/library/" + coreUrlPart));
-            startActivity(browserIntent);
+            final String fakePath = getActivity().getApplicationInfo().dataDir + "/cores/"
+                  + sAdapter.getItem(info.position).getShortURLName();
+            final ModuleWrapper core = new ModuleWrapper(getActivity(), new File(fakePath), false);
+
+            CoreInfoFragment cif = CoreInfoFragment.newInstance(core);
+            cif.show(getFragmentManager(), "cif");
             return true;
          }
-         case R.id.sort_by_name:
+         case R.id.sort_by_name_ctx_item:
          {
             DownloadableCore.sortBySystem = false;
             reSortCores();
             return true;
          }
-         case R.id.sort_by_system:
+         case R.id.sort_by_system_ctx_item:
          {
             DownloadableCore.sortBySystem = true;
             reSortCores();

@@ -29,8 +29,8 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    private final String notes;
    private final List<String> authors;
    private final List<String> supportedExtensions;
-   private final List<String> permissions;
    private final List<String> requiredHwApi;
+   private final String description;
    private int firmwareCount = 0;
    private final String firmwares;
    private final boolean is64bit;
@@ -78,9 +78,9 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          this.displayName  = (infoFile.keyExists("display_name")) ? infoFile.getString("display_name") : "N/A";
          this.coreName     = (infoFile.keyExists("corename"))     ? infoFile.getString("corename")     : "N/A";
          this.systemName   = (infoFile.keyExists("systemname"))   ? infoFile.getString("systemname")   : "N/A";
-         this.notes        = (infoFile.keyExists("notes"))
-                             ? infoFile.getString("notes").replace("|", "\n")
-                             : "N/A";
+         this.notes        = (infoFile.keyExists("notes"))        ? infoFile.getString("notes").replace("|", "\n")
+                             : null;
+         this.description  = (infoFile.keyExists("description"))  ? infoFile.getString("description") : "N/A";
          this.firmwareCount = (infoFile.keyExists("firmware_count") ? infoFile.getInt("firmware_count") : 0);
          
          // For manufacturer, licenses, extensions and authors, use '|' delimiter
@@ -127,17 +127,6 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
             this.authors = new ArrayList<String>();
             this.authors.add(emuAuthors != null ? emuAuthors : "Unknown");
          }
-         
-         final String permissions = infoFile.getString("permissions");
-         if (permissions != null && permissions.contains("|"))
-         {
-            this.permissions = new ArrayList<String>(Arrays.asList(permissions.split("\\|")));
-         }
-         else
-         {
-            this.permissions = new ArrayList<String>();
-            this.permissions.add(permissions != null ? permissions : "None");
-         }
 
          final String requiredHwApi = infoFile.getString("required_hw_api");
          if (requiredHwApi != null && requiredHwApi.contains("|"))
@@ -146,21 +135,22 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          }
          else
          {
-            this.requiredHwApi = new ArrayList<String>();
-            this.requiredHwApi.add(requiredHwApi != null ? requiredHwApi : "N/A");
+            this.requiredHwApi = null;
          }
          
          // Firmware list
          //
          if (this.firmwareCount == 0)
+         {
             this.firmwares = "N/A";
+         }
          else
          {
             final String defaultBase = Environment.getExternalStorageDirectory()
                                                   .getAbsolutePath() + "/RetroArchLite";
             final String defaultSys = defaultBase + "/system";
-            String sys_dir = prefs.getBoolean("system_directory_enable", false) ?
-                             prefs.getString("system_directory", defaultSys) : defaultSys;
+            String sysDir = prefs.getBoolean("system_directory_enable", false) ?
+                            prefs.getString("system_directory", defaultSys) : defaultSys;
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < this.firmwareCount; i++)
             {
@@ -168,12 +158,12 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
                sb.append((infoFile.keyExists(key)) ? infoFile.getString(key) : "N/A");
 
                key = "firmware" + i + "_path";
-               String rel_path = ((infoFile.keyExists(key)) ? infoFile.getString(key) : "?");
-               sb.append("\n   path:  system/").append(rel_path);
+               String relPath = ((infoFile.keyExists(key)) ? infoFile.getString(key) : "?");
+               sb.append("\n    path:  system/").append(relPath);
 
                key = "firmware" + i + "_opt";
-               sb.append( "\n   status:  ")
-                 .append(new File(sys_dir + "/" + rel_path).exists() ?
+               sb.append( "\n    status:  ")
+                 .append(new File(sysDir + "/" + relPath).exists() ?
                              "present" : "missing")
                  .append(", ")
                  .append(((infoFile.keyExists(key)) ?
@@ -192,16 +182,14 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          this.manufacturer.add("N/A");
          this.license = new ArrayList<String>();
          this.license.add("Unknown");
-         this.notes = "N/A";
+         this.notes = null;
          this.authors = new ArrayList<String>();
          this.authors.add("Unknown");
          this.supportedExtensions = new ArrayList<String>();
          this.coreName = coreName;
-         this.requiredHwApi = new ArrayList<String>();
-         this.requiredHwApi.add("Unknown");
+         this.requiredHwApi = null;
          this.firmwares = "Unknown";
-         this.permissions = new ArrayList<String>();
-         this.permissions.add("Unknown");
+         this.description = "N/A";
       }
    }
 
@@ -234,6 +222,16 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    public String getDisplayName()
    {
       return displayName;
+   }
+
+   /**
+    * Gets the description for this wrapped core.
+    *
+    * @return the description for this wrapped core.
+    */
+   public String getDescription()
+   {
+      return description;
    }
 
    /**
@@ -327,16 +325,6 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    public List<String> getAuthors()
    {
       return authors;
-   }
-
-   /**
-    * Gets the list of permissions of this core.
-    * 
-    * @return the list of permissions of this core.
-    */
-   public List<String> getPermissions()
-   {
-      return permissions;
    }
 
    /**

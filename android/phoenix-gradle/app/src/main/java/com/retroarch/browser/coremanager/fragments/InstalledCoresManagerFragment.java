@@ -32,7 +32,7 @@ public class InstalledCoresManagerFragment extends Fragment implements Installed
    @Override
    public void onCoreItemClicked(ModuleWrapper core)
    {
-      InstalledCoreInfoFragment cif = InstalledCoreInfoFragment.newInstance(core);
+      CoreInfoFragment cif = CoreInfoFragment.newInstance(core);
       cif.show(getFragmentManager(), "cif");
    }
 }

@@ -5,9 +5,9 @@ import android.text.TextUtils;
 import java.util.List;
 
 /**
- * Represents a single list item within the InstalledCoreInfoFragment.
+ * Represents a single list item within the CoreInfoFragment.
  */
-public final class InstalledCoreInfoItem
+public final class CoreInfoItem
 {
    private final String title;
    private final String subtitle;
@@ -18,7 +18,7 @@ public final class InstalledCoreInfoItem
     * @param title    Title of the item within the core info list.
     * @param subtitle Subtitle of the item within the core info list.
     */
-   public InstalledCoreInfoItem(String title, String subtitle)
+   public CoreInfoItem(String title, String subtitle)
    {
       this.title = title;
       this.subtitle = subtitle;
@@ -32,16 +32,16 @@ public final class InstalledCoreInfoItem
     * @param title    Title of the item within the core info list.
     * @param subtitle List of strings to add to the subtitle section of this item.
     */
-   public InstalledCoreInfoItem(String title, List<String> subtitle)
+   public CoreInfoItem(String title, List<String> subtitle)
    {
       this.title = title;
       this.subtitle = TextUtils.join(", ", subtitle);
    }
 
    /**
-    * Gets the title of this InstalledCoreInfoItem.
+    * Gets the title of this CoreInfoItem.
     *
-    * @return the title of this InstalledCoreInfoItem.
+    * @return the title of this CoreInfoItem.
     */
    public String getTitle()
    {
@@ -49,9 +49,9 @@ public final class InstalledCoreInfoItem
    }
 
    /**
-    * Gets the subtitle of this InstalledCoreInfoItem.
+    * Gets the subtitle of this CoreInfoItem.
     *
-    * @return the subtitle of this InstalledCoreInfoItem.
+    * @return the subtitle of this CoreInfoItem.
     */
    public String getSubtitle()
    {

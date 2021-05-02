@@ -22,18 +22,18 @@ import java.io.File;
 /**
  * Fragment that displays information about a selected core.
  */
-public final class InstalledCoreInfoFragment extends DialogFragment
+public final class CoreInfoFragment extends DialogFragment
 {
    /**
-    * Creates a new instance of a InstalledCoreInfoFragment.
+    * Creates a new instance of a CoreInfoFragment.
     * 
     * @param core The wrapped core to represent.
     * 
-    * @return a new instance of a InstalledCoreInfoFragment.
+    * @return a new instance of a CoreInfoFragment.
     */
-   public static InstalledCoreInfoFragment newInstance(ModuleWrapper core)
+   public static CoreInfoFragment newInstance(ModuleWrapper core)
    {
-      InstalledCoreInfoFragment cif = new InstalledCoreInfoFragment();
+      CoreInfoFragment cif = new CoreInfoFragment();
 
       // Set the core path as an argument.
       // This will allow us to re-retrieve information if the Fragment
@@ -57,16 +57,17 @@ public final class InstalledCoreInfoFragment extends DialogFragment
 
       // Initialize the core info.
       CoreInfoAdapter adapter = new CoreInfoAdapter(getActivity(), android.R.layout.simple_list_item_2);
-      adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_displayNameTitle),  core.getDisplayName()));
-      adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_systemNameTitle),   core.getEmulatedSystemName()));
-      adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_manufacturer),      core.getManufacturer()));
-      adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_author),            core.getAuthors()));
-      adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_licenseTitle),      core.getCoreLicense()));
-      adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_permissions),       core.getPermissions()));
-      adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_extensions),        core.getCoreSupportedExtensions()));
-      adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_required_hw_api),   core.getCoreRequiredHwApi()));
-      adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_firmwares),         core.getCoreFirmwares()));
-      adapter.add(new InstalledCoreInfoItem(getString(R.string.core_info_notes),             core.getCoreNotes()));
+      adapter.add(new CoreInfoItem(getString(R.string.core_info_author),            core.getAuthors()));
+      adapter.add(new CoreInfoItem(getString(R.string.core_info_licenseTitle),      core.getCoreLicense()));
+      adapter.add(new CoreInfoItem(getString(R.string.core_info_description),       core.getDescription()));
+      adapter.add(new CoreInfoItem(getString(R.string.core_info_systemNameTitle),   core.getEmulatedSystemName()));
+      adapter.add(new CoreInfoItem(getString(R.string.core_info_manufacturer),      core.getManufacturer()));
+      adapter.add(new CoreInfoItem(getString(R.string.core_info_extensions),        core.getCoreSupportedExtensions()));
+      if (core.getCoreRequiredHwApi() != null)
+         adapter.add(new CoreInfoItem(getString(R.string.core_info_required_hw_api),core.getCoreRequiredHwApi()));
+      adapter.add(new CoreInfoItem(getString(R.string.core_info_firmwares),         core.getCoreFirmwares()));
+      if (core.getCoreNotes() != null)
+         adapter.add(new CoreInfoItem(getString(R.string.core_info_notes),          core.getCoreNotes()));
 
       // Add title
       TextView titleView = new TextView(getContext());
@@ -98,9 +99,9 @@ public final class InstalledCoreInfoFragment extends DialogFragment
    }
 
    /**
-    * Adapter backing this InstalledCoreInfoFragment
+    * Adapter backing this CoreInfoFragment
     */
-   private final class CoreInfoAdapter extends ArrayAdapter<InstalledCoreInfoItem>
+   private final class CoreInfoAdapter extends ArrayAdapter<CoreInfoItem>
    {
       private final Context context;
       private final int resourceId;
@@ -128,7 +129,7 @@ public final class InstalledCoreInfoFragment extends DialogFragment
             convertView = vi.inflate(resourceId, parent, false);
          }
 
-         final InstalledCoreInfoItem item = getItem(position);
+         final CoreInfoItem item = getItem(position);
          if (item != null)
          {
             final TextView title    = (TextView) convertView.findViewById(android.R.id.text1);
