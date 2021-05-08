@@ -268,6 +268,34 @@ struct string_list *compressed_file_list_new(const char *path,
 }
 
 #ifdef HAVE_COMPRESSION
+static void print_rzip_progress(const uint64_t current, const uint64_t total,
+      const int64_t interval_ms, const char* msg_prefix)
+{
+   char msg[32];
+   retro_time_t now_usec;
+   static retro_time_t prev_usec;
+
+   now_usec = rarch_get_time_usec();
+
+   if (total == 0ULL)
+   {  /* Reset and delay printing for interval_ms */
+      prev_usec = now_usec + interval_ms;
+      return;
+   }
+
+   if (now_usec > prev_usec + interval_ms
+       && video_driver_is_alive())
+   {
+      snprintf(msg, sizeof(msg), "%s %u%%", msg_prefix,
+               (unsigned)((100 * current) / total));
+
+      rarch_main_msg_queue_push(msg, 1, 1, true);
+      video_driver_cached_frame();
+
+      prev_usec = now_usec;
+   }
+}
+
 /* From RA v1.8.7 rzipstream_write_file_header */
 static bool write_rzip_file_header(FILE *file, uint64_t data_size)
 {
@@ -372,14 +400,13 @@ bool write_rzip_file(const char *path, const void *data, uint64_t size)
    uint32_t chunk_infl_size;
    uint64_t total_read = 0;
    uint32_t zlib_defl_size;
-   char     msg[32];
 
    const uint32_t buf_size = RZIP_DEFAULT_CHUNK_SIZE * 2;
 
    FILE *file = fopen(path, "wb");
 
-   retro_time_t now_usec, prev_usec;
-   prev_usec = rarch_get_time_usec() + 150000; /* Run .2s before showing progress */
+   /* Run .2s before showing progress */
+   print_rzip_progress(0, 0, 150000, NULL);
 
    if (!file)
       return false;
@@ -427,15 +454,7 @@ bool write_rzip_file(const char *path, const void *data, uint64_t size)
       zlib_stream_deflate_reset(stream);
 
       /* Show progress at ~20fps */
-      now_usec = rarch_get_time_usec();
-      if (now_usec - prev_usec > 50000)
-      {
-         snprintf(msg, sizeof(msg), "Compressing %u%%",
-                  (unsigned)((100 * total_read) / size));
-         rarch_main_msg_queue_push(msg, 1, 1, true);
-         video_driver_cached_frame();
-         prev_usec = now_usec;
-      }
+      print_rzip_progress(total_read, size, 50000, "Compressing");
    }
 
    ret = true;
@@ -480,12 +499,11 @@ bool read_rzip_file(const char *path, void **buf, ssize_t *len)
    uint32_t chunk_infl_size;
    uint32_t zlib_infl_size;
    uint8_t  chunk_header[RZIP_CHUNK_HEADER_SIZE];
-   char     msg[32];
 
    FILE *file = fopen(path, "rb");
 
-   retro_time_t now_usec, prev_usec;
-   prev_usec = rarch_get_time_usec() + 150000; /* Run .2s before showing progress */
+   /* Run .2s before showing progress */
+   print_rzip_progress(0, 0, 150000, NULL);
 
    if (!file)
       return false;
@@ -549,15 +567,7 @@ bool read_rzip_file(const char *path, void **buf, ssize_t *len)
       zlib_stream_inflate_reset(stream);
 
       /* Show progress at ~20fps */
-      now_usec = rarch_get_time_usec();
-      if (now_usec - prev_usec > 50000)
-      {
-         snprintf(msg, sizeof(msg), "Decompressing %u%%",
-                  (unsigned)((100 * total_out) / data_size));
-         rarch_main_msg_queue_push(msg, 1, 1, true);
-         video_driver_cached_frame();
-         prev_usec = now_usec;
-      }
+      print_rzip_progress(total_out, data_size, 50000, "Decompressing");
    }
 
    /* Allow for easy reading of strings to be safe.
