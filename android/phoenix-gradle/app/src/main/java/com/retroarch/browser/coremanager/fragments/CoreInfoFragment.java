@@ -70,11 +70,12 @@ public final class CoreInfoFragment extends DialogFragment
          adapter.add(new CoreInfoItem(getString(R.string.core_info_notes),          core.getCoreNotes()));
 
       // Add title
+      final int padding = (int) (15 * getActivity().getResources().getDisplayMetrics().density);
       TextView titleView = new TextView(getContext());
       titleView.setText(core.getInternalName());
       titleView.setTextSize(24);
       titleView.setTypeface(Typeface.DEFAULT_BOLD);
-      titleView.setPadding(50,50,50,50);
+      titleView.setPadding(padding, padding, padding, padding);
       infoView.addHeaderView(titleView);
       
       // Set the list adapter.
