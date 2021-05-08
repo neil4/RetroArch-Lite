@@ -365,7 +365,7 @@ void menu_driver_free(menu_handle_t *menu)
  * @param title         : Title; can be NULL
  * @param buf_len       : Output buffer array length
  *
- * Wraps @text for a messagebox, removing any existing newlines.
+ * Wraps @text for a messagebox, replacing existing newlines with bullet chars.
  * Not for text already formatted for a messagebox.
  *
  **/
@@ -395,7 +395,7 @@ void menu_driver_wrap_text(char *buf, const char *text,
    for (i = line_start; i < msg_size; i++)
    {
       if (buf[i] == '\n')
-         buf[i] = ' ';
+         buf[i] = (char)149;
    }
 
    /* Replace space with newline near each max_line_len interval */

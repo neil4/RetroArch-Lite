@@ -560,8 +560,8 @@ static float menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
 {
    unsigned ticker_period, phase;
    unsigned phase1, phase2, phase3;
-   const char* sep = " | ";
-   const size_t sep_len = strlen(sep);
+   const char   sep[4]  = {' ', (char)149, ' ', '\0'};  /* bullet */
+   const size_t sep_len = 3;
 
    /* 4 phases:
     * string only
