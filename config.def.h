@@ -590,7 +590,7 @@ static const bool font_enable = true;
 #if defined(RARCH_CONSOLE)
 static const float refresh_rate = 60/1.001; 
 #else
-static const float refresh_rate = 59.95;
+static const float refresh_rate = 60.0;
 #endif
 
 /* Allow games to set rotation. If false, rotation requests are 
