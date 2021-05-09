@@ -26,7 +26,9 @@
 #include <string/stdstring.h>
 #include "menu/menu.h"
 
-bool options_touched = false;
+bool options_touched    = false;
+bool have_core_opt_file = false;
+bool have_game_opt_file = false;
 
 struct core_option
 {
@@ -346,8 +348,10 @@ error:
 void core_options_init(const struct retro_core_option_definition *option_defs,
       const struct retro_variable *vars)
 {
-   global_t *global                = global_get_ptr();
-   char conf_path[PATH_MAX_LENGTH] = {0};
+   global_t *global = global_get_ptr();
+   char core_path[PATH_MAX_LENGTH];
+   char game_path[PATH_MAX_LENGTH];
+   char *conf_path;
 
    if (global->system.core_options)
    {
@@ -355,10 +359,19 @@ void core_options_init(const struct retro_core_option_definition *option_defs,
       global->system.core_options = NULL;
    }
 
-   if (!core_option_get_game_conf_path(conf_path))
-      core_option_get_core_conf_path(conf_path);
+   core_option_get_game_conf_path(game_path);
+   core_option_get_core_conf_path(core_path);
 
+   have_game_opt_file = path_file_exists(game_path);
+   have_core_opt_file = path_file_exists(core_path);
+
+   conf_path = have_game_opt_file ? game_path : core_path;
    global->system.core_options = core_option_new(conf_path, option_defs, vars);
+
+   path_basedir(conf_path);
+   path_mkdir(conf_path);
+
+   options_touched = false;
 }
 
 /**
@@ -389,12 +402,12 @@ void core_option_set_visible(core_option_manager_t *opt,
 /**
  * core_option_index:
  * @opt             : options manager handle
- * @type            : menu entry type
+ * @type            : option index or menu entry type
  *
  * Returns: Index of core option
  */
 static INLINE unsigned core_option_index(core_option_manager_t *opt,
-                                         unsigned type)
+                                         const unsigned type)
 {
    if (type >= MENU_SETTINGS_CORE_OPTION_START)
       return opt->index_map[type - MENU_SETTINGS_CORE_OPTION_START];
@@ -428,6 +441,7 @@ bool core_option_updated(core_option_manager_t *opt)
  **/
 bool core_option_flush(core_option_manager_t *opt)
 {
+   bool ret;
    size_t i;
 
    for (i = 0; i < opt->size; i++)
@@ -438,7 +452,12 @@ bool core_option_flush(core_option_manager_t *opt)
          config_set_string(opt->conf, option->key, core_option_get_val(opt, i));
    }
 
-   return config_file_write(opt->conf, opt->conf_path);
+   ret = config_file_write(opt->conf, opt->conf_path);
+
+   if (ret)
+      options_touched = false;
+
+   return ret;
 }
 
 /**
@@ -606,6 +625,62 @@ void core_option_set_val(core_option_manager_t *opt,
    options_touched      = true;
 }
 
+/* Returns the string_list index of the @option value matching @val */
+static size_t core_option_get_val_index(struct core_option *option,
+                                        const char *val)
+{
+   struct string_list *vals;
+   size_t i;
+
+   if (!option)
+      return 0;
+
+   vals = option->vals;
+
+   for (i = 0; i < vals->size; i++)
+   {
+      if (strcasecmp(vals->elems[i].data, val) == 0)
+         return i;
+   }
+
+   return option->index;
+}
+
+/**
+ * core_option_update_vals_from_file:
+ * @opt                             : pointer to core option manager object.
+ * @path                            : options file path
+ *
+ * Updates @opt values from the contents of @path.
+ * Does not add or remove @opt entries.
+ */
+void core_option_update_vals_from_file(core_option_manager_t *opt,
+                                       const char *path)
+{
+   config_file_t *conf;
+   char *conf_val;
+   size_t i;
+
+   conf = config_file_new(path);
+   if (!conf)
+      return;
+
+   for (i = 0; i < opt->size; i++)
+   {
+      struct core_option *option = &opt->opts[i];
+
+      if (config_get_string(conf, option->key, &conf_val))
+      {
+         option->index = core_option_get_val_index(option, conf_val);
+         free(conf_val);
+      }
+   }
+
+   opt->updated    = true;
+   options_touched = true;
+   config_file_free(conf);
+}
+
 /**
  * core_option_next:
  * @opt            : pointer to core option manager object.
@@ -670,6 +745,33 @@ void core_option_set_default(core_option_manager_t *opt, size_t idx)
    options_touched      = true;
 }
 
+/**
+ * core_options_set_defaults:
+ * @opt                     : pointer to core option manager object.
+ *
+ * Resets all core options to their default values.
+ **/
+void core_options_set_defaults(core_option_manager_t *opt)
+{
+   size_t i;
+
+   if (!opt)
+      return;
+
+   for (i = 0; i < opt->size; i++)
+      opt->opts[i].index = opt->opts[i].default_index;
+
+   opt->updated    = true;
+   options_touched = true;
+}
+
+/**
+ * core_options_conf_reload:
+ * @opt                    : pointer to core option manager object.
+ *
+ * Reloads @opt->conf from @opt->conf_path so that its entries will be saved
+ * on flush. Does not change in-use option values.
+ */
 void core_options_conf_reload(core_option_manager_t *opt)
 {
    config_file_free(opt->conf);
@@ -679,56 +781,68 @@ void core_options_conf_reload(core_option_manager_t *opt)
       opt->conf = config_file_new(NULL);
 }
 
+/**
+ * core_option_conf_path:
+ * @opt                 : pointer to core option manager object.
+ *
+ * Returns pointer to core options file path.
+ */
 char* core_option_conf_path(core_option_manager_t *opt)
 {
+   if (!opt)
+      return NULL;
    return opt->conf_path;
 }
 
+/**
+ * core_option_get_core_conf_path:
+ * @param path                   : pointer to PATH_MAX_LENGTH length string
+ *
+ * Sets @path to default core options file path
+ */
 void core_option_get_core_conf_path(char *path)
 {
-   settings_t *settings            = config_get_ptr();
-   global_t *global                = global_get_ptr();  
-   const char *core_name           = global ? global->libretro_name
-                                              : NULL;
-   char directory[PATH_MAX_LENGTH] = {0};
+   settings_t *settings  = config_get_ptr();
+   global_t *global      = global_get_ptr();
+   const char *core_name = global ? global->libretro_name : NULL;
+   char directory[PATH_MAX_LENGTH];
    
    if (!settings || !global || !*core_name)
+   {
+      *path = '\0';
       return;
+   }
    
    fill_pathname_join(directory, settings->menu_config_directory,
                       core_name, PATH_MAX_LENGTH);
    fill_pathname_join(path, directory,
                       core_name, PATH_MAX_LENGTH);
    strlcat(path, ".opt", PATH_MAX_LENGTH);
-
-   if(!path_is_directory(directory))
-      path_mkdir(directory);
 }
 
-bool core_option_get_game_conf_path(char *path)
+/**
+ * core_option_get_game_conf_path:
+ * @param path                   : pointer to PATH_MAX_LENGTH length string
+ *
+ * Sets @path to ROM options file path
+ */
+void core_option_get_game_conf_path(char *path)
 {
-   char directory[PATH_MAX_LENGTH] = {0};
-   char abs_path[PATH_MAX_LENGTH]  = {0};
-   global_t *global                = global_get_ptr();
-   settings_t *settings            = config_get_ptr();
-   const char *core_name           = global ? global->libretro_name
-                                              : NULL;
-   const char *game_name           = global ? path_basename(global->basename)
-                                              : NULL;
-   
+   settings_t *settings  = config_get_ptr();
+   global_t *global      = global_get_ptr();
+   const char *core_name = global ? global->libretro_name : NULL;
+   const char *game_name = global ? path_basename(global->basename) : NULL;
+   char directory[PATH_MAX_LENGTH];
+
    if (!settings || !global || !*core_name || !*game_name)
-      return false;
+   {
+      *path = '\0';
+      return;
+   }
 
    fill_pathname_join(directory, settings->menu_config_directory,
                       core_name, PATH_MAX_LENGTH);
-   fill_pathname_join(abs_path, directory, game_name, PATH_MAX_LENGTH);
-   strlcat(abs_path, ".opt", PATH_MAX_LENGTH);
-   
-   if (path_file_exists(abs_path))
-   {
-      strlcpy(path, abs_path, PATH_MAX_LENGTH);
-      return true;
-   }
-   
-   return false;
+   fill_pathname_join(path, directory,
+                      game_name, PATH_MAX_LENGTH);
+   strlcat(path, ".opt", PATH_MAX_LENGTH);
 }

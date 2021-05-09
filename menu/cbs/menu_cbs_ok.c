@@ -686,7 +686,7 @@ static int action_ok_remap_file_save(const char *path,
 
    fill_pathname_join(buf, settings->input_remapping_directory,
                       global->libretro_name, PATH_MAX_LENGTH);
-   if (!path_file_exists(buf))
+   if (!path_is_directory(buf))
       path_mkdir(buf);
 
    switch(hash)
@@ -729,49 +729,60 @@ static int action_ok_remap_file_save(const char *path,
 static int action_ok_options_file_save_game(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   char directory[PATH_MAX_LENGTH] = {0};
-   char abs_path[PATH_MAX_LENGTH]  = {0};
-   global_t *global                = global_get_ptr();
-   settings_t *settings            = config_get_ptr();
-   const char *core_name           = global ? global->libretro_name
-                                              : NULL;
-   const char *game_name           = global ? path_basename(global->basename)
-                                              : NULL;
-   char *opt_path;
-   
-   if (!global || !settings)
+   global_t *global           = global_get_ptr();
+   core_option_manager_t *opt = global->system.core_options;
+   char *opt_path             = core_option_conf_path(opt);
+
+   if (!opt)
       return 0;
 
-   fill_pathname_join(directory, settings->menu_config_directory,
-                      core_name, PATH_MAX_LENGTH);
-   fill_pathname_join(abs_path, directory, game_name, PATH_MAX_LENGTH);
-   strlcat(abs_path, ".opt", PATH_MAX_LENGTH);
+   core_option_get_game_conf_path(opt_path);
 
-   if(!path_is_directory(directory))
-       path_mkdir(directory);
-   
-   opt_path = core_option_conf_path(global->system.core_options);
-   
-   strlcpy(opt_path, abs_path, sizeof(abs_path));
-
-   if (path_file_exists(abs_path))
+   if (path_file_exists(opt_path))
+   {
       rarch_main_msg_queue_push("Already using a ROM Options file"
                                 "\nUpdates are automatic", 1, 180, true);
+      return 0;
+   }
+
+   /* trim to relevant options only */
+   core_options_conf_reload(opt);
+
+   if (core_option_flush(opt))
+   {
+      rarch_main_msg_queue_push("ROM Options file created successfully", 1, 100, true);
+      have_game_opt_file = true;
+      menu_entries_set_refresh();
+   }
    else
    {
-      /* trim to relevant options only */
-      core_options_conf_reload(global->system.core_options);
-      if (core_option_flush(global->system.core_options))
-      {
-         rarch_main_msg_queue_push("ROM Options file created successfully", 1, 100, true);
-         options_touched = false;
-      }
-      else
-      {
-         rarch_main_msg_queue_push("Error creating options file", 1, 100, true);
-         core_option_get_core_conf_path(opt_path);
-      }
-      core_options_conf_reload(global->system.core_options);
+      rarch_main_msg_queue_push("Error creating options file", 1, 100, true);
+      core_option_get_core_conf_path(opt_path);
+      core_options_conf_reload(opt);
+   }
+
+   return 0;
+}
+
+static int action_ok_options_reset(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   global_t *global           = global_get_ptr();
+   core_option_manager_t *opt = global->system.core_options;
+   bool reset_to_core         = have_game_opt_file && have_core_opt_file;
+
+   if (reset_to_core)
+   {
+      char conf_path[PATH_MAX_LENGTH];
+
+      core_option_get_core_conf_path(conf_path);
+      core_option_update_vals_from_file(opt, conf_path);
+      rarch_main_msg_queue_push("Last-saved core values applied", 1, 100, true);
+   }
+   else
+   {
+      core_options_set_defaults(opt);
+      rarch_main_msg_queue_push("Default values applied", 1, 100, true);
    }
 
    return 0;
@@ -1316,6 +1327,9 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
          cbs->action_ok = action_ok_options_file_save_game;
+         break;
+      case MENU_LABEL_OPTIONS_RESET:
+         cbs->action_ok = action_ok_options_reset;
          break;
       case MENU_LABEL_CORE_LIST:
          cbs->action_ok = action_ok_core_list;

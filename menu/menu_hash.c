@@ -94,6 +94,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Load Remap File";
       case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
          return "options_file_save_game";
+      case MENU_LABEL_OPTIONS_RESET:
+         return "options_reset";
       case MENU_LABEL_CUSTOM_RATIO:
          return "custom_ratio";
       case MENU_LABEL_VALUE_CUSTOM_RATIO:

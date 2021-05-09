@@ -104,41 +104,49 @@ static int action_start_remap_file_delete(unsigned type, const char *label)
 
 static int action_start_options_file_delete_game(unsigned type, const char *label)
 {
-   char directory[PATH_MAX_LENGTH] = {0};
-   char abs_path[PATH_MAX_LENGTH]  = {0};
-   global_t *global                = global_get_ptr();
-   settings_t *settings            = config_get_ptr();
-   const char *core_name           = global ? global->libretro_name
-                                              : NULL;
-   const char *game_name           = global ? path_basename(global->basename)
-                                              : NULL;
-   char *opt_path;
-   
-   if (!global || !settings)
+   char abs_path[PATH_MAX_LENGTH] = {0};
+   global_t *global               = global_get_ptr();
+   core_option_manager_t *opt     = global->system.core_options;
+   char *opt_path                 = core_option_conf_path(opt);
+
+   if (!opt)
       return 0;
 
-   fill_pathname_join(directory, settings->menu_config_directory,
-                      core_name, PATH_MAX_LENGTH);
-   fill_pathname_join(abs_path, directory, game_name, PATH_MAX_LENGTH);
-   strlcat(abs_path, ".opt", PATH_MAX_LENGTH);
+   core_option_get_game_conf_path(abs_path);
 
    if(!path_file_exists(abs_path))
    {
       rarch_main_msg_queue_push("ROM Options file does not exist", 1, 100, true);
       return 0;
    }
-   
+
    if (remove(abs_path))
+   {
       rarch_main_msg_queue_push("Error deleting ROM Options file", 1, 100, true);
-   else
-      rarch_main_msg_queue_push("Deleted ROM Options file", 1, 100, true);
-   
-   opt_path = core_option_conf_path(global->system.core_options);
+      return 0;
+   }
+
+   rarch_main_msg_queue_push("Deleted ROM Options file", 1, 100, true);
+
+   /* Set config back to core option file */
    core_option_get_core_conf_path(opt_path);
-   
-   core_options_conf_reload(global->system.core_options);
-   options_touched = true;
-   
+   core_options_conf_reload(opt);
+
+   have_game_opt_file = false;
+   options_touched    = true;
+   menu_entries_set_refresh();
+
+   return 0;
+}
+
+static int action_start_options_reset(unsigned type, const char *label)
+{
+   global_t *global           = global_get_ptr();
+   core_option_manager_t *opt = global->system.core_options;
+
+   core_options_set_defaults(opt);
+   rarch_main_msg_queue_push("Default values applied", 1, 100, true);
+
    return 0;
 }
 
@@ -444,6 +452,9 @@ int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
          cbs->action_start = action_start_options_file_delete_game;
+         break;
+      case MENU_LABEL_OPTIONS_RESET:
+         cbs->action_start = action_start_options_reset;
          break;
       case MENU_LABEL_VIDEO_SHADER_PRESET:
          cbs->action_start = action_start_shader_preset;

@@ -1550,9 +1550,6 @@ void rarch_update_configs()
    /* restore globals when a core is unloaded */
    if (!*global->libretro_name)
       config_backup_restore_globals();
-   
-   scoped_settings_touched = false;
-   options_touched = false;
 }
 
 bool rarch_clear_all_thread_waits(unsigned clear_threads, void* data)

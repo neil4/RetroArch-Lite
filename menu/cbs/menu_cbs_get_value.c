@@ -64,8 +64,11 @@ static void menu_action_setting_disp_set_label_remap_file_load(
 
    *w = 19;
    strlcpy(s2, path, len2);
-   fill_pathname_base(s, settings->input.remapping_path,
-         len);
+
+   if (*settings->input.remapping_path)
+      fill_pathname_base(s, settings->input.remapping_path, len);
+   else
+      strlcpy(s, "...", len);
 }
 
 static void menu_action_setting_disp_set_label_game_option_file(
@@ -78,16 +81,13 @@ static void menu_action_setting_disp_set_label_game_option_file(
       char *s2, size_t len2)
 {
    global_t *global = global_get_ptr();
-   const char *opt_name = path_basename
-                          (core_option_conf_path(global->system.core_options));
-   char buf[PATH_MAX_LENGTH] = {0};
+   core_option_manager_t *opt = global->system.core_options;
 
    *w = 19;
    strlcpy(s2, path, len2);
-   
-   core_option_get_core_conf_path(buf);
-   if (strncmp(opt_name, path_basename(buf), NAME_MAX_LENGTH))
-      strlcpy(s, opt_name, NAME_MAX_LENGTH);
+
+   if (have_game_opt_file)
+      strlcpy(s, path_basename(core_option_conf_path(opt)), NAME_MAX_LENGTH);
    else
       *s = '\0';
 }
@@ -970,6 +970,11 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
       case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_libretro_scope;
+         break;
+      case MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS:
+      case MENU_LABEL_DISK_OPTIONS:
+         cbs->action_get_value =
+            menu_action_setting_disp_set_label_menu_more;
          break;
       default:
          return - 1;

@@ -1455,17 +1455,27 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          
          if (global->system.core_options)
          {
-            size_t opts = core_option_size(global->system.core_options);
+            size_t num_opts = core_option_size(global->system.core_options);
+            bool show_reset_to_core = have_game_opt_file && have_core_opt_file;
             
-            if (opts > 0 && !global->libretro_no_content)
+            if (num_opts > 0)
             {
+               if (!global->libretro_no_content)
+               {
+                  menu_list_push(info->list,
+                     "Create ROM Options File",
+                     menu_hash_to_str(MENU_LABEL_OPTIONS_FILE_SAVE_GAME),
+                     MENU_SETTING_ACTION, 0, 0);
+               }
+
                menu_list_push(info->list,
-                  "Create ROM Options File",
-                  menu_hash_to_str(MENU_LABEL_OPTIONS_FILE_SAVE_GAME),
+                  show_reset_to_core ? "Reset to Core Values"
+                                     : "Reset to Defaults",
+                  menu_hash_to_str(MENU_LABEL_OPTIONS_RESET),
                   MENU_SETTING_ACTION, 0, 0);
             }
 
-            for (i = 0, j = 0; i < opts; i++)
+            for (i = 0, j = 0; i < num_opts; i++)
             {
                if (core_option_is_hidden(global->system.core_options, i))
                   continue;

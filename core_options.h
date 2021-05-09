@@ -28,6 +28,8 @@ extern "C" {
 #endif
    
 extern bool options_touched;
+extern bool have_core_opt_file;
+extern bool have_game_opt_file;
 
 typedef struct core_option_manager core_option_manager_t;
 
@@ -176,6 +178,17 @@ void core_option_set_val(core_option_manager_t *opt,
       size_t idx, size_t val_idx);
 
 /**
+ * core_option_update_vals_from_file:
+ * @opt                             : pointer to core option manager object.
+ * @path                            : .opt file path
+ *
+ * Updates @opt values from the contents of @path.
+ * Does not add or remove @opt entries.
+ */
+void core_option_update_vals_from_file(core_option_manager_t *opt,
+                                       const char *path);
+
+/**
  * core_option_next:
  * @opt            : pointer to core option manager object.
  * @idx            : option index or menu entry type
@@ -205,33 +218,45 @@ void core_option_prev(core_option_manager_t *opt, size_t idx);
 void core_option_set_default(core_option_manager_t *opt, size_t idx);
 
 /**
- * core_options_conf_reload
- * @opt                   : pointer to core option manager object.
+ * core_options_set_defaults:
+ * @opt                     : pointer to core option manager object.
+ *
+ * Resets all core options to their default values.
+ **/
+void core_options_set_defaults(core_option_manager_t *opt);
+
+/**
+ * core_options_conf_reload:
+ * @opt                    : pointer to core option manager object.
  * 
- * Reloads @opt->conf with entries from @opt->conf_path. Blanks @opt-conf if
- * @opt->conf_path does not exist.
+ * Reloads @opt->conf from @opt->conf_path so that its entries will be saved
+ * on flush. Does not change in-use option values.
  */
 void core_options_conf_reload(core_option_manager_t *opt);
 
+/**
+ * core_option_conf_path:
+ * @opt                 : pointer to core option manager object.
+ *
+ * Returns pointer to core options file path.
+ */
 char* core_option_conf_path(core_option_manager_t *opt);
 
 /**
  * core_option_get_core_conf_path:
- * @param path             : pointer to PATH_MAX_LENGTH length string
+ * @param path                   : pointer to PATH_MAX_LENGTH length string
  * 
- * Sets @path to default core-options file path
+ * Sets @path to default core options file path
  */
 void core_option_get_core_conf_path(char *path);
 
 /**
  * core_option_get_game_conf_path:
- * @param path             : pointer to PATH_MAX_LENGTH length string
- * 
- * Sets @path to ROM specific options file path if one exists
- * 
- * Returns: true if ROM options file found
+ * @param path                   : pointer to PATH_MAX_LENGTH length string
+ *
+ * Sets @path to ROM options file path
  */
-bool core_option_get_game_conf_path(char *path);
+void core_option_get_game_conf_path(char *path);
 
 #ifdef __cplusplus
 }

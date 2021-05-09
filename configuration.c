@@ -2824,6 +2824,7 @@ void scoped_config_files_save()
    scoped_config_file_save(THIS_CORE);
    scoped_config_file_save(THIS_CONTENT_DIR);
    scoped_config_file_save(THIS_CONTENT_ONLY);
+   scoped_settings_touched = false;
 }
 
 void config_backup_restore_globals()
