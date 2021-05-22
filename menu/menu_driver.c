@@ -367,13 +367,12 @@ void menu_driver_free(menu_handle_t *menu)
  *
  * Wraps @text for a messagebox, replacing existing newlines with bullet chars.
  * Not for text already formatted for a messagebox.
- *
  **/
 void menu_driver_wrap_text(char *buf, const char *text,
       const char *title, const unsigned buf_len)
 {
    const unsigned max_line_len = 48; /* todo: driver dependent */
-   const unsigned search_len   = 12;
+   const unsigned search_len   = 16;
 
    unsigned msg_size, line_start, i;
 
