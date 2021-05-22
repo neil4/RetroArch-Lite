@@ -73,5 +73,4 @@ android {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.0'
-    implementation files('libs/googleplay/libs/google-play-services.jar')
 }

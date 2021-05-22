@@ -1,11 +1,12 @@
 package com.retroarch.browser.retroactivity;
 
 import android.view.View;
+import android.app.NativeActivity;
 
 import com.retroarch.browser.mainmenu.MainMenuActivity;
 import com.retroarch.browser.preferences.util.UserPreferences;
 
-public class RetroActivity extends RetroActivityLocation
+public class RetroActivity extends NativeActivity
 {
    @Override
    public void onLowMemory()

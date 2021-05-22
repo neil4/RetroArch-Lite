@@ -83,9 +83,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
 
    public static void getPermissions(Context ctx, Activity act)
    {
-      final String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                    Manifest.permission.ACCESS_FINE_LOCATION};
+      final String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
       boolean anyDenied = false;
 
       for (int i = 0; i < permissions.length; i++)
@@ -105,12 +103,10 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       switch (requestCode)
       {
          case REQUEST_APP_PERMISSIONS:
-            if (grantResults[0] != PackageManager.PERMISSION_GRANTED)
-               Log.e("RetroArch Lite",permissions[0] + " denied"); // ext storage
-            for (int i = 1; i < permissions.length; i++)
+            for (int i = 0; i < permissions.length; i++)
             {
                if(grantResults[i] != PackageManager.PERMISSION_GRANTED)
-                  Log.i("RetroArch Lite",permissions[i] + " denied");
+                  Log.e("RetroArch Lite",permissions[i] + " denied");
             }
             break;
          default:
