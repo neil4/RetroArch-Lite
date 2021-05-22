@@ -10,7 +10,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.v4.app.DialogFragment;
+import androidx.fragment.app.DialogFragment;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
