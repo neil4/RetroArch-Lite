@@ -656,7 +656,7 @@ static int menu_input_mouse(unsigned *action)
    }
 #endif
 
-   if (!video_driver_viewport_info(&vp))
+   if (!menu_driver_viewport_info(&vp))
       return -1;
 
    if (menu_input->mouse.hwheeldown)
@@ -750,13 +750,13 @@ static int menu_input_mouse(unsigned *action)
 
 static int menu_input_pointer(unsigned *action)
 {
-   int pointer_device, pointer_x, pointer_y;
+   video_viewport_t vp;
+   int pointer_x, pointer_y, offset;
    const struct retro_keybind *binds[MAX_USERS] = {NULL};
    menu_input_t *menu_input  = menu_input_get_ptr();
    menu_animation_t *anim    = menu_animation_get_ptr();
    menu_framebuf_t *frame_buf= menu_display_fb_get_ptr();
    settings_t *settings      = config_get_ptr();
-   driver_t *driver          = driver_get_ptr();
 
    if (settings->menu.mouse.enable && menu_input->mouse.show)
    {
@@ -764,19 +764,37 @@ static int menu_input_pointer(unsigned *action)
       return 0;
    }
 
-   pointer_device = driver->menu_ctx->set_texture?
-        RETRO_DEVICE_POINTER : RARCH_DEVICE_POINTER_SCREEN;
+   if (!menu_driver_viewport_info(&vp))
+      return -1;
 
-   menu_input->pointer.pressed[0]  = input_driver_state(binds, 0, pointer_device,
-         0, RETRO_DEVICE_ID_POINTER_PRESSED);
-   menu_input->pointer.pressed[1]  = input_driver_state(binds, 0, pointer_device,
-         1, RETRO_DEVICE_ID_POINTER_PRESSED);
+   menu_input->pointer.pressed[0] = input_driver_state(binds, 0,
+         RARCH_DEVICE_POINTER_SCREEN, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+   menu_input->pointer.pressed[1] = input_driver_state(binds, 0,
+         RARCH_DEVICE_POINTER_SCREEN, 1, RETRO_DEVICE_ID_POINTER_PRESSED);
 
-   pointer_x = input_driver_state(binds, 0, pointer_device, 0, RETRO_DEVICE_ID_POINTER_X);
-   pointer_y = input_driver_state(binds, 0, pointer_device, 0, RETRO_DEVICE_ID_POINTER_Y);
+   pointer_x = input_driver_state(binds, 0, RARCH_DEVICE_POINTER_SCREEN,
+         0, RETRO_DEVICE_ID_POINTER_X);
+   pointer_y = input_driver_state(binds, 0, RARCH_DEVICE_POINTER_SCREEN,
+         0, RETRO_DEVICE_ID_POINTER_Y);
 
-   menu_input->pointer.x = ((pointer_x + 0x7fff) * (int)frame_buf->width) / 0xFFFF;
-   menu_input->pointer.y = ((pointer_y + 0x7fff) * (int)frame_buf->height) / 0xFFFF;
+   /* scale to framebuffer */
+   pointer_x = ((pointer_x + 0x7fff) * (int)frame_buf->width) / 0xffff;
+   pointer_y = ((pointer_y + 0x7fff) * (int)frame_buf->height) / 0xffff;
+
+   /* scale from letterbox */
+   if (vp.width < vp.full_width)
+   {
+      offset    = vp.x * (frame_buf->width / (float)vp.width);
+      pointer_x = pointer_x * ((float)vp.full_width / vp.width) - offset;
+   }
+   if (vp.height < vp.full_height)
+   {
+      offset    = vp.y * (frame_buf->height / (float)vp.height);
+      pointer_y = pointer_y * ((float)vp.full_height / vp.height) - offset;
+   }
+
+   menu_input->pointer.x = pointer_x;
+   menu_input->pointer.y = pointer_y;
 
    if (
          menu_input->pointer.pressed[0]    ||
@@ -1074,10 +1092,11 @@ static int menu_input_pointer_post_iterate(menu_file_list_cbs_t *cbs,
    {
       if (menu_input->pointer.oldpressed[0])
       {
+         menu_input->pointer.oldpressed[0] = false;
+
          if (!menu_input->pointer.dragging)
             pointer_tap(cbs, entry);
 
-         menu_input->pointer.oldpressed[0] = false;
          menu_input->pointer.start_x       = 0;
          menu_input->pointer.start_y       = 0;
          menu_input->pointer.old_x         = 0;

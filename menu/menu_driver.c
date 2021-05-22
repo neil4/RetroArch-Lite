@@ -442,6 +442,34 @@ void menu_driver_render_messagebox(const char *msg)
       driver->render_messagebox(msg);
 }
 
+bool menu_driver_viewport_info(struct video_viewport *vp)
+{
+   const menu_ctx_driver_t *driver = menu_ctx_driver_get_ptr();
+   int tmp_x, tmp_y;
+
+   if (!video_driver_viewport_info(vp))
+      return false;
+
+   if (!driver->set_texture)
+   {
+      vp->x = 0;
+      vp->y = 0;
+      vp->width  = vp->full_width;
+      vp->height = vp->full_height;
+   }
+   else
+   {
+      tmp_x = min(vp->x, (int)vp->full_width  - (int)vp->width);
+      tmp_y = min(vp->y, (int)vp->full_height - (int)vp->height);
+      vp->x = max(0, tmp_x);
+      vp->y = max(0, tmp_y);
+      vp->width  = min((int)vp->full_width,  (int)vp->width);
+      vp->height = min((int)vp->full_height, (int)vp->height);
+   }
+
+   return true;
+}
+
 void menu_driver_render(void)
 {
    const menu_ctx_driver_t *driver = menu_ctx_driver_get_ptr();

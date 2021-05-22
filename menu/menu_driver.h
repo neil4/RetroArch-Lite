@@ -29,6 +29,7 @@
 #include "menu_input.h"
 #include "menu_navigation.h"
 #include "menu_setting.h"
+#include "../gfx/video_viewport.h"
 #include "../libretro.h"
 
 #ifdef __cplusplus
@@ -166,6 +167,8 @@ void menu_driver_frame(void);
 void menu_driver_context_reset(void);
 
 void menu_driver_free(menu_handle_t *menu);
+
+bool menu_driver_viewport_info(struct video_viewport *vp);
 
 void menu_driver_render(void);
 
