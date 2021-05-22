@@ -25,9 +25,11 @@
 #include "input_keymaps.h"
 #include "input_joypad_to_keyboard.h"
 
-#define MAX_REMAP_DESCS 20
+#define DEFAULT_NUM_REMAPS 20
 
-const struct retro_input_descriptor default_rid[MAX_REMAP_DESCS] = {
+unsigned input_remapping_scope = THIS_CORE;
+
+const struct retro_input_descriptor default_rid[DEFAULT_NUM_REMAPS] = {
    { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "D-Pad Left" },
    { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     "D-Pad Up" },
    { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "D-Pad Down" },
@@ -135,30 +137,46 @@ int remap_file_load_auto()
 
    /* ROM remap path */
    fill_pathname_join(fullpath, directory,
-                      path_basename(global->basename), PATH_MAX_LENGTH);
+         path_basename(global->basename), PATH_MAX_LENGTH);
    strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
 
-   if(!path_file_exists(fullpath))
+   if (path_file_exists(fullpath))
    {
-      /* Directory remap path */
-      if (!path_parent_dir_name(buf, global->basename))
-         strcpy(buf, "root");
-      fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
-      strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
-
-      if(!path_file_exists(fullpath))
-      {
-         /* Core remap path */
-         fill_pathname_join(fullpath, directory,
-                            global->libretro_name, PATH_MAX_LENGTH);
-         strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
-      }
+      input_remapping_scope = THIS_CONTENT_ONLY;
+      goto load_remap;
    }
 
+   /* Directory remap path */
+   if (!path_parent_dir_name(buf, global->basename))
+      strcpy(buf, "root");
+   fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
+   strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
+
+   if (path_file_exists(fullpath))
+   {
+      input_remapping_scope = THIS_CONTENT_DIR;
+      goto load_remap;
+   }
+
+   /* Core remap path */
+   fill_pathname_join(fullpath, directory,
+         global->libretro_name, PATH_MAX_LENGTH);
+   strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
+
+   if (path_file_exists(fullpath))
+   {
+      input_remapping_scope = THIS_CORE;
+      goto load_remap;
+   }
+
+load_remap:
    input_remapping_set_defaults();
-   
+
    if (!path_file_exists(fullpath) || !input_remapping_load_file(fullpath))
+   {
       settings->input.remapping_path[0] = '\0';
+      input_remapping_scope = THIS_CORE;
+   }
 
    return 0;
 }
@@ -280,11 +298,11 @@ void input_remapping_set_default_desc()
 
    for (i = 0; i < MAX_USERS; i++)
    {
-      memcpy(&desc[i * MAX_REMAP_DESCS], default_rid, sizeof(default_rid));
-      for (j = 0; j < MAX_REMAP_DESCS; j++)
-         desc[j + i * MAX_REMAP_DESCS].port = i;
+      memcpy(&desc[i * DEFAULT_NUM_REMAPS], default_rid, sizeof(default_rid));
+      for (j = 0; j < DEFAULT_NUM_REMAPS; j++)
+         desc[j + i * DEFAULT_NUM_REMAPS].port = i;
    }
-   memset(&desc[MAX_USERS * MAX_REMAP_DESCS],
+   memset(&desc[MAX_USERS * DEFAULT_NUM_REMAPS],
           0, sizeof(struct retro_input_descriptor));
 
    rarch_environment_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);

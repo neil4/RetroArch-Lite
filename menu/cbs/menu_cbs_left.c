@@ -27,6 +27,7 @@
 #include "../../general.h"
 #include "../../retroarch.h"
 
+extern unsigned input_remapping_scope;
 extern int setting_action_left_libretro_device_type(
       void *data, bool wraparound);
 
@@ -462,6 +463,20 @@ static int action_l_libretro_device_scope(unsigned type, const char *label)
    return 0;
 }
 
+static int action_left_remap_file_scope(unsigned type, const char *label,
+      bool wraparound)
+{
+   if (input_remapping_scope > THIS_CORE)
+      input_remapping_scope -= 1;
+   return 0;
+}
+
+static int action_l_remap_file_scope(unsigned type, const char *label)
+{
+   input_remapping_scope = THIS_CORE;
+   return 0;
+}
+
 static int bind_left_generic(unsigned type, const char *label,
       bool wraparound)
 {
@@ -541,6 +556,10 @@ static int menu_cbs_init_bind_left_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
          cbs->action_left = action_left_libretro_device_scope;
          cbs->action_l = action_l_libretro_device_scope;
+         break;
+      case MENU_LABEL_REMAP_FILE_SAVE:
+         cbs->action_left = action_left_remap_file_scope;
+         cbs->action_l = action_l_remap_file_scope;
          break;
       default:
          return -1;

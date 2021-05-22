@@ -25,6 +25,7 @@
 #include "../../performance.h"
 #include "../../intl/intl.h"
 
+extern unsigned input_remapping_scope;
 extern void setting_get_string_representation_uint_libretro_device(void *data,
       char *s, size_t len);
 
@@ -917,6 +918,20 @@ static void menu_action_setting_disp_set_label_libretro_scope(
    strlcpy(s, scope_lut[settings->input.libretro_device_scope].name, len);
 }
 
+static void menu_action_setting_disp_set_label_remapping_scope(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   *w = 19;
+   strlcpy(s2, path, len2);
+   strlcpy(s, scope_lut[input_remapping_scope].name, len);
+}
+
 static int menu_cbs_init_bind_get_string_representation_compare_label(
       menu_file_list_cbs_t *cbs, uint32_t label_hash)
 {
@@ -970,6 +985,10 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
       case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_libretro_scope;
+         break;
+      case MENU_LABEL_REMAP_FILE_SAVE:
+         cbs->action_get_value =
+            menu_action_setting_disp_set_label_remapping_scope;
          break;
       case MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS:
       case MENU_LABEL_DISK_OPTIONS:

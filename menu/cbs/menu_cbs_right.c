@@ -21,12 +21,9 @@
 #include "../menu_setting.h"
 #include "../menu_shader.h"
 #include "../menu_navigation.h"
-
-#include "../../input/input_joypad_to_keyboard.h"
-
-#include "../../general.h"
 #include "../../retroarch.h"
 
+extern unsigned input_remapping_scope;
 extern int setting_action_right_libretro_device_type(
       void *data, bool wraparound);
 
@@ -439,6 +436,24 @@ static int action_r_libretro_device_scope(unsigned type, const char *label)
    return 0;
 }
 
+static int action_right_remap_file_scope(unsigned type, const char *label,
+      bool wraparound)
+{
+   global_t   *global   = global_get_ptr();
+
+   if (input_remapping_scope < global->max_scope)
+      input_remapping_scope += 1;
+   return 0;
+}
+
+static int action_r_remap_file_scope(unsigned type, const char *label)
+{
+   global_t   *global    = global_get_ptr();
+
+   input_remapping_scope = global->max_scope;
+   return 0;
+}
+
 static int bind_right_generic(unsigned type, const char *label,
        bool wraparound)
 {
@@ -592,6 +607,10 @@ static int menu_cbs_init_bind_right_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
          cbs->action_right = action_right_libretro_device_scope;
          cbs->action_r = action_r_libretro_device_scope;
+         break;
+      case MENU_LABEL_REMAP_FILE_SAVE:
+         cbs->action_right = action_right_remap_file_scope;
+         cbs->action_r = action_r_remap_file_scope;
          break;
       default:
          return -1;

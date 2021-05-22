@@ -943,30 +943,8 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
 {
    unsigned p, retro_id;
    settings_t *settings   = config_get_ptr();
-   global_t   *global     = global_get_ptr();
    bool        kbd_shown  = false;
    char buf[32];
-
-   menu_list_push(info->list,
-         menu_hash_to_str(MENU_LABEL_VALUE_REMAP_FILE_LOAD),
-         menu_hash_to_str(MENU_LABEL_REMAP_FILE_LOAD),
-         MENU_SETTING_ACTION, 0, 0);
-   menu_list_push(info->list,
-         "Save Core Remap File",
-         menu_hash_to_str(MENU_LABEL_REMAP_FILE_SAVE_CORE),
-         MENU_SETTING_ACTION, 0, 0);
-
-   if (global->content_is_init && *global->fullpath)
-   {
-      menu_list_push(info->list,
-            "Save Directory Remap File",
-            menu_hash_to_str(MENU_LABEL_REMAP_FILE_SAVE_DIR),
-            MENU_SETTING_ACTION, 0, 0);
-      menu_list_push(info->list,
-            "Save ROM Remap File",
-            menu_hash_to_str(MENU_LABEL_REMAP_FILE_SAVE_GAME),
-            MENU_SETTING_ACTION, 0, 0);
-   }
 
    for (p = 0; p < settings->input.max_users; p++)
    {
@@ -978,6 +956,15 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
    menu_list_push(info->list, settings->input.max_users > 1 ?
          "  Scope (Virtual Devices)" : "  Scope (Virtual Device)",
          menu_hash_to_str(MENU_LABEL_LIBRETRO_DEVICE_SCOPE), 0, 0, 0);
+
+   menu_list_push(info->list,
+         menu_hash_to_str(MENU_LABEL_VALUE_REMAP_FILE_LOAD),
+         menu_hash_to_str(MENU_LABEL_REMAP_FILE_LOAD),
+         MENU_SETTING_ACTION, 0, 0);
+   menu_list_push(info->list,
+         "Save Remap File for",
+         menu_hash_to_str(MENU_LABEL_REMAP_FILE_SAVE),
+         MENU_SETTING_ACTION, 0, 0);
 
    for (p = 0; p < settings->input.max_users; p++)
    {

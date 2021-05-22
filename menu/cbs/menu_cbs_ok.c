@@ -29,6 +29,7 @@
 #include "../../runloop_data.h"
 #include "../../input/input_remapping.h"
 
+extern unsigned input_remapping_scope;
 
 static int menu_action_setting_set_current_string_path(
       rarch_setting_t *setting, const char *dir, const char *path)
@@ -679,7 +680,6 @@ static int action_ok_remap_file_save(const char *path,
    global_t *global                = global_get_ptr();
    settings_t *settings            = config_get_ptr();
    char *scope                     = NULL;
-   uint32_t hash                   = djb2_calculate(label);
 
    if (!global || !settings)
       return 0;
@@ -689,15 +689,15 @@ static int action_ok_remap_file_save(const char *path,
    if (!path_is_directory(buf))
       path_mkdir(buf);
 
-   switch(hash)
+   switch(input_remapping_scope)
    {
-      case MENU_LABEL_REMAP_FILE_SAVE_GAME:
+      case THIS_CONTENT_ONLY:
          fill_pathname_join(rel_path, global->libretro_name,
                             path_basename(global->basename), PATH_MAX_LENGTH);
          scope = "ROM";
          break;
 
-      case MENU_LABEL_REMAP_FILE_SAVE_DIR:
+      case THIS_CONTENT_DIR:
          if (!path_parent_dir_name(buf, global->basename))
             strcpy(buf, "root");
          fill_pathname_join(rel_path, global->libretro_name,
@@ -705,7 +705,7 @@ static int action_ok_remap_file_save(const char *path,
          scope = "Directory";
          break;
 
-      case MENU_LABEL_REMAP_FILE_SAVE_CORE:
+      case THIS_CORE:
          fill_pathname_join(rel_path, global->libretro_name,
                             global->libretro_name, PATH_MAX_LENGTH);
          scope = "Core";
@@ -1320,9 +1320,7 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_CHEAT_FILE_SAVE_AS:
          cbs->action_ok = action_ok_cheat_file_save_as;
          break;
-      case MENU_LABEL_REMAP_FILE_SAVE_CORE:
-      case MENU_LABEL_REMAP_FILE_SAVE_DIR:
-      case MENU_LABEL_REMAP_FILE_SAVE_GAME:
+      case MENU_LABEL_REMAP_FILE_SAVE:
          cbs->action_ok = action_ok_remap_file_save;
          break;
       case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:

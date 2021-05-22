@@ -31,6 +31,7 @@
 #include "../../input/input_remapping.h"
 #include "../../input/input_joypad_to_keyboard.h"
 
+extern unsigned input_remapping_scope;
 extern int setting_action_start_libretro_device_type(void *data);
 
 static int action_start_remap_file_load(unsigned type, const char *label)
@@ -53,7 +54,6 @@ static int action_start_remap_file_delete(unsigned type, const char *label)
    global_t *global                = global_get_ptr();
    settings_t *settings            = config_get_ptr();
    char *scope                     = NULL;
-   uint32_t hash                   = djb2_calculate(label);
 
    if (!global || !settings)
       return 0;
@@ -62,21 +62,21 @@ static int action_start_remap_file_delete(unsigned type, const char *label)
                       global->libretro_name, PATH_MAX_LENGTH);
    strlcat(fullpath, path_default_slash(), PATH_MAX_LENGTH);
 
-   switch(hash)
+   switch(input_remapping_scope)
    {
-      case MENU_LABEL_REMAP_FILE_SAVE_GAME:
+      case THIS_CONTENT_ONLY:
          strlcat(fullpath, path_basename(global->basename), PATH_MAX_LENGTH);
          scope = "ROM";
          break;
 
-      case MENU_LABEL_REMAP_FILE_SAVE_DIR:
+      case THIS_CONTENT_DIR:
          if (!path_parent_dir_name(buf, global->basename))
             strcpy(buf, "root");
          strlcat(fullpath, buf, PATH_MAX_LENGTH);
          scope = "Directory";
          break;
 
-      case MENU_LABEL_REMAP_FILE_SAVE_CORE:
+      case THIS_CORE:
          strlcat(fullpath, global->libretro_name, PATH_MAX_LENGTH);
          scope = "Core";
          break;
@@ -445,9 +445,7 @@ int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_REMAP_FILE_LOAD:
          cbs->action_start = action_start_remap_file_load;
          break;
-      case MENU_LABEL_REMAP_FILE_SAVE_CORE:
-      case MENU_LABEL_REMAP_FILE_SAVE_DIR:
-      case MENU_LABEL_REMAP_FILE_SAVE_GAME:
+      case MENU_LABEL_REMAP_FILE_SAVE:
          cbs->action_start = action_start_remap_file_delete;
          break;
       case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:

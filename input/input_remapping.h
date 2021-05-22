@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+extern unsigned input_remapping_scope;
+
 /**
  * input_remapping_load_file:
  * @path                     : Path to remapping file (absolute path).
