@@ -962,7 +962,7 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
          menu_hash_to_str(MENU_LABEL_REMAP_FILE_LOAD),
          MENU_SETTING_ACTION, 0, 0);
    menu_list_push(info->list,
-         "Save Remap File for",
+         "Save Remap File",
          menu_hash_to_str(MENU_LABEL_REMAP_FILE_SAVE),
          MENU_SETTING_ACTION, 0, 0);
 

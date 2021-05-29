@@ -3409,9 +3409,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
             break;
       case MENU_LABEL_PREEMPTIVE_FRAMES:
       snprintf(s, len,
-                     " -- Hides latency by rewriting history. \n"
-                     " \n"
-                     "On joypad updates, recent frames are  \n"
+                     " -- On joypad updates, recent frames are \n"
                      "internally rerun with the latest input. \n"
                      " \n"
                      "Requires savestate support from the core.\n");
@@ -4652,10 +4650,10 @@ static bool setting_append_list_frame_throttling_options(
    CONFIG_BOOL(
          settings->throttle_using_core_fps,
          "throttle_using_core_fps",
-         "  Use Refresh Rate from",
+         "  Refresh Rate",
          throttle_using_core_fps,
          "Video Setting",
-         "Core",
+         "Core provided",
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -7854,13 +7852,13 @@ static bool setting_append_list_directory_options(
       
       if (*global->fullpath)
       {
-      CONFIG_ACTION(
-            "core_broswer_dir_quick_set",
-            "  Use Loaded ROM's Dir",
-            group_info.name,
-            subgroup_info.name,
-            parent_group);
-      (*list)[list_info->index - 1].action_ok = &setting_action_ok_quickset_core_content_directory;
+         CONFIG_ACTION(
+               "core_broswer_dir_quick_set",
+               "  Use Loaded ROM Path",
+               group_info.name,
+               subgroup_info.name,
+               parent_group);
+         (*list)[list_info->index - 1].action_ok = &setting_action_ok_quickset_core_content_directory;
       }
    }
 

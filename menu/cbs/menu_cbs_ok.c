@@ -467,25 +467,6 @@ static int action_ok_options_file(const char *path,
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
 }
 
-static int action_ok_record_configfile(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   menu_displaylist_info_t info   = {0};
-   menu_list_t       *menu_list   = menu_list_get_ptr();
-   global_t   *global             = global_get_ptr();
-
-   if (!menu_list)
-      return -1;
-
-   info.list          = menu_list->menu_stack;
-   info.type          = type;
-   info.directory_ptr = idx;
-   strlcpy(info.path, global->record.config_dir, sizeof(info.path));
-   strlcpy(info.label, label, sizeof(info.label));
-
-   return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
-}
-
 static int action_ok_core_list(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -503,25 +484,6 @@ static int action_ok_core_list(const char *path,
    strlcpy(info.label, label, sizeof(info.label));
 
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
-}
-
-static int action_ok_record_configfile_load(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   const char          *menu_path = NULL;
-   global_t               *global = global_get_ptr();
-   menu_list_t       *menu_list   = menu_list_get_ptr();
-
-   if (!global || !menu_list)
-      return -1;
-
-   menu_list_get_last_stack(menu_list, &menu_path, NULL,
-         NULL, NULL);
-
-   fill_pathname_join(global->record.config, menu_path, path, sizeof(global->record.config));
-
-   menu_list_flush_stack(menu_list, menu_hash_to_str(MENU_VALUE_RECORDING_SETTINGS), 0);
-   return 0;
 }
 
 static int action_ok_remap_file_load(const char *path,
@@ -1270,9 +1232,6 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_REMAP_FILE_LOAD:
          cbs->action_ok = action_ok_remap_file;
          break;
-      case MENU_LABEL_RECORD_CONFIG:
-         cbs->action_ok = action_ok_record_configfile;
-         break;
       case MENU_LABEL_VALUE_CORE_UPDATER_LIST:
          cbs->action_ok = action_ok_core_updater_list;
          break;
@@ -1359,9 +1318,6 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
             break;
          case MENU_FILE_CHEAT:
             cbs->action_ok = action_ok_cheat_file_load;
-            break;
-         case MENU_FILE_RECORD_CONFIG:
-            cbs->action_ok = action_ok_record_configfile_load;
             break;
          case MENU_FILE_CORE_OPTIONS:
             cbs->action_ok = action_ok_options_file_load;

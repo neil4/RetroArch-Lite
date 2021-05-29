@@ -77,11 +77,7 @@ public final class DisplayRefreshRateTest extends Activity {
             break;
 
          case STATE_DONE:
-            activity.runOnUiThread(new Runnable() {
-               public void run() {
-                  finish();
-               }
-            });
+            activity.runOnUiThread(DisplayRefreshRateTest.this::finish);
             mState = STATE_DEAD;
             break;
             

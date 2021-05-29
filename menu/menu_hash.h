@@ -229,7 +229,6 @@ extern "C" {
 #define MENU_LABEL_VALUE_LOAD_CONTENT                                          0x755f3680U
 #define MENU_LABEL_VALUE_CORE_UPDATER_LIST                                     0x0372767dU
 #define MENU_LABEL_CORE_UPDATER_LIST                                           0xe12f4ee3U
-#define MENU_LABEL_RECORD_CONFIG                                               0x11c3daf9U
 #define MENU_LABEL_UNLOAD_CORE                                                 0x4b622170U
 #define MENU_LABEL_VALUE_UNLOAD_CORE                                           0x9b45e571U
 #define MENU_LABEL_QUIT_RETROARCH                                              0x84b0bc71U
