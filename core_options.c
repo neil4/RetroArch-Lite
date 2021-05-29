@@ -488,9 +488,11 @@ bool core_option_flush(core_option_manager_t *opt)
    ret = config_file_write(opt->conf, opt->conf_path);
 
    if (ret)
+   {
+      core_options_delete_unscoped();
       options_touched = false;
+   }
 
-   core_options_delete_unscoped();
    return ret;
 }
 
