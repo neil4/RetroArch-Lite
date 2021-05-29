@@ -27,8 +27,7 @@
 #include "menu/menu.h"
 
 bool options_touched    = false;
-bool have_core_opt_file = false;
-bool have_game_opt_file = false;
+unsigned core_options_scope = THIS_CORE;
 
 struct core_option
 {
@@ -349,9 +348,7 @@ void core_options_init(const struct retro_core_option_definition *option_defs,
       const struct retro_variable *vars)
 {
    global_t *global = global_get_ptr();
-   char core_path[PATH_MAX_LENGTH];
-   char game_path[PATH_MAX_LENGTH];
-   char *conf_path;
+   char path[PATH_MAX_LENGTH];
 
    if (global->system.core_options)
    {
@@ -359,17 +356,28 @@ void core_options_init(const struct retro_core_option_definition *option_defs,
       global->system.core_options = NULL;
    }
 
-   core_option_get_game_conf_path(game_path);
-   core_option_get_core_conf_path(core_path);
+   core_option_get_conf_path(path, THIS_CONTENT_ONLY);
+   if (path_file_exists(path))
+   {
+      core_options_scope = THIS_CONTENT_ONLY;
+      goto finish;
+   }
 
-   have_game_opt_file = path_file_exists(game_path);
-   have_core_opt_file = path_file_exists(core_path);
+   core_option_get_conf_path(path, THIS_CONTENT_DIR);
+   if (path_file_exists(path))
+   {
+      core_options_scope = THIS_CONTENT_DIR;
+      goto finish;
+   }
 
-   conf_path = have_game_opt_file ? game_path : core_path;
-   global->system.core_options = core_option_new(conf_path, option_defs, vars);
+   core_option_get_conf_path(path, THIS_CORE);
+   core_options_scope = THIS_CORE;
 
-   path_basedir(conf_path);
-   path_mkdir(conf_path);
+finish:
+   global->system.core_options = core_option_new(path, option_defs, vars);
+
+   path_basedir(path);
+   path_mkdir(path);
 
    options_touched = false;
 }
@@ -430,11 +438,29 @@ bool core_option_updated(core_option_manager_t *opt)
    return opt->updated;
 }
 
+static void core_options_delete_unscoped()
+{
+   char path[PATH_MAX_LENGTH];
+
+   if (core_options_scope < THIS_CONTENT_ONLY)
+   {
+      core_option_get_conf_path(path, THIS_CONTENT_ONLY);
+      remove(path);
+   }
+
+   if (core_options_scope < THIS_CONTENT_DIR)
+   {
+      core_option_get_conf_path(path, THIS_CONTENT_DIR);
+      remove(path);
+   }
+}
+
 /**
  * core_option_flush:
  * @opt              : options manager handle
  *
- * Writes core option key-pair values to file.
+ * Writes core option key-pair values to file. Also deletes option
+ * files as necessary if core_options_scope was changed.
  *
  * Returns: true (1) if core option values could be
  * successfully saved to disk, otherwise false (0).
@@ -443,6 +469,13 @@ bool core_option_flush(core_option_manager_t *opt)
 {
    bool ret;
    size_t i;
+
+   if (!opt)
+      return false;
+
+   /* Match conf to current scope. */
+   core_option_get_conf_path(opt->conf_path, core_options_scope);
+   core_options_conf_reload(opt);
 
    for (i = 0; i < opt->size; i++)
    {
@@ -457,6 +490,7 @@ bool core_option_flush(core_option_manager_t *opt)
    if (ret)
       options_touched = false;
 
+   core_options_delete_unscoped();
    return ret;
 }
 
@@ -795,54 +829,46 @@ char* core_option_conf_path(core_option_manager_t *opt)
 }
 
 /**
- * core_option_get_core_conf_path:
- * @param path                   : pointer to PATH_MAX_LENGTH length string
+ * core_option_get_conf_path:
+ * @path                    : pointer to PATH_MAX_LENGTH string
+ * @scope                   : THIS_CORE, THIS_CONTENT_DIR, or THIS_CONTENT_ONLY
  *
- * Sets @path to default core options file path
+ * Sets @path to options file path for the @scope given
  */
-void core_option_get_core_conf_path(char *path)
-{
-   settings_t *settings  = config_get_ptr();
-   global_t *global      = global_get_ptr();
-   const char *core_name = global ? global->libretro_name : NULL;
-   char directory[PATH_MAX_LENGTH];
-   
-   if (!settings || !global || !*core_name)
-   {
-      *path = '\0';
-      return;
-   }
-   
-   fill_pathname_join(directory, settings->menu_config_directory,
-                      core_name, PATH_MAX_LENGTH);
-   fill_pathname_join(path, directory,
-                      core_name, PATH_MAX_LENGTH);
-   strlcat(path, ".opt", PATH_MAX_LENGTH);
-}
-
-/**
- * core_option_get_game_conf_path:
- * @param path                   : pointer to PATH_MAX_LENGTH length string
- *
- * Sets @path to ROM options file path
- */
-void core_option_get_game_conf_path(char *path)
+void core_option_get_conf_path(char *path, enum setting_scope scope)
 {
    settings_t *settings  = config_get_ptr();
    global_t *global      = global_get_ptr();
    const char *core_name = global ? global->libretro_name : NULL;
    const char *game_name = global ? path_basename(global->basename) : NULL;
    char directory[PATH_MAX_LENGTH];
+   char parent_name[NAME_MAX_LENGTH];
 
-   if (!settings || !global || !*core_name || !*game_name)
+   if (!settings || !global || !*core_name)
    {
       *path = '\0';
       return;
    }
 
    fill_pathname_join(directory, settings->menu_config_directory,
-                      core_name, PATH_MAX_LENGTH);
-   fill_pathname_join(path, directory,
-                      game_name, PATH_MAX_LENGTH);
+         core_name, PATH_MAX_LENGTH);
+
+   switch (scope)
+   {
+      case THIS_CORE:
+         fill_pathname_join(path, directory, core_name, PATH_MAX_LENGTH);
+         break;
+      case THIS_CONTENT_DIR:
+         path_parent_dir_name(parent_name, global->basename);
+         fill_pathname_join(path, directory, parent_name, PATH_MAX_LENGTH);
+         break;
+      case THIS_CONTENT_ONLY:
+         fill_pathname_join(path, directory, game_name, PATH_MAX_LENGTH);
+         break;
+      default:
+         *path = '\0';
+         return;
+   }
+
    strlcat(path, ".opt", PATH_MAX_LENGTH);
 }

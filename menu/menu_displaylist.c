@@ -1426,40 +1426,37 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          menu_list_clear(info->list);
          
          menu_list_push(info->list,
-            menu_hash_to_str(MENU_LABEL_VALUE_CORE_INPUT_REMAPPING_OPTIONS),
-            menu_hash_to_str(MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS),
-            MENU_SETTING_ACTION, 0, 0);
+               menu_hash_to_str(MENU_LABEL_VALUE_CORE_INPUT_REMAPPING_OPTIONS),
+               menu_hash_to_str(MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS),
+               MENU_SETTING_ACTION, 0, 0);
+
          if (!global->libretro_dummy && global->system.disk_control.get_num_images)
             menu_list_push(info->list,
-               menu_hash_to_str(MENU_LABEL_VALUE_DISK_OPTIONS),
-               menu_hash_to_str(MENU_LABEL_DISK_OPTIONS),
-               MENU_SETTING_ACTION_CORE_DISK_OPTIONS, 0, 0);
+                  menu_hash_to_str(MENU_LABEL_VALUE_DISK_OPTIONS),
+                  menu_hash_to_str(MENU_LABEL_DISK_OPTIONS),
+                  MENU_SETTING_ACTION_CORE_DISK_OPTIONS, 0, 0);
+
          if (settings->menu.show_cheat_options)
             menu_list_push(info->list,
-               menu_hash_to_str(MENU_LABEL_VALUE_CORE_CHEAT_OPTIONS),
-               menu_hash_to_str(MENU_LABEL_CORE_CHEAT_OPTIONS),
-               MENU_SETTING_ACTION, 0, 0);
+                  menu_hash_to_str(MENU_LABEL_VALUE_CORE_CHEAT_OPTIONS),
+                  menu_hash_to_str(MENU_LABEL_CORE_CHEAT_OPTIONS),
+                  MENU_SETTING_ACTION, 0, 0);
          
          if (global->system.core_options)
          {
             size_t num_opts = core_option_size(global->system.core_options);
-            bool show_reset_to_core = have_game_opt_file && have_core_opt_file;
             
             if (num_opts > 0)
             {
-               if (!global->libretro_no_content)
-               {
-                  menu_list_push(info->list,
-                     "Create ROM Options File",
-                     menu_hash_to_str(MENU_LABEL_OPTIONS_FILE_SAVE_GAME),
+               menu_list_push(info->list,
+                     "Core Options Scope",
+                     menu_hash_to_str(MENU_LABEL_OPTIONS_SCOPE),
                      MENU_SETTING_ACTION, 0, 0);
-               }
 
                menu_list_push(info->list,
-                  show_reset_to_core ? "Reset to Core Values"
-                                     : "Reset to Defaults",
-                  menu_hash_to_str(MENU_LABEL_OPTIONS_RESET),
-                  MENU_SETTING_ACTION, 0, 0);
+                     "Load Options File",
+                     menu_hash_to_str(MENU_LABEL_OPTIONS_FILE_LOAD),
+                     MENU_SETTING_ACTION, 0, 0);
             }
 
             for (i = 0, j = 0; i < num_opts; i++)
@@ -1491,6 +1488,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
       case DISPLAYLIST_IMAGES:
       case DISPLAYLIST_FONTS:
       case DISPLAYLIST_CHEAT_FILES:
+      case DISPLAYLIST_OPTIONS_FILES:
       case DISPLAYLIST_REMAP_FILES:
       case DISPLAYLIST_RECORD_CONFIG_FILES:
       case DISPLAYLIST_CONFIG_FILES:
@@ -1517,6 +1515,10 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
                break;
             case DISPLAYLIST_AUDIO_FILTERS:
                buf = settings->audio.dsp_plugin;
+               break;
+            case DISPLAYLIST_OPTIONS_FILES:
+               core_option_get_conf_path(info->path_b, core_options_scope);
+               buf = info->path_b;
                break;
             case DISPLAYLIST_REMAP_FILES:
                buf = settings->input.remapping_path;

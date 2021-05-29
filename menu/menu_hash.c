@@ -88,10 +88,10 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "remap_file_save";
       case MENU_LABEL_VALUE_REMAP_FILE_LOAD:
          return "Load Remap File";
-      case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
-         return "options_file_save_game";
-      case MENU_LABEL_OPTIONS_RESET:
-         return "options_reset";
+      case MENU_LABEL_OPTIONS_SCOPE:
+         return "options_scope";
+      case MENU_LABEL_OPTIONS_FILE_LOAD:
+         return "options_load";
       case MENU_LABEL_CUSTOM_RATIO:
          return "custom_ratio";
       case MENU_LABEL_VALUE_CUSTOM_RATIO:
@@ -108,8 +108,6 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "core_disc_options";
       case MENU_LABEL_VALUE_DISK_OPTIONS:
          return "Disc Control";
-      case MENU_LABEL_VALUE_CORE_OPTIONS:
-         return "Core-Provided Options";
       case MENU_LABEL_VALUE_CORE_CHEAT_OPTIONS:
          return "Core Cheat Options";
       case MENU_LABEL_CORE_CHEAT_OPTIONS:

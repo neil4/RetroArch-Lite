@@ -72,7 +72,7 @@ static void menu_action_setting_disp_set_label_remap_file_load(
       strlcpy(s, "...", len);
 }
 
-static void menu_action_setting_disp_set_label_game_option_file(
+static void menu_action_setting_disp_set_label_core_options_scope(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
       const char *label,
@@ -81,16 +81,9 @@ static void menu_action_setting_disp_set_label_game_option_file(
       const char *path,
       char *s2, size_t len2)
 {
-   global_t *global = global_get_ptr();
-   core_option_manager_t *opt = global->system.core_options;
-
    *w = 19;
    strlcpy(s2, path, len2);
-
-   if (have_game_opt_file)
-      strlcpy(s, path_basename(core_option_conf_path(opt)), NAME_MAX_LENGTH);
-   else
-      *s = '\0';
+   strlcpy(s, scope_lut[core_options_scope].name, len);
 }
 
 static void menu_action_setting_disp_set_label_configurations(
@@ -945,9 +938,9 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
          cbs->action_get_value =
             menu_action_setting_disp_set_label_remap_file_load;
          break;
-      case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
+      case MENU_LABEL_OPTIONS_SCOPE:
          cbs->action_get_value =
-            menu_action_setting_disp_set_label_game_option_file;
+            menu_action_setting_disp_set_label_core_options_scope;
          break;
       case MENU_LABEL_VIDEO_SHADER_FILTER_PASS:
          cbs->action_get_value =
@@ -992,6 +985,7 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
          break;
       case MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS:
       case MENU_LABEL_DISK_OPTIONS:
+      case MENU_LABEL_OPTIONS_FILE_LOAD:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_menu_more;
          break;

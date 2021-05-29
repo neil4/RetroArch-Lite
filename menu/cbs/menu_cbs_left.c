@@ -477,6 +477,27 @@ static int action_l_remap_file_scope(unsigned type, const char *label)
    return 0;
 }
 
+static int action_left_options_file_scope(unsigned type, const char *label,
+      bool wraparound)
+{
+   if (core_options_scope > THIS_CORE)
+   {
+      core_options_scope -= 1;
+      options_touched     = true;
+   }
+   return 0;
+}
+
+static int action_l_options_file_scope(unsigned type, const char *label)
+{
+   if (core_options_scope > THIS_CORE)
+   {
+      core_options_scope = THIS_CORE;
+      options_touched    = true;
+   }
+   return 0;
+}
+
 static int bind_left_generic(unsigned type, const char *label,
       bool wraparound)
 {
@@ -553,6 +574,10 @@ static int menu_cbs_init_bind_left_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_INFO:
          cbs->action_left = action_left_scroll;
          break;
+      case MENU_LABEL_OPTIONS_SCOPE:
+         cbs->action_left = action_left_options_file_scope;
+         cbs->action_l = action_l_options_file_scope;
+         break;
       case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
          cbs->action_left = action_left_libretro_device_scope;
          cbs->action_l = action_l_libretro_device_scope;
@@ -621,6 +646,7 @@ static int menu_cbs_init_bind_left_compare_type(menu_file_list_cbs_t *cbs,
          case MENU_FILE_USE_DIRECTORY:
          case MENU_FILE_DOWNLOAD_CORE:
          case MENU_FILE_CHEAT:
+         case MENU_FILE_CORE_OPTIONS:
          case MENU_FILE_REMAP:
          case MENU_SETTING_GROUP:
             switch (menu_label_hash)

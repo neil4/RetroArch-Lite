@@ -824,7 +824,9 @@ static inline bool menu_input_value_can_step(rarch_setting_t *setting,
            || (entry->type >= MENU_SETTINGS_SHADER_PARAMETER_0 &&
                entry->type <= MENU_SETTINGS_CORE_DISK_OPTIONS_DISK_INDEX)
            || (!strcmp(entry->label,
-                     menu_hash_to_str(MENU_LABEL_VIDEO_SHADER_NUM_PASSES))) )
+                     menu_hash_to_str(MENU_LABEL_VIDEO_SHADER_NUM_PASSES)))
+           || (!strcmp(entry->label,
+                     menu_hash_to_str(MENU_LABEL_OPTIONS_SCOPE))) )
          return true;
    }
 

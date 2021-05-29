@@ -32,7 +32,6 @@ extern "C" {
 #define MENU_LABEL_VALUE_SHADER_OPTIONS                                        0xf3fb0028U
 #define MENU_LABEL_VALUE_USE_THIS_DIRECTORY                                    0xc5fc9ed9U
 #define MENU_LABEL_USE_THIS_DIRECTORY                                          0xc51d351dU
-#define MENU_LABEL_VALUE_CORE_OPTIONS                                          0x1477b95aU
 #define MENU_LABEL_VALUE_NO_SHADER_PARAMETERS                                  0x8ccc809bU
 #define MENU_LABEL_VALUE_NO_CORE_INFORMATION_AVAILABLE                         0x2a11fe80U
 #define MENU_LABEL_VALUE_NO_CORES_AVAILABLE                                    0xe16bfd0dU
@@ -387,8 +386,8 @@ extern "C" {
 #define MENU_LABEL_VIDEO_SHADER_PRESET_SAVE_AS                                 0x3d6e5ce5U
 #define MENU_LABEL_VALUE_VIDEO_SHADER_PRESET_SAVE_AS                           0x405d77b2U
 #define MENU_LABEL_REMAP_FILE_SAVE                                             0x9c2b3787U
-#define MENU_LABEL_OPTIONS_FILE_SAVE_GAME                                      0x25d9d117U
-#define MENU_LABEL_OPTIONS_RESET                                               0xd88b0f73U
+#define MENU_LABEL_OPTIONS_SCOPE                                               0xd89bff8aU
+#define MENU_LABEL_OPTIONS_FILE_LOAD                                           0x1dd28910U
 #define MENU_LABEL_VALUE_UNABLE_TO_READ_COMPRESSED_FILE                        0xbae7be3eU
 #define MENU_LABEL_OSK_ENABLE                                                  0x8e208498U
 #define MENU_LABEL_AUDIO_MUTE                                                  0xe0ca1151U

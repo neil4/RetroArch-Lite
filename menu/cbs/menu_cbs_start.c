@@ -102,44 +102,30 @@ static int action_start_remap_file_delete(unsigned type, const char *label)
    return 0;
 }
 
-static int action_start_options_file_delete_game(unsigned type, const char *label)
+/* Resets core options scope to be consistent with .opt files present. */
+static int action_start_options_file_scope(unsigned type, const char *label)
 {
-   char abs_path[PATH_MAX_LENGTH] = {0};
-   global_t *global               = global_get_ptr();
-   core_option_manager_t *opt     = global->system.core_options;
-   char *opt_path                 = core_option_conf_path(opt);
+   char path[PATH_MAX_LENGTH];
 
-   if (!opt)
-      return 0;
-
-   core_option_get_game_conf_path(abs_path);
-
-   if(!path_file_exists(abs_path))
+   core_option_get_conf_path(path, THIS_CONTENT_ONLY);
+   if (path_file_exists(path))
    {
-      rarch_main_msg_queue_push("ROM Options file does not exist", 1, 100, true);
+      core_options_scope = THIS_CONTENT_ONLY;
       return 0;
    }
 
-   if (remove(abs_path))
+   core_option_get_conf_path(path, THIS_CONTENT_DIR);
+   if (path_file_exists(path))
    {
-      rarch_main_msg_queue_push("Error deleting ROM Options file", 1, 100, true);
+      core_options_scope = THIS_CONTENT_DIR;
       return 0;
    }
 
-   rarch_main_msg_queue_push("Deleted ROM Options file", 1, 100, true);
-
-   /* Set config back to core option file */
-   core_option_get_core_conf_path(opt_path);
-   core_options_conf_reload(opt);
-
-   have_game_opt_file = false;
-   options_touched    = true;
-   menu_entries_set_refresh();
-
+   core_options_scope = THIS_CORE;
    return 0;
 }
 
-static int action_start_options_reset(unsigned type, const char *label)
+static int action_start_options_file_load(unsigned type, const char *label)
 {
    global_t *global           = global_get_ptr();
    core_option_manager_t *opt = global->system.core_options;
@@ -448,11 +434,11 @@ int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_REMAP_FILE_SAVE:
          cbs->action_start = action_start_remap_file_delete;
          break;
-      case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
-         cbs->action_start = action_start_options_file_delete_game;
+      case MENU_LABEL_OPTIONS_SCOPE:
+         cbs->action_start = action_start_options_file_scope;
          break;
-      case MENU_LABEL_OPTIONS_RESET:
-         cbs->action_start = action_start_options_reset;
+      case MENU_LABEL_OPTIONS_FILE_LOAD:
+         cbs->action_start = action_start_options_file_load;
          break;
       case MENU_LABEL_VIDEO_SHADER_PRESET:
          cbs->action_start = action_start_shader_preset;

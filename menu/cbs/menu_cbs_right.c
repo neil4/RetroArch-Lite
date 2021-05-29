@@ -454,6 +454,31 @@ static int action_r_remap_file_scope(unsigned type, const char *label)
    return 0;
 }
 
+static int action_right_options_file_scope(unsigned type, const char *label,
+      bool wraparound)
+{
+   global_t   *global   = global_get_ptr();
+
+   if (core_options_scope < global->max_scope)
+   {
+      core_options_scope += 1;
+      options_touched     = true;
+   }
+   return 0;
+}
+
+static int action_r_options_file_scope(unsigned type, const char *label)
+{
+   global_t   *global    = global_get_ptr();
+
+   if (core_options_scope < global->max_scope)
+   {
+      core_options_scope = global->max_scope;
+      options_touched    = true;
+   }
+   return 0;
+}
+
 static int bind_right_generic(unsigned type, const char *label,
        bool wraparound)
 {
@@ -518,6 +543,7 @@ static int menu_cbs_init_bind_right_compare_type(menu_file_list_cbs_t *cbs,
          case MENU_FILE_USE_DIRECTORY:
          case MENU_FILE_DOWNLOAD_CORE:
          case MENU_FILE_CHEAT:
+         case MENU_FILE_CORE_OPTIONS:
          case MENU_FILE_REMAP:
          case MENU_SETTING_GROUP:
             switch (menu_label_hash)
@@ -603,6 +629,10 @@ static int menu_cbs_init_bind_right_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_INFO:
          cbs->action_right = action_right_scroll;
+         break;
+      case MENU_LABEL_OPTIONS_SCOPE:
+         cbs->action_right = action_right_options_file_scope;
+         cbs->action_r = action_r_options_file_scope;
          break;
       case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
          cbs->action_right = action_right_libretro_device_scope;

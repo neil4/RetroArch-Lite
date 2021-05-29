@@ -28,8 +28,7 @@ extern "C" {
 #endif
    
 extern bool options_touched;
-extern bool have_core_opt_file;
-extern bool have_game_opt_file;
+extern unsigned core_options_scope;
 
 typedef struct core_option_manager core_option_manager_t;
 
@@ -243,20 +242,13 @@ void core_options_conf_reload(core_option_manager_t *opt);
 char* core_option_conf_path(core_option_manager_t *opt);
 
 /**
- * core_option_get_core_conf_path:
- * @param path                   : pointer to PATH_MAX_LENGTH length string
- * 
- * Sets @path to default core options file path
- */
-void core_option_get_core_conf_path(char *path);
-
-/**
- * core_option_get_game_conf_path:
- * @param path                   : pointer to PATH_MAX_LENGTH length string
+ * core_option_get_conf_path:
+ * @path                    : pointer to PATH_MAX_LENGTH string
+ * @scope                   : THIS_CORE, THIS_CONTENT_DIR, or THIS_CONTENT_ONLY
  *
- * Sets @path to ROM options file path
+ * Sets @path to options file path for the @scope given
  */
-void core_option_get_game_conf_path(char *path);
+void core_option_get_conf_path(char *path, enum setting_scope scope);
 
 #ifdef __cplusplus
 }

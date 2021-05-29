@@ -445,6 +445,28 @@ static int action_ok_remap_file(const char *path,
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
 }
 
+static int action_ok_options_file(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   menu_displaylist_info_t info   = {0};
+   menu_list_t       *menu_list   = menu_list_get_ptr();
+   settings_t        *settings    = config_get_ptr();
+   global_t          *global      = global_get_ptr();
+
+   if (!menu_list)
+      return -1;
+
+   info.list          = menu_list->menu_stack;
+   info.type          = type;
+   info.directory_ptr = idx;
+
+   fill_pathname_join(info.path, settings->menu_config_directory,
+         global->libretro_name, PATH_MAX_LENGTH);
+   strlcpy(info.label, label, sizeof(info.label));
+
+   return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
+}
+
 static int action_ok_record_configfile(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -523,6 +545,36 @@ static int action_ok_remap_file_load(const char *path,
 
    menu_list_flush_stack(menu_list,
          menu_hash_to_str(MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS), 0);
+
+   return 0;
+}
+
+static int action_ok_options_file_load(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   global_t        *global    = global_get_ptr();
+   menu_list_t     *menu_list = menu_list_get_ptr();
+   const char      *menu_path = NULL;
+   core_option_manager_t *opt = global->system.core_options;
+
+   char option_path[PATH_MAX_LENGTH];
+   char         buf[NAME_MAX_LENGTH];
+
+   if (!menu_list)
+      return -1;
+
+   menu_list_get_last_stack(menu_list, &menu_path, NULL,
+         NULL, NULL);
+
+   fill_pathname_join(option_path, menu_path, path, PATH_MAX_LENGTH);
+   core_option_update_vals_from_file(opt, option_path);
+
+   snprintf(buf, NAME_MAX_LENGTH, "Option values applied from %s",
+         path_basename(option_path));
+   rarch_main_msg_queue_push(buf, 1, 100, true);
+
+   menu_list_flush_stack(menu_list,
+         menu_hash_to_str(MENU_LABEL_CORE_OPTIONS), 0);
 
    return 0;
 }
@@ -723,68 +775,6 @@ static int action_ok_remap_file_save(const char *path,
                "Error saving %s remap file.", scope);
 
    rarch_main_msg_queue_push(buf, 1, 100, true);
-   return 0;
-}
-
-static int action_ok_options_file_save_game(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   global_t *global           = global_get_ptr();
-   core_option_manager_t *opt = global->system.core_options;
-   char *opt_path             = core_option_conf_path(opt);
-
-   if (!opt)
-      return 0;
-
-   core_option_get_game_conf_path(opt_path);
-
-   if (path_file_exists(opt_path))
-   {
-      rarch_main_msg_queue_push("Already using a ROM Options file"
-                                "\nUpdates are automatic", 1, 180, true);
-      return 0;
-   }
-
-   /* trim to relevant options only */
-   core_options_conf_reload(opt);
-
-   if (core_option_flush(opt))
-   {
-      rarch_main_msg_queue_push("ROM Options file created successfully", 1, 100, true);
-      have_game_opt_file = true;
-      menu_entries_set_refresh();
-   }
-   else
-   {
-      rarch_main_msg_queue_push("Error creating options file", 1, 100, true);
-      core_option_get_core_conf_path(opt_path);
-      core_options_conf_reload(opt);
-   }
-
-   return 0;
-}
-
-static int action_ok_options_reset(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   global_t *global           = global_get_ptr();
-   core_option_manager_t *opt = global->system.core_options;
-   bool reset_to_core         = have_game_opt_file && have_core_opt_file;
-
-   if (reset_to_core)
-   {
-      char conf_path[PATH_MAX_LENGTH];
-
-      core_option_get_core_conf_path(conf_path);
-      core_option_update_vals_from_file(opt, conf_path);
-      rarch_main_msg_queue_push("Last-saved core values applied", 1, 100, true);
-   }
-   else
-   {
-      core_options_set_defaults(opt);
-      rarch_main_msg_queue_push("Default values applied", 1, 100, true);
-   }
-
    return 0;
 }
 
@@ -1274,6 +1264,9 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_AUDIO_DSP_PLUGIN:
          cbs->action_ok = action_ok_audio_dsp_plugin;
          break;
+      case MENU_LABEL_OPTIONS_FILE_LOAD:
+         cbs->action_ok = action_ok_options_file;
+         break;
       case MENU_LABEL_REMAP_FILE_LOAD:
          cbs->action_ok = action_ok_remap_file;
          break;
@@ -1323,12 +1316,6 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_REMAP_FILE_SAVE:
          cbs->action_ok = action_ok_remap_file_save;
          break;
-      case MENU_LABEL_OPTIONS_FILE_SAVE_GAME:
-         cbs->action_ok = action_ok_options_file_save_game;
-         break;
-      case MENU_LABEL_OPTIONS_RESET:
-         cbs->action_ok = action_ok_options_reset;
-         break;
       case MENU_LABEL_CORE_LIST:
          cbs->action_ok = action_ok_core_list;
          break;
@@ -1375,6 +1362,9 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
             break;
          case MENU_FILE_RECORD_CONFIG:
             cbs->action_ok = action_ok_record_configfile_load;
+            break;
+         case MENU_FILE_CORE_OPTIONS:
+            cbs->action_ok = action_ok_options_file_load;
             break;
          case MENU_FILE_REMAP:
             cbs->action_ok = action_ok_remap_file_load;
