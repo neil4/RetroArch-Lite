@@ -28,6 +28,7 @@
 #define DEFAULT_NUM_REMAPS 20
 
 unsigned input_remapping_scope = THIS_CORE;
+bool input_remapping_touched;
 
 const struct retro_input_descriptor default_rid[DEFAULT_NUM_REMAPS] = {
    { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "D-Pad Left" },
@@ -117,53 +118,35 @@ bool input_remapping_load_file(const char *path)
 
    config_file_free(conf);
 
+   input_remapping_touched = true;
    return true;
 }
 
 int remap_file_load_auto()
 {
   /* Look for ROM, Directory, then Core specific remap */
-   char directory[PATH_MAX_LENGTH]  = {0};
-   char buf[NAME_MAX_LENGTH]        = {0};
-   char fullpath[PATH_MAX_LENGTH]   = {0};
-   global_t *global                 = global_get_ptr();
-   settings_t *settings             = config_get_ptr();
+   char path[PATH_MAX_LENGTH] = {0};
+   settings_t *settings       = config_get_ptr();
    
-   if (!global || !settings)
+   if (!settings)
       return 0;
 
-   fill_pathname_join(directory, settings->input_remapping_directory,
-                      global->libretro_name, PATH_MAX_LENGTH);
-
-   /* ROM remap path */
-   fill_pathname_join(fullpath, directory,
-         path_basename(global->basename), PATH_MAX_LENGTH);
-   strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
-
-   if (path_file_exists(fullpath))
+   input_remapping_get_path(path, THIS_CONTENT_ONLY);
+   if (path_file_exists(path))
    {
       input_remapping_scope = THIS_CONTENT_ONLY;
       goto load_remap;
    }
 
-   /* Directory remap path */
-   if (!path_parent_dir_name(buf, global->basename))
-      strcpy(buf, "root");
-   fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
-   strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
-
-   if (path_file_exists(fullpath))
+   input_remapping_get_path(path, THIS_CONTENT_DIR);
+   if (path_file_exists(path))
    {
       input_remapping_scope = THIS_CONTENT_DIR;
       goto load_remap;
    }
 
-   /* Core remap path */
-   fill_pathname_join(fullpath, directory,
-         global->libretro_name, PATH_MAX_LENGTH);
-   strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
-
-   if (path_file_exists(fullpath))
+   input_remapping_get_path(path, THIS_CORE);
+   if (path_file_exists(path))
    {
       input_remapping_scope = THIS_CORE;
       goto load_remap;
@@ -172,38 +155,33 @@ int remap_file_load_auto()
 load_remap:
    input_remapping_set_defaults();
 
-   if (!path_file_exists(fullpath) || !input_remapping_load_file(fullpath))
+   if (!path_file_exists(path) || !input_remapping_load_file(path))
    {
       settings->input.remapping_path[0] = '\0';
       input_remapping_scope = THIS_CORE;
    }
 
+   input_remapping_touched = false;
    return 0;
 }
 
 /**
  * input_remapping_save_file:
- * @path                     : Path to remapping file (relative path).
+ * @path                    : Path to remapping file.
  *
  * Saves remapping values to file.
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
-bool input_remapping_save_file(const char *path)
+static bool input_remapping_save_file(const char *path)
 {
    bool ret;
    unsigned i, j;
-   char buf[PATH_MAX_LENGTH]         = {0};
-   char remap_file[PATH_MAX_LENGTH]  = {0};
-   config_file_t               *conf = NULL;
-   settings_t              *settings = config_get_ptr();
+   char buf[PATH_MAX_LENGTH] = {0};
+   config_file_t *conf       = NULL;
+   settings_t    *settings   = config_get_ptr();
 
-   fill_pathname_join(buf, settings->input_remapping_directory,
-         path, sizeof(buf));
-
-   fill_pathname_noext(remap_file, buf, ".rmp", sizeof(remap_file));
-
-   conf = config_file_new(remap_file);
+   conf = config_file_new(path);
 
    if (!conf)
    {
@@ -242,13 +220,52 @@ bool input_remapping_save_file(const char *path)
          config_remove_entry(conf, buf);
    }
 
-   ret = config_file_write(conf, remap_file);
+   ret = config_file_write(conf, path);
    config_file_free(conf);
    
    if (ret)
-      strlcpy(settings->input.remapping_path, remap_file, PATH_MAX_LENGTH);
+      strlcpy(settings->input.remapping_path, path, PATH_MAX_LENGTH);
 
    return ret;
+}
+
+static void input_remapping_delete_unscoped()
+{
+   char path[PATH_MAX_LENGTH] = {0};
+
+   if (input_remapping_scope < THIS_CONTENT_ONLY)
+   {
+      input_remapping_get_path(path, THIS_CONTENT_ONLY);
+      remove(path);
+   }
+
+   if (input_remapping_scope < THIS_CONTENT_DIR)
+   {
+      input_remapping_get_path(path, THIS_CONTENT_DIR);
+      remove(path);
+   }
+}
+
+/**
+ * input_remapping_save:
+ *
+ * Saves remapping values to file based on input_remapping_scope.
+ * Also deletes remap files as necessary if input_remapping_scope was changed.
+ *
+ * Returns: true (1) if successful, otherwise false (0).
+ **/
+void input_remapping_save()
+{
+   char path[PATH_MAX_LENGTH] = {0};
+
+   input_remapping_get_path(path, input_remapping_scope);
+   if (input_remapping_save_file(path))
+   {
+      input_remapping_delete_unscoped();
+      input_remapping_touched = false;
+   }
+
+   return;
 }
 
 void input_remapping_set_defaults(void)
@@ -307,3 +324,40 @@ void input_remapping_set_default_desc()
 
    rarch_environment_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 }
+
+void input_remapping_get_path(char* path, unsigned scope)
+{
+   global_t *global     = global_get_ptr();
+   settings_t *settings = config_get_ptr();
+   char buf[NAME_MAX_LENGTH];
+
+   if (!global || !settings)
+      return;
+
+   fill_pathname_join(path, settings->input_remapping_directory,
+         global->libretro_name, PATH_MAX_LENGTH);
+   strlcat(path, path_default_slash(), PATH_MAX_LENGTH);
+
+   switch(scope)
+   {
+      case THIS_CONTENT_ONLY:
+         strlcat(path, path_basename(global->basename), PATH_MAX_LENGTH);
+         break;
+
+      case THIS_CONTENT_DIR:
+         if (!path_parent_dir_name(buf, global->basename))
+            strlcpy(buf, "root", NAME_MAX_LENGTH);
+         strlcat(path, buf, PATH_MAX_LENGTH);
+         break;
+
+      case THIS_CORE:
+         strlcat(path, global->libretro_name, PATH_MAX_LENGTH);
+         break;
+
+      default:
+         return;
+   }
+
+   strlcat(path, ".rmp", PATH_MAX_LENGTH);
+}
+

@@ -384,7 +384,7 @@ extern "C" {
 #define MENU_LABEL_CHEAT_FILE_SAVE_AS                                          0x1f58dccaU
 #define MENU_LABEL_VIDEO_SHADER_PRESET_SAVE_AS                                 0x3d6e5ce5U
 #define MENU_LABEL_VALUE_VIDEO_SHADER_PRESET_SAVE_AS                           0x405d77b2U
-#define MENU_LABEL_REMAP_FILE_SAVE                                             0x9c2b3787U
+#define MENU_LABEL_REMAPPING_SCOPE                                             0x4e1c9161U
 #define MENU_LABEL_OPTIONS_SCOPE                                               0xd89bff8aU
 #define MENU_LABEL_OPTIONS_FILE_LOAD                                           0x1dd28910U
 #define MENU_LABEL_VALUE_UNABLE_TO_READ_COMPRESSED_FILE                        0xbae7be3eU

@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 extern unsigned input_remapping_scope;
+extern bool input_remapping_touched;
 
 /**
  * input_remapping_load_file:
@@ -41,21 +42,20 @@ bool input_remapping_load_file(const char *path);
  * 
  * @return 0
  * 
- * Load Game-specific input remap file.
- * If unsuccessful, load Core-specific input remap file.
- * If still unsuccessful, initialize defaults.
+ * Attempt to load ROM-, Directory-, then Core-specific input remap file.
+ * If unsuccessful, initialize defaults.
  **/
 int remap_file_load_auto();
 
 /**
- * input_remapping_save_file:
- * @path                     : Path to remapping file (relative path).
+ * input_remapping_save:
  *
- * Saves remapping values to file.
+ * Saves remapping values to file based on input_remapping_scope.
+ * Also deletes remap files as necessary if input_remapping_scope was changed.
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
-bool input_remapping_save_file(const char *path);
+void input_remapping_save();
 
 void input_remapping_set_defaults(void);
 
@@ -63,6 +63,8 @@ void input_remapping_state(unsigned port,
       unsigned *device, unsigned *idx, unsigned *id);
 
 void input_remapping_set_default_desc();
+
+void input_remapping_get_path(char* path, unsigned scope);
 
 #ifdef __cplusplus
 }

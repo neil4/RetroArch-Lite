@@ -828,7 +828,9 @@ static inline bool menu_input_value_can_step(rarch_setting_t *setting,
            || (!strcmp(entry->label,
                      menu_hash_to_str(MENU_LABEL_LIBRETRO_DEVICE_SCOPE)))
            || (!strcmp(entry->label,
-                     menu_hash_to_str(MENU_LABEL_OPTIONS_SCOPE))) )
+                     menu_hash_to_str(MENU_LABEL_OPTIONS_SCOPE)))
+           || (!strcmp(entry->label,
+                     menu_hash_to_str(MENU_LABEL_REMAPPING_SCOPE))) )
          return true;
    }
 

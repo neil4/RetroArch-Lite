@@ -24,6 +24,7 @@
 #include "../../retroarch.h"
 
 extern unsigned input_remapping_scope;
+extern bool input_remapping_touched;
 extern int setting_action_right_libretro_device_type(
       void *data, bool wraparound);
 
@@ -109,6 +110,7 @@ int action_right_input_desc(unsigned type, const char *label,
          settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset]++;
    }
 
+   input_remapping_touched = true;
    return 0;
 }
 
@@ -124,6 +126,7 @@ int action_r_input_desc(unsigned type, const char *label)
    else
       settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = 4 - 1;
 
+   input_remapping_touched = true;
    return 0;
 }
 
@@ -147,6 +150,7 @@ static int action_right_joykbd_input_desc(unsigned type, const char *label,
       input_joykbd_add_bind(rk, joy_btn);
    }
 
+   input_remapping_touched = true;
    return 0;
 }
 
@@ -164,6 +168,7 @@ static int action_r_joykbd_input_desc(unsigned type, const char *label)
       input_joykbd_add_bind(rk, joy_btn);
    }
 
+   input_remapping_touched = true;
    return 0;
 }
 
@@ -442,7 +447,11 @@ static int action_right_remap_file_scope(unsigned type, const char *label,
    global_t   *global   = global_get_ptr();
 
    if (input_remapping_scope < global->max_scope)
+   {
       input_remapping_scope += 1;
+      input_remapping_touched = true;
+   }
+
    return 0;
 }
 
@@ -450,7 +459,12 @@ static int action_r_remap_file_scope(unsigned type, const char *label)
 {
    global_t   *global    = global_get_ptr();
 
-   input_remapping_scope = global->max_scope;
+   if (input_remapping_scope < global->max_scope)
+   {
+      input_remapping_scope = global->max_scope;
+      input_remapping_touched = true;
+   }
+
    return 0;
 }
 
@@ -638,7 +652,7 @@ static int menu_cbs_init_bind_right_compare_label(menu_file_list_cbs_t *cbs,
          cbs->action_right = action_right_libretro_device_scope;
          cbs->action_r = action_r_libretro_device_scope;
          break;
-      case MENU_LABEL_REMAP_FILE_SAVE:
+      case MENU_LABEL_REMAPPING_SCOPE:
          cbs->action_right = action_right_remap_file_scope;
          cbs->action_r = action_r_remap_file_scope;
          break;

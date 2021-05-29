@@ -84,8 +84,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Rewind Granularity";
       case MENU_LABEL_REMAP_FILE_LOAD:
          return "remap_file_load";
-      case MENU_LABEL_REMAP_FILE_SAVE:
-         return "remap_file_save";
+      case MENU_LABEL_REMAPPING_SCOPE:
+         return "remapping_scope";
       case MENU_LABEL_VALUE_REMAP_FILE_LOAD:
          return "Load Remap File";
       case MENU_LABEL_OPTIONS_SCOPE:

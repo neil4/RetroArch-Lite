@@ -52,26 +52,6 @@ static void menu_action_setting_disp_set_label_cheat_num_passes(
    snprintf(s, len, "%u", global->cheat->buf_size);
 }
 
-static void menu_action_setting_disp_set_label_remap_file_load(
-      file_list_t* list,
-      unsigned *w, unsigned type, unsigned i,
-      const char *label,
-      char *s, size_t len,
-      const char *entry_label,
-      const char *path,
-      char *s2, size_t len2)
-{
-   settings_t *settings = config_get_ptr();
-
-   *w = 19;
-   strlcpy(s2, path, len2);
-
-   if (*settings->input.remapping_path)
-      fill_pathname_base(s, settings->input.remapping_path, len);
-   else
-      strlcpy(s, "...", len);
-}
-
 static void menu_action_setting_disp_set_label_core_options_scope(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
@@ -934,10 +914,6 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
          cbs->action_get_value =
             menu_action_setting_disp_set_label_cheat_num_passes;
          break;
-      case MENU_LABEL_REMAP_FILE_LOAD:
-         cbs->action_get_value =
-            menu_action_setting_disp_set_label_remap_file_load;
-         break;
       case MENU_LABEL_OPTIONS_SCOPE:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_core_options_scope;
@@ -979,13 +955,14 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
          cbs->action_get_value =
             menu_action_setting_disp_set_label_libretro_scope;
          break;
-      case MENU_LABEL_REMAP_FILE_SAVE:
+      case MENU_LABEL_REMAPPING_SCOPE:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_remapping_scope;
          break;
       case MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS:
       case MENU_LABEL_DISK_OPTIONS:
       case MENU_LABEL_OPTIONS_FILE_LOAD:
+      case MENU_LABEL_REMAP_FILE_LOAD:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_menu_more;
          break;

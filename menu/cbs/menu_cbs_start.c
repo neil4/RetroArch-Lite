@@ -31,7 +31,6 @@
 #include "../../input/input_remapping.h"
 #include "../../input/input_joypad_to_keyboard.h"
 
-extern unsigned input_remapping_scope;
 extern int setting_action_start_libretro_device_type(void *data);
 
 static int action_start_remap_file_load(unsigned type, const char *label)
@@ -44,61 +43,31 @@ static int action_start_remap_file_load(unsigned type, const char *label)
    settings->input.remapping_path[0] = '\0';
    input_remapping_set_defaults();
    rarch_main_msg_queue_push("Default input map applied", 1, 100, true);
+
+   input_remapping_touched = true;
    return 0;
 }
 
-static int action_start_remap_file_delete(unsigned type, const char *label)
+/* Resets input remapping scope to be consistent with .rmp files present. */
+static int action_start_remapping_scope(unsigned type, const char *label)
 {
-   char buf[PATH_MAX_LENGTH]       = {0};
-   char fullpath[PATH_MAX_LENGTH]  = {0};
-   global_t *global                = global_get_ptr();
-   settings_t *settings            = config_get_ptr();
-   char *scope                     = NULL;
+   char path[PATH_MAX_LENGTH];
 
-   if (!global || !settings)
+   input_remapping_get_path(path, THIS_CONTENT_ONLY);
+   if (path_file_exists(path))
+   {
+      input_remapping_scope = THIS_CONTENT_ONLY;
       return 0;
-
-   fill_pathname_join(fullpath, settings->input_remapping_directory,
-                      global->libretro_name, PATH_MAX_LENGTH);
-   strlcat(fullpath, path_default_slash(), PATH_MAX_LENGTH);
-
-   switch(input_remapping_scope)
-   {
-      case THIS_CONTENT_ONLY:
-         strlcat(fullpath, path_basename(global->basename), PATH_MAX_LENGTH);
-         scope = "ROM";
-         break;
-
-      case THIS_CONTENT_DIR:
-         if (!path_parent_dir_name(buf, global->basename))
-            strcpy(buf, "root");
-         strlcat(fullpath, buf, PATH_MAX_LENGTH);
-         scope = "Directory";
-         break;
-
-      case THIS_CORE:
-         strlcat(fullpath, global->libretro_name, PATH_MAX_LENGTH);
-         scope = "Core";
-         break;
-
-      default:
-         return -1;
    }
 
-   strlcat(fullpath, ".rmp", PATH_MAX_LENGTH);
-
-   if (!path_file_exists(fullpath))
-      snprintf(buf, PATH_MAX_LENGTH, "%s remap file does not exist.", scope);
-   else if (remove(fullpath))
-      snprintf(buf, PATH_MAX_LENGTH, "Error deleting %s remap file", scope);
-   else
+   input_remapping_get_path(path, THIS_CONTENT_DIR);
+   if (path_file_exists(path))
    {
-      snprintf(buf, PATH_MAX_LENGTH, "Deleted %s remap file", scope);
-      if (!strcmp(fullpath, settings->input.remapping_path))
-         settings->input.remapping_path[0] = '\0';
+      input_remapping_scope = THIS_CONTENT_DIR;
+      return 0;
    }
 
-   rarch_main_msg_queue_push(buf, 1, 100, true);
+   input_remapping_scope = THIS_CORE;
    return 0;
 }
 
@@ -206,6 +175,7 @@ static int action_start_input_desc(unsigned type, const char *label)
       settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] =
          inp_desc_button_index_offset - RARCH_FIRST_CUSTOM_BIND;
 
+   input_remapping_touched = true;
    return 0;
 }
 
@@ -431,8 +401,8 @@ int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_REMAP_FILE_LOAD:
          cbs->action_start = action_start_remap_file_load;
          break;
-      case MENU_LABEL_REMAP_FILE_SAVE:
-         cbs->action_start = action_start_remap_file_delete;
+      case MENU_LABEL_REMAPPING_SCOPE:
+         cbs->action_start = action_start_remapping_scope;
          break;
       case MENU_LABEL_OPTIONS_SCOPE:
          cbs->action_start = action_start_options_file_scope;

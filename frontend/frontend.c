@@ -21,6 +21,7 @@
 #include "../retroarch.h"
 #include "../runloop.h"
 #include "../runloop_data.h"
+#include "../input/input_remapping.h"
 #ifdef HAVE_NETPLAY
 #include "../netplay.h"
 #endif
@@ -58,6 +59,8 @@ void main_exit_save_config(void)
          core_option_free(global->system.core_options);
          global->system.core_options = NULL;
       }
+      if (input_remapping_touched && settings->auto_remaps_enable)
+         input_remapping_save();
    }
 
    event_command(EVENT_CMD_AUTOSAVE_STATE);

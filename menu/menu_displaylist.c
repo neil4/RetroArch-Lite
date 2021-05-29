@@ -958,12 +958,12 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
          menu_hash_to_str(MENU_LABEL_LIBRETRO_DEVICE_SCOPE), 0, 0, 0);
 
    menu_list_push(info->list,
-         menu_hash_to_str(MENU_LABEL_VALUE_REMAP_FILE_LOAD),
-         menu_hash_to_str(MENU_LABEL_REMAP_FILE_LOAD),
+         "Remapping Scope",
+         menu_hash_to_str(MENU_LABEL_REMAPPING_SCOPE),
          MENU_SETTING_ACTION, 0, 0);
    menu_list_push(info->list,
-         "Save Remap File",
-         menu_hash_to_str(MENU_LABEL_REMAP_FILE_SAVE),
+         menu_hash_to_str(MENU_LABEL_VALUE_REMAP_FILE_LOAD),
+         menu_hash_to_str(MENU_LABEL_REMAP_FILE_LOAD),
          MENU_SETTING_ACTION, 0, 0);
 
    for (p = 0; p < settings->input.max_users; p++)

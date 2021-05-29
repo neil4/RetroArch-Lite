@@ -46,6 +46,7 @@
 #include "runloop_data.h"
 #include "performance.h"
 #include "cheats.h"
+#include "input/input_remapping.h"
 
 #include "git_version.h"
 #include "intl/intl.h"
@@ -1542,6 +1543,8 @@ void rarch_update_configs()
          core_option_free(global->system.core_options);
          global->system.core_options = NULL;
       }
+      if (input_remapping_touched && settings->auto_remaps_enable)
+         input_remapping_save();
    }
 
    /* get new core's libretro_name */

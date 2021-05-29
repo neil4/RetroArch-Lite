@@ -4379,7 +4379,7 @@ static bool setting_append_list_configuration_options(
    CONFIG_BOOL(
          settings->auto_remaps_enable,
          "auto_remaps_enable",
-         "Auto Load Input Remap Files",
+         "Auto Load/Save Input Remaps",
          default_auto_remaps_enable,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
