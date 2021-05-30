@@ -127,8 +127,9 @@ bool rarch_replace_config(const char *path);
 
 /**
  * rarch_update_configs
- * 
- * Called on load/unload core to save options and scoped configs.
+ *
+ * Called on load/unload core to save core options, remaps, and settings.
+ * Global settings saved only if shutting down.
  */
 void rarch_update_configs();
 

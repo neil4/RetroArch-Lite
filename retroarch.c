@@ -1511,7 +1511,7 @@ bool rarch_replace_config(const char *path)
       return false;
 
    if (settings->config_save_on_exit && *global->config_path)
-      config_save_file(global->config_path);
+      main_config_file_save(global->config_path);
 
       strlcpy(global->config_path, path, sizeof(global->config_path));
    global->block_config_read = false;
@@ -1547,12 +1547,17 @@ void rarch_update_configs()
          input_remapping_save();
    }
 
-   /* get new core's libretro_name */
+   /* Get new core's libretro_name */
    path_libretro_name(global->libretro_name, settings->libretro);
 
-   /* restore globals when a core is unloaded */
+   /* Restore globals when a core is unloaded */
    if (!*global->libretro_name)
-      config_backup_restore_globals();
+      config_unmask_globals();
+
+   /* Save main config if shutting down */
+   if (global->system.shutdown && settings->config_save_on_exit
+       && settings_touched && *global->config_path)
+      main_config_file_save(global->config_path);
 }
 
 bool rarch_clear_all_thread_waits(unsigned clear_threads, void* data)

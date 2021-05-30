@@ -38,31 +38,13 @@
 void main_exit_save_config(void)
 {
    settings_t *settings = config_get_ptr();
-   global_t   *global   = global_get_ptr();
    
 #ifdef HAVE_NETPLAY
    netplay_unmask_config();
 #endif
 
-   if (settings->config_save_on_exit)
-   {
-      if (scoped_settings_touched)
-         scoped_config_files_save();
-      *settings->libretro = '\0';
-      config_backup_restore_globals();
-      if (settings_touched && *global->config_path)
-         config_save_file(global->config_path);
-      if (global->system.core_options)
-      {
-         if (options_touched)
-            core_option_flush(global->system.core_options);
-         core_option_free(global->system.core_options);
-         global->system.core_options = NULL;
-      }
-      if (input_remapping_touched && settings->auto_remaps_enable)
-         input_remapping_save();
-   }
-
+   *settings->libretro = '\0';
+   rarch_update_configs();
    event_command(EVENT_CMD_AUTOSAVE_STATE);
 }
 
@@ -81,8 +63,6 @@ void main_exit(void *args)
    global_t   *global                    = global_get_ptr();
    const frontend_ctx_driver_t *frontend = frontend_get_ptr();
    const ui_companion_driver_t *ui       = ui_companion_get_ptr();
-
-   global->system.shutdown         = false;
 
    main_exit_save_config();
 

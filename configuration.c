@@ -1953,14 +1953,14 @@ void config_load(void)
 }
 
 /**
- * config_save_file:
- * @path            : Path that shall be written to.
+ * main_config_file_save:
+ * @path                : Path that shall be written to.
  *
- * Writes a config file to disk.
+ * Writes a global config file to disk.
  *
  * Returns: true (1) on success, otherwise returns false (0).
  **/
-bool config_save_file(const char *path)
+bool main_config_file_save(const char *path)
 {
    unsigned i           = 0;
    bool ret             = false;
@@ -2416,6 +2416,8 @@ bool config_save_file(const char *path)
    ret = config_file_write(conf, path);
    config_file_free(conf);
    scoped_conf[GLOBAL] = NULL;
+   settings_touched = false;
+
    return ret;
 }
 
@@ -2827,7 +2829,7 @@ void scoped_config_files_save()
    scoped_settings_touched = false;
 }
 
-void config_backup_restore_globals()
+void config_unmask_globals()
 {
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
@@ -3436,7 +3438,7 @@ static void scoped_config_file_load(unsigned scope)
 void scoped_config_files_load_auto()
 {
    /* Back up or unmask global settings */
-   config_backup_restore_globals();
+   config_unmask_globals();
    
    scoped_config_file_load(THIS_CORE);
    scoped_config_file_load(THIS_CONTENT_DIR);
@@ -3445,6 +3447,6 @@ void scoped_config_files_load_auto()
 
 void core_config_file_load_auto()
 {
-   config_backup_restore_globals();
+   config_unmask_globals();
    scoped_config_file_load(THIS_CORE);
 }

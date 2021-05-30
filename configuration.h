@@ -537,22 +537,22 @@ void scoped_config_files_load_auto();
 void core_config_file_load_auto();
 
 /**
- * config_backup_restore_globals
+ * config_unmask_globals
  * 
  * Called between ROM loads. Restores scoped settings to global values, and
  * updates backups for already-global values.
  */
-void config_backup_restore_globals();
+void config_unmask_globals();
 
 /**
- * config_save_file:
- * @path            : Path that shall be written to.
+ * main_config_file_save:
+ * @path                : Path that shall be written to.
  *
- * Writes a config file to disk.
+ * Writes a global config file to disk.
  *
  * Returns: true (1) on success, otherwise returns false (0).
  **/
-bool config_save_file(const char *path);
+bool main_config_file_save(const char *path);
 
 settings_t *config_init(void);
 
