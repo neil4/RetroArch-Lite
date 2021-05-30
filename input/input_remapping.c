@@ -254,7 +254,7 @@ static void input_remapping_delete_unscoped()
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
-void input_remapping_save()
+bool input_remapping_save()
 {
    char path[PATH_MAX_LENGTH] = {0};
 
@@ -263,9 +263,10 @@ void input_remapping_save()
    {
       input_remapping_delete_unscoped();
       input_remapping_touched = false;
+      return true;
    }
 
-   return;
+   return false;
 }
 
 void input_remapping_set_defaults(void)

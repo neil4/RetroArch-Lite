@@ -686,6 +686,43 @@ static int action_ok_cheat_file_save_as(const char *path,
    return 0;
 }
 
+static int action_ok_options_file_save(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   global_t *global = global_get_ptr();
+   char buf[PATH_MAX_LENGTH];
+   char name[NAME_MAX_LENGTH];
+
+   core_option_get_conf_path(buf, core_options_scope);
+   strlcpy(name, path_basename(buf), NAME_MAX_LENGTH);
+
+   if (core_option_flush(global->system.core_options))
+      snprintf(buf, NAME_MAX_LENGTH, "%s saved successfully.", name);
+   else
+      snprintf(buf, NAME_MAX_LENGTH, "Error saving %s", name);
+
+   rarch_main_msg_queue_push(buf, 1, 100, true);
+   return 0;
+}
+
+static int action_ok_remap_file_save(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   char buf[PATH_MAX_LENGTH];
+   char name[NAME_MAX_LENGTH];
+
+   input_remapping_get_path(buf, input_remapping_scope);
+   strlcpy(name, path_basename(buf), NAME_MAX_LENGTH);
+
+   if (input_remapping_save())
+      snprintf(buf, NAME_MAX_LENGTH, "%s saved successfully.", name);
+   else
+      snprintf(buf, NAME_MAX_LENGTH, "Error saving %s", name);
+
+   rarch_main_msg_queue_push(buf, 1, 100, true);
+   return 0;
+}
+
 static int action_ok_path_use_directory(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -1217,6 +1254,12 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_CHEAT_FILE_SAVE_AS:
          cbs->action_ok = action_ok_cheat_file_save_as;
+         break;
+      case MENU_LABEL_OPTIONS_SCOPE:
+         cbs->action_ok = action_ok_options_file_save;
+         break;
+      case MENU_LABEL_REMAPPING_SCOPE:
+         cbs->action_ok = action_ok_remap_file_save;
          break;
       case MENU_LABEL_CORE_LIST:
          cbs->action_ok = action_ok_core_list;

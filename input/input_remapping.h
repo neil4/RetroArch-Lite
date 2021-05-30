@@ -55,7 +55,7 @@ int remap_file_load_auto();
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
-void input_remapping_save();
+bool input_remapping_save();
 
 void input_remapping_set_defaults(void);
 
@@ -64,6 +64,13 @@ void input_remapping_state(unsigned port,
 
 void input_remapping_set_default_desc();
 
+/**
+ * input_remapping_get_path:
+ * @path                   : PATH_MAX_LENGTH string
+ * @scope                  : THIS_CORE, THIS_CONTENT_DIR, or THIS_CONTENT_ONLY
+ *
+ * Sets @path to remapping file path for the @scope given.
+ */
 void input_remapping_get_path(char* path, unsigned scope);
 
 #ifdef __cplusplus
