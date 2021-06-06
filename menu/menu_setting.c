@@ -6589,12 +6589,15 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
    menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_touch_method; 
+      &setting_get_string_representation_touch_method;
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    
    CONFIG_FLOAT(
          settings->input.dpad_diagonal_sensitivity,
          "input_dpad_diagonal_sensitivity",
-         "  Diagonal Sensitivity",
+         settings->menu.show_advanced_settings ?
+            "  Diagonal Sensitivity" :
+            "D-Pad Diagonal Sensitivity",
          dpad_diagonal_sensitivity,
          "%.0f%%",
          group_info.name,
@@ -6604,7 +6607,7 @@ static bool setting_append_list_overlay_options(
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_dpad_diag_sens;
+         &setting_get_string_representation_dpad_diag_sens;
    menu_settings_list_current_add_cmd(
          list,
          list_info,
@@ -6625,12 +6628,15 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
    menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    (*list)[list_info->index - 1].get_string_representation = 
-   &setting_get_string_representation_touch_method; 
+         &setting_get_string_representation_touch_method;
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    
    CONFIG_FLOAT(
          settings->input.abxy_diagonal_sensitivity,
          "input_abxy_diagonal_sensitivity",
-         "  Diagonal Sensitivity",
+         settings->menu.show_advanced_settings ?
+            "  Diagonal Sensitivity" :
+            "ABXY Diagonal Sensitivity",
          abxy_diagonal_sensitivity,
          "%.0f%%",
          group_info.name,
