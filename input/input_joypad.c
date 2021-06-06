@@ -121,6 +121,37 @@ static INLINE uint64_t input_joypad_analog_eightway_state(int16_t x_axis,
    return UINT64_C(0);
 }
 
+static INLINE bool input_joypad_analog_dpad_pressed(
+      const input_device_driver_t *drv, unsigned port,
+      const struct retro_keybind *binds,
+      unsigned key, unsigned mode)
+{
+   unsigned analog_idx;
+   int16_t analog_x, analog_y;
+
+   static int64_t analog_dpad_state[MAX_USERS];
+
+   if (((UINT64_C(1) << key) & DPAD_MASK) && mode)
+   {
+      if ((analog_dpad_state_utd & (1 << port)) == 0)
+      {
+         analog_idx = mode - 1;
+         analog_x = input_joypad_analog(drv, port, analog_idx,
+                          RETRO_DEVICE_ID_ANALOG_X, binds);
+         analog_y = input_joypad_analog(drv, port, analog_idx,
+                          RETRO_DEVICE_ID_ANALOG_Y, binds);
+
+         analog_dpad_state[port] = input_joypad_analog_eightway_state(
+                                         analog_x, analog_y);
+         analog_dpad_state_utd |= (1 << port);
+      }
+
+      return ((UINT64_C(1) << key) & analog_dpad_state[port]);
+   }
+
+   return false;
+}
+
 /**
  * input_joypad_name:  
  * @drv                     : Input device driver handle.
@@ -187,9 +218,6 @@ bool input_joypad_pressed(
    int16_t  axis;
    uint32_t joyaxis;
    uint64_t joykey;
-   unsigned analog_idx;
-   int16_t analog_x, analog_y;
-   static int64_t analog_dpad_state[MAX_USERS];
    const struct retro_keybind *auto_binds = NULL;
    settings_t *settings = config_get_ptr();
    unsigned joy_idx = settings->input.joypad_map[port];
@@ -209,23 +237,9 @@ bool input_joypad_pressed(
    if (drv->button(joy_idx, (uint16_t)joykey))
       return true;
 
-   if (((UINT64_C(1) << key) & DPAD_MASK) && settings->input.analog_dpad_mode)
-   {
-      if ((analog_dpad_state_utd & (1 << port)) == 0)
-      {
-         analog_idx = settings->input.analog_dpad_mode - 1;
-         analog_x = input_joypad_analog(drv, port, analog_idx,
-                          RETRO_DEVICE_ID_ANALOG_X, binds);
-         analog_y = input_joypad_analog(drv, port, analog_idx,
-                          RETRO_DEVICE_ID_ANALOG_Y, binds);
-
-         analog_dpad_state[port] = input_joypad_analog_eightway_state(
-                                         analog_x, analog_y);
-         analog_dpad_state_utd |= (1 << port);
-      }
-
-      return ((UINT64_C(1) << key) & analog_dpad_state[port]);
-   }
+   if (input_joypad_analog_dpad_pressed(drv, port, binds, key,
+            settings->input.analog_dpad_mode))
+      return true;
 
    joyaxis = binds[key].joyaxis;
    if (joyaxis == AXIS_NONE)
