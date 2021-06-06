@@ -489,14 +489,14 @@ static int action_ok_core_list(const char *path,
 static int action_ok_remap_file_load(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   const char            *menu_path = NULL;
-   char remap_path[PATH_MAX_LENGTH] = {0};
-   menu_list_t       *menu_list     = menu_list_get_ptr();
+   const char  *menu_path = NULL;
+   menu_list_t *menu_list = menu_list_get_ptr();
+
+   char remap_path[PATH_MAX_LENGTH];
+   char        buf[NAME_MAX_LENGTH];
+
    if (!menu_list)
       return -1;
-
-   (void)remap_path;
-   (void)menu_path;
 
    menu_list_get_last_stack(menu_list, &menu_path, NULL,
          NULL, NULL);
@@ -507,6 +507,10 @@ static int action_ok_remap_file_load(const char *path,
 
    menu_list_flush_stack(menu_list,
          menu_hash_to_str(MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS), 0);
+
+   snprintf(buf, NAME_MAX_LENGTH, "Remapping applied from %s",
+         path_basename(remap_path));
+   rarch_main_msg_queue_push(buf, 1, 100, true);
 
    return 0;
 }
