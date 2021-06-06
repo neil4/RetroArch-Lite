@@ -55,7 +55,7 @@ void input_joypad_update_analog_dpad_params()
    analog_dpad_deadzone_sq = deadzone * deadzone;
 }
 
-static inline uint64_t input_joypad_analog_eightway_state(int16_t x_axis,
+static INLINE uint64_t input_joypad_analog_eightway_state(int16_t x_axis,
                                                           int16_t y_axis)
 {
    float x, y;

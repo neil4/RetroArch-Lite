@@ -206,7 +206,7 @@ static int action_iterate_help(char *s, size_t len, const char *label)
    return 0;
 }
 
-static inline void action_iterate_get_core_desc(char *s, size_t len,
+static INLINE void action_iterate_get_core_desc(char *s, size_t len,
                                                 const char* path)
 {
    global_t *global = global_get_ptr();

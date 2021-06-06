@@ -645,7 +645,7 @@ static int menu_input_mouse(unsigned *action)
    menu_framebuf_t *frame_buf= menu_display_fb_get_ptr();
    settings_t *settings      = config_get_ptr();
 
-   static unsigned old_screen_x, old_screen_y;
+   static int16_t old_screen_x, old_screen_y;
    static retro_time_t input_usec;
 
 #ifdef HAVE_OVERLAY
@@ -805,7 +805,7 @@ static int menu_input_pointer(unsigned *action)
    return 0;
 }
 
-static inline bool menu_input_value_can_step(rarch_setting_t *setting,
+static INLINE bool menu_input_value_can_step(rarch_setting_t *setting,
       menu_entry_t *entry)
 {
    /* todo: savestate slot? */

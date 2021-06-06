@@ -1498,14 +1498,14 @@ void input_overlay_enable(input_overlay_t *ol, bool enable)
  * @param y_offset relative to 8-way center, normalized as fraction of screen height
  * @return input state representing the offset direction as @vals
  */
-static inline uint64_t eightway_direction(const struct overlay_eightway_vals* vals,
+static INLINE uint64_t eightway_direction(const struct overlay_eightway_vals* vals,
                                           float x_offset,
                                           const float y_offset)
 {
    if (x_offset == 0.0f)
      x_offset = 0.000001f;
    float abs_slope = fabs(y_offset / x_offset);
-   
+
    if (x_offset > 0.0f)
    {
       if (y_offset > 0.0f)
@@ -1548,7 +1548,7 @@ static inline uint64_t eightway_direction(const struct overlay_eightway_vals* va
    return UINT64_C(0);
 }
 
-static inline uint64_t fourway_direction(const struct overlay_eightway_vals* vals,
+static INLINE uint64_t fourway_direction(const struct overlay_eightway_vals* vals,
                                          float x_offset,
                                          const float y_offset)
 {
@@ -1600,7 +1600,7 @@ static inline uint64_t fourway_direction(const struct overlay_eightway_vals* val
  * Requires the input driver to call set_ellipse during poll.
  * Approximates ellipse as a diamond and checks vertex overlap with @vals.
  */
-static inline uint64_t eightway_ellipse_coverage(const struct overlay_eightway_vals* vals,
+static INLINE uint64_t eightway_ellipse_coverage(const struct overlay_eightway_vals* vals,
                                                  const uint8_t ptr_idx,
                                                  const float x_ellipse_offset,
                                                  const float y_ellipse_offset)
@@ -1674,7 +1674,7 @@ static inline uint64_t eightway_ellipse_coverage(const struct overlay_eightway_v
  *
  * Returns the low level input state based on @x, @y, and ellipse_px values.
  **/
-static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
+static INLINE uint64_t eightway_state(const struct overlay_desc *desc_ptr,
                                       unsigned area_type,
                                       const uint8_t ptr_idx,
                                       const float x, const float y)
@@ -1700,13 +1700,13 @@ static inline uint64_t eightway_state(const struct overlay_desc *desc_ptr,
 /**
  * input_overlay_undo_meta_overlap:
  * @ol                            : Overlay handle.
- * @out                           : overlay state for a single pointer.
+ * @out                           : Overlay state for a single pointer.
  * @ptr_idx                       : Pointer index.
  *
  * Disallows simultaneous use of meta keys with other controls by the same
  * pointer. Meta keys take priority unless other controls were already active.
  */
-static inline void input_overlay_undo_meta_overlap(input_overlay_t *ol,
+static INLINE void input_overlay_undo_meta_overlap(input_overlay_t *ol,
                                                    input_overlay_state_t* out,
                                                    const uint8_t ptr_idx)
 {
@@ -1835,7 +1835,7 @@ static INLINE bool input_overlay_poll_descs(
           && desc->range_x_mod > desc->range_x_hitbox)
       {
          exclusive_desc_hit = true;
-         memset(out,0,sizeof(*out));
+         memset(out, 0, sizeof(*out));
          for (j = 0; j < i; j++)
             descs[j].updated &= ~(1 << ptr_idx);
       }
@@ -1850,8 +1850,7 @@ static INLINE bool input_overlay_poll_descs(
             out->buttons |= eightway_state(desc, DPAD_AREA, ptr_idx, x, y);
          else if (desc->key_mask & (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA))
             out->buttons |= eightway_state(desc, ABXY_AREA, ptr_idx, x, y);
-
-         if (desc->key_mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
+         else if (desc->key_mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
             ol->next_index = desc->next_index;
       }
       else if (desc->type == OVERLAY_TYPE_KEYBOARD)

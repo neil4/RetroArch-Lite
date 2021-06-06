@@ -619,7 +619,7 @@ static void rgui_adjust_wallpaper_alpha()
    }
 }
 
-static inline void rgui_check_update(settings_t *settings,
+static INLINE void rgui_check_update(settings_t *settings,
                                      menu_framebuf_t *frame_buf)
 {
    global_t* global = global_get_ptr();

@@ -67,7 +67,7 @@ void menu_display_fb_unset_dirty(void)
    frame_buf->dirty = false;
 }
 
-static inline void menu_display_retro_run(driver_t *driver)
+static INLINE void menu_display_retro_run(driver_t *driver)
 {
 #ifdef HAVE_NETPLAY
          if (driver->netplay_data)

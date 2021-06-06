@@ -2445,7 +2445,7 @@ settings_t *config_init(void)
    return g_config;
 }
 
-static inline bool get_scoped_config_filename(char* buf, const unsigned scope)
+static INLINE bool get_scoped_config_filename(char* buf, const unsigned scope)
 {
    global_t *global = global_get_ptr();
    char tmp_buf[NAME_MAX_LENGTH];

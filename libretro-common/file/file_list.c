@@ -28,7 +28,7 @@
 #include "../../menu/menu.h"
 #include "../../runloop.h"
 
-static inline void set_mame_title(file_list_t *list, const char *path)
+static INLINE void set_mame_title(file_list_t *list, const char *path)
 {
    settings_t *settings = config_get_ptr();
    global_t     *global = global_get_ptr();
