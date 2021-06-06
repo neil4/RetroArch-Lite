@@ -369,7 +369,7 @@ public class DirectoryFragment extends DialogFragment
          SharedPreferences settings = UserPreferences.getPreferences(getActivity());
          SharedPreferences.Editor editor = settings.edit();
          editor.putString(pathSettingKey, path).apply();
-         PreferenceActivity.config_dirty = true;
+         PreferenceActivity.configDirty = true;
       }
 
       dismiss();

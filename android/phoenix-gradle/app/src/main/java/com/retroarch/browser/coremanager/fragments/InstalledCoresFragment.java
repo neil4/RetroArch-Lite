@@ -228,25 +228,25 @@ public final class InstalledCoresFragment extends ListFragment
             final String defaultState = UserPreferences.defaultBaseDir + "/state";
 
             final SharedPreferences prefs = getPreferences(getContext());
-            String cfg_dir = prefs.getBoolean("config_directory_enable", false) ?
-                       prefs.getString("rgui_config_directory", defaultConfig) : defaultConfig;
-            String save_dir = prefs.getBoolean("savefile_directory_enable", false) ?
+            String cfgDir = prefs.getBoolean("config_directory_enable", false) ?
+                  prefs.getString("rgui_config_directory", defaultConfig) : defaultConfig;
+            String saveDir = prefs.getBoolean("savefile_directory_enable", false) ?
                   prefs.getString("savefile_directory", defaultSave) : defaultSave;
-            String state_dir = prefs.getBoolean("savestate_directory_enable", false) ?
+            String stateDir = prefs.getBoolean("savestate_directory_enable", false) ?
                   prefs.getString("savestate_directory", defaultState) : defaultState;
                         
-            String libretro_name = sanitizedLibretroName(item.getUnderlyingFile().getName());
-            String core_cfg_dir = cfg_dir + '/' + libretro_name;
-            String core_save_dir = save_dir + '/' + libretro_name;
-            String core_state_dir = state_dir + '/' + libretro_name;
+            String libretroName = sanitizedLibretroName(item.getUnderlyingFile().getName());
+            String coreCfgDir = cfgDir + '/' + libretroName;
+            String coreSaveDir = saveDir + '/' + libretroName;
+            String coreStateDir = stateDir + '/' + libretroName;
             
             // Delete all core specific folders created by frontend
-            DirectoryFragment.DeleteDirTree(new File(core_cfg_dir));
-            DirectoryFragment.DeleteDirTree(new File(core_save_dir));
-            DirectoryFragment.DeleteDirTree(new File(core_state_dir));
+            DirectoryFragment.DeleteDirTree(new File(coreCfgDir));
+            DirectoryFragment.DeleteDirTree(new File(coreSaveDir));
+            DirectoryFragment.DeleteDirTree(new File(coreStateDir));
 
             // Remove ROM search directory preference also
-            prefs.edit().remove(libretro_name + "_directory").commit();
+            prefs.edit().remove(libretroName + "_directory").commit();
             
             Toast.makeText(getActivity(), String.format(getString(R.string.reset_core_settings_success), item.getText()), Toast.LENGTH_LONG).show();
          }

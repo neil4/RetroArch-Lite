@@ -251,19 +251,12 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       dialog.setCancelable(false);
       dialog.setTitle(R.string.asset_extraction);
 
-      // Java is fun :)
       Thread assetsThread = new Thread(new Runnable()
       {
          public void run()
          {
             extractAssetsThread();
-            handler.post(new Runnable()
-            {
-               public void run()
-               {
-                  dialog.dismiss();
-               }
-            });
+            handler.post(dialog::dismiss);
          }
       });
       assetsThread.start();

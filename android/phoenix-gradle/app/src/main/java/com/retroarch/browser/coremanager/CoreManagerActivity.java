@@ -149,7 +149,7 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
    {
       String name = "";
       String system = "";
-      String display_name = "";
+      String displayName = "";
 
       try
       {
@@ -179,13 +179,13 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
          }
          for (String line : lines) {
             if (line.contains("display_name")) {
-               display_name = line.split("=")[1].trim().replace("\"", "");
+               displayName = line.split("=")[1].trim().replace("\"", "");
                break;
             }
          }
 
-         name = ModuleWrapper.bestCoreTitle(display_name, name);
-         system = ModuleWrapper.bestSystemTitle(display_name, system);
+         name = ModuleWrapper.bestCoreTitle(displayName, name);
+         system = ModuleWrapper.bestSystemTitle(displayName, system);
       }
       catch (FileNotFoundException fnfe)
       {

@@ -77,9 +77,9 @@ public final class UserPreferences
     */
    public static void updateConfigFile(Context ctx)
    {
-      final String config_path = getDefaultConfigPath(ctx);  // main config
-      ConfigFile config = new ConfigFile(config_path);
-      Log.i(TAG, "Writing config to: " + config_path);
+      final String configPath = getDefaultConfigPath(ctx);  // main config
+      ConfigFile config = new ConfigFile(configPath);
+      Log.i(TAG, "Writing config to: " + configPath);
 
       final String defaultSave = UserPreferences.defaultBaseDir + "/save";
       final String defaultSys = UserPreferences.defaultBaseDir + "/system";
@@ -134,11 +134,11 @@ public final class UserPreferences
 
       try
       {
-         config.write(config_path);
+         config.write(configPath);
       }
       catch (IOException e)
       {
-         Log.e(TAG, "Failed to save config file to: " + config_path);
+         Log.e(TAG, "Failed to save config file to: " + configPath);
       }
    }
 
