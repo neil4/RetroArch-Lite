@@ -137,7 +137,7 @@ static void menu_displaylist_get_downloadable_core_info(file_list_t* list)
       global->core_info_dl = core_info_list_new(DOWNLOADABLE_CORES);
    }
 
-   for (i = 0; i < list->size; i += 1)
+   for (i = 1; i < list->size; i += 1)  /* info.zip is i == 0 */
    {
       path = list->list[i].path;
       if (!path)
@@ -1313,11 +1313,17 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
 #ifdef HAVE_NETWORKING
          buf = core_buf ? strdup(core_buf) : calloc(1,1);
          menu_list_clear(info->list);
+
+         /* First entry is option to update info files */
+         menu_list_push(info->list, "", "", MENU_FILE_DOWNLOAD_CORE_INFO, 0, 0);
+
+         /* Add downloadable core file names */
          print_buf_lines(info->list, buf, core_len, MENU_FILE_DOWNLOAD_CORE);
          free(buf);
-         
-         if (info->list->size > 0)
+
+         if (info->list->size > 1)
          {
+            /* Get display names and descriptions */
             menu_displaylist_get_downloadable_core_info(info->list);
             need_sort    = true;
             need_push    = true;

@@ -120,7 +120,8 @@ public final class DownloadableCoresFragment extends ListFragment
 
       // Prompt the user for confirmation on downloading the core.
       AlertDialog.Builder notification = new AlertDialog.Builder(getActivity());
-      notification.setMessage(String.format(getString(R.string.download_core_confirm_msg), core.getCoreName()));
+      notification.setMessage(String.format(getString(R.string.download_core_confirm_msg),
+            core.getCoreName().isEmpty() ? "Info Files" : core.getCoreName()));
       notification.setTitle(R.string.confirm_title);
       notification.setNegativeButton(R.string.no, null);
       notification.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
@@ -220,7 +221,7 @@ public final class DownloadableCoresFragment extends ListFragment
    {
       try
       {
-         new DownloadCoreOperation(getContext(), "info.zip")
+         new DownloadCoreOperation(getContext(), "")
                .execute(BUILDBOT_INFO_URL, "info.zip");
       }
       catch (Exception ignored) {}
@@ -263,6 +264,9 @@ public final class DownloadableCoresFragment extends ListFragment
                      + conn.getResponseCode());
                return downloadableCores;
             }
+
+            // First entry is option to update info files
+            downloadableCores.add(new DownloadableCore("", "", BUILDBOT_INFO_URL));
 
             BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 
@@ -313,7 +317,6 @@ public final class DownloadableCoresFragment extends ListFragment
       private final Context ctx;
       private final String coreName;
       private boolean overwrite = false;
-      private final boolean isInfoZip;
       
       /**
        * Constructor
@@ -326,7 +329,6 @@ public final class DownloadableCoresFragment extends ListFragment
          this.dlg = new ProgressDialog(ctx);
          this.ctx = ctx;
          this.coreName = coreName;
-         this.isInfoZip = coreName.equals("info.zip");
       }
 
       @Override
@@ -349,8 +351,11 @@ public final class DownloadableCoresFragment extends ListFragment
          InputStream is = null;
          OutputStream os = null;
          HttpURLConnection connection = null;
+
+         // Assume info.zip if not a core
          final File zipPath = new File(ctx.getApplicationInfo().dataDir
-               + (isInfoZip ? "/info/" : "/cores/"), params[1]);
+               + (coreName.isEmpty() ? "/info/" : "/cores/"),
+                  coreName.isEmpty() ? "info.zip" : params[1]);
 
          try
          {
@@ -442,15 +447,15 @@ public final class DownloadableCoresFragment extends ListFragment
          if (coreDownloadedListener != null)
             coreDownloadedListener.onCoreDownloaded();
 
-         if (!isInfoZip)
-            Toast.makeText(this.ctx, this.coreName + (overwrite ? " updated." : " installed."),
+         if (!coreName.isEmpty())
+            Toast.makeText(ctx, coreName + (overwrite ? " updated." : " installed."),
                            Toast.LENGTH_LONG).show();
       }
 
       @Override
       protected void onCancelled(Void result)
       {
-         Toast.makeText(this.ctx, this.coreName + " download canceled.",
+         Toast.makeText(ctx, coreName + " download canceled.",
                         Toast.LENGTH_LONG).show();
       }
    }

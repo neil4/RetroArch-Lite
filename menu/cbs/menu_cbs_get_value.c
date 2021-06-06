@@ -775,11 +775,22 @@ static void menu_action_setting_disp_set_label_menu_core_url(
       const char *path,
       char *s2, size_t len2)
 {
-   menu_action_setting_generic_disp_set_label
-                        (w, s, len,
-                         ((*list->list[i].alt && list->list[i].alt[0]) ?
-                            list->list[i].alt : path),
-                         (char*)list->list[i].userdata, s2, len2);
+   char* alt = list->list[i].alt;
+   menu_action_setting_generic_disp_set_label(w, s, len,
+         (alt? alt : path), (char*)list->list[i].userdata, s2, len2);
+}
+
+static void menu_action_setting_disp_set_label_menu_core_info(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   menu_action_setting_generic_disp_set_label(w, s, len,
+         "Update Core Info Files", "", s2, len2);
 }
 
 static void menu_action_setting_disp_set_alt_label_menu_file_plain(
@@ -1081,6 +1092,9 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
             cbs->action_get_value =
                menu_action_setting_disp_set_label_menu_core_url;
             break;
+         case MENU_FILE_DOWNLOAD_CORE_INFO:
+            cbs->action_get_value =
+               menu_action_setting_disp_set_label_menu_core_info;
             break;
          case MENU_FILE_CHEAT:
             cbs->action_get_value =

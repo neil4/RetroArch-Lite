@@ -1036,6 +1036,20 @@ static int action_ok_core_updater_download(const char *path,
    return 0;
 }
 
+static int action_ok_core_info_download(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   char buf[NAME_MAX_LENGTH] = {0};
+
+   snprintf(buf, sizeof(buf), "%s %s.",
+         menu_hash_to_str(MENU_LABEL_VALUE_STARTING_DOWNLOAD), "info.zip");
+   rarch_main_msg_queue_push(buf, 1, 90, true);
+
+   core_info_queue_download();
+
+   return 0;
+}
+
 static int action_ok_disk_cycle_tray_status(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -1353,6 +1367,7 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
             cbs->action_ok = action_ok_core_updater_download;
             break;
          case MENU_FILE_DOWNLOAD_CORE_INFO:
+            cbs->action_ok = action_ok_core_info_download;
             break;
          case MENU_FILE_FONT:
          case MENU_FILE_OVERLAY:
