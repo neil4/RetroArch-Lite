@@ -165,7 +165,7 @@ public final class InstalledCoresFragment extends ListFragment
       // Populate the list
       final File[] libs = new File(getActivity().getApplicationInfo().dataDir, "/cores").listFiles();
       for (File lib : libs)
-         items.add(new ModuleWrapper(getActivity(), lib, false));
+         items.add(new ModuleWrapper(getActivity(), lib, false, false));
 
       // Sort the list alphabetically
       Collections.sort(items);
@@ -179,7 +179,8 @@ public final class InstalledCoresFragment extends ListFragment
       final ModuleWrapper item = adapter.getItem(position);
       final AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
       alert.setTitle(R.string.confirm_title);
-      alert.setMessage(String.format(getString(R.string.uninstall_core_message), item.getText()));
+      alert.setMessage(String.format(getString(R.string.uninstall_core_message),
+            item.getCoreTitle()));
       alert.setNegativeButton(R.string.no, null);
       alert.setPositiveButton(R.string.yes, new OnClickListener()
       {
@@ -189,13 +190,15 @@ public final class InstalledCoresFragment extends ListFragment
             // Attempt to uninstall the core item.
             if (item.getUnderlyingFile().delete())
             {
-               Toast.makeText(getActivity(), String.format(getString(R.string.uninstall_success), item.getText()), Toast.LENGTH_LONG).show();
+               Toast.makeText(getActivity(), String.format(getString(R.string.uninstall_success),
+                     item.getCoreTitle()), Toast.LENGTH_LONG).show();
                adapter.remove(item);
                adapter.notifyDataSetChanged();
             }
             else // Failed to uninstall.
             {
-               Toast.makeText(getActivity(), String.format(getString(R.string.uninstall_failure), item.getText()), Toast.LENGTH_LONG).show();
+               Toast.makeText(getActivity(), String.format(getString(R.string.uninstall_failure),
+                     item.getCoreTitle()), Toast.LENGTH_LONG).show();
             }
          }
       });
@@ -216,7 +219,8 @@ public final class InstalledCoresFragment extends ListFragment
       final ModuleWrapper item = adapter.getItem(position);
       final AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
       alert.setTitle(R.string.confirm_title);
-      alert.setMessage(String.format(getString(R.string.purge_core_data_message), item.getText()));
+      alert.setMessage(String.format(getString(R.string.purge_core_data_message),
+            item.getCoreTitle()));
       alert.setNegativeButton(R.string.no, null);
       alert.setPositiveButton(R.string.yes, new OnClickListener()
       {
@@ -248,7 +252,10 @@ public final class InstalledCoresFragment extends ListFragment
             // Remove ROM search directory preference also
             prefs.edit().remove(libretroName + "_directory").commit();
             
-            Toast.makeText(getActivity(), String.format(getString(R.string.reset_core_settings_success), item.getText()), Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(),
+                  String.format(getString(R.string.reset_core_settings_success),
+                        item.getCoreTitle()),
+                  Toast.LENGTH_LONG).show();
          }
       });
       alert.show();
@@ -341,7 +348,8 @@ public final class InstalledCoresFragment extends ListFragment
                               BUILDBOT_CORE_URL_ARM : BUILDBOT_CORE_URL_INTEL)
                              + coreFileName.concat(".zip");
 
-      final DownloadableCore core = new DownloadableCore(adapter.getItem(position).getText(), "", coreURL);
+      final DownloadableCore core = new DownloadableCore(
+            adapter.getItem(position).getCoreTitle(), "", coreURL, false);
 
       // Prompt the user for confirmation on updating the core.
       AlertDialog.Builder notification = new AlertDialog.Builder(getActivity());
@@ -385,14 +393,15 @@ public final class InstalledCoresFragment extends ListFragment
 
       alert.setTitle(R.string.confirm_title);
       alert.setMessage(String.format(getString(R.string.backup_core_message)
-                       + (destFile.exists() ? "\nBackup exists and will be overwritten." : ""), item.getText()));
+               + (destFile.exists() ? "\nBackup exists and will be overwritten." : ""),
+            item.getCoreTitle()));
       alert.setNegativeButton(R.string.no, null);
       alert.setPositiveButton(R.string.yes, new OnClickListener()
       {
          @Override
          public void onClick(DialogInterface dialog, int which)
          {
-            new BackupCoreOperation(getActivity(), item.getText())
+            new BackupCoreOperation(getActivity(), item.getCoreTitle())
                 .execute(item.getUnderlyingFile().getAbsolutePath(), zipPath);
          }
       });

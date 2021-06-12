@@ -23,6 +23,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.retroarch.browser.ModuleWrapper;
+import com.retroarch.browser.coremanager.CoreManagerActivity;
 import com.retroarch.browser.preferences.util.UserPreferences;
 import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
@@ -101,9 +102,6 @@ public final class DownloadableCoresFragment extends ListFragment
       }
       coreList.setAdapter(sAdapter);
       
-      SharedPreferences prefs = UserPreferences.getPreferences(getContext());
-      DownloadableCore.sortBySystem = prefs.getBoolean("SortDownloadableCoresBySystem", true);
-      
       if (newAdapter)
          new PopulateCoresListOperation(sAdapter).execute();
       
@@ -162,7 +160,8 @@ public final class DownloadableCoresFragment extends ListFragment
          {
             final String fakePath = getActivity().getApplicationInfo().dataDir + "/cores/"
                   + sAdapter.getItem(info.position).getShortURLName();
-            final ModuleWrapper core = new ModuleWrapper(getActivity(), new File(fakePath), false);
+            final ModuleWrapper core = new ModuleWrapper(getActivity(), fakePath,
+                  false, false);
 
             CoreInfoFragment cif = CoreInfoFragment.newInstance(core);
             cif.show(getFragmentManager(), "cif");
@@ -170,14 +169,12 @@ public final class DownloadableCoresFragment extends ListFragment
          }
          case R.id.sort_by_name_ctx_item:
          {
-            DownloadableCore.sortBySystem = false;
-            reSortCores();
+            reSortCores(false);
             return true;
          }
          case R.id.sort_by_system_ctx_item:
          {
-            DownloadableCore.sortBySystem = true;
-            reSortCores();
+            reSortCores(true);
             return true;
          }
          
@@ -186,7 +183,7 @@ public final class DownloadableCoresFragment extends ListFragment
       }
    }
    
-   public void reSortCores()
+   public void reSortCores(boolean sortBySys)
    {
       if (sAdapter == null || getContext() == null)
          return;
@@ -195,26 +192,41 @@ public final class DownloadableCoresFragment extends ListFragment
       for (int i = 0; i < sAdapter.getCount(); i++)
       {
          DownloadableCore item = sAdapter.getItem(i);
-
-         // Assume .info was flagged missing & then downloaded if systemName empty.
-         if (!item.getSystemName().isEmpty())
-            cores.add(item);
-         else
-         {
-            final String infoPath = getContext().getApplicationInfo().dataDir + "/info/"
-                  + item.getCoreName() + ".info";
-
-            Pair<String,String> pair = getTitlePair(infoPath); // (name,mfr+system)
-            cores.add(new DownloadableCore(pair.first, pair.second, item.getCoreURL()));
-         }
+         cores.add(new DownloadableCore(item.getCoreName(), item.getSystemName(),
+               item.getCoreURL(), sortBySys));
       }
       Collections.sort(cores);
       sAdapter.clear();
       sAdapter.addAll(cores);
       
       SharedPreferences.Editor editor = UserPreferences.getPreferences(getContext()).edit();
-      editor.putBoolean("SortDownloadableCoresBySystem", DownloadableCore.sortBySystem);
+      editor.putBoolean("sort_dl_cores_by_system", sortBySys);
       editor.apply();
+   }
+
+   public void refreshCores()
+   {
+      if (sAdapter == null || getContext() == null)
+         return;
+
+      SharedPreferences prefs = UserPreferences.getPreferences(getContext());
+      boolean sortBySys = prefs.getBoolean("sort_dl_cores_by_system", true);
+
+      final ArrayList<DownloadableCore> cores = new ArrayList<>();
+      cores.add(new DownloadableCore("", "", BUILDBOT_INFO_URL, false));
+
+      for (int i = 1; i < sAdapter.getCount(); i++)
+      {
+         DownloadableCore item = sAdapter.getItem(i);
+         String infoPath = getContext().getApplicationInfo().dataDir + "/info/"
+               + item.getShortURLName().replace("_android.so.zip", ".info");
+
+         Pair<String,String> pair = getTitlePair(infoPath); // (name,mfr+system)
+         cores.add(new DownloadableCore(pair.first, pair.second, item.getCoreURL(), sortBySys));
+      }
+      Collections.sort(cores);
+      sAdapter.clear();
+      sAdapter.addAll(cores);
    }
 
    protected void downloadInfoFiles()
@@ -248,6 +260,8 @@ public final class DownloadableCoresFragment extends ListFragment
       protected ArrayList<DownloadableCore> doInBackground(Void... params)
       {
          final ArrayList<DownloadableCore> downloadableCores = new ArrayList<>();
+         SharedPreferences prefs = UserPreferences.getPreferences(getContext());
+         boolean sortBySys = prefs.getBoolean("sort_dl_cores_by_system", true);
 
          try
          {
@@ -266,7 +280,8 @@ public final class DownloadableCoresFragment extends ListFragment
             }
 
             // First entry is option to update info files
-            downloadableCores.add(new DownloadableCore("", "", BUILDBOT_INFO_URL));
+            downloadableCores.add(new DownloadableCore("", "",
+                  BUILDBOT_INFO_URL, false));
 
             BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 
@@ -280,7 +295,8 @@ public final class DownloadableCoresFragment extends ListFragment
                if (!new File(infoPath).exists())
                   InfoFileMissing = true;
 
-               downloadableCores.add(new DownloadableCore(pair.first, pair.second, coreURL));
+               downloadableCores.add(new DownloadableCore(pair.first, pair.second,
+                     coreURL, sortBySys));
             }
 
             Collections.sort(downloadableCores);
@@ -447,7 +463,13 @@ public final class DownloadableCoresFragment extends ListFragment
          if (coreDownloadedListener != null)
             coreDownloadedListener.onCoreDownloaded();
 
-         if (!coreName.isEmpty())
+         if (coreName.isEmpty())
+         {
+            CoreManagerActivity.downloadableCoresFragment.refreshCores();
+            Toast.makeText(ctx, "Core Info Files updated.",
+                  Toast.LENGTH_LONG).show();
+         }
+         else
             Toast.makeText(ctx, coreName + (overwrite ? " updated." : " installed."),
                            Toast.LENGTH_LONG).show();
       }

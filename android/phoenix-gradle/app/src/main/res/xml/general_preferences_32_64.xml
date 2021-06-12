@@ -28,6 +28,11 @@
             android:title="@string/append_abi_to_corenames" />
         <CheckBoxPreference
             android:defaultValue="true"
+            android:key="sort_cores_by_system"
+            android:summary="@string/sort_cores_by_system_desc"
+            android:title="@string/sort_cores_by_system" />
+        <CheckBoxPreference
+            android:defaultValue="true"
             android:key="mame_titles"
             android:summary="@string/mame_titles_desc"
             android:title="@string/mame_titles" />

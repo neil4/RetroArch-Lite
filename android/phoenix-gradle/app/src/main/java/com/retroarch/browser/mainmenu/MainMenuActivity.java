@@ -155,6 +155,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
    {
       SharedPreferences prefs = UserPreferences.getPreferences(getApplicationContext());
       boolean showAbi = prefs.getBoolean("append_abi_to_corenames", false);
+      boolean sortBySys = prefs.getBoolean("sort_cores_by_system", true);
 
       // Inflate the ListView we're using.
       ListView coreList = (ListView) findViewById(R.id.list);
@@ -168,7 +169,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       final File[] libs = coreDir.listFiles();
       
       for (final File lib : libs)
-         cores.add(new ModuleWrapper(this, lib, showAbi));
+         cores.add(new ModuleWrapper(this, lib, showAbi, sortBySys));
       
       // Populate shared core list
       //
@@ -184,7 +185,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
       {
          final File[] sharedLibs = sharedCoreDir.listFiles();
          for (final File lib : sharedLibs)
-            cores.add(new ModuleWrapper(this, lib, showAbi));
+            cores.add(new ModuleWrapper(this, lib, showAbi, sortBySys));
       }
 
       // Sort the list of cores alphabetically
@@ -208,7 +209,7 @@ public final class MainMenuActivity extends FragmentActivity implements OnDirect
 
       if (!new File(libretroPath).isDirectory())
       {
-         DirectoryFragment contentBrowser = DirectoryFragment.newInstance(item.getText(),
+         DirectoryFragment contentBrowser = DirectoryFragment.newInstance(item.getCoreTitle(),
                item.getSupportedExtensions());
          
          // Assume no content if no file extensions

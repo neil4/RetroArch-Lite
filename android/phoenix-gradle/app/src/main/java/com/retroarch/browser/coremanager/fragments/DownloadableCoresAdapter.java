@@ -41,7 +41,6 @@ final class DownloadableCoresAdapter extends ArrayAdapter<DownloadableCore>
       {
          TextView title    = (TextView) convertView.findViewById(android.R.id.text1);
          TextView subtitle = (TextView) convertView.findViewById(android.R.id.text2);
-         boolean sortBySys = DownloadableCore.sortBySystem && !core.isLocal;
 
          if (core.getCoreName().isEmpty())  // Assume info.zip if not a core
          {
@@ -53,11 +52,10 @@ final class DownloadableCoresAdapter extends ArrayAdapter<DownloadableCore>
          else
          {
             if (title != null)
-               title.setText(sortBySys ? core.getSystemName() : core.getCoreName());
-            if (subtitle != null) {
-               String sub2 = core.isLocal ? '\n' + core.getShortURLName() : "";
-               subtitle.setText((sortBySys ? core.getCoreName() : core.getSystemName()) + sub2);
-            }
+               title.setText(core.getTitle());
+            if (subtitle != null)
+               subtitle.setText(core.getSubTitle()
+                     + (core.getCoreURL().startsWith("file") ? '\n' + core.getShortURLName() : ""));
          }
       }
 

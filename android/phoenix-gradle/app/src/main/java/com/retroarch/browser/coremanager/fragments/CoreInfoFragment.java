@@ -53,7 +53,8 @@ public final class CoreInfoFragment extends DialogFragment
 
       // Get the appropriate info providers.
       final Bundle args = getArguments();
-      final ModuleWrapper core = new ModuleWrapper(getActivity(), new File(args.getString("core_path")), false);
+      final ModuleWrapper core = new ModuleWrapper(getActivity(),
+            new File(args.getString("core_path")), false, false);
 
       // Initialize the core info.
       CoreInfoAdapter adapter = new CoreInfoAdapter(getActivity(), android.R.layout.simple_list_item_2);

@@ -7,10 +7,10 @@ final class DownloadableCore implements Comparable<DownloadableCore>
 {
    private final String coreName;
    private final String systemName;
+   private final String title;
+   private final String subTitle;
    private final String coreURL;
    private final String shortURL;
-   public final boolean isLocal;
-   public static boolean sortBySystem;
       
    /**
     * Constructor
@@ -18,15 +18,16 @@ final class DownloadableCore implements Comparable<DownloadableCore>
     * @param coreName Name of the core.
     * @param systemName Name of the system emulated by the core
     * @param coreURL  URL to this core.
+    * @param sortBySys Whether to use systemName or coreName as title
     */
-   public DownloadableCore(String coreName, String systemName, String coreURL)
+   public DownloadableCore(String coreName, String systemName, String coreURL, boolean sortBySys)
    {
-      this.coreName = coreName;
+      this.coreName   = coreName;
       this.systemName = systemName;
+      this.title      = sortBySys ? systemName : coreName;
+      this.subTitle   = sortBySys ? coreName   : systemName;
       this.coreURL  = coreURL;
       this.shortURL = coreURL.substring(coreURL.lastIndexOf('/') + 1);
-
-      isLocal = coreURL.startsWith("file");
    }
 
    /**
@@ -42,6 +43,16 @@ final class DownloadableCore implements Comparable<DownloadableCore>
    public String getSystemName()
    {
       return systemName;
+   }
+
+   public String getTitle()
+   {
+      return title;
+   }
+
+   public String getSubTitle()
+   {
+      return subTitle;
    }
 
    /**
@@ -70,9 +81,6 @@ final class DownloadableCore implements Comparable<DownloadableCore>
    @Override
    public int compareTo(DownloadableCore other)
    {
-      if (sortBySystem && !isLocal)
-         return systemName.compareToIgnoreCase(other.systemName);
-      else
-         return coreName.compareToIgnoreCase(other.coreName);
+      return title.compareToIgnoreCase(other.title);
    }
 }

@@ -142,6 +142,8 @@
     <string name="config_style">Configuration style</string>
     <string name="mame_titles">MAME Titles</string>
     <string name="mame_titles_desc">Translate zip filenames to MAME titles.</string>
+    <string name="sort_cores_by_system">Sort by System</string>
+    <string name="sort_cores_by_system_desc">List cores by system. Disable to list by name.</string>
     <string name="append_abi_to_corenames">Show 32-bit/64-bit</string>
     <string name="append_abi_to_corenames_desc">Distinguish between 32-bit and 64-bit cores.</string>
     <string name="asset_management">Asset Management</string>

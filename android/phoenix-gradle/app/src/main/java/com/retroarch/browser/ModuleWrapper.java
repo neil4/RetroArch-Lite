@@ -33,21 +33,23 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    private final String description;
    private int firmwareCount = 0;
    private final String firmwares;
-   private final boolean is64bit;
-   private final boolean showAbi;
+   private String coreTitle;
+   private String systemTitle;
+   private String titleText;
+   private String subText;
 
    /**
     * Constructor
     * 
     * @param context The current {@link Context}.
     * @param file    The {@link File} instance of the core being wrapped.
+    * @param showAbi Whether to append (32b) or (64b) to core titles
+    * @param sortBySys Whether to use systemTitle or coreTitle as titleText
     */
-   public ModuleWrapper(Context context, File file, boolean showAbi)
+   public ModuleWrapper(Context context, File file, boolean showAbi, boolean sortBySys)
    {
       this.file = file;
-      SharedPreferences prefs = UserPreferences.getPreferences(context.getApplicationContext());
-      is64bit = file.getAbsolutePath().contains("/com.retroarchlite64/");
-      this.showAbi = showAbi;
+      SharedPreferences prefs = UserPreferences.getPreferences(context);
 
       // Attempt to get the core's info file: dataDir/info/[core name].info
 
@@ -191,6 +193,15 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          this.firmwares = "Unknown";
          this.description = "N/A";
       }
+
+      // Set displayed title and subtext
+      boolean is64bit = file.getAbsolutePath().contains("/com.retroarchlite64/");
+      coreTitle = bestCoreTitle(this.displayName, this.coreName)
+            + (showAbi ? (is64bit ? " (64b)" : " (32b)") : "");
+      systemTitle  = bestSystemTitle(this.displayName, this.systemName);
+
+      titleText = sortBySys ? systemTitle : coreTitle;
+      subText   = sortBySys ? coreTitle   : systemTitle;
    }
 
    /**
@@ -198,10 +209,12 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
     * 
     * @param context The current {@link Context}.
     * @param path    Path to the file to encapsulate.
+    * @param showAbi Whether to append (32b) or (64b) to core titles
+    * @param sortBySys Whether to use systemTitle or coreTitle as titleText
     */
-   public ModuleWrapper(Context context, String path, boolean showAbi)
+   public ModuleWrapper(Context context, String path, boolean showAbi, boolean sortBySys)
    {
-      this(context, new File(path), showAbi);
+      this(context, new File(path), showAbi, sortBySys);
    }
 
    /**
@@ -242,6 +255,26 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    public String getInternalName()
    {
       return coreName;
+   }
+
+   /**
+    * Gets the core title to display for this wrapped core.
+    *
+    * @return the core title for this wrapped core.
+    */
+   public String getCoreTitle()
+   {
+      return coreTitle;
+   }
+
+   /**
+    * Gets the system title to display for this wrapped core.
+    *
+    * @return the system title for this wrapped core.
+    */
+   public String getSystemTitle()
+   {
+      return systemTitle;
    }
 
    /**
@@ -346,16 +379,13 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    @Override
    public String getText()
    {
-      if (showAbi)
-         return bestCoreTitle(displayName, coreName) + (is64bit ? " (64b)" : " (32b)");
-      else
-         return bestCoreTitle(displayName, coreName);
+      return titleText;
    }
    
    @Override
    public String getSubText()
    {
-      return bestSystemTitle(displayName, systemName);
+      return subText;
    }
 
    @Override
@@ -373,10 +403,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    @Override
    public int compareTo(ModuleWrapper other)
    {
-      if(coreName != null)
-         return coreName.toLowerCase().compareTo(other.coreName.toLowerCase()); 
-      else 
-         throw new NullPointerException("The name of this ModuleWrapper is null");
+      return titleText.compareToIgnoreCase(other.titleText);
    }
 
    public static String bestCoreTitle(String displayName, String coreName)

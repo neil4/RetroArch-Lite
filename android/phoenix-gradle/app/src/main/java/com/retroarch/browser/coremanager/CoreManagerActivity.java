@@ -124,7 +124,6 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
    public void onCoreDownloaded()
    {
       updateInstalledCoreList();
-      downloadableCoresFragment.reSortCores();
    }
 
    @Override

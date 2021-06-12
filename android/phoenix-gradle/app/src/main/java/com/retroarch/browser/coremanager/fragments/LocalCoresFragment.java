@@ -176,7 +176,7 @@ public final class LocalCoresFragment extends ListFragment
 
             Pair<String, String> pair = getTitlePair(infoPath); // (name,mfr+system)
 
-            cores.add(new DownloadableCore(pair.first, pair.second, urlPath));
+            cores.add(new DownloadableCore(pair.first, pair.second, urlPath, false));
          }
 
          Collections.sort(cores);
