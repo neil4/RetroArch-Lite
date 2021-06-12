@@ -32,7 +32,7 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
          addPreferencesFromResource(R.xml.general_preferences);
       
       // Set preference listeners
-      findPreference("install_themes_pref").setOnPreferenceClickListener(this);
+      findPreference("install_assets_pref").setOnPreferenceClickListener(this);
       findPreference("restore_assets_pref").setOnPreferenceClickListener(this);
    }
    
@@ -52,14 +52,14 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
    {
       final String prefKey = preference.getKey();
 
-      if (prefKey.equals("install_themes_pref"))
+      if (prefKey.equals("install_assets_pref"))
       {
-         final DirectoryFragment themeFileBrowser
+         final DirectoryFragment assetsFileBrowser
                  = DirectoryFragment.newInstance("");
-         themeFileBrowser.addAllowedExts("zip");
-         themeFileBrowser.setIsDirectoryTarget(false);
-         themeFileBrowser.setOnDirectoryFragmentClosedListener(this);
-         themeFileBrowser.show(getFragmentManager(), "themeFileBrowser");
+         assetsFileBrowser.addAllowedExts("zip");
+         assetsFileBrowser.setIsDirectoryTarget(false);
+         assetsFileBrowser.setOnDirectoryFragmentClosedListener(this);
+         assetsFileBrowser.show(getFragmentManager(), "assetsFileBrowser");
       }
       else if (prefKey.equals("restore_assets_pref"))
       {
@@ -72,35 +72,24 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
                .setPositiveButton("Yes",
                      new DialogInterface.OnClickListener()
                      {
+                        String folders[] = {"/overlays", "/info", "/shaders_glsl", "/themes_rgui", "/video_filters", "/audio_filters"};
+
                         public void onClick(DialogInterface dialog, int id)
                         {
-                           boolean success = assetFileBrowser.RestoreDirFromZip(
-                                 getActivity().getApplicationInfo().sourceDir,
-                                 "assets/themes_rgui",
-                                 getActivity().getApplicationInfo().dataDir + "/themes_rgui");
-                           success &= assetFileBrowser.RestoreDirFromZip(
-                                 getActivity().getApplicationInfo().sourceDir,
-                                 "assets/audio_filters",
-                                 getActivity().getApplicationInfo().dataDir + "/audio_filters");
-                           success &= assetFileBrowser.RestoreDirFromZip(
-                                 getActivity().getApplicationInfo().sourceDir,
-                                 "assets/video_filters",
-                                 getActivity().getApplicationInfo().dataDir + "/video_filters");
-                           success &= assetFileBrowser.RestoreDirFromZip(
-                                 getActivity().getApplicationInfo().sourceDir,
-                                 "assets/shaders_glsl",
-                                 getActivity().getApplicationInfo().dataDir + "/shaders_glsl");
-                           success &= assetFileBrowser.RestoreDirFromZip(
-                                 getActivity().getApplicationInfo().sourceDir,
-                                 "assets/overlays",
-                                 getActivity().getApplicationInfo().dataDir + "/overlays");
-                           success &= NativeInterface.extractArchiveTo(
-                                 getActivity().getApplicationInfo().sourceDir,
-                                 "assets/info",
-                                 getActivity().getApplicationInfo().dataDir + "/info");
-                           if (success) {
-                              Toast.makeText(getContext(), "Assets restored.", Toast.LENGTH_SHORT).show();
+                           boolean success = true;
+
+                           for (String folder : folders)
+                           {
+                              success &= assetFileBrowser.RestoreDirFromZip(
+                                    getActivity().getApplicationInfo().sourceDir,
+                                    "assets" + folder,
+                                    getActivity().getApplicationInfo().dataDir + folder);
                            }
+
+                           if (success)
+                              Toast.makeText(getContext(), "Assets restored.", Toast.LENGTH_SHORT).show();
+                           else
+                              Toast.makeText(getContext(), "Failed to restore assets.", Toast.LENGTH_SHORT).show();
                         }
                      })
                .setNegativeButton("No", new DialogInterface.OnClickListener()
@@ -117,7 +106,33 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
    @Override
    public void onDirectoryFragmentClosed(String path)
    {
-      DirectoryFragment.ExtractZipWithPrompt(getContext(), path,
-            getContext().getApplicationInfo().dataDir + "/themes_rgui", "themes");
+      String folders[] = {"overlays", "info", "shaders_glsl", "themes_rgui"};
+      String dataDir = getContext().getApplicationInfo().dataDir;
+
+      AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+      builder.setMessage("Confirm: Extract assets from " + path.substring(path.lastIndexOf('/')+1) + "?")
+            .setCancelable(true)
+            .setPositiveButton("Yes",
+                  new DialogInterface.OnClickListener()
+                  {
+                     public void onClick(DialogInterface dialog, int id)
+                     {
+                        boolean success = false;
+
+                        for (String folder : folders)
+                           success |= NativeInterface.extractArchiveTo(path, folder, dataDir + '/' + folder);
+
+                        if (success)
+                           Toast.makeText(getContext(), "Assets installed.", Toast.LENGTH_SHORT).show();
+                        else
+                           Toast.makeText(getContext(), "Failed to extract assets.", Toast.LENGTH_SHORT).show();
+                     }
+                  })
+            .setNegativeButton("No", new DialogInterface.OnClickListener()
+            {
+               public void onClick(DialogInterface dialog, int id) {}
+            });
+      Dialog dialog = builder.create();
+      dialog.show();
    }
 }

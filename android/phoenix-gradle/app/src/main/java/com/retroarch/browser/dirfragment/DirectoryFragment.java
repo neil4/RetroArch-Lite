@@ -1,9 +1,5 @@
 package com.retroarch.browser.dirfragment;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.os.Bundle;
@@ -510,40 +506,7 @@ public class DirectoryFragment extends DialogFragment
       // Update
       adapter.notifyDataSetChanged();
    }
-    
-   public static void ExtractZipWithPrompt(Context context,
-                                           final String zipPath,
-                                           final String destDir,
-                                           final String quickDesc)
-   {
-      final Toast successToast = Toast.makeText(context, "Zip contents extracted.", Toast.LENGTH_SHORT);
 
-      AlertDialog.Builder builder = new AlertDialog.Builder(context);
-      builder.setMessage("Confirm: Extract " + quickDesc + " from " + zipPath.substring(zipPath.lastIndexOf('/')+1) + "?")
-         .setCancelable(true)
-         .setPositiveButton("Yes",
-               new DialogInterface.OnClickListener()
-               {
-                  public void onClick(DialogInterface dialog, int id)
-                  {
-                     try
-                     {
-                        boolean success = NativeInterface.extractArchiveTo(zipPath, null, destDir);
-                        if (!success)
-                           throw new IOException("Failed to extract files ...");
-                        else
-                           successToast.show();
-                     }
-                     catch (IOException ignored) {}
-                  }
-               })
-         .setNegativeButton("No", new DialogInterface.OnClickListener()
-         {
-            public void onClick(DialogInterface dialog, int id) {}
-         });
-      Dialog dialog = builder.create();
-      dialog.show();
-   }
    
    public boolean RestoreDirFromZip(final String zipPath,
                                     final String zipSubDir,
@@ -557,10 +520,7 @@ public class DirectoryFragment extends DialogFragment
          {
             String[] names = dir.list();
             for (String name : names)
-            {
-               File f = new File(dir, name);
-               DirectoryFragment.DeleteDirTree(f);
-            }
+               DirectoryFragment.DeleteDirTree(new File(dir, name));
          }
 
          success = NativeInterface.extractArchiveTo(zipPath, zipSubDir, destDir);
@@ -575,14 +535,11 @@ public class DirectoryFragment extends DialogFragment
    
    public static boolean DeleteDirTree(File topDir)
    {
-      if ( topDir.isDirectory() )
+      if (topDir.isDirectory())
       {
          String[] names = topDir.list();
          for (String name : names)
-         {
-            File f = new File(topDir, name);
-            DeleteDirTree(f);
-         }
+            DeleteDirTree(new File(topDir, name));
       }
       
       return topDir.delete();

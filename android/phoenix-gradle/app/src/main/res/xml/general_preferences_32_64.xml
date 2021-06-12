@@ -36,14 +36,14 @@
             android:key="mame_titles"
             android:summary="@string/mame_titles_desc"
             android:title="@string/mame_titles" />
-        <Preference
-            android:key="install_themes_pref"
-            android:title="@string/install_themes"
-            android:summary="@string/install_themes_desc"/>
     </PreferenceCategory>
 
-    <!-- All Assets -->
+    <!-- Assets -->
     <PreferenceCategory android:title="@string/asset_management" >
+        <Preference
+            android:key="install_assets_pref"
+            android:title="@string/install_assets"
+            android:summary="@string/install_assets_desc"/>
         <Preference
             android:key="restore_assets_pref"
             android:summary="@string/restore_assets_desc"

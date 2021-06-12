@@ -9,15 +9,13 @@ import android.view.Display;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.retroarch.browser.dirfragment.DirectoryFragment;
-import com.retroarch.browser.dirfragment.DirectoryFragment.OnDirectoryFragmentClosedListener;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
 import com.retroarchlite.R;
 
 /**
  * A {@link PreferenceListFragment} responsible for handling the video preferences.
  */
-public final class AudioVideoPreferenceFragment extends PreferenceListFragment implements OnPreferenceClickListener, OnDirectoryFragmentClosedListener
+public final class AudioVideoPreferenceFragment extends PreferenceListFragment implements OnPreferenceClickListener
 {
    @Override
    public void onCreate(Bundle savedInstanceState)
@@ -29,7 +27,6 @@ public final class AudioVideoPreferenceFragment extends PreferenceListFragment i
 
       // Set preference click listeners
       findPreference("set_os_reported_ref_rate_pref").setOnPreferenceClickListener(this);
-      findPreference("install_shaders_pref").setOnPreferenceClickListener(this);
    }
 
    @Override
@@ -51,23 +48,7 @@ public final class AudioVideoPreferenceFragment extends PreferenceListFragment i
 
          Toast.makeText(getActivity(), String.format(getString(R.string.using_os_reported_refresh_rate), rate), Toast.LENGTH_LONG).show();
       }
-      else if (prefKey.equals("install_shaders_pref"))
-      {
-         final DirectoryFragment shaderFileBrowser
-                 = DirectoryFragment.newInstance("");
-         shaderFileBrowser.addAllowedExts("zip");
-         shaderFileBrowser.setIsDirectoryTarget(false);
-         shaderFileBrowser.setOnDirectoryFragmentClosedListener(this);
-         shaderFileBrowser.show(getFragmentManager(), "shaderFileBrowser");
-      }
 
       return true;
-   }
-
-   @Override
-   public void onDirectoryFragmentClosed(String path)
-   {
-      DirectoryFragment.ExtractZipWithPrompt(getContext(), path,
-            getContext().getApplicationInfo().dataDir + "/shaders_glsl", "shaders");
    }
 }

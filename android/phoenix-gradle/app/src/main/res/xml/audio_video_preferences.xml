@@ -35,12 +35,5 @@
          android:summary="@string/forced_refresh_rate_desc"
          android:title="@string/forced_refresh_rate" />
    </PreferenceCategory>
-   
-    <PreferenceCategory android:title="@string/shader_assets" >
-         <Preference
-            android:key="install_shaders_pref"
-            android:title="@string/install_shaders"
-            android:summary="@string/install_shaders_desc"/>
-    </PreferenceCategory>
     
 </PreferenceScreen>

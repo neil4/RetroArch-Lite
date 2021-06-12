@@ -88,10 +88,6 @@
     <string name="theme_assets">Themes</string>
     <string name="enable_overlay">Enable Touchscreen Overlays</string>
     <string name="enable_overlay_desc">Note: Scoped overlay settings override this.</string>
-    <string name="install_overlays">Install Overlays</string>
-    <string name="install_overlays_desc">Add/Update input overlays from a zip file.\nZipfile contents are installed as-is, keeping relative paths.</string>
-    <string name="install_themes">Install RGUI Themes</string>
-    <string name="install_themes_desc">Add/Update RGUI themes from a zip file.\nZipfile contents are installed as-is, keeping relative paths.</string>
     <string name="config_autodetect">Configuration Autodetection</string>
     <string name="config_autodetect_desc">This will attempt to preconfigure various gamepads and/or IME apps that you connect.</string>
 
@@ -147,8 +143,10 @@
     <string name="append_abi_to_corenames">Show 32-bit/64-bit</string>
     <string name="append_abi_to_corenames_desc">Distinguish between 32-bit and 64-bit cores.</string>
     <string name="asset_management">Asset Management</string>
+    <string name="install_assets">Install Assets</string>
+    <string name="install_assets_desc">Install/Update assets from a zip file.\nContents are only extracted from these folders:  overlays, info, shaders_glsl, themes_rgui</string>
     <string name="restore_assets">Restore Assets</string>
-    <string name="restore_assets_desc">Reinstalls original assets, and removes user-installed assets.\nThis includes themes, shaders, and overlays.</string>
+    <string name="restore_assets_desc">Reinstalls original assets and removes user-installed overlays, core info, shaders, and themes.</string>
 
     <!-- Video Settings -->
     <string name="video_options">Video</string>
@@ -158,9 +156,6 @@
     <string name="calibrate_refresh_rate_desc">Attempts to find the true refresh rate of monitor. Updates value in \'Force refresh rate (Hz)\' option. To help ensure accuracy, make sure no intense background services are running, and avoid triggering screensaver.</string>
     <string name="set_os_reported_refresh_rate">Set OS-reported Refresh Rate</string>
     <string name="set_os_reported_refresh_rate_desc">Sets refresh rate equal to OS-reported value. This might not be accurate for your device.</string>
-    <string name="shader_assets">Shaders</string>
-    <string name="install_shaders">Install GLSL Shaders</string>
-    <string name="install_shaders_desc">Add/Update GLSL shaders from a zip file.\nZipfile contents are installed as-is, keeping relative paths.</string>
     
     <!-- Miscellaneous -->
     <string name="ok">OK</string>
