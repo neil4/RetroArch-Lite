@@ -41,7 +41,7 @@ import static com.retroarch.browser.coremanager.CoreManagerActivity.getTitlePair
  * {@link ListFragment} that is responsible for showing local backup
  * cores that can be installed.
  */
-public final class LocalCoresFragment extends ListFragment
+public final class BackupCoresFragment extends ListFragment
 {
    /**
     * Dictates what actions will occur when a core install completes.
@@ -53,13 +53,13 @@ public final class LocalCoresFragment extends ListFragment
       void onCoreCopied();
    }
 
-   private String localCoresDir;
-   public static String defaultLocalCoresDir = UserPreferences.defaultBaseDir + "/cores32";
+   private String backupCoresDir;
+   public static String defaultBackupCoresDir = UserPreferences.defaultBaseDir + "/cores32";
 
    private OnCoreCopiedListener coreCopiedListener = null;
 
    protected DownloadableCoresAdapter adapter = null;
-   private static SharedPreferences sharedSettings = null;
+   private SharedPreferences sharedPrefs = null;
    
    private static boolean zipHasInfoFile = false;
    
@@ -68,10 +68,10 @@ public final class LocalCoresFragment extends ListFragment
    {
       super.onCreateView(inflater, container, savedInstanceState);
       if (BuildConfig.APPLICATION_ID.contains("64"))
-         defaultLocalCoresDir = defaultLocalCoresDir.replace("cores32", "cores64");
-      sharedSettings = UserPreferences.getPreferences(getActivity());
-      localCoresDir = sharedSettings.getBoolean("backup_cores_directory_enable", false) ?
-            sharedSettings.getString("backup_cores_directory", defaultLocalCoresDir) : defaultLocalCoresDir;
+         defaultBackupCoresDir = defaultBackupCoresDir.replace("cores32", "cores64");
+      sharedPrefs = UserPreferences.getPreferences(getActivity());
+      backupCoresDir = sharedPrefs.getBoolean("backup_cores_directory_enable", false) ?
+            sharedPrefs.getString("backup_cores_directory", defaultBackupCoresDir) : defaultBackupCoresDir;
 
       ListView coreList = (ListView) inflater.inflate(R.layout.coremanager_listview, container, false);
       registerForContextMenu(coreList);
@@ -88,10 +88,10 @@ public final class LocalCoresFragment extends ListFragment
 
    public void updateList()
    {
-      if (adapter != null && sharedSettings != null)
+      if (adapter != null && sharedPrefs != null)
       {
-         localCoresDir = sharedSettings.getBoolean("backup_cores_directory_enable", false) ?
-               sharedSettings.getString("backup_cores_directory", defaultLocalCoresDir) : defaultLocalCoresDir;
+         backupCoresDir = sharedPrefs.getBoolean("backup_cores_directory_enable", false) ?
+               sharedPrefs.getString("backup_cores_directory", defaultBackupCoresDir) : defaultBackupCoresDir;
          PopulateCoresList();
          adapter.notifyDataSetChanged();
       }
@@ -142,7 +142,7 @@ public final class LocalCoresFragment extends ListFragment
    {
       final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
 
-      if (item.getItemId() == R.id.remove_localcore)
+      if (item.getItemId() == R.id.remove_backupcore)
       {
          return RemoveCore(info.position);
       }
@@ -153,7 +153,7 @@ public final class LocalCoresFragment extends ListFragment
    {
       try
       {
-         final File[] files = new File(localCoresDir).listFiles();
+         final File[] files = new File(backupCoresDir).listFiles();
          final ArrayList<DownloadableCore> cores = new ArrayList<>();
 
          for (File file : files)
@@ -168,7 +168,7 @@ public final class LocalCoresFragment extends ListFragment
             // Allow any name ending in .so or .zip
             String searchStr = (coreName.contains("_android.") ? "_android" : "")
                   + (isZip ? (coreName.contains(".so.") ? ".so.zip" : ".zip") : ".so");
-            String infoPath = localCoresDir + "/" + coreName.replace(searchStr, ".info");
+            String infoPath = backupCoresDir + "/" + coreName.replace(searchStr, ".info");
 
             if (!new File(infoPath).exists())
                infoPath = getContext().getApplicationInfo().dataDir
@@ -234,7 +234,7 @@ public final class LocalCoresFragment extends ListFragment
          try
          {
             // Set up the streams
-            File inFile = new File(localCoresDir, params[0]);
+            File inFile = new File(backupCoresDir, params[0]);
             File outFile = new File(ctx.getApplicationInfo().dataDir + "/cores", params[0]);
             final long fileLen = inFile.length();
             is = new FileInputStream(inFile);
@@ -263,7 +263,7 @@ public final class LocalCoresFragment extends ListFragment
                String infoName = params[0].replace("_android.so.zip", ".info")
                                           .replace("_android.so", ".info")
                                           .replace("_android.zip", ".info");
-               inFile = new File(localCoresDir, infoName);
+               inFile = new File(backupCoresDir, infoName);
                if (infoName.endsWith(".info") && inFile.exists())
                {
                   outFile = new File(ctx.getApplicationInfo().dataDir + "/info", infoName);

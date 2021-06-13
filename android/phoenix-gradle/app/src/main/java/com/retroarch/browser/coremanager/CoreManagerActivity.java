@@ -17,7 +17,7 @@ import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.coremanager.fragments.DownloadableCoresFragment;
 import com.retroarch.browser.coremanager.fragments.InstalledCoresFragment;
 import com.retroarch.browser.coremanager.fragments.InstalledCoresManagerFragment;
-import com.retroarch.browser.coremanager.fragments.LocalCoresFragment;
+import com.retroarch.browser.coremanager.fragments.BackupCoresFragment;
 import com.retroarch.browser.mainmenu.MainMenuActivity;
 import com.retroarchlite.R;
 
@@ -32,12 +32,12 @@ import java.io.InputStreamReader;
  * Activity which provides the base for viewing installed cores,
  * as well as the ability to download other cores.
  */
-public final class CoreManagerActivity extends AppCompatActivity implements DownloadableCoresFragment.OnCoreDownloadedListener, LocalCoresFragment.OnCoreCopiedListener, TabListener
+public final class CoreManagerActivity extends AppCompatActivity implements DownloadableCoresFragment.OnCoreDownloadedListener, BackupCoresFragment.OnCoreCopiedListener, TabListener
 {
    // ViewPager for the fragments
    private ViewPager viewPager;
    private InstalledCoresManagerFragment installedCoresFragment = null;
-   private LocalCoresFragment localCoresFragment = null;
+   private BackupCoresFragment backupCoresFragment = null;
    public static DownloadableCoresFragment downloadableCoresFragment = null;
 
    @Override
@@ -73,7 +73,7 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
       });
 
       installedCoresFragment = new InstalledCoresManagerFragment();
-      localCoresFragment = new LocalCoresFragment();
+      backupCoresFragment = new BackupCoresFragment();
       downloadableCoresFragment = new DownloadableCoresFragment();
 
       final String dataDir = getApplicationInfo().dataDir;
@@ -105,7 +105,7 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
       // Switch to the fragment indicated by the tab's position.
       viewPager.setCurrentItem(tab.getPosition());
       if (tab.getPosition() == 1)
-         localCoresFragment.updateList();
+         backupCoresFragment.updateList();
    }
 
    @Override
@@ -226,7 +226,7 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
                return installedCoresFragment;
 
             case 1:
-               return localCoresFragment;
+               return backupCoresFragment;
                
             case 2:
                return downloadableCoresFragment;

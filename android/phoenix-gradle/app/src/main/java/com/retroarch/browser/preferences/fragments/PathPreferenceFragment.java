@@ -31,7 +31,7 @@ public final class PathPreferenceFragment extends PreferenceListFragment impleme
       findPreference("saveStateDirPref").setOnPreferenceClickListener(this);
       findPreference("systemDirPref").setOnPreferenceClickListener(this);
       findPreference("configDirPref").setOnPreferenceClickListener(this);
-      findPreference("localCoresDirPref").setOnPreferenceClickListener(this); 
+      findPreference("backupCoresDirPref").setOnPreferenceClickListener(this);
    }
    
    @Override
@@ -80,7 +80,7 @@ public final class PathPreferenceFragment extends PreferenceListFragment impleme
          configDirBrowser.show(getFragmentManager(), "configDirBrowser");
       }
       // Local Installable Cores directory
-      else if (prefKey.equals("localCoresDirPref"))
+      else if (prefKey.equals("backupCoresDirPref"))
       {
          final DirectoryFragment coreDirBrowser = DirectoryFragment.newInstance(R.string.backup_cores_directory_select);
          coreDirBrowser.setPathSettingKey("backup_cores_directory");

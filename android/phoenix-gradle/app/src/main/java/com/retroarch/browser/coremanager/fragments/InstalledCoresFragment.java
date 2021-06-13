@@ -208,8 +208,7 @@ public final class InstalledCoresFragment extends ListFragment
    }
    
    /**
-    * Removes all retroarch.cfg entries specific to this core.
-    * Also deletes core's config folder, which holds core-provided options, ROM specific configs, and input remapping files.
+    * Removes all known data specific to this core.
     * @param position list position of current core 
     * @return true
     */
@@ -381,10 +380,10 @@ public final class InstalledCoresFragment extends ListFragment
       final AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
       
       SharedPreferences settings = UserPreferences.getPreferences(getActivity());
-      String localCoresDir = settings.getBoolean("backup_cores_directory_enable", false) ?
-              settings.getString("backup_cores_directory", LocalCoresFragment.defaultLocalCoresDir)
-              : LocalCoresFragment.defaultLocalCoresDir;
-      final String zipPath = localCoresDir + "/" + item.getUnderlyingFile().getName()
+      String backupCoresDir = settings.getBoolean("backup_cores_directory_enable", false) ?
+              settings.getString("backup_cores_directory", BackupCoresFragment.defaultBackupCoresDir)
+              : BackupCoresFragment.defaultBackupCoresDir;
+      final String zipPath = backupCoresDir + "/" + item.getUnderlyingFile().getName()
             .replace(".so",".zip");
       final File destFile = new File(zipPath);
       

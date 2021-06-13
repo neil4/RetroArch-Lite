@@ -68,7 +68,7 @@
             android:key="backup_cores_directory_enable"
             android:defaultValue="false"/>
         <Preference
-            android:key="localCoresDirPref"
+            android:key="backupCoresDirPref"
             android:title="@string/backup_cores_directory"
             android:summary="@string/backup_cores32_directory_desc"
             android:dependency="backup_cores_directory_enable"/>
