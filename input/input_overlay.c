@@ -1331,7 +1331,29 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    }
 }
 
-static INLINE void input_overlay_connect_mouse(input_overlay_t *ol)
+static void input_overlay_update_mouse_scale()
+{
+   struct retro_system_av_info* av_info = video_viewport_get_system_av_info();
+   float content_aspect, adj_x, adj_y;
+
+   if (av_info)
+   {
+      const struct retro_game_geometry *geom =
+         (const struct retro_game_geometry*)&av_info->geometry;
+
+      content_aspect = (float)geom->base_width / geom->base_height;
+
+      adj_x = disp_aspect > content_aspect ?
+         (disp_aspect / content_aspect) : 1.0f;
+      adj_y = content_aspect > disp_aspect ?
+         (content_aspect / disp_aspect) : 1.0f;
+
+      ol_mouse.scale_x = (adj_x * geom->base_width) / (float)0x7fff;
+      ol_mouse.scale_y = (adj_y * geom->base_height) / (float)0x7fff;
+   }
+}
+
+static void input_overlay_connect_mouse(input_overlay_t *ol)
 {
    bool old_mouse_active = overlay_mouse_active;
    overlay_mouse_active = ol->active->mouse_overlay;
@@ -1340,6 +1362,7 @@ static INLINE void input_overlay_connect_mouse(input_overlay_t *ol)
    {
       ol_mouse.prev_x = 0;
       ol_mouse.prev_y = 0;
+      input_overlay_update_mouse_scale();
       rarch_main_msg_queue_push("Mouse active", 2, 60, true);
    }
 }
@@ -1945,28 +1968,6 @@ static INLINE void input_overlay_poll_mouse()
       ignore_new_buttons = true;
 }
 
-static INLINE void input_overlay_update_mouse_scale()
-{
-   struct retro_system_av_info* av_info = video_viewport_get_system_av_info();
-   float content_aspect, adj_x, adj_y;
-
-   if (av_info)
-   {
-      const struct retro_game_geometry *geom =
-         (const struct retro_game_geometry*)&av_info->geometry;
-
-      content_aspect = (float)geom->base_width / geom->base_height;
-
-      adj_x = disp_aspect > content_aspect ?
-         (disp_aspect / content_aspect) : 1.0f;
-      adj_y = content_aspect > disp_aspect ?
-         (content_aspect / disp_aspect) : 1.0f;
-
-      ol_mouse.scale_x = (adj_x * geom->base_width) / (float)0x7fff;
-      ol_mouse.scale_y = (adj_y * geom->base_height) / (float)0x7fff;
-   }
-}
-
 /**
  * input_overlay_update_desc_geom:
  * @ol                    : overlay handle.
@@ -2369,8 +2370,6 @@ int16_t input_overlay_state(unsigned port, unsigned device_base,
 
    if (device_base == RETRO_DEVICE_LIGHTGUN && overlay_lightgun_active)
       res = overlay_lightgun_state(id);
-   else if (device_base == RETRO_DEVICE_MOUSE && overlay_mouse_active)
-      res = overlay_mouse_state(id);
    else if (port == 0)
    {
       switch (device_base)
@@ -2385,6 +2384,10 @@ int16_t input_overlay_state(unsigned port, unsigned device_base,
                if (OVERLAY_GET_KEY(&driver->overlay_state, id))
                   res = 1;
             }
+            break;
+         case RETRO_DEVICE_MOUSE:
+            if (overlay_mouse_active)
+               res = overlay_mouse_state(id);
             break;
          case RETRO_DEVICE_ANALOG:
             if (idx < 2 && id < 2)  /* axes only */
