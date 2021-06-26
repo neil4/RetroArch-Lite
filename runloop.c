@@ -535,7 +535,10 @@ static INLINE int time_to_exit(event_cmd_state_t *cmd)
 
    if (shutdown_pressed || cmd->quit_key_pressed || frame_count_end
          || !video_alive)
+   {
+      global->system.shutdown = true;
       return 1;
+   }
    return 0;
 }
 
