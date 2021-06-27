@@ -118,6 +118,7 @@ bool input_remapping_load_file(const char *path)
 
    config_file_free(conf);
 
+   input_joykbd_update_enabled();
    input_remapping_touched = true;
    return true;
 }

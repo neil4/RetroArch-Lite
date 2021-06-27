@@ -773,6 +773,7 @@ int setting_action_start_libretro_device_type(void *data)
    if (port < global->system.num_ports)
       pretro_set_controller_port_device(port, device);
 
+   input_joykbd_update_enabled();
    return 0;
 }
 
@@ -889,6 +890,7 @@ int setting_action_left_libretro_device_type(
    if (port < global->system.num_ports)
       pretro_set_controller_port_device(port, current_device);
 
+   input_joykbd_update_enabled();
    return 0;
 }
 
@@ -948,6 +950,7 @@ int setting_action_right_libretro_device_type(
    if (port < global->system.num_ports)
       pretro_set_controller_port_device(port, current_device);
 
+   input_joykbd_update_enabled();
    return 0;
 }
 
