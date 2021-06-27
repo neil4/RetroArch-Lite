@@ -57,12 +57,6 @@ static int action_select_directory(const char *path, const char *label, unsigned
    return 0;
 }
 
-static int action_select_core_setting(const char *path, const char *label, unsigned type,
-      size_t idx)
-{
-   return core_setting_right(type, label, true);
-}
-
 static int action_select_cheat(const char *path, const char *label, unsigned type,
       size_t idx)
 {
@@ -84,8 +78,6 @@ static int menu_cbs_init_bind_select_compare_type(
    else if (type >= MENU_SETTINGS_INPUT_DESC_BEGIN
          && type <= MENU_SETTINGS_INPUT_DESC_END)
       cbs->action_select = action_select_input_desc;
-   else if ((type >= MENU_SETTINGS_CORE_OPTION_START))
-      cbs->action_select = action_select_core_setting;
    else
    {
       switch (type)

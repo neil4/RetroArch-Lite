@@ -388,7 +388,7 @@ static int action_right_video_resolution(unsigned type, const char *label,
    return 0;
 }
 
-int core_setting_right(unsigned type, const char *label,
+static int core_setting_right(unsigned type, const char *label,
       bool wraparound)
 {
    global_t *global = global_get_ptr();
@@ -396,6 +396,19 @@ int core_setting_right(unsigned type, const char *label,
    (void)label;
 
    core_option_next(global->system.core_options, type);
+
+   return 0;
+}
+
+static int core_setting_r(unsigned type, const char *label)
+{
+   global_t *global = global_get_ptr();
+   int i;
+
+   (void)label;
+
+   for (i = 0; i < 5; i++)
+      core_option_next(global->system.core_options, type);
 
    return 0;
 }
@@ -525,7 +538,10 @@ static int menu_cbs_init_bind_right_compare_type(menu_file_list_cbs_t *cbs,
    else if (type == MENU_SETTINGS_VIDEO_RESOLUTION)
       cbs->action_right = action_right_video_resolution;
    else if ((type >= MENU_SETTINGS_CORE_OPTION_START))
+   {
       cbs->action_right = core_setting_right;
+      cbs->action_r = core_setting_r;
+   }
    else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
          && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
       cbs->action_right = action_right_libretro_device_type;

@@ -27,9 +27,6 @@ extern "C" {
 
 
 /* Function callbacks */
-int core_setting_right(unsigned type, const char *label,
-      bool wraparound);
-
 int action_right_input_desc(unsigned type, const char *label,
       bool wraparound);
 
