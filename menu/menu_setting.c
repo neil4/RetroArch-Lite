@@ -2651,6 +2651,10 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                snprintf(s, len,
                      " -- Convoluted Cosine implementation.");
                break;
+            case MENU_LABEL_AUDIO_RESAMPLER_DRIVER_NEAREST:
+               snprintf(s, len,
+                     " -- Nearest Neighbor implementation.");
+               break;
          }
          break;
       case MENU_LABEL_VIDEO_SHADER_PRESET:

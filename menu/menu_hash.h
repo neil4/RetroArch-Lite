@@ -173,6 +173,7 @@ extern "C" {
 #define MENU_LABEL_AUDIO_RESAMPLER_DRIVER                                      0xedcba9ecU
 #define MENU_LABEL_AUDIO_RESAMPLER_DRIVER_SINC                                 0x7c9dec52U
 #define MENU_LABEL_AUDIO_RESAMPLER_DRIVER_CC                                   0x0059732bU
+#define MENU_LABEL_AUDIO_RESAMPLER_DRIVER_NEAREST                              0x09fa48d7U
 
 #define MENU_LABEL_SAVEFILE_DIRECTORY                                          0x92773488U
 #define MENU_LABEL_SAVESTATE_DIRECTORY                                         0x90551289U
