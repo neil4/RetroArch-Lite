@@ -1485,6 +1485,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          need_push = true;
          break;
       case DISPLAYLIST_DEFAULT:
+         need_sort = true; /* fall-through */
       case DISPLAYLIST_CORES:
       case DISPLAYLIST_CORES_DETECTED:
       case DISPLAYLIST_SHADER_PASS:

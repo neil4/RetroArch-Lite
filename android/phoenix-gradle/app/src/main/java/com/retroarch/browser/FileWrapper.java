@@ -124,7 +124,7 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
       {
          if (isEnabled() == other.isEnabled())
          {
-            return (typeIndex == other.typeIndex) ? file.compareTo(other.file)
+            return (typeIndex == other.typeIndex) ? this.getText().compareTo(other.getText())
                   : ((typeIndex < other.typeIndex) ? -1 : 1);
          }
          else

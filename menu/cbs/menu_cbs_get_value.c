@@ -593,8 +593,9 @@ static void menu_action_setting_disp_set_label_menu_file_plain(
       const char *path,
       char *s2, size_t len2)
 {
+   char* alt = list->list[i].alt;
    menu_action_setting_generic_disp_set_label(w, s, len,
-         path, "(FILE)", s2, len2);
+         (alt? alt : path), "(FILE)", s2, len2);
 }
 
 static void menu_action_setting_disp_set_label_menu_file_image(
@@ -795,20 +796,6 @@ static void menu_action_setting_disp_set_label_menu_core_info(
          "Update Core Info Files", "", s2, len2);
 }
 
-static void menu_action_setting_disp_set_alt_label_menu_file_plain(
-      file_list_t* list,
-      unsigned *w, unsigned type, unsigned i,
-      const char *label,
-      char *s, size_t len,
-      const char *entry_label,
-      const char *path,
-      char *s2, size_t len2)
-{
-   char* alt = list->list[i].alt;
-   menu_action_setting_generic_disp_set_label(w, s, len,
-         (alt? alt : path), "(FILE)", s2, len2);
-}
-
 static void menu_action_setting_disp_set_label_menu_file_cheat(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
@@ -989,8 +976,6 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
 static int menu_cbs_init_bind_get_string_representation_compare_type(
       menu_file_list_cbs_t *cbs, unsigned type)
 {
-   settings_t *settings;
-   
    if (type >= MENU_SETTINGS_INPUT_DESC_BEGIN
          && type <= MENU_SETTINGS_INPUT_DESC_END)
       cbs->action_get_value =
@@ -1028,13 +1013,8 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
                menu_action_setting_disp_set_label_menu_file_core;
             break;
          case MENU_FILE_PLAIN:
-            settings = config_get_ptr();
-            if (settings->menu.mame_titles)
-               cbs->action_get_value =
-                  menu_action_setting_disp_set_alt_label_menu_file_plain;
-            else
-               cbs->action_get_value =
-                  menu_action_setting_disp_set_label_menu_file_plain;
+            cbs->action_get_value =
+               menu_action_setting_disp_set_label_menu_file_plain;
             break;
          case MENU_FILE_IMAGE:
             cbs->action_get_value =
@@ -1049,13 +1029,8 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
                menu_action_setting_disp_set_label_menu_file_directory;
             break;
          case MENU_FILE_CARCHIVE:
-            settings = config_get_ptr();
-            if (settings->menu.mame_titles)
-               cbs->action_get_value =
-                  menu_action_setting_disp_set_alt_label_menu_file_plain;
-            else
-               cbs->action_get_value =
-                  menu_action_setting_disp_set_label_menu_file_carchive;
+            cbs->action_get_value =
+               menu_action_setting_disp_set_label_menu_file_carchive;
             break;
          case MENU_FILE_OVERLAY:
             cbs->action_get_value =
