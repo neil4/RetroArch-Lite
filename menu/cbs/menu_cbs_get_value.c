@@ -29,7 +29,7 @@ extern unsigned input_remapping_scope;
 extern void setting_get_string_representation_uint_libretro_device(void *data,
       char *s, size_t len);
 
-const char axis_labels[4][128] = {
+const char axis_labels[4][16] = {
    RETRO_LBL_ANALOG_LEFT_X,
    RETRO_LBL_ANALOG_LEFT_Y,
    RETRO_LBL_ANALOG_RIGHT_X,
@@ -346,7 +346,9 @@ static void menu_action_setting_disp_set_label_input_desc(
    unsigned remap_id = settings->input.remap_ids
       [inp_desc_user][inp_desc_button_index_offset];
 
-   if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
+   if (remap_id > RARCH_FIRST_CUSTOM_BIND + 3)
+      snprintf(s, len, "---");
+   else if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
       snprintf(s, len, "%s",
             settings->input.binds[inp_desc_user][remap_id].desc);
    else
@@ -377,7 +379,7 @@ static void menu_action_setting_disp_set_label_joykbd_input_desc(
       snprintf(s, len, "%s",
             input_config_bind_map[joy_id].desc);
    else
-      snprintf(s, len, "--");
+      snprintf(s, len, "---");
 
    *w = 19;
    strlcpy(s2, path, len2);

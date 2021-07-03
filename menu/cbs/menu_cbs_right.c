@@ -99,10 +99,13 @@ int action_right_input_desc(unsigned type, const char *label,
    unsigned inp_desc_button_index_offset = inp_desc_index_offset - (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
    settings_t *settings = config_get_ptr();
 
+   /* Treat NO_BTN as leftmost value */
    if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
    {
       if (settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] < RARCH_FIRST_CUSTOM_BIND - 1)
          settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset]++;
+      else if (settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] > RARCH_FIRST_CUSTOM_BIND)
+         settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = 0;
    }
    else
    {

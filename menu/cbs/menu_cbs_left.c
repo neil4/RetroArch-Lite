@@ -104,8 +104,16 @@ static int action_left_input_desc(unsigned type, const char *label,
    unsigned inp_desc_button_index_offset = inp_desc_index_offset - (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
    settings_t *settings = config_get_ptr();
 
-   if (settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] > 0)
-      settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset]--;
+   settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset]--;
+
+   /* Treat NO_BTN as leftmost value */
+   if (settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] > RARCH_FIRST_CUSTOM_BIND + 3)
+   {
+      if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
+         settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = NO_BTN;
+      else
+         settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = 0;
+   }
 
    input_remapping_touched = true;
    return 0;
@@ -118,7 +126,11 @@ static int action_l_input_desc(unsigned type, const char *label)
    unsigned inp_desc_button_index_offset = inp_desc_index_offset - (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
    settings_t *settings = config_get_ptr();
 
-   settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = 0;
+   /* Treat NO_BTN as leftmost value */
+   if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
+      settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = NO_BTN;
+   else
+      settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = 0;
 
    input_remapping_touched = true;
    return 0;

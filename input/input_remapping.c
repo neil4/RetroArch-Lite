@@ -66,6 +66,7 @@ bool input_remapping_load_file(const char *path)
    unsigned i, j;
    config_file_t *conf  = config_file_new(path);
    settings_t *settings = config_get_ptr();
+   char buf[32];
 
    if (!conf)
       return false;
@@ -75,9 +76,8 @@ bool input_remapping_load_file(const char *path)
 
    for (i = 0; i < MAX_USERS; i++)
    {
-      char buf[64]                                       = {0};
-      char key_ident[RARCH_FIRST_CUSTOM_BIND + 4][128]   = {{0}};
-      char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][128] = { "b", "y", "select", "start",
+      char key_ident[RARCH_FIRST_CUSTOM_BIND + 4][32]  = {{0}};
+      char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = { "b", "y", "select", "start",
          "up", "down", "left", "right", "a", "x", "l", "r", "l2", "r2", "l3", "r3", "l_x", "l_y", "r_x", "r_y" };
 
       snprintf(buf, sizeof(buf), "input_player%u", i + 1);
@@ -87,7 +87,7 @@ bool input_remapping_load_file(const char *path)
          int key_remap = -1;
 
          snprintf(key_ident[j], sizeof(key_ident[j]), "%s_%s", buf, key_strings[j]);
-         if (config_get_int(conf, key_ident[j], &key_remap) && key_remap < RARCH_FIRST_CUSTOM_BIND)
+         if (config_get_int(conf, key_ident[j], &key_remap))
             settings->input.remap_ids[i][j] = key_remap;
       }
 
@@ -103,8 +103,7 @@ bool input_remapping_load_file(const char *path)
 
    for (j = 0; j < JOYKBD_LIST_LEN; j++)
    {
-      char buf[64]      = {0};
-      char rk_buf[64]   = {0};
+      char rk_buf[32]   = {0};
       enum retro_key rk = joykbd_bind_list[j].rk;
       int joy_id        = NO_BTN;
 
@@ -178,9 +177,9 @@ static bool input_remapping_save_file(const char *path)
 {
    bool ret;
    unsigned i, j;
-   char buf[PATH_MAX_LENGTH] = {0};
-   config_file_t *conf       = NULL;
-   settings_t    *settings   = config_get_ptr();
+   char buf[32];
+   config_file_t *conf     = NULL;
+   settings_t    *settings = config_get_ptr();
 
    conf = config_file_new(path);
 
@@ -193,8 +192,8 @@ static bool input_remapping_save_file(const char *path)
 
    for (i = 0; i < settings->input.max_users; i++)
    {
-      char key_ident[RARCH_FIRST_CUSTOM_BIND + 4][128]   = {{0}};
-      char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][128] = { "b", "y", "select", "start",
+      char key_ident[RARCH_FIRST_CUSTOM_BIND + 4][32]  = {{0}};
+      char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = { "b", "y", "select", "start",
          "up", "down", "left", "right", "a", "x", "l", "r", "l2", "r2", "l3", "r3", "l_x", "l_y", "r_x", "r_y" };
 
       snprintf(buf, sizeof(buf), "input_player%u", i + 1);
@@ -208,7 +207,7 @@ static bool input_remapping_save_file(const char *path)
 
    for (j = 0; j < JOYKBD_LIST_LEN; j++)
    {
-      char rk_buf[64]   = {0};
+      char rk_buf[32]   = {0};
       enum retro_key rk = joykbd_bind_list[j].rk;
       uint16_t btn      = joykbd_bind_list[j].btn;
 
