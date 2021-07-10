@@ -7444,6 +7444,7 @@ static bool setting_append_list_ui_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
+   driver_t   *driver   = driver_get_ptr();
    
    if (!settings->menu.show_ui_menu)
       return true;
@@ -7472,19 +7473,22 @@ static bool setting_append_list_ui_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_REINIT);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
 
-   CONFIG_BOOL(
-         settings->pause_nonactive,
-         "pause_nonactive",
-         "Don't run in background",
-         pause_nonactive,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   
+   if (!driver->netplay_data)
+   {
+      CONFIG_BOOL(
+            settings->pause_nonactive,
+            "pause_nonactive",
+            "Pause when backgrounded",
+            pause_nonactive,
+            menu_hash_to_str(MENU_VALUE_OFF),
+            menu_hash_to_str(MENU_VALUE_ON),
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+   }
+
    CONFIG_BOOL(
          settings->ui.companion_start_on_boot,
          "ui_companion_start_on_boot",

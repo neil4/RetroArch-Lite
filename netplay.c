@@ -1467,6 +1467,7 @@ static void netplay_mask_unmask_config(bool starting)
    static bool has_started;
    static unsigned video_frame_delay;
    static bool menu_pause_libretro;
+   static bool pause_nonactive;
    static float slowmotion_ratio;
    
    if (starting && !has_started)
@@ -1476,6 +1477,9 @@ static void netplay_mask_unmask_config(bool starting)
       
       menu_pause_libretro = settings->menu.pause_libretro;
       settings->menu.pause_libretro = false;
+
+      pause_nonactive = settings->pause_nonactive;
+      settings->pause_nonactive = false;
 
       slowmotion_ratio = settings->slowmotion_ratio;
       settings->slowmotion_ratio = 1.033333;  /* shave 2fps for peer catch-up */
@@ -1488,6 +1492,7 @@ static void netplay_mask_unmask_config(bool starting)
    {  /* unmask */
       settings->video.frame_delay = video_frame_delay;
       settings->menu.pause_libretro = menu_pause_libretro;
+      settings->pause_nonactive = pause_nonactive;
       settings->slowmotion_ratio = slowmotion_ratio;
       
       init_preempt(); /* skips if preempt_frames == 0 */

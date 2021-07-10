@@ -90,10 +90,11 @@ void menu_display_fb(void)
    driver_t *driver     = driver_get_ptr();
    global_t *global     = global_get_ptr();
    settings_t *settings = config_get_ptr();
+   runloop_t  *runloop  = rarch_main_get_ptr();
 
    video_driver_set_texture_enable(true, false);
 
-   if (!settings->menu.pause_libretro)
+   if (!settings->menu.pause_libretro && !runloop->is_paused)
    {
       if (global->main_is_init && !global->libretro_dummy)
       {
