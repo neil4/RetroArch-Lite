@@ -95,4 +95,4 @@ void rarch_main_data_overlay_finish()
    }
 }
 
-#endif  // HAVE_OVERLAY
+#endif  /* HAVE_OVERLAY */

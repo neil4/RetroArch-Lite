@@ -102,17 +102,18 @@ static float overlay_eightway_dpad_slope_high, overlay_eightway_dpad_slope_low;
 static float overlay_eightway_abxy_slope_high, overlay_eightway_abxy_slope_low;
 
 /**
- * set_ellipse
- * @param orientation radians clockwise from north, [-Pi/2, Pi/2]
- * @param major_px major axis in pixels
- * @param minor_px minor axis in pixels
- * 
- * Stores values for eightway_state
+ * input_overlay_set_ellipse:
+ * @idx                     : pointer index
+ * @orientation             : radians clockwise from north, [-Pi/2, Pi/2]
+ * @major_px                : major axis in pixels
+ * @minor_px                : minor axis in pixels
+ *
+ * Called by input driver to store touch area vals for eightway-area descs.
  */
-void set_ellipse(uint8_t idx,
-                 const float orientation,
-                 const float major_px,
-                 const float minor_px )
+void input_overlay_set_ellipse(uint8_t idx,
+                               const float orientation,
+                               const float major_px,
+                               const float minor_px)
 {
    if (idx >= MAX_TOUCH)
       return;
@@ -122,7 +123,13 @@ void set_ellipse(uint8_t idx,
    ol_ellipse.minor_px[idx] = minor_px;
 }
 
-void reset_ellipse(uint8_t idx)
+/**
+ * input_overlay_reset_ellipse:
+ * @idx                       : pointer index
+ *
+ * Called by input driver to indicate no touch area information for @idx.
+ */
+void input_overlay_reset_ellipse(uint8_t idx)
 {
    ol_ellipse.major_px[idx] = 0;
 }
@@ -428,10 +435,10 @@ void input_overlay_update_eightway_diag_sens()
 {
    settings_t* settings = config_get_ptr();
 
-   input_overlay_get_slope_limits(settings->input.dpad_diagonal_sensitivity,
+   input_overlay_get_slope_limits(settings->input.overlay_dpad_diag_sens,
                                   &overlay_eightway_dpad_slope_high,
                                   &overlay_eightway_dpad_slope_low);
-   input_overlay_get_slope_limits(settings->input.abxy_diagonal_sensitivity,
+   input_overlay_get_slope_limits(settings->input.overlay_abxy_diag_sens,
                                   &overlay_eightway_abxy_slope_high,
                                   &overlay_eightway_abxy_slope_low);
 }
@@ -1620,7 +1627,7 @@ static INLINE uint64_t fourway_direction(const struct overlay_eightway_vals* val
  * @param y_ellipse_offset relative to 8-way center, normalized as fraction of screen height
  * @return the input state representing the @vals covered by ellipse area
  * 
- * Requires the input driver to call set_ellipse during poll.
+ * Requires the input driver to call input_overlay_set_ellipse during poll.
  * Approximates ellipse as a diamond and checks vertex overlap with @vals.
  */
 static INLINE uint64_t eightway_ellipse_coverage(const struct overlay_eightway_vals* vals,
@@ -1709,7 +1716,7 @@ static INLINE uint64_t eightway_state(const struct overlay_desc *desc_ptr,
    float x_offset = (x - desc_ptr->x) * disp_aspect;
    float y_offset = (desc_ptr->y - y);
    unsigned method = area_type < ABXY_AREA ?
-                     settings->input.dpad_method : settings->input.abxy_method;
+         settings->input.overlay_dpad_method : settings->input.overlay_abxy_method;
    
    if (method != TOUCH_AREA)
       state |= eightway_direction(vals, x_offset, y_offset);
@@ -2157,11 +2164,11 @@ void input_overlay_poll(input_overlay_t *overlay_device)
          if (!state->ptr_count)
          {
             ptr_device = overlay_lightgun_active ?
-               RETRO_DEVICE_POINTER : RARCH_DEVICE_POINTER_SCREEN;
+                  RETRO_DEVICE_POINTER : RARCH_DEVICE_POINTER_SCREEN;
             state->ptr_x = input_driver_state(NULL, 0, ptr_device, i,
-               RETRO_DEVICE_ID_POINTER_X);
+                  RETRO_DEVICE_ID_POINTER_X);
             state->ptr_y = input_driver_state(NULL, 0, ptr_device, i,
-               RETRO_DEVICE_ID_POINTER_Y);
+                  RETRO_DEVICE_ID_POINTER_Y);
          }
 
          state->ptr_count++;

@@ -57,9 +57,6 @@ struct input_pointer
    int16_t full_x, full_y;
 };
 
-extern void set_ellipse(uint8_t, const float, const float, const float);
-extern void reset_ellipse(uint8_t);
-
 enum
 {
    AXIS_X = 0,
@@ -554,7 +551,7 @@ static void *jni_vibrate_thread(void* data)
       CALL_VOID_METHOD_PARAM( p_jenv,
                               vibrator_service,
                               vibrate_method_id,
-                              (jlong)(settings->input.vibrate_time) )
+                              (jlong)(settings->input.overlay_vibrate_time) )
    }
 }
 
@@ -664,7 +661,7 @@ static INLINE int android_input_poll_event_type_motion(
                                                  &p->full_x, &p->full_y);
             
             /* Ignore ellipse data for quick taps. */
-            reset_ellipse(frame.taps);
+            input_overlay_reset_ellipse(frame.taps);
             
             frame.taps++;
             frame.down_id[idx] = -1;
@@ -689,9 +686,10 @@ static INLINE int android_input_poll_event_type_motion(
       input_translate_coord_viewport(x, y, &p->x, &p->y,
                                            &p->full_x, &p->full_y);
       
-      set_ellipse(idx, AMotionEvent_getOrientation(event, motion_ptr),
-                       AMotionEvent_getTouchMajor(event, motion_ptr),
-                       AMotionEvent_getTouchMinor(event, motion_ptr));
+      input_overlay_set_ellipse(idx,
+            AMotionEvent_getOrientation(event, motion_ptr),
+            AMotionEvent_getTouchMajor(event, motion_ptr),
+            AMotionEvent_getTouchMinor(event, motion_ptr));
       
       android->pointer_count++;
    }

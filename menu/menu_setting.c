@@ -1713,61 +1713,6 @@ static void setting_get_string_representation_uint_rgui_particle_effect_index
 }
 #endif
 
-static void setting_get_string_representation_abxy_diag_sens(void *data,
-      char *s, size_t len)
-{
-   settings_t     *settings = config_get_ptr();
-   rarch_setting_t *setting = (rarch_setting_t*)data;
-   if (setting && settings)
-   {
-      if (settings->input.abxy_method != TOUCH_AREA)
-      {
-         sprintf(s, "%.0f%%", *setting->value.fraction);
-      }
-      else
-      {
-         strcpy(s, "N/A");
-      }
-   }
-}
-
-static void setting_get_string_representation_magnify_contact_area(void *data,
-      char *s, size_t len)
-{
-   settings_t     *settings = config_get_ptr();
-   rarch_setting_t *setting = (rarch_setting_t*)data;
-   if (setting && settings)
-   {
-      if (settings->input.abxy_method != VECTOR
-          || settings->input.dpad_method != VECTOR)
-      {
-         sprintf(s, "%.1fx", *setting->value.fraction);
-      }
-      else
-      {
-         strcpy(s, "N/A");
-      }
-   }
-}
-
-static void setting_get_string_representation_dpad_diag_sens(void *data,
-      char *s, size_t len)
-{
-   settings_t     *settings = config_get_ptr();
-   rarch_setting_t *setting = (rarch_setting_t*)data;
-   if (setting && settings)
-   {
-      if (settings->input.dpad_method != TOUCH_AREA)
-      {
-         sprintf(s, "%.0f%%", *setting->value.fraction);
-      }
-      else
-      {
-         strcpy(s, "N/A");
-      }
-   }
-}
-
 static void setting_get_string_representation_fastforward_ratio(void *data,
       char *s, size_t len)
 {
@@ -6583,8 +6528,8 @@ static bool setting_append_list_overlay_options(
       &setting_get_string_representation_uint_scope_index;
 
    CONFIG_UINT(
-         settings->input.dpad_method,
-         "input_dpad_method",
+         settings->input.overlay_dpad_method,
+         "input_overlay_dpad_method",
          "D-Pad Input Method",
          VECTOR,
          group_info.name,
@@ -6600,12 +6545,12 @@ static bool setting_append_list_overlay_options(
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    
    CONFIG_FLOAT(
-         settings->input.dpad_diagonal_sensitivity,
-         "input_dpad_diagonal_sensitivity",
+         settings->input.overlay_dpad_diag_sens,
+         "input_overlay_dpad_diagonal_sensitivity",
          settings->menu.show_advanced_settings ?
             "  Diagonal Sensitivity" :
             "D-Pad Diagonal Sensitivity",
-         dpad_diagonal_sensitivity,
+         overlay_dpad_diag_sens,
          "%.0f%%",
          group_info.name,
          subgroup_info.name,
@@ -6613,8 +6558,6 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_dpad_diag_sens;
    menu_settings_list_current_add_cmd(
          list,
          list_info,
@@ -6622,8 +6565,8 @@ static bool setting_append_list_overlay_options(
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_IS_DEFERRED);
    
    CONFIG_UINT(
-         settings->input.abxy_method,
-         "input_abxy_method",
+         settings->input.overlay_abxy_method,
+         "input_overlay_abxy_method",
          "ABXY Input Method",
          VECTOR_AND_AREA,
          group_info.name,
@@ -6639,12 +6582,12 @@ static bool setting_append_list_overlay_options(
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    
    CONFIG_FLOAT(
-         settings->input.abxy_diagonal_sensitivity,
-         "input_abxy_diagonal_sensitivity",
+         settings->input.overlay_abxy_diag_sens,
+         "input_overlay_abxy_diagonal_sensitivity",
          settings->menu.show_advanced_settings ?
             "  Diagonal Sensitivity" :
             "ABXY Diagonal Sensitivity",
-         abxy_diagonal_sensitivity,
+         overlay_abxy_diag_sens,
          "%.0f%%",
          group_info.name,
          subgroup_info.name,
@@ -6652,8 +6595,6 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_abxy_diag_sens;
    menu_settings_list_current_add_cmd(
          list,
          list_info,
@@ -6661,8 +6602,8 @@ static bool setting_append_list_overlay_options(
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    
    CONFIG_UINT(
-         settings->input.dpad_abxy_config_scope,
-         "input_dpad_abxy_diag_sens_scope",
+         settings->input.overlay_dpad_abxy_config_scope,
+         "input_overlay_dpad_abxy_config_scope",
          "  Scope (D-Pad & ABXY)",
          GLOBAL,
          group_info.name,
@@ -6687,8 +6628,6 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.1f, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_magnify_contact_area;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_FLOAT(
@@ -6724,10 +6663,10 @@ static bool setting_append_list_overlay_options(
    if (driver && driver->input && driver->input->overlay_haptic_feedback)
    {
       CONFIG_UINT(
-            settings->input.vibrate_time,
-            "input_vibrate_time",
+            settings->input.overlay_vibrate_time,
+            "input_overlay_vibrate_time",
             "Haptic Feedback",
-            input_vibrate_time,
+            overlay_vibrate_time,
             group_info.name,
             subgroup_info.name,
             parent_group,

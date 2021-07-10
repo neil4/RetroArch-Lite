@@ -318,8 +318,28 @@ bool input_overlay_new_done(input_overlay_t *ol);
 void input_overlay_set_marker(input_overlay_t *ol);
 
 /**
+ * input_overlay_set_ellipse:
+ * @idx                     : pointer index
+ * @orientation             : radians clockwise from north, [-Pi/2, Pi/2]
+ * @major_px                : major axis in pixels
+ * @minor_px                : minor axis in pixels
+ *
+ * Called by input driver to store touch area vals for eightway-area descs.
+ */
+void input_overlay_set_ellipse(uint8_t idx, const float orientation,
+      const float major_px, const float minor_px);
+
+/**
+ * input_overlay_reset_ellipse:
+ * @idx                       : pointer index
+ *
+ * Called by input driver to indicate no touch area information for @idx.
+ */
+void input_overlay_reset_ellipse(uint8_t idx);
+
+/**
  * input_overlay_free:
- * @ol                    : Overlay handle.
+ * @ol               : Overlay handle.
  *
  * Frees overlay handle.
  **/
@@ -327,8 +347,8 @@ void input_overlay_free(input_overlay_t *ol);
 
 /**
  * input_overlay_enable:
- * @ol                    : Overlay handle.
- * @enable                : Enable or disable the overlay
+ * @ol                 : Overlay handle.
+ * @enable             : Enable or disable the overlay
  *
  * Enable or disable the overlay.
  **/
@@ -336,7 +356,7 @@ void input_overlay_enable(input_overlay_t *ol, bool enable);
 
 /*
  * input_overlay_poll:
- * @overlay_device : pointer to overlay
+ * @overlay_device   : pointer to overlay
  *
  * Poll pressed buttons/keys on currently active overlay.
  **/
@@ -345,7 +365,7 @@ void input_overlay_poll(input_overlay_t *overlay_device);
 /**
  * input_state:
  * @port                 : user number.
- * @device_base         : base class of user device identifier.
+ * @device_base          : base class of user device identifier.
  * @idx                  : index value of user.
  * @id                   : identifier of key pressed by user.
  *

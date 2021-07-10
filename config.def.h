@@ -481,9 +481,9 @@ static bool show_overlay_menu = false;
 static bool input_osk_overlay_enable = false;
 #endif
 static float overlay_opacity = 0.5f;
-static const unsigned input_vibrate_time = 10;
-static const float dpad_diagonal_sensitivity = 80.0f;
-static const float abxy_diagonal_sensitivity = 50.0f;
+static const unsigned overlay_vibrate_time = 10;
+static const float overlay_dpad_diag_sens = 80.0f;
+static const float overlay_abxy_diag_sens = 50.0f;
 static const float overlay_bisect_aspect_ratio = 2.15f;
 static const bool overlay_shift_y_lock_edges = true;
 #endif

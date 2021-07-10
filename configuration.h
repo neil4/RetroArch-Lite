@@ -308,13 +308,14 @@ typedef struct settings
       bool overlay_shift_y_lock_edges;
       unsigned overlay_shift_xy_scope;
 
-      float dpad_diagonal_sensitivity;  /* diagonal-to-normal ratio (percentage) */
-      float abxy_diagonal_sensitivity;
-      float touch_ellipse_magnify;  /* hack for inaccurate touchscreens */
-      unsigned dpad_method;
-      unsigned abxy_method;
-      unsigned dpad_abxy_config_scope;
-      uint32_t vibrate_time;
+      float overlay_dpad_diag_sens;  /* diagonal-to-normal ratio (percentage) */
+      float overlay_abxy_diag_sens;  /* diagonal-to-normal ratio (percentage) */
+      unsigned overlay_dpad_method;
+      unsigned overlay_abxy_method;
+      unsigned overlay_dpad_abxy_config_scope;
+
+      float touch_ellipse_magnify;   /* hack for inaccurate touchscreens */
+      uint32_t overlay_vibrate_time;
 
       char autoconfig_dir[PATH_MAX_LENGTH];
       bool autoconfig_descriptor_label_show;
