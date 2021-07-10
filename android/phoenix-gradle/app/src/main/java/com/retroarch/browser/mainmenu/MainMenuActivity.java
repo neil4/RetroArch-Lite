@@ -29,7 +29,6 @@ import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.NativeInterface;
 import com.retroarch.browser.coremanager.fragments.InstalledCoresFragment;
 import com.retroarch.browser.dirfragment.DirectoryFragment;
-import com.retroarch.browser.dirfragment.DirectoryFragment.OnDirectoryFragmentClosedListener;
 import com.retroarch.browser.preferences.PreferenceActivity;
 import com.retroarch.browser.preferences.util.UserPreferences;
 import com.retroarch.browser.retroactivity.RetroActivity;
@@ -49,7 +48,7 @@ import java.util.List;
  * {@link FragmentActivity} subclass that provides all of the
  * functionality of the main menu screen.
  */
-public final class MainMenuActivity extends FragmentActivity implements OnDirectoryFragmentClosedListener
+public final class MainMenuActivity extends FragmentActivity implements DirectoryFragment.OnDirectoryFragmentClosedListener
 {
    private static final int REQUEST_APP_PERMISSIONS = 88;
    private IconAdapter<ModuleWrapper> adapter;

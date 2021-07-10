@@ -24,7 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.retroarch.browser.ModuleWrapper;
-import com.retroarch.browser.dirfragment.DirectoryFragment;
+import com.retroarch.browser.NativeInterface;
 import com.retroarch.browser.preferences.util.UserPreferences;
 import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
@@ -244,9 +244,9 @@ public final class InstalledCoresFragment extends ListFragment
             String coreStateDir = stateDir + '/' + libretroName;
             
             // Delete all core specific folders created by frontend
-            DirectoryFragment.DeleteDirTree(new File(coreCfgDir));
-            DirectoryFragment.DeleteDirTree(new File(coreSaveDir));
-            DirectoryFragment.DeleteDirTree(new File(coreStateDir));
+            NativeInterface.DeleteDirTree(new File(coreCfgDir));
+            NativeInterface.DeleteDirTree(new File(coreSaveDir));
+            NativeInterface.DeleteDirTree(new File(coreStateDir));
 
             // Remove ROM search directory preference also
             prefs.edit().remove(libretroName + "_directory").commit();

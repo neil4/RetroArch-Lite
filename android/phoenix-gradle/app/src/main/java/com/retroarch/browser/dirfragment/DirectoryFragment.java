@@ -20,7 +20,6 @@ import android.widget.Toast;
 
 import com.retroarch.browser.FileWrapper;
 import com.retroarch.browser.IconAdapter;
-import com.retroarch.browser.NativeInterface;
 import com.retroarch.browser.preferences.PreferenceActivity;
 import com.retroarch.browser.preferences.util.ConfigFile;
 import com.retroarch.browser.preferences.util.UserPreferences;
@@ -118,7 +117,8 @@ public class DirectoryFragment extends DialogFragment
    protected String startDirectory;
    protected String pathSettingKey;
    protected boolean isDirectoryTarget;
-   protected OnDirectoryFragmentClosedListener onClosedListener;
+   private ArrayList<String> allowedExt;
+   protected static OnDirectoryFragmentClosedListener onClosedListener;
 
    /**
     * Sets the starting directory for this DirectoryFragment
@@ -182,6 +182,7 @@ public class DirectoryFragment extends DialogFragment
       final Bundle bundle = new Bundle();
       bundle.putInt("titleResId", titleResId);
       dFrag.setArguments(bundle);
+      onClosedListener = null;
 
       return dFrag;
    }
@@ -201,6 +202,7 @@ public class DirectoryFragment extends DialogFragment
       bundle.putInt("titleResId", -88);
       bundle.putString("title", title);
       dFrag.setArguments(bundle);
+      onClosedListener = null;
 
       return dFrag;
    }
@@ -223,6 +225,7 @@ public class DirectoryFragment extends DialogFragment
       bundle.putStringArray("exts", extArray);
       
       dFrag.setArguments(bundle);
+      onClosedListener = null;
 
       return dFrag;
    }
@@ -237,9 +240,18 @@ public class DirectoryFragment extends DialogFragment
    {
       ListView rootView = (ListView) inflater.inflate(R.layout.line_list, container, false);
       rootView.setOnItemClickListener(onItemClickListener);
-      
+
+      if (savedInstanceState != null)
+      {
+         backStack = savedInstanceState.getParcelableArrayList("BACKSTACK");
+         showMameTitles = savedInstanceState.getBoolean("MAMETITLES");
+         isDirectoryTarget = savedInstanceState.getBoolean("DIRTARGET");
+         pathSettingKey = savedInstanceState.getString("PATHSETTINGKEY");
+         allowedExt = savedInstanceState.getStringArrayList("EXTS");
+      }
+
       // Set the dialog title.
-      if ( getArguments().getInt("titleResId") == -88 )
+      if (getArguments().getInt("titleResId") == -88)
          getDialog().setTitle(getArguments().getString("title"));
       else
          getDialog().setTitle(getArguments().getInt("titleResId"));
@@ -250,8 +262,6 @@ public class DirectoryFragment extends DialogFragment
          String[] extArray = getArguments().getStringArray("exts");
          if ( extArray != null && extArray.length > 0 )
             addAllowedExts(extArray);
-         else
-            addDisallowedExts("state", "srm", "state.auto", "rtc", "ccd");
       }
       else if (pathSettingKey != null && !pathSettingKey.isEmpty())
       {
@@ -265,13 +275,6 @@ public class DirectoryFragment extends DialogFragment
       // Setup the list
       adapter = new IconAdapter<FileWrapper>(getActivity(), R.layout.line_list_item);
       rootView.setAdapter(adapter);
-
-      // Load Directory
-      if (savedInstanceState != null)
-      {
-         backStack = savedInstanceState.getParcelableArrayList("BACKSTACK");
-         showMameTitles = savedInstanceState.getBoolean("MAMETITLES");
-      }
 
       if (backStack == null || backStack.isEmpty())
       {
@@ -352,6 +355,9 @@ public class DirectoryFragment extends DialogFragment
 
       outState.putParcelableArrayList("BACKSTACK", backStack);
       outState.putBoolean("MAMETITLES", showMameTitles);
+      outState.putBoolean("DIRTARGET", isDirectoryTarget);
+      outState.putStringArrayList("EXTS", allowedExt);
+      outState.putString("PATHSETTINGKEY", pathSettingKey);
    }
 
    private void finishWithPath(String path)
@@ -388,21 +394,9 @@ public class DirectoryFragment extends DialogFragment
       return false;
    }
 
-   private ArrayList<String> allowedExt;
-   private ArrayList<String> disallowedExt;
-
    private boolean filterPath(String path)
    {
       path = path.toLowerCase();
-      
-      if (disallowedExt != null)
-      {
-         for (String ext : disallowedExt)
-         {
-            if (path.endsWith(ext))
-               return false;
-         }
-      }
       
       if (allowedExt != null)
       {
@@ -423,7 +417,7 @@ public class DirectoryFragment extends DialogFragment
     * <p>
     * Any files that contain this file extension will be shown
     * within the DirectoryFragment file browser. Those that don't
-    * contain this extension will not be shows.
+    * contain this extension will not be shown.
     * <p>
     * It is possible to specify more than one allowed extension by
     * simply calling this method with a different file extension specified.
@@ -436,25 +430,6 @@ public class DirectoryFragment extends DialogFragment
          allowedExt = new ArrayList<String>();
 
       allowedExt.addAll(Arrays.asList(exts));
-   }
-
-   /**
-    * Allows specifying a disallowed file extension.
-    * <p>
-    * Any files that contain this file extension will not be shown
-    * within the DirectoryFragment file browser.
-    * <p>
-    * It is possible to specify more than one disallowed extension by
-    * simply calling this method with a different file extension specified.
-    * 
-    * @param exts The file extension(s) to hide from being shown in this DirectoryFragment.
-    */
-   public void addDisallowedExts(String... exts)
-   {
-      if (disallowedExt == null)
-         disallowedExt = new ArrayList<String>();
-
-      disallowedExt.addAll(Arrays.asList(exts));
    }
 
    protected void wrapFiles()
@@ -505,43 +480,5 @@ public class DirectoryFragment extends DialogFragment
       
       // Update
       adapter.notifyDataSetChanged();
-   }
-
-   
-   public boolean RestoreDirFromZip(final String zipPath,
-                                    final String zipSubDir,
-                                    final String destDir)
-   {
-      boolean success;
-      try
-      {
-         File dir = new File(destDir); 
-         if (dir.isDirectory()) 
-         {
-            String[] names = dir.list();
-            for (String name : names)
-               DirectoryFragment.DeleteDirTree(new File(dir, name));
-         }
-
-         success = NativeInterface.extractArchiveTo(zipPath, zipSubDir, destDir);
-         if (!success)
-            throw new IOException("Failed to extract assets ...");
-      }
-      catch (IOException e)
-      {success = false;}
-      
-      return success;
-   }
-   
-   public static boolean DeleteDirTree(File topDir)
-   {
-      if (topDir.isDirectory())
-      {
-         String[] names = topDir.list();
-         for (String name : names)
-            DeleteDirTree(new File(topDir, name));
-      }
-      
-      return topDir.delete();
    }
 }

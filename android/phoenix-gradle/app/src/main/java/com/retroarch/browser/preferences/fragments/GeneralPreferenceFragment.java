@@ -3,6 +3,7 @@ package com.retroarch.browser.preferences.fragments;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,10 +21,14 @@ import com.retroarchlite.R;
  */
 public final class GeneralPreferenceFragment extends PreferenceListFragment implements OnPreferenceClickListener, DirectoryFragment.OnDirectoryFragmentClosedListener
 {
+   private Context ctx = null;
+
    @Override
    public void onCreate(Bundle savedInstanceState)
    {
       super.onCreate(savedInstanceState);
+
+      ctx = getContext();
 
       // Add general preferences from the XML.
       if (haveSharedCoreManager())
@@ -42,9 +47,7 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
       Intent intent = new Intent();
       intent.setComponent(new ComponentName(sharedId,
                                             "com.retroarch.browser.coremanager.CoreManagerActivity"));
-      return !getContext().getPackageManager()
-                          .queryIntentActivities(intent, 0)
-                          .isEmpty();
+      return !ctx.getPackageManager().queryIntentActivities(intent, 0).isEmpty();
    }
    
    @Override
@@ -55,7 +58,7 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
       if (prefKey.equals("install_assets_pref"))
       {
          final DirectoryFragment assetsFileBrowser
-                 = DirectoryFragment.newInstance("");
+                 = DirectoryFragment.newInstance(R.string.install_assets);
          assetsFileBrowser.addAllowedExts("zip");
          assetsFileBrowser.setIsDirectoryTarget(false);
          assetsFileBrowser.setOnDirectoryFragmentClosedListener(this);
@@ -63,10 +66,7 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
       }
       else if (prefKey.equals("restore_assets_pref"))
       {
-         final DirectoryFragment assetFileBrowser
-               = DirectoryFragment.newInstance("");
-
-         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+         AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
          builder.setMessage("Confirm: Restore all assets?\nUser-installed assets will be removed.")
                .setCancelable(true)
                .setPositiveButton("Yes",
@@ -80,16 +80,16 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
 
                            for (String folder : folders)
                            {
-                              success &= assetFileBrowser.RestoreDirFromZip(
+                              success &= NativeInterface.RestoreDirFromZip(
                                     getActivity().getApplicationInfo().sourceDir,
                                     "assets" + folder,
                                     getActivity().getApplicationInfo().dataDir + folder);
                            }
 
                            if (success)
-                              Toast.makeText(getContext(), "Assets restored.", Toast.LENGTH_SHORT).show();
+                              Toast.makeText(ctx, "Assets restored.", Toast.LENGTH_SHORT).show();
                            else
-                              Toast.makeText(getContext(), "Failed to restore assets.", Toast.LENGTH_SHORT).show();
+                              Toast.makeText(ctx, "Failed to restore assets.", Toast.LENGTH_SHORT).show();
                         }
                      })
                .setNegativeButton("No", new DialogInterface.OnClickListener()
@@ -107,9 +107,9 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
    public void onDirectoryFragmentClosed(String path)
    {
       String folders[] = {"overlays", "info", "shaders_glsl", "themes_rgui"};
-      String dataDir = getContext().getApplicationInfo().dataDir;
+      String dataDir = ctx.getApplicationInfo().dataDir;
 
-      AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+      AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
       builder.setMessage("Confirm: Extract assets from " + path.substring(path.lastIndexOf('/')+1) + "?")
             .setCancelable(true)
             .setPositiveButton("Yes",
@@ -123,9 +123,9 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
                            success |= NativeInterface.extractArchiveTo(path, folder, dataDir + '/' + folder);
 
                         if (success)
-                           Toast.makeText(getContext(), "Assets installed.", Toast.LENGTH_SHORT).show();
+                           Toast.makeText(ctx, "Assets installed.", Toast.LENGTH_SHORT).show();
                         else
-                           Toast.makeText(getContext(), "Failed to extract assets.", Toast.LENGTH_SHORT).show();
+                           Toast.makeText(ctx, "Failed to extract assets.", Toast.LENGTH_SHORT).show();
                      }
                   })
             .setNegativeButton("No", new DialogInterface.OnClickListener()
