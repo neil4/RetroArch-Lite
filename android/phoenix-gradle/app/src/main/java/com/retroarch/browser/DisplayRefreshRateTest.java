@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.retroarch.browser.preferences.fragments.AudioVideoPreferenceFragment;
 import com.retroarch.browser.preferences.util.UserPreferences;
 import com.retroarchlite.R;
 
@@ -20,6 +21,8 @@ import javax.microedition.khronos.opengles.GL10;
  * for the refresh rate testing for device displays.
  */
 public final class DisplayRefreshRateTest extends Activity {
+
+   private double fps = 0.0;
 
    private class Renderer implements GLSurfaceView.Renderer {
       private static final String TAG = "GLESRenderer";
@@ -41,10 +44,11 @@ public final class DisplayRefreshRateTest extends Activity {
          this.activity = activity;
       }
 
-      private void setFPSSetting(double fps) {
+      private void setFPSSetting() {
+         double refreshRate = AudioVideoPreferenceFragment.dividedRefreshRate(fps);
          SharedPreferences prefs = UserPreferences.getPreferences(DisplayRefreshRateTest.this);
          SharedPreferences.Editor edit = prefs.edit();
-         edit.putString("video_refresh_rate", Double.toString(fps));
+         edit.putString("video_refresh_rate", Double.toString(refreshRate));
          edit.apply();
       }
 
@@ -69,9 +73,9 @@ public final class DisplayRefreshRateTest extends Activity {
             mNumFrames++;
             double elapsed = t - mStartTime;
             if (elapsed >= TEST_SECONDS) {
-               double fps = (double)mNumFrames / elapsed;
+               fps = (double)mNumFrames / elapsed;
                Log.i(TAG, "Measured FPS to: " + fps);
-               setFPSSetting(fps);
+               setFPSSetting();
                mState = STATE_DONE;
             }
             break;
@@ -118,8 +122,8 @@ public final class DisplayRefreshRateTest extends Activity {
    @Override
    protected void onDestroy() {
       SharedPreferences prefs = UserPreferences.getPreferences(this);
-      String fps = prefs.getString("video_refresh_rate", "ERROR");
-      Toast.makeText(this, String.format(getString(R.string.refresh_rate_measured_to), fps), Toast.LENGTH_LONG).show();
+      String rate = prefs.getString("video_refresh_rate", "ERROR");
+      Toast.makeText(this, String.format(getString(R.string.refresh_rate_measured_to), fps, rate), Toast.LENGTH_LONG).show();
       super.onDestroy();
    }
 }

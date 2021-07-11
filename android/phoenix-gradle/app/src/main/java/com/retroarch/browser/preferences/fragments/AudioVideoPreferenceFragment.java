@@ -39,16 +39,37 @@ public final class AudioVideoPreferenceFragment extends PreferenceListFragment i
       {
          final WindowManager wm = getActivity().getWindowManager();
          final Display display = wm.getDefaultDisplay();
-         final double rate = display.getRefreshRate();
+
+         final double monitorRate = display.getRefreshRate();
+         final double contentRate = dividedRefreshRate(monitorRate);
 
          final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
          final SharedPreferences.Editor edit = prefs.edit();
-         edit.putString("video_refresh_rate", Double.toString(rate));
+         edit.putString("video_refresh_rate", Double.toString(contentRate));
          edit.apply();
 
-         Toast.makeText(getActivity(), String.format(getString(R.string.using_os_reported_refresh_rate), rate), Toast.LENGTH_LONG).show();
+         Toast.makeText(getActivity(),
+               String.format(getString(R.string.using_os_reported_refresh_rate),
+                     monitorRate, contentRate),
+               Toast.LENGTH_LONG).show();
       }
 
       return true;
+   }
+
+   public static double dividedRefreshRate(double fps)
+   {
+      // Check for 120Hz mode, etc. Still want a ~60Hz content refresh rate
+      if (fps > 120 * 0.95)
+      {
+         for (int i = 2; i <= 4; i++)
+         {
+            double rate = fps / i;
+            if (rate > 60 * 0.95 && rate < 60 * 1.05)
+               return rate;
+         }
+      }
+
+      return fps;
    }
 }
