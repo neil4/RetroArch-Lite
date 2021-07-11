@@ -32,7 +32,6 @@ typedef struct menu_navigation
          size_t list[2 * (26 + 2) + 1];
          unsigned size;
       } indices;
-      unsigned acceleration;
    } scroll;
    size_t selection_ptr;
 } menu_navigation_t;
@@ -52,14 +51,14 @@ void menu_navigation_clear(menu_navigation_t *nav, bool pending_push);
  *
  * Decrement the navigation pointer.
  **/
-void menu_navigation_decrement(menu_navigation_t *nav, unsigned scroll_speed);
+void menu_navigation_decrement(menu_navigation_t *nav);
 
 /**
  * menu_navigation_increment:
  *
  * Increment the navigation pointer.
  **/
-void menu_navigation_increment(menu_navigation_t *nav, unsigned scroll_speed);
+void menu_navigation_increment(menu_navigation_t *nav);
 
 /**
  * menu_navigation_set:      

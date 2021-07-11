@@ -57,7 +57,7 @@ void menu_navigation_clear(menu_navigation_t *nav, bool pending_push)
  *
  * Decrement the navigation pointer.
  **/
-void menu_navigation_decrement(menu_navigation_t *nav, unsigned scroll_speed)
+void menu_navigation_decrement(menu_navigation_t *nav)
 {
    menu_list_t *menu_list = menu_list_get_ptr();
    settings_t *settings   = config_get_ptr();
@@ -65,9 +65,9 @@ void menu_navigation_decrement(menu_navigation_t *nav, unsigned scroll_speed)
    if (!nav)
       return;
 
-   if (nav->selection_ptr >= scroll_speed)
+   if (nav->selection_ptr >= 1)
          menu_navigation_set(nav,
-               nav->selection_ptr - scroll_speed, true);
+               nav->selection_ptr - 1, true);
    else
    {
       if (settings->menu.navigation.wraparound.vertical_enable)
@@ -85,7 +85,7 @@ void menu_navigation_decrement(menu_navigation_t *nav, unsigned scroll_speed)
  *
  * Increment the navigation pointer.
  **/
-void menu_navigation_increment(menu_navigation_t *nav, unsigned scroll_speed)
+void menu_navigation_increment(menu_navigation_t *nav)
 {
    settings_t *settings   = config_get_ptr();
    menu_list_t *menu_list = menu_list_get_ptr();
@@ -93,9 +93,9 @@ void menu_navigation_increment(menu_navigation_t *nav, unsigned scroll_speed)
    if (!nav)
       return;
 
-   if (nav->selection_ptr + scroll_speed < (menu_list_get_size(menu_list)))
+   if (nav->selection_ptr + 1 < (menu_list_get_size(menu_list)))
       menu_navigation_set(nav,
-            nav->selection_ptr + scroll_speed, true);
+            nav->selection_ptr + 1, true);
    else
    {
       if (settings->menu.navigation.wraparound.vertical_enable)

@@ -197,17 +197,13 @@ static int action_l_save_state(unsigned type, const char *label)
 static int action_left_scroll(unsigned type, const char *label,
       bool wraparound)
 {
-   unsigned scroll_speed = 0, fast_scroll_speed = 0;
    menu_navigation_t *nav = menu_navigation_get_ptr();
    menu_list_t *menu_list = menu_list_get_ptr();
    if (!nav || !menu_list)
       return -1;
 
-   scroll_speed      = (max(nav->scroll.acceleration, 2) - 2) / 4 + 1;
-   fast_scroll_speed = 4 + 4 * scroll_speed;
-
-   if (nav->selection_ptr > fast_scroll_speed)
-      menu_navigation_set(nav, nav->selection_ptr - fast_scroll_speed, true);
+   if (nav->selection_ptr > 8)
+      menu_navigation_set(nav, nav->selection_ptr - 8, true);
    else
       menu_navigation_clear(nav, false);
 

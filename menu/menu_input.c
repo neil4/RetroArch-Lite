@@ -889,10 +889,10 @@ static int menu_input_mouse_frame(
       return menu_entry_action(entry, nav->selection_ptr, MENU_ACTION_R);
 
    if (BIT64_GET(input_mouse, MOUSE_ACTION_WHEEL_DOWN))
-      menu_navigation_increment(nav, 1);
+      menu_navigation_increment(nav);
 
    if (BIT64_GET(input_mouse, MOUSE_ACTION_WHEEL_UP))
-      menu_navigation_decrement(nav, 1);
+      menu_navigation_decrement(nav);
 
    return 0;
 }
@@ -1141,7 +1141,7 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
 {
    unsigned ret                            = 0;
    static bool initial_held                = true;
-   static bool first_held                  = false;
+   static bool restart_timer               = true;
    static const retro_input_t input_repeat =
       (1ULL << RETRO_DEVICE_ID_JOYPAD_UP)
       | (1ULL << RETRO_DEVICE_ID_JOYPAD_DOWN)
@@ -1168,28 +1168,25 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
 
    if (input & input_repeat)
    {
-      if (!first_held)
+      if (restart_timer)
       {
-         first_held = true;
-         menu_input->delay.timer = initial_held ? 12 : 6;
+         restart_timer = false;
+         menu_input->delay.timer = initial_held ? 15 : 1.5;
          menu_input->delay.count = 0;
       }
 
       if (menu_input->delay.count >= menu_input->delay.timer)
       {
-         first_held = false;
+         restart_timer = true;
          trigger_input |= input & input_repeat;
-         nav->scroll.acceleration =
-            min(nav->scroll.acceleration + 1, 64);
       }
 
       initial_held = false;
    }
    else
    {
-      first_held = false;
+      restart_timer = true;
       initial_held = true;
-      nav->scroll.acceleration = 0;
    }
 
    menu_input->delay.count += disp->animation->delta_time / IDEAL_DT;
