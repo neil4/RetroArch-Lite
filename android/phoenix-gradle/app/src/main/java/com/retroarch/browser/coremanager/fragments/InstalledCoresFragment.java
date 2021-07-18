@@ -131,8 +131,8 @@ public final class InstalledCoresFragment extends ListFragment
             return UpdateCore(info.position);
          case R.id.backup_core:
             return BackupCore(info.position);
-         case R.id.reinit_core:
-            return PurgeCoreData(info.position);
+         case R.id.reset_core_options:
+            return DeleteCoreOptions(info.position);
          case R.id.remove_core:
             return RemoveCore(info.position);
 
@@ -206,19 +206,20 @@ public final class InstalledCoresFragment extends ListFragment
 
       return true;
    }
-   
+
+
    /**
-    * Removes all known data specific to this core.
-    * @param position list position of current core 
+    * Removes all option files in core's config directory.
+    * @param position list position of current core
     * @return true
     */
-   public boolean PurgeCoreData(int position)
+   public boolean DeleteCoreOptions(int position)
    {
       // Begin building the AlertDialog
       final ModuleWrapper item = adapter.getItem(position);
       final AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
       alert.setTitle(R.string.confirm_title);
-      alert.setMessage(String.format(getString(R.string.purge_core_data_message),
+      alert.setMessage(String.format(getString(R.string.reset_core_options_message),
             item.getCoreTitle()));
       alert.setNegativeButton(R.string.no, null);
       alert.setPositiveButton(R.string.yes, new OnClickListener()
@@ -226,35 +227,28 @@ public final class InstalledCoresFragment extends ListFragment
          @Override
          public void onClick(DialogInterface dialog, int which)
          {
-            final String defaultConfig = UserPreferences.defaultBaseDir + "/config";
-            final String defaultSave = UserPreferences.defaultBaseDir + "/save";
-            final String defaultState = UserPreferences.defaultBaseDir + "/state";
-
+            boolean success = true;
             final SharedPreferences prefs = getPreferences(getContext());
+            final String defaultConfig = UserPreferences.defaultBaseDir + "/config";
+
             String cfgDir = prefs.getBoolean("config_directory_enable", false) ?
                   prefs.getString("rgui_config_directory", defaultConfig) : defaultConfig;
-            String saveDir = prefs.getBoolean("savefile_directory_enable", false) ?
-                  prefs.getString("savefile_directory", defaultSave) : defaultSave;
-            String stateDir = prefs.getBoolean("savestate_directory_enable", false) ?
-                  prefs.getString("savestate_directory", defaultState) : defaultState;
-                        
             String libretroName = sanitizedLibretroName(item.getUnderlyingFile().getName());
-            String coreCfgDir = cfgDir + '/' + libretroName;
-            String coreSaveDir = saveDir + '/' + libretroName;
-            String coreStateDir = stateDir + '/' + libretroName;
-            
-            // Delete all core specific folders created by frontend
-            NativeInterface.DeleteDirTree(new File(coreCfgDir));
-            NativeInterface.DeleteDirTree(new File(coreSaveDir));
-            NativeInterface.DeleteDirTree(new File(coreStateDir));
+            String coreCfgDirPath = cfgDir + '/' + libretroName;
 
-            // Remove ROM search directory preference also
-            prefs.edit().remove(libretroName + "_directory").commit();
-            
+            File coreCfgDir = new File(coreCfgDirPath);
+            if (coreCfgDir.isDirectory())
+            {
+               String[] names = coreCfgDir.list();
+               for (String name : names)
+                  if (name.endsWith(".opt"))
+                     success &= new File(coreCfgDir, name).delete();
+            }
+
+            String fmt = getString(success ?
+                  R.string.reset_core_options_success : R.string.reset_core_options_failure);
             Toast.makeText(getActivity(),
-                  String.format(getString(R.string.reset_core_settings_success),
-                        item.getCoreTitle()),
-                  Toast.LENGTH_LONG).show();
+                  String.format(fmt, item.getCoreTitle()), Toast.LENGTH_LONG).show();
          }
       });
       alert.show();
