@@ -156,6 +156,9 @@ public final class BackupCoresFragment extends ListFragment
          final File[] files = new File(backupCoresDir).listFiles();
          final ArrayList<DownloadableCore> cores = new ArrayList<>();
 
+         SharedPreferences prefs = UserPreferences.getPreferences(getContext());
+         boolean sortBySys = prefs.getBoolean("sort_cores_by_system", true);
+
          for (File file : files)
          {
             String urlPath = file.toURI().toURL().toString();
@@ -176,7 +179,7 @@ public final class BackupCoresFragment extends ListFragment
 
             Pair<String, String> pair = getTitlePair(infoPath); // (name,mfr+system)
 
-            cores.add(new DownloadableCore(pair.first, pair.second, urlPath, false));
+            cores.add(new DownloadableCore(pair.first, pair.second, urlPath, sortBySys));
          }
 
          Collections.sort(cores);

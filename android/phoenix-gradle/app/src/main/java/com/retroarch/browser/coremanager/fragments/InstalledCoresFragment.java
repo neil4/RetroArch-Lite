@@ -161,11 +161,14 @@ public final class InstalledCoresFragment extends ListFragment
    {
       // The list of items that will be added to the adapter backing this ListFragment.
       final List<ModuleWrapper> items = new ArrayList<>();
+
+      SharedPreferences prefs = UserPreferences.getPreferences(getContext());
+      boolean sortBySys = prefs.getBoolean("sort_cores_by_system", true);
       
       // Populate the list
       final File[] libs = new File(getActivity().getApplicationInfo().dataDir, "/cores").listFiles();
       for (File lib : libs)
-         items.add(new ModuleWrapper(getActivity(), lib, false, false));
+         items.add(new ModuleWrapper(getActivity(), lib, false, sortBySys));
 
       // Sort the list alphabetically
       Collections.sort(items);
