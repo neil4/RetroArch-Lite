@@ -66,7 +66,7 @@ void input_remapping_set_default_desc();
 
 /**
  * input_remapping_get_path:
- * @path                   : PATH_MAX_LENGTH string
+ * @path                   : PATH_MAX_LENGTH buffer
  * @scope                  : THIS_CORE, THIS_CONTENT_DIR, or THIS_CONTENT_ONLY
  *
  * Sets @path to remapping file path for the @scope given.

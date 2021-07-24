@@ -538,6 +538,17 @@ void scoped_config_files_load_auto();
 void core_config_file_load_auto();
 
 /**
+ * get_scoped_config_filename:
+ * @buf                      : NAME_MAX_LENGTH buffer
+ * @scope                    : THIS_CORE, THIS_CONTENT_DIR, or THIS_CONTENT_ONLY
+ * @ext                      : file extension to append
+ *
+ * Returns true if successful
+ */
+bool get_scoped_config_filename(char* buf, const unsigned scope,
+      const char* ext);
+
+/**
  * config_unmask_globals
  * 
  * Called between ROM loads. Restores scoped settings to global values, and

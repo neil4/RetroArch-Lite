@@ -328,37 +328,18 @@ void input_remapping_set_default_desc()
 
 void input_remapping_get_path(char* path, unsigned scope)
 {
-   global_t *global     = global_get_ptr();
+   global_t   *global   = global_get_ptr();
    settings_t *settings = config_get_ptr();
-   char buf[NAME_MAX_LENGTH];
+   char filename[NAME_MAX_LENGTH];
 
-   if (!global || !settings)
+   if (!get_scoped_config_filename(filename, scope, "rmp"))
+   {
+      *path = '\0';
       return;
+   }
 
    fill_pathname_join(path, settings->input_remapping_directory,
          global->libretro_name, PATH_MAX_LENGTH);
-   strlcat(path, path_default_slash(), PATH_MAX_LENGTH);
-
-   switch(scope)
-   {
-      case THIS_CONTENT_ONLY:
-         strlcat(path, path_basename(global->basename), PATH_MAX_LENGTH);
-         break;
-
-      case THIS_CONTENT_DIR:
-         if (!path_parent_dir_name(buf, global->basename))
-            strlcpy(buf, "root", NAME_MAX_LENGTH);
-         strlcat(path, buf, PATH_MAX_LENGTH);
-         break;
-
-      case THIS_CORE:
-         strlcat(path, global->libretro_name, PATH_MAX_LENGTH);
-         break;
-
-      default:
-         return;
-   }
-
-   strlcat(path, ".rmp", PATH_MAX_LENGTH);
+   fill_pathname_slash(path, PATH_MAX_LENGTH);
+   strlcat(path, filename, PATH_MAX_LENGTH);
 }
-

@@ -2445,7 +2445,8 @@ settings_t *config_init(void)
    return g_config;
 }
 
-static INLINE bool get_scoped_config_filename(char* buf, const unsigned scope)
+bool get_scoped_config_filename(char* buf, const unsigned scope,
+      const char* ext)
 {
    global_t *global = global_get_ptr();
    char tmp_buf[NAME_MAX_LENGTH];
@@ -2486,7 +2487,12 @@ static INLINE bool get_scoped_config_filename(char* buf, const unsigned scope)
    else
       return false;
 
-   strlcat(buf, ".cfg", NAME_MAX_LENGTH);
+   if (*ext)
+   {
+      strlcat(buf, ".", NAME_MAX_LENGTH);
+      strlcat(buf, ext, NAME_MAX_LENGTH);
+   }
+
    return true;
 }
 
@@ -2504,7 +2510,7 @@ static void scoped_config_file_save(unsigned scope)
       return;
    
    /* Set scoped cfg path */
-   if (!get_scoped_config_filename(buf, scope))
+   if (!get_scoped_config_filename(buf, scope, "cfg"))
       return;
    
    fill_pathname_join(directory, settings->menu_config_directory,
@@ -3239,7 +3245,7 @@ static void scoped_config_file_load(unsigned scope)
       return;
    
    /* Set scoped cfg path */
-   if (!get_scoped_config_filename(buf, scope))
+   if (!get_scoped_config_filename(buf, scope, "cfg"))
       return;
 
    fill_pathname_join(directory, settings->menu_config_directory,

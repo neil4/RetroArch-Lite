@@ -840,37 +840,17 @@ char* core_option_conf_path(core_option_manager_t *opt)
 void core_option_get_conf_path(char *path, enum setting_scope scope)
 {
    settings_t *settings  = config_get_ptr();
-   global_t *global      = global_get_ptr();
-   const char *core_name = global ? global->libretro_name : NULL;
-   const char *game_name = global ? path_basename(global->basename) : NULL;
-   char directory[PATH_MAX_LENGTH];
-   char parent_name[NAME_MAX_LENGTH];
+   global_t   *global    = global_get_ptr();
+   char filename[NAME_MAX_LENGTH];
 
-   if (!settings || !global || !*core_name)
+   if (!get_scoped_config_filename(filename, scope, "opt"))
    {
       *path = '\0';
       return;
    }
 
-   fill_pathname_join(directory, settings->menu_config_directory,
-         core_name, PATH_MAX_LENGTH);
-
-   switch (scope)
-   {
-      case THIS_CORE:
-         fill_pathname_join(path, directory, core_name, PATH_MAX_LENGTH);
-         break;
-      case THIS_CONTENT_DIR:
-         path_parent_dir_name(parent_name, global->basename);
-         fill_pathname_join(path, directory, parent_name, PATH_MAX_LENGTH);
-         break;
-      case THIS_CONTENT_ONLY:
-         fill_pathname_join(path, directory, game_name, PATH_MAX_LENGTH);
-         break;
-      default:
-         *path = '\0';
-         return;
-   }
-
-   strlcat(path, ".opt", PATH_MAX_LENGTH);
+   fill_pathname_join(path, settings->menu_config_directory,
+         global->libretro_name, PATH_MAX_LENGTH);
+   fill_pathname_slash(path, PATH_MAX_LENGTH);
+   strlcat(path, filename, PATH_MAX_LENGTH);
 }

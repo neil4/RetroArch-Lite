@@ -243,7 +243,7 @@ char* core_option_conf_path(core_option_manager_t *opt);
 
 /**
  * core_option_get_conf_path:
- * @path                    : pointer to PATH_MAX_LENGTH string
+ * @path                    : pointer to PATH_MAX_LENGTH buffer
  * @scope                   : THIS_CORE, THIS_CONTENT_DIR, or THIS_CONTENT_ONLY
  *
  * Sets @path to options file path for the @scope given
