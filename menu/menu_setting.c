@@ -1368,6 +1368,7 @@ static int setting_action_ok_bind_defaults(void *data, bool wraparound)
    menu_input_t *menu_input  = menu_input_get_ptr();
    settings_t    *settings   = config_get_ptr();
    global_t      *global     = global_get_ptr();
+   driver_t      *driver     = driver_get_ptr();
 
    (void)wraparound;
 
@@ -1399,6 +1400,7 @@ static int setting_action_ok_bind_defaults(void *data, bool wraparound)
       }
    }
 
+   driver->flushing_input = true;
    return 0;
 }
 
