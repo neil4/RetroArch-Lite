@@ -314,6 +314,10 @@ typedef struct settings
       unsigned overlay_abxy_method;
       unsigned overlay_dpad_abxy_config_scope;
 
+      bool osk_enable;
+      char osk_overlay[PATH_MAX_LENGTH];
+      unsigned osk_scope;
+
       float touch_ellipse_magnify;   /* hack for inaccurate touchscreens */
       uint32_t overlay_vibrate_time;
 
@@ -322,14 +326,6 @@ typedef struct settings
 
       char remapping_path[PATH_MAX_LENGTH];
    } input;
-
-   struct
-   {
-      bool enable;
-      char overlay[PATH_MAX_LENGTH];
-      float opacity;
-      float scale;
-   } osk;
 
    struct
    {

@@ -42,7 +42,7 @@ static void input_keyboard_line_toggle_osk(bool enable)
    driver_t *driver     = driver_get_ptr();
    settings_t *settings = config_get_ptr();
 
-   if (!settings->osk.enable)
+   if (!settings->input.osk_enable)
       return;
 
    driver->keyboard_linefeed_enable = enable;

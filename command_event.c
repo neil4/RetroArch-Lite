@@ -1038,7 +1038,7 @@ bool event_command(enum event_command cmd)
 #ifdef HAVE_OVERLAY
          if (driver->osk_enable)
          {
-            if (!settings->osk.enable || !*settings->osk.overlay)
+            if (!settings->input.osk_enable || !*settings->input.osk_overlay)
             {
                driver->keyboard_linefeed_enable = false;
                break;
@@ -1050,8 +1050,8 @@ bool event_command(enum event_command cmd)
                break;
          }
 
-         driver->overlay = input_overlay_new(driver->osk_enable ? settings->osk.overlay : settings->input.overlay,
-               driver->osk_enable ? settings->osk.enable   : settings->input.overlay_enable,
+         driver->overlay = input_overlay_new(driver->osk_enable ? settings->input.osk_overlay : settings->input.overlay,
+               driver->osk_enable ? settings->input.osk_enable   : settings->input.overlay_enable,
                settings->input.overlay_opacity, settings->input.overlay_scale);
          if (!driver->overlay)
             RARCH_ERR("Failed to load overlay.\n");

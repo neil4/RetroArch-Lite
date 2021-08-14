@@ -672,7 +672,7 @@ static void config_set_defaults(void)
    settings->input.overlay_aspect_ratio_index      = OVERLAY_ASPECT_RATIO_AUTO_INDEX;
    settings->input.overlay_bisect_aspect_ratio     = overlay_bisect_aspect_ratio;
    settings->input.overlay_shift_y_lock_edges      = overlay_shift_y_lock_edges;
-   settings->osk.enable                            = input_osk_overlay_enable;
+   settings->input.osk_enable                      = input_osk_overlay_enable;
 #endif
 
    strlcpy(settings->network.buildbot_url, buildbot_server_url,
@@ -812,10 +812,10 @@ static void config_set_defaults(void)
       fill_pathname_expand_special(global->osk_overlay_dir,
             g_defaults.osk_overlay_dir, sizeof(global->osk_overlay_dir));
 #ifdef RARCH_MOBILE
-      if (!*settings->osk.overlay)
-            fill_pathname_join(settings->osk.overlay,
+      if (!*settings->input.osk_overlay)
+            fill_pathname_join(settings->input.osk_overlay,
                   global->osk_overlay_dir, "/US-101/US-101.cfg",
-                  sizeof(settings->osk.overlay));
+                  sizeof(settings->input.osk_overlay));
 #endif
    }
    else
@@ -1639,8 +1639,8 @@ static bool config_load_file(const char *path, bool set_defaults)
    if (!strcmp(global->osk_overlay_dir, "default"))
       *global->osk_overlay_dir = '\0';
 
-   config_get_path(conf, "input_osk_overlay", settings->osk.overlay, sizeof(settings->osk.overlay));
-   CONFIG_GET_BOOL_BASE(conf, settings, osk.enable, "input_osk_overlay_enable");
+   config_get_path(conf, "input_osk_overlay", settings->input.osk_overlay, sizeof(settings->input.osk_overlay));
+   CONFIG_GET_BOOL_BASE(conf, settings, input.osk_enable, "input_osk_overlay_enable");
 #endif
 
    CONFIG_GET_BOOL_BASE(conf, settings, rewind_enable, "rewind_enable");
@@ -2317,8 +2317,9 @@ bool main_config_file_save(const char *path)
 
    config_set_path(conf, "osk_overlay_directory",
          *global->osk_overlay_dir ? global->osk_overlay_dir : "default");
-   config_set_path(conf, "input_osk_overlay", settings->osk.overlay);
-   config_set_bool(conf, "input_osk_overlay_enable", settings->osk.enable);
+   config_set_bool(conf, "input_osk_overlay_enable", settings->input.osk_enable);
+   if (settings->input.osk_scope == GLOBAL)
+      config_set_path(conf, "input_osk_overlay", settings->input.osk_overlay);
    
    if (settings->input.overlay_opacity_scope == GLOBAL)
       config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
@@ -2738,12 +2739,17 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "input_overlay_aspect_ratio_index");
       config_remove_entry(conf, "input_overlay_bisect_aspect_ratio");
    }
-   
+
    if (settings->input.overlay_opacity_scope == scope)
       config_set_float(conf, "input_overlay_opacity",
                        settings->input.overlay_opacity);
    else if (settings->input.overlay_opacity_scope < scope)
       config_remove_entry(conf, "input_overlay_opacity");
+
+   if (settings->input.osk_scope == scope)
+      config_set_path(conf, "input_osk_overlay", settings->input.osk_overlay);
+   else if (settings->input.osk_scope < scope)
+      config_remove_entry(conf, "input_osk_overlay");
 #endif /* HAVE_OVERLAY */
 
    if (settings->input.max_users_scope == scope)
@@ -3026,6 +3032,17 @@ void config_unmask_globals()
       config_set_float(conf, "input_overlay_opacity",
                        settings->input.overlay_opacity);
    }
+
+   if (settings->input.osk_scope != GLOBAL)
+   {  /* restore */
+      settings->input.osk_scope = GLOBAL;
+      if (!config_get_path(conf, "input_osk_overlay", settings->input.osk_overlay,
+            sizeof(settings->input.osk_overlay)))
+         *settings->input.osk_overlay = '\0';
+   }
+   else /* back up */
+      config_set_path(conf, "input_osk_overlay", settings->input.osk_overlay);
+
 #endif /* HAVE_OVERLAY */
       
    if (settings->throttle_setting_scope != GLOBAL)
@@ -3339,6 +3356,14 @@ static void scoped_config_file_load(unsigned scope)
 
    if (config_get_float(conf, "input_overlay_opacity", &settings->input.overlay_opacity))
       settings->input.overlay_opacity_scope = scope;
+
+   if (config_get_path(conf, "input_osk_overlay", settings->input.osk_overlay,
+         sizeof(settings->input.osk_overlay)))
+   {
+      if (!strcmp(settings->input.osk_overlay, EXPLICIT_NULL))
+         *settings->input.osk_overlay = '\0';
+      settings->input.osk_scope = scope;
+   }
 #endif /* HAVE_OVERLAY */
 
    if (config_get_bool(conf, "core_throttle_enable", &settings->core_throttle_enable))

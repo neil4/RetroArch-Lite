@@ -6679,7 +6679,7 @@ static bool setting_append_list_overlay_options(
    }
 
    CONFIG_BOOL(
-         settings->osk.enable,
+         settings->input.osk_enable,
          "input_osk_overlay_enable",
          "Enable Keyboard Overlay",
          input_osk_overlay_enable,
@@ -6697,7 +6697,7 @@ static bool setting_append_list_overlay_options(
    START_SUB_GROUP(list, list_info, "Onscreen Keyboard Overlay", group_info.name, subgroup_info, parent_group);
 
    CONFIG_PATH(
-         settings->osk.overlay,
+         settings->input.osk_overlay,
          menu_hash_to_str(MENU_LABEL_KEYBOARD_OVERLAY_PRESET),
          menu_hash_to_str(MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET),
          global->osk_overlay_dir,
@@ -6708,6 +6708,23 @@ static bool setting_append_list_overlay_options(
          general_read_handler);
    menu_settings_list_current_add_values(list, list_info, "cfg");
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
+   if (!global->overlay_osk_key)
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+   CONFIG_UINT(
+         settings->input.osk_scope,
+         "input_osk_overlay_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
    if (!global->overlay_osk_key)
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
