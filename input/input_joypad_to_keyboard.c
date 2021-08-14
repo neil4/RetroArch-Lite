@@ -14,6 +14,7 @@
  */
 
 #include "input_joypad_to_keyboard.h"
+#include "input_joypad.h"
 
 extern const struct retro_keybind *libretro_input_binds[];
 
@@ -265,23 +266,25 @@ static INLINE void input_joykbd_update_state(uint32_t btn_state)
  **/
 void input_joykbd_poll()
 {
-   uint32_t btn_state = driver_get_ptr()->overlay_state.buttons;
+   const input_device_driver_t *joypad;
+   uint32_t btn_state;
    uint8_t i;
 
    if (menu_driver_alive() || !joykbd_enabled)
       return;
 
-   input_driver_keyboard_mapping_set_block(true);
+   joypad    = input_driver_get_joypad_driver();
+   btn_state = driver_get_ptr()->overlay_state.buttons;
+
+   /* Assume keyboard to joypad binds are disabled */
    for (i = 0; i < NUM_JOYKBD_BTNS; i++)
    {
       if (joykbd_binds[i] == NULL)
          continue;
 
-      if (input_driver_state(libretro_input_binds,
-             0, RETRO_DEVICE_JOYPAD, 0, i))
+      if (input_joypad_pressed(joypad, 0, libretro_input_binds[0], i))
          btn_state |= (1 << i);
    }
-   input_driver_keyboard_mapping_set_block(false);
 
    input_joykbd_update_state(btn_state);
 }

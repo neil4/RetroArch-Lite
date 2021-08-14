@@ -1328,6 +1328,7 @@ void rarch_main_set_state(unsigned cmd)
                global->system.frame_time_last = 0;
             }
 
+            input_driver_keyboard_mapping_set_block(false);
             menu_entries_set_refresh();
             menu_driver_set_alive();
          }
@@ -1357,9 +1358,14 @@ void rarch_main_set_state(unsigned cmd)
          /* Prevent stray input from going to libretro core */
          driver->flushing_input = true;
 
-         /* Restore libretro keyboard callback. */
          if (global)
+         {
+            /* Restore libretro keyboard callback. */
             global->system.key_event = global->frontend_key_event;
+
+            if (global->keyboard_focus)
+               input_driver_keyboard_mapping_set_block(true);
+         }
 #endif
          video_driver_set_texture_enable(false, false);
          break;

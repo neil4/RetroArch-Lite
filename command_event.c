@@ -1490,21 +1490,22 @@ bool event_command(enum event_command cmd)
       case EVENT_CMD_VOLUME_DOWN:
          event_set_volume(-0.5f);
          break;
-      case EVENT_CMD_HOTKEYS_TOGGLE:
+      case EVENT_CMD_KEYBOARD_FOCUS_TOGGLE:
+         if (global->keyboard_focus)
          {
-            if (global->hotkeys_disabled)
-            {
-               global->hotkeys_disabled = false;
-               rarch_main_msg_queue_push("Hotkeys Enabled", 1, 120, true);
-            }
-            else
-            {
-               global->hotkeys_disabled = true;
-               rarch_main_msg_queue_push("Hotkeys Disabled", 1, 120, true);
-            }
-            RARCH_LOG("Hotkeys %s.\n",
-                     global->hotkeys_disabled ? "Enabled" : "Disabled");
+            global->keyboard_focus = false;
+            rarch_main_msg_queue_push("Keyboard Focus Disabled", 1, 120, true);
          }
+         else
+         {
+            global->keyboard_focus = true;
+            rarch_main_msg_queue_push("Keyboard Focus Enabled", 1, 120, true);
+         }
+         RARCH_LOG("Keyboard Focus %s.\n",
+               global->keyboard_focus ? "Enabled" : "Disabled");
+
+         if (!menu_driver_alive())
+            input_driver_keyboard_mapping_set_block(global->keyboard_focus);
          break;
       case EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS:
          input_joypad_update_analog_dpad_params();

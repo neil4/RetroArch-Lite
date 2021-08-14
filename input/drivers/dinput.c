@@ -250,7 +250,7 @@ static bool dinput_is_pressed(struct dinput_input *di,
    if (id >= RARCH_BIND_LIST_END)
       return false;
 
-   return (!di->blocked && dinput_keyboard_pressed(di, bind->key)) || 
+   return (!KEYMAP_BLOCKED(di,id) && dinput_keyboard_pressed(di, bind->key)) || 
       input_joypad_pressed(di->joypad, port, binds, id);
 }
 

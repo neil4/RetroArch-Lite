@@ -33,6 +33,8 @@ extern "C" {
 #define RETRO_DEVICE_ID_MOUSE_SCREEN_X 11
 #define RETRO_DEVICE_ID_MOUSE_SCREEN_Y 12
 
+#define KEYMAP_BLOCKED(drv, id) (drv->blocked && id != RARCH_TOGGLE_KEYBOARD_FOCUS)
+
 /* Input config. */
 struct input_bind_map
 {

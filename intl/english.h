@@ -69,7 +69,7 @@
 #define RETRO_LBL_OSK "Enable On-Screen Keyboard"
 #define RETRO_LBL_NETPLAY_FLIP "Netplay Flip Users"
 #define RETRO_LBL_SLOWMOTION "Slowmotion"
-#define RETRO_LBL_TOGGLE_HOTKEYS "Toggle Hotkeys"
+#define RETRO_LBL_TOGGLE_KEYBOARD_FOCUS "Toggle Keyboard Focus"
 #define RETRO_LBL_LIGHTGUN_TRIGGER "Lightgun Trigger"
 #define RETRO_LBL_LIGHTGUN_AUX_A "Lightgun Aux A"
 #define RETRO_LBL_LIGHTGUN_AUX_B "Lightgun Aux B"

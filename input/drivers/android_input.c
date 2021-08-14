@@ -1131,7 +1131,7 @@ static bool android_input_key_pressed(void *data, int key)
 
    return ((global->lifecycle_state | driver->overlay_state.buttons) & (1ULL << key))
           || input_joypad_pressed (android->joypad, 0, settings->input.binds[0], key)
-          || (!android->blocked && android_keyboard_port_input_pressed(settings->input.binds[0], key));
+          || (!KEYMAP_BLOCKED(android, key) && android_keyboard_port_input_pressed(settings->input.binds[0], key));
 }
 
 static void android_input_free_input(void *data)

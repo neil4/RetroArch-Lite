@@ -320,7 +320,7 @@ typedef struct global
    bool libretro_dummy;
    
    unsigned max_scope;
-   bool hotkeys_disabled;
+   bool keyboard_focus;
 
    retro_keyboard_event_t frontend_key_event;
 } global_t;

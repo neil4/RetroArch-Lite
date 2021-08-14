@@ -168,11 +168,13 @@ static int16_t input_state(unsigned port, unsigned device,
 
    if (!driver->block_libretro_input)
    {
-      if (id < RARCH_CUSTOM_BIND_LIST_END || device == RETRO_DEVICE_KEYBOARD)
+      if (id < RARCH_CUSTOM_BIND_LIST_END)
          res = input_driver_state(libretro_input_binds, port, device, idx, id);
-
-      if (device == RETRO_DEVICE_KEYBOARD)
+      else if (device == RETRO_DEVICE_KEYBOARD)
+      {
+         res = input_driver_state(libretro_input_binds, port, device, idx, id);
          res |= input_joykbd_state(id);
+      }
 
 #ifdef HAVE_OVERLAY
       if (settings->input.overlay_enable)

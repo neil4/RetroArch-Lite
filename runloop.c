@@ -377,8 +377,8 @@ static int do_pre_state_checks(event_cmd_state_t *cmd)
       do_state_check_menu_toggle();
 #endif
    
-   if (cmd->hotkeys_toggle_pressed)
-      event_command(EVENT_CMD_HOTKEYS_TOGGLE);
+   if (cmd->kbd_focus_toggle_pressed)
+      event_command(EVENT_CMD_KEYBOARD_FOCUS_TOGGLE);
 
    return 0;
 }
@@ -637,7 +637,6 @@ static bool check_block_hotkey(bool enable_hotkey)
    bool use_hotkey_enable;
    settings_t *settings             = config_get_ptr();
    driver_t *driver                 = driver_get_ptr();
-   global_t *global                 = global_get_ptr();
    const struct retro_keybind *bind = 
       &settings->input.binds[0][RARCH_ENABLE_HOTKEY];
    const struct retro_keybind *autoconf_bind = 
@@ -654,8 +653,8 @@ static bool check_block_hotkey(bool enable_hotkey)
       autoconf_bind->joyaxis != AXIS_NONE;
 
    driver->block_hotkey             = 
-      input_driver_keyboard_mapping_is_blocked()
-      || global->hotkeys_disabled
+      (input_driver_keyboard_mapping_is_blocked()
+         && menu_driver_alive())
       || (use_hotkey_enable && !enable_hotkey);
 
    /* If we hold ENABLE_HOTKEY button, block all libretro input to allow 
@@ -976,7 +975,7 @@ static void rarch_main_cmd_get_state(event_cmd_state_t *cmd,
    cmd->cheat_index_plus_pressed    = BIT64_GET(trigger_input, RARCH_CHEAT_INDEX_PLUS);
    cmd->cheat_index_minus_pressed   = BIT64_GET(trigger_input, RARCH_CHEAT_INDEX_MINUS);
    cmd->cheat_toggle_pressed        = BIT64_GET(trigger_input, RARCH_CHEAT_TOGGLE);
-   cmd->hotkeys_toggle_pressed      = BIT64_GET(trigger_input, RARCH_TOGGLE_HOTKEYS);
+   cmd->kbd_focus_toggle_pressed    = BIT64_GET(trigger_input, RARCH_TOGGLE_KEYBOARD_FOCUS);
 }
 
 /**
