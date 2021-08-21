@@ -49,6 +49,8 @@ static struct global *g_extern   = NULL;
 static slock_t *mq_lock = NULL;
 #endif
 
+#define QUIT_CONFIRM_MSG "Press again to quit..."
+
 /**
  * check_pause:
  * @pressed              : was libretro pause key pressed?
@@ -532,8 +534,19 @@ static INLINE int time_to_exit(event_cmd_state_t *cmd)
    uint64_t frame_count          = video_driver_get_frame_count();
    bool frame_count_end          = (runloop->frames.video.max && 
          frame_count >= runloop->frames.video.max);
+   bool quit_key_confirmed       = false;
+   const char *msg;
 
-   if (shutdown_pressed || cmd->quit_key_pressed || frame_count_end
+   if (cmd->quit_key_pressed)
+   {
+      msg = rarch_main_msg_queue_pull();
+      if (msg && !strcmp(msg, QUIT_CONFIRM_MSG))
+         quit_key_confirmed = true;
+      else
+         rarch_main_msg_queue_push(QUIT_CONFIRM_MSG, 1, 120, true);
+   }
+
+   if (shutdown_pressed || quit_key_confirmed || frame_count_end
          || !video_alive)
    {
       global->system.shutdown = true;
@@ -948,7 +961,7 @@ static void rarch_main_cmd_get_state(event_cmd_state_t *cmd,
 #ifdef HAVE_MENU
    cmd->menu_pressed                = BIT64_GET(trigger_input, RARCH_MENU_TOGGLE);
 #endif
-   cmd->quit_key_pressed            = BIT64_GET(input, RARCH_QUIT_KEY);
+   cmd->quit_key_pressed            = BIT64_GET(trigger_input, RARCH_QUIT_KEY);
    cmd->screenshot_pressed          = BIT64_GET(trigger_input, RARCH_SCREENSHOT);
    cmd->mute_pressed                = BIT64_GET(trigger_input, RARCH_MUTE);
    cmd->osk_pressed                 = BIT64_GET(trigger_input, RARCH_OSK);
