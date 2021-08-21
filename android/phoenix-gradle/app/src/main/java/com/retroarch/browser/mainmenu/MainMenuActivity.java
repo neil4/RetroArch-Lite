@@ -17,6 +17,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.core.content.ContextCompat;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -148,6 +149,22 @@ public final class MainMenuActivity extends FragmentActivity implements Director
          return true;
       }
       return super.onOptionsItemSelected(aItem);
+   }
+
+   @Override
+   public boolean onKeyDown (int keyCode,
+                             KeyEvent event)
+   {
+      ListView coreList = findViewById(R.id.list);
+
+      if (coreList.hasFocus()
+            && event.getAction() == android.view.KeyEvent.ACTION_DOWN
+            && keyCode == android.view.KeyEvent.KEYCODE_BUTTON_SELECT)
+      {
+         startActivity(new Intent(this, PreferenceActivity.class));
+      }
+
+      return super.onKeyDown(keyCode, event);
    }
    
    public void createList()
