@@ -399,14 +399,11 @@ static bool menu_input_retropad_bind_keyboard_cb(void *data, unsigned code)
    if (!menu_input)
       return false;
 
-   if (menu_input->binds.begin == MENU_SETTINGS_BIND_BEGIN)
-      last_code = RETROK_UNKNOWN;
-
    time_since_cb = rarch_get_time_usec() - last_cb_usec;
    last_cb_usec = rarch_get_time_usec();
 
    /* Guard against held or repeated keys */
-   if (time_since_cb > 100000 && code != last_code)
+   if (time_since_cb > 100000 || code != last_code)
    {
       last_code = code;
       menu_input->binds.target->key = (enum retro_key)code;
@@ -543,19 +540,6 @@ static int menu_input_bind_keyboard_stopcheck()
    return 0;
 }
 
-static int menu_input_bind_handle_timeout(menu_input_t *menu_input, bool hotkey_bind)
-{
-   if (hotkey_bind)
-   {
-      menu_input->binds.target->key = RETROK_UNKNOWN;
-      menu_input->binds.target->joykey = NO_BTN;
-   }
-   
-   menu_input->binds.begin = menu_input->binds.last + 1;
-   input_keyboard_wait_keys_cancel();
-   return 1;
-}
-
 int menu_input_bind_iterate(uint32_t label_hash)
 {
    int64_t current;
@@ -576,7 +560,11 @@ int menu_input_bind_iterate(uint32_t label_hash)
    timeout = (menu_input->binds.timeout_end - current) / 1000000;
    
    if (timeout <= 0)
-      return menu_input_bind_handle_timeout(menu_input, hotkey_bind);
+   {
+      menu_input->binds.begin = menu_input->binds.last + 1;
+      input_keyboard_wait_keys_cancel();
+      return 1;
+   }
 
    if (bind_mode_kb)  /* keyboard, all keys */
       strlcpy(fmt, "[%s]\npress keyboard\n(timeout %d seconds)", 64);

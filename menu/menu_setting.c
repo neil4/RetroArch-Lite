@@ -803,7 +803,7 @@ static int setting_bind_action_start(void *data)
    struct retro_keybind *keybind   = NULL;
    rarch_setting_t *setting        = (rarch_setting_t*)data;
    struct retro_keybind *def_binds = (struct retro_keybind *)retro_keybinds_1;
-   global_t                *global = global_get_ptr();
+   unsigned id;
 
    if (!setting)
       return -1;
@@ -812,20 +812,29 @@ static int setting_bind_action_start(void *data)
    if (!keybind)
       return -1;
 
-   if (!global->menu.bind_mode_keyboard)
-   {
-      keybind->joykey = NO_BTN;
-      keybind->joyaxis = AXIS_NONE;
-      return 0;
-   }
-
    if (setting->index_offset)
       def_binds = (struct retro_keybind*)retro_keybinds_rest;
 
    if (!def_binds)
       return -1;
 
-   keybind->key = def_binds[setting->bind_type - MENU_SETTINGS_BIND_BEGIN].key;
+   id = setting->bind_type - MENU_SETTINGS_BIND_BEGIN;
+
+   /* Assume intent is to clear binds if defaults are already set. */
+   if (keybind->key == def_binds[id].key &&
+       keybind->joykey == def_binds[id].joykey &&
+       keybind->joyaxis == def_binds[id].joyaxis)
+   {
+      keybind->key     = RETROK_UNKNOWN;
+      keybind->joykey  = NO_BTN;
+      keybind->joyaxis = AXIS_NONE;
+   }
+   else
+   {
+      keybind->key     = def_binds[id].key;
+      keybind->joykey  = def_binds[id].joykey;
+      keybind->joyaxis = def_binds[id].joyaxis;
+   }
 
    return 0;
 }
@@ -1369,6 +1378,7 @@ static int setting_action_ok_bind_defaults(void *data, bool wraparound)
    settings_t    *settings   = config_get_ptr();
    global_t      *global     = global_get_ptr();
    driver_t      *driver     = driver_get_ptr();
+   char buf[64];
 
    (void)wraparound;
 
@@ -1399,6 +1409,10 @@ static int setting_action_ok_bind_defaults(void *data, bool wraparound)
          target->joyaxis = AXIS_NONE;
       }
    }
+
+   snprintf(buf, sizeof(buf), "Default binds applied for User %u.",
+            setting->index_offset + 1);
+   rarch_main_msg_queue_push(buf, 1, 100, true);
 
    driver->flushing_input = true;
    return 0;
@@ -6968,7 +6982,7 @@ static bool setting_append_list_menu_options(
    CONFIG_BOOL(
          settings->menu.show_hotkey_menu,
          "show_hotkey_menu",
-         "Show Input Hotkey menu",
+         "Show Hotkey menu",
          show_hotkey_menu,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
