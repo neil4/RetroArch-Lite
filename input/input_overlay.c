@@ -343,7 +343,6 @@ static void input_overlay_desc_init_hitbox(struct overlay_desc *desc)
 static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc)
 {
    settings_t *settings = config_get_ptr();
-   global_t   *global   = global_get_ptr();
    float upper_bound = 0.5f + (0.5f * (1.0f / settings->input.overlay_scale));
    float lower_bound = 0.5f - (0.5f * (1.0f / settings->input.overlay_scale));
    
@@ -393,8 +392,7 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
    }
 
    /* adjust horizontal */
-   desc->x += settings->input.overlay_shift_x
-              * (global->overlay_reverse_shift_x ? -1.0f : 1.0f);
+   desc->x += settings->input.overlay_shift_x;
 
    /* make sure the button isn't entirely pushed off screen */
    if (desc->x > upper_bound)

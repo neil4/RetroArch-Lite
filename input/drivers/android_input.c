@@ -448,52 +448,6 @@ static void engine_handle_cmd(void)
    }
 }
 
-/* On Android 9, 180-degree screen rotations no longer trigger onConfigurationChanged.
- */
-static void *jni_update_rotation_thread(void* data)
-{
-   global_t *global = global_get_ptr();
-   JavaVM* p_jvm    = g_android->activity->vm;
-   JNIEnv* p_jenv;
-   pthread_mutex_t rotation_mutex;
-   static jint old_rotation;
-
-   (void)data;
-
-   if (!g_android->getRotation)
-   {
-      RARCH_ERR("jni_update_rotation_thread: getRotation is NULL. Exiting...\n");
-      return NULL;
-   }
-
-   jint status = (*p_jvm)->AttachCurrentThreadAsDaemon(p_jvm, &p_jenv, 0);
-   if (status < 0)
-   {
-      RARCH_ERR("jni_update_rotation_thread: Failed to attach current thread.\n");
-      return NULL;
-   }
-
-   pthread_mutex_init(&rotation_mutex, NULL);
-   pthread_mutex_lock(&rotation_mutex);
-
-   /* Sit and wait for rotation_flag.*/
-   for (;;)
-   {
-      pthread_cond_wait(&rotation_flag, &rotation_mutex);
-
-      CALL_INT_METHOD( p_jenv, g_android->screenRotation,
-                       g_android->activity->clazz, g_android->getRotation );
-
-      if (g_android->screenRotation != old_rotation)
-      {
-         global->overlay_reverse_shift_x = (g_android->screenRotation >= 2);
-         old_rotation = g_android->screenRotation;
-         input_overlay_notify_video_updated();
-      }
-      rarch_sleep(250);
-   }
-}
-
 static void android_update_rotation()
 {
    pthread_cond_signal(&rotation_flag);
@@ -564,7 +518,6 @@ static void *android_input_init(void)
 {  
    int32_t sdk;
    static pthread_t vibe_thread_id = 0;
-   static pthread_t rot_thread_id = 0;
    settings_t *settings = config_get_ptr();
    android_input_t *android = (android_input_t*)calloc(1, sizeof(*android));
 
@@ -585,11 +538,8 @@ static void *android_input_init(void)
    else
       engine_lookup_name = android_input_lookup_name_prekitkat;
 
-   /* Start listener threads if they aren't running. */
    if (!vibe_thread_id)
       pthread_create(&vibe_thread_id, NULL, jni_vibrate_thread, NULL);
-   if (!rot_thread_id)
-      pthread_create(&rot_thread_id, NULL, jni_update_rotation_thread, NULL);
 	  
    return android;
 }
