@@ -836,8 +836,9 @@ bool event_command(enum event_command cmd)
             netplay_disconnect();
          else
 #endif
-         if (driver->preempt_data)
-            preempt_reset_buffer(driver->preempt_data);
+         if (driver->preempt_data &&
+                !preempt_reset_buffer(driver->preempt_data))
+            deinit_preempt();
          break;
       case EVENT_CMD_RESIZE_WINDOWED_SCALE:
          if (global->pending.windowed_scale == 0)
@@ -878,8 +879,9 @@ bool event_command(enum event_command cmd)
             netplay_disconnect();
          else
 #endif
-         if (driver->preempt_data)
-            preempt_reset_buffer(driver->preempt_data);
+         if (driver->preempt_data &&
+                !preempt_reset_buffer(driver->preempt_data))
+            deinit_preempt();
          break;
       case EVENT_CMD_SAVE_STATE:
          if (settings->savestate_auto_index)

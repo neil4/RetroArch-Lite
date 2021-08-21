@@ -72,10 +72,10 @@ void update_preempt_frames();
 /**
  * preempt_reset_buffer
  * 
- * Fills preempt buffer with current state, to prevent potentially loading a
+ * Fills preempt buffer with current state to prevent potentially loading a
  * bad state after init or user state-load.
  */
-void preempt_reset_buffer();
+bool preempt_reset_buffer();
 
 #endif /* PREEMPT_H */
 

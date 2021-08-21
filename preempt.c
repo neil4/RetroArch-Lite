@@ -46,6 +46,8 @@ struct preempt
    bool in_preframe;
 };
 
+static bool preempt_allocating_mem;
+
 /**
  * preempt_in_preframe:
  * @preempt           : pointer to preempt object
@@ -55,7 +57,7 @@ struct preempt
 bool preempt_in_preframe(preempt_t *preempt)
 {
    if (!preempt)
-      return false;
+      return preempt_allocating_mem;
    return preempt->in_preframe;
 }
 
@@ -156,9 +158,7 @@ static bool preempt_init_buffer(preempt_t *preempt)
       }
    }
 
-   preempt_reset_buffer(preempt);
-
-   return true;
+   return preempt_reset_buffer(preempt);
 }
 
 /**
@@ -200,7 +200,7 @@ static preempt_t *preempt_new()
    return preempt;
 }
 
-static void preempt_update_serialize_size(preempt_t *preempt)
+static INLINE void preempt_update_serialize_size(preempt_t *preempt)
 {
    size_t i;
    for (i = 0; i < preempt->frames; i++)
@@ -211,6 +211,9 @@ static void preempt_update_serialize_size(preempt_t *preempt)
       deinit_preempt();
       return;
    }
+
+   preempt->in_preframe = false;
+   preempt->in_replay   = false;
 }
 
 /**
@@ -227,31 +230,30 @@ void preempt_pre_frame(preempt_t *preempt)
    
    if (preempt->in_replay)
    {
-      if (preempt->state_size < pretro_serialize_size())
-      {
-         preempt_update_serialize_size(preempt);
-         preempt->in_preframe = false;
-         preempt->in_replay   = false;
-         return;
-      }
-      pretro_unserialize(preempt->buffer[preempt->start_ptr],
-                         preempt->state_size);
+      if (!pretro_unserialize(preempt->buffer[preempt->start_ptr],
+             preempt->state_size))
+         return preempt_update_serialize_size(preempt);
+
       pretro_run();
       preempt->replay_ptr = PREEMPT_NEXT_PTR(preempt->start_ptr);
 
       while (preempt->replay_ptr != preempt->start_ptr)
       {
-         pretro_serialize(preempt->buffer[preempt->replay_ptr],
-                          preempt->state_size);
+         if (!pretro_serialize(preempt->buffer[preempt->start_ptr],
+                preempt->state_size))
+            return preempt_update_serialize_size(preempt);
+
          pretro_run();
          preempt->replay_ptr = PREEMPT_NEXT_PTR(preempt->replay_ptr);
       }
       preempt->in_replay = false;
    }
    
-   /* Save current state, and update start_ptr to point to oldest state. */
-   pretro_serialize(preempt->buffer[preempt->start_ptr],
-                    preempt->state_size);
+   /* Save current state and update start_ptr to point to oldest state. */
+   if (!pretro_serialize(preempt->buffer[preempt->start_ptr],
+          preempt->state_size))
+      return preempt_update_serialize_size(preempt);
+
    preempt->start_ptr = PREEMPT_NEXT_PTR(preempt->start_ptr);
    preempt->in_preframe = false;
 }
@@ -291,7 +293,7 @@ bool init_preempt(void)
       RARCH_WARN("Cannot use Preemptive Frames during Netplay.\n");
       return false;
    }
-   
+
    if (pretro_serialize_size() == 0)
    {
       RARCH_WARN("Preemptive Frames init failed. "
@@ -303,7 +305,10 @@ bool init_preempt(void)
 
    RARCH_LOG("Initializing Preemptive Frames.\n");
 
+   preempt_allocating_mem = true;
    driver->preempt_data = preempt_new();
+   preempt_allocating_mem = false;
+
    if (!driver->preempt_data)
    {
       RARCH_WARN("Failed to initialize Preemptive Frames.\n");
@@ -331,17 +336,25 @@ void update_preempt_frames()
 /**
  * preempt_reset_buffer
  * 
- * Fills preempt buffer with current state, to prevent potentially loading a
+ * Fills preempt buffer with current state to prevent potentially loading a
  * bad state after init, reset, or user load-state.
  */
-void preempt_reset_buffer(preempt_t *preempt)
+bool preempt_reset_buffer(preempt_t *preempt)
 {
    unsigned i;
-   
+
    preempt->start_ptr = 0;
-   
-   pretro_serialize(preempt->buffer[0], preempt->state_size);
+
+   if (!pretro_serialize(preempt->buffer[0], preempt->state_size))
+   {
+      RARCH_WARN("Failed to serialize state for Preemptive Frames.");
+      rarch_main_msg_queue_push("Failed to serialize state for "
+         "Preemptive Frames.", 0, 180, false);
+      return false;
+   }
    
    for (i = 1; i < preempt->frames; i++)
       memcpy(preempt->buffer[i], preempt->buffer[0], preempt->state_size);
+
+   return true;
 }
