@@ -239,7 +239,7 @@ void preempt_pre_frame(preempt_t *preempt)
 
       while (preempt->replay_ptr != preempt->start_ptr)
       {
-         if (!pretro_serialize(preempt->buffer[preempt->start_ptr],
+         if (!pretro_serialize(preempt->buffer[preempt->replay_ptr],
                 preempt->state_size))
             return preempt_update_serialize_size(preempt);
 
