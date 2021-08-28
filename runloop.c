@@ -602,7 +602,7 @@ static void rarch_limit_frame_time()
    retro_time_t current                 = rarch_get_time_usec();
    double mft_f;
    
-   double throttled_fps = settings->throttle_using_core_fps || driver->netplay_data ?
+   double throttled_fps = settings->throttle_using_core_fps ?
                           video_viewport_get_system_av_info()->timing.fps
                           : settings->video.refresh_rate;
    
@@ -624,9 +624,9 @@ static void rarch_limit_frame_time()
 
    runloop->frames.limit.minimum_time = (retro_time_t) roundf(mft_f);
 
-   target        = runloop->frames.limit.last_time
-                   + runloop->frames.limit.minimum_time;
-   to_sleep_ms   = (target - current) / 1000;
+   target      = runloop->frames.limit.last_time
+                    + runloop->frames.limit.minimum_time;
+   to_sleep_ms = (target - current) / 1000;
 
    if (to_sleep_ms <= 0)
    {

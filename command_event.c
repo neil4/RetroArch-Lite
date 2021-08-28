@@ -780,7 +780,7 @@ bool event_command(enum event_command cmd)
             if (!global->libretro_no_content)
                global->max_scope = NUM_SETTING_SCOPES-1;
             runloop->is_paused = false;
-            rarch_main_msg_queue_push("", 0, 1, true);
+            msg_queue_clear(runloop->msg_queue);
          }
 
          break;
@@ -1216,7 +1216,7 @@ bool event_command(enum event_command cmd)
          {
             RARCH_LOG("Unpaused.\n");
             event_command(EVENT_CMD_AUDIO_START);
-            rarch_main_msg_queue_push("", 0, 1, true);
+            msg_queue_clear(runloop->msg_queue);
          }
          break;
       case EVENT_CMD_PAUSE_TOGGLE:
