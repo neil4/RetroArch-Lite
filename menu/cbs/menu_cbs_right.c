@@ -474,8 +474,8 @@ static int action_right_options_file_scope(unsigned type, const char *label,
 
    if (core_options_scope < global->max_scope)
    {
-      core_options_scope += 1;
-      options_touched     = true;
+      core_options_scope   += 1;
+      core_options_touched = true;
    }
    return 0;
 }
@@ -486,8 +486,8 @@ static int action_r_options_file_scope(unsigned type, const char *label)
 
    if (core_options_scope < global->max_scope)
    {
-      core_options_scope = global->max_scope;
-      options_touched    = true;
+      core_options_scope   = global->max_scope;
+      core_options_touched = true;
    }
    return 0;
 }

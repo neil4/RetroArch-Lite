@@ -230,6 +230,7 @@ extern "C" {
 #define MENU_LABEL_VALUE_LOAD_CONTENT                                          0x755f3680U
 #define MENU_LABEL_VALUE_CORE_UPDATER_LIST                                     0x0372767dU
 #define MENU_LABEL_CORE_UPDATER_LIST                                           0xe12f4ee3U
+#define MENU_LABEL_DOWNLOADABLE_CORE                                           0x4d82fb99U
 #define MENU_LABEL_UNLOAD_CORE                                                 0x4b622170U
 #define MENU_LABEL_VALUE_UNLOAD_CORE                                           0x9b45e571U
 #define MENU_LABEL_QUIT_RETROARCH                                              0x84b0bc71U
@@ -243,7 +244,6 @@ extern "C" {
 #define MENU_LABEL_PERFORMANCE_COUNTERS                                        0xd8ab5049U
 #define MENU_LABEL_VALUE_PERFORMANCE_COUNTERS                                  0x20eb18caU
 #define MENU_LABEL_CORE_LIST                                                   0xa8c3bfc9U
-#define MENU_LABEL_OPTIONS                                                     0x71f05091U
 #define MENU_LABEL_VALUE_OPTIONS                                               0xd2a8b871U
 #define MENU_LABEL_SETTINGS                                                    0x1304dc16U
 #define MENU_LABEL_FRONTEND_COUNTERS                                           0xe5696877U
@@ -258,6 +258,7 @@ extern "C" {
 #define MENU_LABEL_DISK_OPTIONS                                                0xe087bf5bU
 #define MENU_LABEL_VALUE_DISK_OPTIONS                                          0xbee508e5U
 #define MENU_LABEL_CORE_OPTIONS                                                0xf65e60f9U
+#define MENU_LABEL_CORE_OPTION                                                 0xf03167c6U
 #define MENU_LABEL_CORE_OPTION_CATEGORY                                        0xbd3a46d6U
 #define MENU_LABEL_CORE_OPTION_CATEGORIES                                      0x2bec2a6bU
 #define MENU_LABEL_DISK_CYCLE_TRAY_STATUS                                      0x3035cdc1U

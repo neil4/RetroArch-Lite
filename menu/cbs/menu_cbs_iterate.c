@@ -206,17 +206,6 @@ static int action_iterate_help(char *s, size_t len, const char *label)
    return 0;
 }
 
-static INLINE void action_iterate_get_core_desc(char *s, size_t len,
-                                                const char* path)
-{
-   global_t *global = global_get_ptr();
-   char key[NAME_MAX_LENGTH];
-   path_libretro_name(key, path);
-
-   if (!core_info_list_get_description(global->core_info_dl, key, s, len, true))
-      snprintf(s, len, "-- No description available for this core --");
-}
-
 static int action_iterate_info(char *s, size_t len, const char *label)
 {
    int ret = 0;
@@ -226,7 +215,6 @@ static int action_iterate_info(char *s, size_t len, const char *label)
    rarch_setting_t *current_setting = NULL;
    file_list_t *list                = NULL;
    menu_list_t *menu_list           = menu_list_get_ptr();
-   global_t *global                 = global_get_ptr();
    size_t selection                 = menu_navigation_get_current_selection();
    const char *path;
 
@@ -255,12 +243,7 @@ static int action_iterate_info(char *s, size_t len, const char *label)
          strlcpy(needle, lbl, sizeof(needle));
    }
 
-   if (info_type >= MENU_SETTINGS_CORE_OPTION_START)
-      core_option_get_info(global->system.core_options, s, len, info_type);
-   else if (info_type == MENU_FILE_DOWNLOAD_CORE)
-      action_iterate_get_core_desc(s, len, path);
-   else
-      setting_get_description(needle, s, len, entry_idx);
+   setting_get_description(needle, s, len, path, info_type, entry_idx);
 
    return ret;
 }

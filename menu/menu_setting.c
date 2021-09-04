@@ -2440,8 +2440,20 @@ static rarch_setting_t setting_string_setting_options(enum setting_type type,
   return result;
 }
 
+static INLINE void setting_get_dl_core_info(char *s, size_t len,
+                                            const char* path)
+{
+   global_t *global = global_get_ptr();
+   char key[NAME_MAX_LENGTH];
+   path_libretro_name(key, path);
+
+   if (!core_info_list_get_description(global->core_info_dl, key, s, len, true))
+      snprintf(s, len, "-- No description available for this core --");
+}
+
 static int setting_get_description_compare_label(uint32_t label_hash,
-      settings_t *settings, char *s, size_t len, unsigned entry_idx)
+      settings_t *settings, char *s, size_t len,
+      const char *path, unsigned type, unsigned entry_idx)
 {
    uint32_t driver_hash = 0;
 
@@ -3368,6 +3380,13 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                   "inside the menu and RetroArch won't \n"
                   "shutdown.");
          break;
+      case MENU_LABEL_DOWNLOADABLE_CORE:
+         setting_get_dl_core_info(s, len, path);
+         break;
+      case MENU_LABEL_CORE_OPTION:
+         core_option_get_info(
+               global_get_ptr()->system.core_options, s, len, type);
+         break;
       case MENU_LABEL_CORE_OPTION_CATEGORY:
          core_option_get_info(
                global_get_ptr()->system.core_options, s, len, entry_idx);
@@ -3405,6 +3424,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
  * @label              : identifier label of setting
  * @s                  : output message 
  * @len                : size of @s
+ * @path               : path string of menu entry
  * @entry_idx          : entry_idx of menu entry
  *
  * Writes a 'Help' description message to @s if there is
@@ -3414,13 +3434,13 @@ static int setting_get_description_compare_label(uint32_t label_hash,
  * Returns: 0 (always for now). TODO: make it handle -1 as well.
  **/
 int setting_get_description(const char *label, char *s, size_t len,
-                            unsigned entry_idx)
+      const char *path, unsigned type, unsigned entry_idx)
 {
    settings_t      *settings = config_get_ptr();
    uint32_t label_hash       = menu_hash_calculate(label);
 
    if (setting_get_description_compare_label(
-            label_hash, settings, s, len, entry_idx) == 0)
+            label_hash, settings, s, len, path, type, entry_idx) == 0)
       return 0;
 
    snprintf(s, len,
@@ -3965,7 +3985,7 @@ static bool setting_append_list_main_menu_options(
 
    if (global->content_is_init)
       CONFIG_ACTION(
-            menu_hash_to_str(MENU_LABEL_OPTIONS),
+            menu_hash_to_str(MENU_LABEL_CORE_OPTIONS),
             menu_hash_to_str(MENU_LABEL_VALUE_OPTIONS),
             group_info.name,
             subgroup_info.name,

@@ -26,7 +26,7 @@
 #include <string/stdstring.h>
 #include "menu/menu.h"
 
-bool options_touched    = false;
+bool core_options_touched = false;
 unsigned core_options_scope = THIS_CORE;
 
 struct core_option
@@ -60,45 +60,45 @@ struct core_option_manager
 
 /**
  * core_option_free:
- * @opt              : options manager handle
+ * @opt_mgr        : options manager handle
  *
  * Frees core option manager handle.
  **/
-void core_option_free(core_option_manager_t *opt)
+void core_option_free(core_option_manager_t *opt_mgr)
 {
    size_t i;
 
-   if (!opt)
+   if (!opt_mgr)
       return;
 
-   for (i = 0; i < opt->size; i++)
+   for (i = 0; i < opt_mgr->size; i++)
    {
-      free(opt->opts[i].desc);
-      free(opt->opts[i].key);
-      free(opt->opts[i].category_key);
-      free(opt->opts[i].info);
-      string_list_free(opt->opts[i].vals);
-      string_list_free(opt->opts[i].labels);
+      free(opt_mgr->opts[i].desc);
+      free(opt_mgr->opts[i].key);
+      free(opt_mgr->opts[i].category_key);
+      free(opt_mgr->opts[i].info);
+      string_list_free(opt_mgr->opts[i].vals);
+      string_list_free(opt_mgr->opts[i].labels);
    }
 
-   if (opt->conf)
-      config_file_free(opt->conf);
-   free(opt->opts);
-   free(opt->index_map);
-   free(opt);
+   if (opt_mgr->conf)
+      config_file_free(opt_mgr->conf);
+   free(opt_mgr->opts);
+   free(opt_mgr->index_map);
+   free(opt_mgr);
 }
 
-void core_option_get(core_option_manager_t *opt, struct retro_variable *var)
+void core_option_get(core_option_manager_t *opt_mgr, struct retro_variable *var)
 {
    size_t i;
 
-   opt->updated = false;
+   opt_mgr->updated = false;
 
-   for (i = 0; i < opt->num_opts; i++)
+   for (i = 0; i < opt_mgr->num_opts; i++)
    {
-      if (!strcmp(opt->opts[i].key, var->key))
+      if (!strcmp(opt_mgr->opts[i].key, var->key))
       {
-         var->value = core_option_get_val(opt, i);
+         var->value = core_option_val(opt_mgr, i);
          return;
       }
    }
@@ -106,7 +106,7 @@ void core_option_get(core_option_manager_t *opt, struct retro_variable *var)
    var->value = NULL;
 }
 
-static void core_option_copy_info_as_messagebox(struct core_option *option,
+static void core_option_wrap_info_to_messagebox(struct core_option *option,
       const char *desc, const char *info)
 {
    char title[NAME_MAX_LENGTH];
@@ -220,7 +220,7 @@ static bool parse_v2_option(
       info                 = option_def->info;
 
    if (!string_is_empty(info))
-      core_option_copy_info_as_messagebox(option, option->desc, info);
+      core_option_wrap_info_to_messagebox(option, option->desc, info);
 
    return parse_option_vals(option, opt_mgr->conf,
          option_def->values, option_def->default_value);
@@ -242,7 +242,7 @@ static void parse_v2_category(
       info      = NULL;
 
    if (!string_is_empty(info))
-      core_option_copy_info_as_messagebox(option, option->desc, info);
+      core_option_wrap_info_to_messagebox(option, option->desc, info);
 }
 
 static bool parse_v1_option(
@@ -258,14 +258,14 @@ static bool parse_v1_option(
       option->desc = strdup(option_def->desc);
 
    if (!string_is_empty(option->desc) && !string_is_empty(option_def->info))
-      core_option_copy_info_as_messagebox(
+      core_option_wrap_info_to_messagebox(
             option, option->desc, option_def->info);
 
    return parse_option_vals(option, opt_mgr->conf,
          option_def->values, option_def->default_value);
 }
 
-static bool parse_legacy_variable(core_option_manager_t *opt, size_t idx,
+static bool parse_legacy_variable(core_option_manager_t *opt_mgr, size_t idx,
       const struct retro_variable *var)
 {
    size_t i;
@@ -273,7 +273,7 @@ static bool parse_legacy_variable(core_option_manager_t *opt, size_t idx,
    char *value                = NULL;
    char *desc_end             = NULL;
    char *config_val           = NULL;
-   struct core_option *option = (struct core_option*)&opt->opts[idx];
+   struct core_option *option = (struct core_option*)&opt_mgr->opts[idx];
 
    if (!option)
       return false;
@@ -302,7 +302,7 @@ static bool parse_legacy_variable(core_option_manager_t *opt, size_t idx,
 
    option->default_index = 0;
 
-   if (config_get_string(opt->conf, option->key, &config_val))
+   if (config_get_string(opt_mgr->conf, option->key, &config_val))
    {
       for (i = 0; i < option->vals->size; i++)
       {
@@ -565,28 +565,28 @@ finish:
    path_basedir(path);
    path_mkdir(path);
 
-   options_touched = false;
+   core_options_touched = false;
 }
 
 /**
  * core_option_set_visible:
- * @opt                   : options manager handle
+ * @opt_mgr               : options manager handle
  * @key                   : String id of core_option
  * @visible               : False if option should be hidden in menu
  */
-void core_option_set_visible(core_option_manager_t *opt,
+void core_option_set_visible(core_option_manager_t *opt_mgr,
                              const char* key, bool visible)
 {
    unsigned i;
 
-   if (!opt || !key)
+   if (!opt_mgr || !key)
       return;
 
-   for (i = 0; i < opt->num_opts; i++)
+   for (i = 0; i < opt_mgr->num_opts; i++)
    {
-      if (!strcmp(opt->opts[i].key, key))
+      if (!strcmp(opt_mgr->opts[i].key, key))
       {
-         opt->opts[i].hide = !visible;
+         opt_mgr->opts[i].hide = !visible;
          menu_entries_set_refresh();
          return;
       }
@@ -629,33 +629,34 @@ void core_option_update_category_visibilities(core_option_manager_t *opt_mgr)
 
 /**
  * core_option_index:
- * @opt             : options manager handle
+ * @opt_mgr         : options manager handle
  * @type            : option index or menu entry type
  *
  * Returns: Index of core option
  */
-static INLINE unsigned core_option_index(core_option_manager_t *opt,
+static INLINE unsigned core_option_index(core_option_manager_t *opt_mgr,
                                          const unsigned type)
 {
    if (type >= MENU_SETTINGS_CORE_OPTION_START)
-      return opt->index_map[type - MENU_SETTINGS_CORE_OPTION_START];
+      return opt_mgr->index_map[type - MENU_SETTINGS_CORE_OPTION_START];
    return type;
 }
 
 /**
  * core_option_updated:
- * @opt               : options manager handle
+ * @opt_mgr           : options manager handle
  *
- * Has a core option been updated?
+ * Has a core option been updated since the last
+ * call to RETRO_ENVIRONMENT_GET_VARIABLE?
  *
  * Returns: true (1) if a core option has been updated,
  * otherwise false (0).
  **/
-bool core_option_updated(core_option_manager_t *opt)
+bool core_option_updated(core_option_manager_t *opt_mgr)
 {
-   if (!opt)
+   if (!opt_mgr)
       return false;
-   return opt->updated;
+   return opt_mgr->updated;
 }
 
 static void core_options_delete_unscoped()
@@ -677,7 +678,7 @@ static void core_options_delete_unscoped()
 
 /**
  * core_option_flush:
- * @opt              : options manager handle
+ * @opt_mgr         : options manager handle
  *
  * Writes core option key-pair values to file. Also deletes option
  * files as necessary if core_options_scope was changed.
@@ -685,32 +686,33 @@ static void core_options_delete_unscoped()
  * Returns: true (1) if core option values could be
  * successfully saved to disk, otherwise false (0).
  **/
-bool core_option_flush(core_option_manager_t *opt)
+bool core_option_flush(core_option_manager_t *opt_mgr)
 {
    bool ret;
    size_t i;
 
-   if (!opt)
+   if (!opt_mgr)
       return false;
 
    /* Match conf to current scope. */
-   core_option_get_conf_path(opt->conf_path, core_options_scope);
-   core_options_conf_reload(opt);
+   core_option_get_conf_path(opt_mgr->conf_path, core_options_scope);
+   core_options_conf_reload(opt_mgr);
 
-   for (i = 0; i < opt->num_opts; i++)
+   for (i = 0; i < opt_mgr->num_opts; i++)
    {
-      struct core_option *option = (struct core_option*)&opt->opts[i];
+      struct core_option *option = (struct core_option*)&opt_mgr->opts[i];
 
       if (option)
-         config_set_string(opt->conf, option->key, core_option_get_val(opt, i));
+         config_set_string(
+               opt_mgr->conf, option->key, core_option_val(opt_mgr, i));
    }
 
-   ret = config_file_write(opt->conf, opt->conf_path);
+   ret = config_file_write(opt_mgr->conf, opt_mgr->conf_path);
 
    if (ret)
    {
       core_options_delete_unscoped();
-      options_touched = false;
+      core_options_touched = false;
    }
 
    return ret;
@@ -718,49 +720,49 @@ bool core_option_flush(core_option_manager_t *opt)
 
 /**
  * core_option_size:
- * @opt              : options manager handle
+ * @opt_mgr        : options manager handle
  *
  * Returns: Total number of options and categories.
  **/
-size_t core_option_size(core_option_manager_t *opt)
+size_t core_option_size(core_option_manager_t *opt_mgr)
 {
-   if (!opt)
+   if (!opt_mgr)
       return 0;
-   return opt->size;
+   return opt_mgr->size;
 }
 
 /**
  * core_option_set_menu_offset:
- * @opt                       : options manager handle
- * @idx                       : index of option in @opt
+ * @opt_mgr                   : options manager handle
+ * @idx                       : index of option in @opt_mgr
  * @menu_offset               : offset from first option in menu display list
  *
  * Maps @idx to a menu entry. Required to index core option by menu entry type.
  */
-void core_option_set_menu_offset(core_option_manager_t *opt,
+void core_option_set_menu_offset(core_option_manager_t *opt_mgr,
                                  unsigned idx, unsigned menu_offset)
 {
-   if (!opt || idx >= opt->size || menu_offset >= opt->size)
+   if (!opt_mgr || idx >= opt_mgr->size || menu_offset >= opt_mgr->size)
       return;
-   opt->index_map[menu_offset] = idx;
+   opt_mgr->index_map[menu_offset] = idx;
 }
 
 /**
- * core_option_get_desc:
- * @opt                : options manager handle
- * @idx                : option index or menu entry type
+ * core_option_desc:
+ * @opt_mgr        : options manager handle
+ * @idx            : option index or menu entry type
  *
  * Gets description for an option.
  *
  * Returns: Description for an option.
  **/
-const char *core_option_get_desc(core_option_manager_t *opt, size_t idx)
+const char *core_option_desc(core_option_manager_t *opt_mgr, size_t idx)
 {
-   if (!opt)
+   if (!opt_mgr)
       return NULL;
 
-   idx = core_option_index(opt, idx);
-   return opt->opts[idx].desc;
+   idx = core_option_index(opt_mgr, idx);
+   return opt_mgr->opts[idx].desc;
 }
 
 const char *core_option_key(core_option_manager_t *opt_mgr, size_t idx)
@@ -773,22 +775,22 @@ const char *core_option_key(core_option_manager_t *opt_mgr, size_t idx)
 }
 
 /**
- * core_option_get_val:
- * @opt               : options manager handle
- * @idx               : option index or menu entry type
+ * core_option_val:
+ * @opt_mgr       : options manager handle
+ * @idx           : option index or menu entry type
  *
  * Gets value for an option.
  *
  * Returns: Value for an option.
  **/
-const char *core_option_get_val(core_option_manager_t *opt, size_t idx)
+const char *core_option_val(core_option_manager_t *opt_mgr, size_t idx)
 {
    struct core_option *option;
-   if (!opt)
+   if (!opt_mgr)
       return NULL;
 
-   idx = core_option_index(opt, idx);
-   option = (struct core_option*)&opt->opts[idx];
+   idx = core_option_index(opt_mgr, idx);
+   option = (struct core_option*)&opt_mgr->opts[idx];
 
    if (!option)
       return NULL;
@@ -796,20 +798,20 @@ const char *core_option_get_val(core_option_manager_t *opt, size_t idx)
 }
 
 /**
- * core_option_get_label:
- * @opt              : options manager handle
- * @idx              : option index or menu entry type
+ * core_option_label:
+ * @opt_mgr         : options manager handle
+ * @idx             : option index or menu entry type
  *
  * Gets label for an option value.
  *
  * Returns: Label for an option value.
  **/
-const char *core_option_get_label(core_option_manager_t *opt, size_t idx)
+const char *core_option_label(core_option_manager_t *opt_mgr, size_t idx)
 {
    struct core_option *option;
 
-   idx = core_option_index(opt, idx);
-   option = (struct core_option*)&opt->opts[idx];
+   idx = core_option_index(opt_mgr, idx);
+   option = (struct core_option*)&opt_mgr->opts[idx];
 
    if (!option)
       return NULL;
@@ -821,29 +823,29 @@ const char *core_option_get_label(core_option_manager_t *opt, size_t idx)
 
 /**
  * core_option_is_hidden:
- * @opt                 : options manager handle
+ * @opt_mgr             : options manager handle
  * @idx                 : index identifier of the option
  *
  * Returns: True if option should be hidden in menu, false if not
  */
-bool core_option_is_hidden(core_option_manager_t *opt, size_t idx)
+bool core_option_is_hidden(core_option_manager_t *opt_mgr, size_t idx)
 {
    struct core_option *option;
 
-   if (!opt || idx >= opt->size)
+   if (!opt_mgr || idx >= opt_mgr->size)
       return true;
 
-   option = &opt->opts[idx];
+   option = &opt_mgr->opts[idx];
 
    /* Explicit */
    if (option->hide)
       return true;
 
    /* Hidden by category */
-   if (opt->category_key != NULL && option->category_key != NULL)
-      return (strcmp(opt->category_key, option->category_key) != 0);
+   if (opt_mgr->category_key != NULL && option->category_key != NULL)
+      return (strcmp(opt_mgr->category_key, option->category_key) != 0);
    else
-      return (opt->category_key != NULL || option->category_key != NULL);
+      return (opt_mgr->category_key != NULL || option->category_key != NULL);
 }
 
 /**
@@ -895,22 +897,22 @@ const char* core_option_category_desc(core_option_manager_t *opt_mgr)
 
 /**
  * core_option_get_info:
- * @opt                : options manager handle
+ * @opt_mgr            : options manager handle
  * @s                  : output message
  * @len                : size of @s
  * @idx                : option index or menu entry type
  *
  * Gets info message text describing an option.
  */
-void core_option_get_info(core_option_manager_t *opt,
+void core_option_get_info(core_option_manager_t *opt_mgr,
                           char *s, size_t len, size_t idx)
 {
    char *info;
-   if (!opt)
+   if (!opt_mgr)
       return;
 
-   idx = core_option_index(opt, idx);
-   info = opt->opts[idx].info;
+   idx = core_option_index(opt_mgr, idx);
+   info = opt_mgr->opts[idx].info;
 
    if (!info || !*info)
       strlcpy(s, "-- No info on this item is available. --\n", len);
@@ -919,38 +921,37 @@ void core_option_get_info(core_option_manager_t *opt,
 }
 
 /**
- * core_option_get_vals:
- * @opt                : pointer to core option manager object.
- * @idx                : option index or menu entry type
- *
- * Gets list of core option values from core option specified by @idx.
+ * core_option_vals:
+ * @opt_mgr        : pointer to core option manager object.
+ * @idx            : option index or menu entry type
  *
  * Returns: string list of core option values if successful, otherwise
  * NULL.
  **/
-struct string_list *core_option_get_vals(core_option_manager_t *opt, size_t idx)
+struct string_list *core_option_vals(core_option_manager_t *opt_mgr,
+                                     size_t idx)
 {
-   if (!opt)
+   if (!opt_mgr)
       return NULL;
-   idx = core_option_index(opt, idx);
-   return opt->opts[idx].vals;
+   idx = core_option_index(opt_mgr, idx);
+   return opt_mgr->opts[idx].vals;
 }
 
-void core_option_set_val(core_option_manager_t *opt,
+void core_option_set_val(core_option_manager_t *opt_mgr,
       size_t idx, size_t val_idx)
 {
-   if (!opt)
+   if (!opt_mgr)
       return;
 
-   idx = core_option_index(opt, idx);
-   opt->opts[idx].index = val_idx % opt->opts[idx].vals->size;
-   opt->updated         = true;
-   options_touched      = true;
+   idx = core_option_index(opt_mgr, idx);
+   opt_mgr->opts[idx].index = val_idx % opt_mgr->opts[idx].vals->size;
+   opt_mgr->updated         = true;  /* need sync with core */
+   core_options_touched     = true;  /* need flush to disk */
 }
 
 /* Returns the string_list index of the @option value matching @val */
-static size_t core_option_get_val_index(struct core_option *option,
-                                        const char *val)
+static size_t core_option_val_index(struct core_option *option,
+                                    const char *val)
 {
    struct string_list *vals;
    size_t i;
@@ -971,13 +972,13 @@ static size_t core_option_get_val_index(struct core_option *option,
 
 /**
  * core_option_update_vals_from_file:
- * @opt                             : pointer to core option manager object.
+ * @opt_mgr                         : pointer to core option manager object.
  * @path                            : options file path
  *
- * Updates @opt values from the contents of @path.
- * Does not add or remove @opt entries.
+ * Updates option values from the contents of @path.
+ * Does not add or remove @opt_mgr entries.
  */
-void core_option_update_vals_from_file(core_option_manager_t *opt,
+void core_option_update_vals_from_file(core_option_manager_t *opt_mgr,
                                        const char *path)
 {
    config_file_t *conf;
@@ -988,133 +989,135 @@ void core_option_update_vals_from_file(core_option_manager_t *opt,
    if (!conf)
       return;
 
-   for (i = 0; i < opt->num_opts; i++)
+   for (i = 0; i < opt_mgr->num_opts; i++)
    {
-      struct core_option *option = &opt->opts[i];
+      struct core_option *option = &opt_mgr->opts[i];
 
       if (config_get_string(conf, option->key, &conf_val))
       {
-         option->index = core_option_get_val_index(option, conf_val);
+         option->index = core_option_val_index(option, conf_val);
          free(conf_val);
       }
    }
 
-   opt->updated    = true;
-   options_touched = true;
+   opt_mgr->updated     = true;  /* need sync with core */
+   core_options_touched = true;  /* need flush to disk */
    config_file_free(conf);
 }
 
 /**
  * core_option_next:
- * @opt            : pointer to core option manager object.
+ * @opt_mgr        : pointer to core option manager object.
  * @idx            : option index or menu entry type
  *
  * Get next value for core option specified by @idx.
  * Options wrap around.
  **/
-void core_option_next(core_option_manager_t *opt, size_t idx)
+void core_option_next(core_option_manager_t *opt_mgr, size_t idx)
 {
    struct core_option *option;
-   if (!opt)
+   if (!opt_mgr)
       return;
 
-   idx = core_option_index(opt, idx);
-   option = (struct core_option*)&opt->opts[idx];
+   idx = core_option_index(opt_mgr, idx);
+   option = (struct core_option*)&opt_mgr->opts[idx];
 
-   option->index   = (option->index + 1) % option->vals->size;
-   opt->updated    = true;
-   options_touched = true;
+   option->index        = (option->index + 1) % option->vals->size;
+   opt_mgr->updated     = true;  /* need sync with core */
+   core_options_touched = true;  /* need flush to disk */
 }
 
 /**
  * core_option_prev:
- * @opt            : pointer to core option manager object.
+ * @opt_mgr        : pointer to core option manager object.
  * @idx            : option index or menu entry type
  * Options wrap around.
  *
  * Get previous value for core option specified by @idx.
  * Options wrap around.
  **/
-void core_option_prev(core_option_manager_t *opt, size_t idx)
+void core_option_prev(core_option_manager_t *opt_mgr, size_t idx)
 {
    struct core_option *option;
-   if (!opt)
+   if (!opt_mgr)
       return;
 
-   idx = core_option_index(opt, idx);
-   option = (struct core_option*)&opt->opts[idx];
+   idx = core_option_index(opt_mgr, idx);
+   option = (struct core_option*)&opt_mgr->opts[idx];
 
-   option->index   = (option->index + option->vals->size - 1) %
-      option->vals->size;
-   opt->updated    = true;
-   options_touched = true;
+   option->index = (option->index + option->vals->size - 1) %
+         option->vals->size;
+
+   opt_mgr->updated     = true;  /* need sync with core */
+   core_options_touched = true;  /* need flush to disk */
 }
 
 /**
  * core_option_set_default:
- * @opt                   : pointer to core option manager object.
+ * @opt_mgr               : pointer to core option manager object.
  * @idx                   : option index or menu entry type
  *
  * Reset core option specified by @idx and sets default value for option.
  **/
-void core_option_set_default(core_option_manager_t *opt, size_t idx)
+void core_option_set_default(core_option_manager_t *opt_mgr, size_t idx)
 {
-   if (!opt)
+   if (!opt_mgr)
       return;
 
-   idx                  = core_option_index(opt, idx);
-   opt->opts[idx].index = opt->opts[idx].default_index;
-   opt->updated         = true;
-   options_touched      = true;
+   idx                      = core_option_index(opt_mgr, idx);
+   opt_mgr->opts[idx].index = opt_mgr->opts[idx].default_index;
+
+   opt_mgr->updated         = true;  /* need sync with core */
+   core_options_touched     = true;  /* need flush to disk */
 }
 
 /**
  * core_options_set_defaults:
- * @opt                     : pointer to core option manager object.
+ * @opt_mgr                 : pointer to core option manager object.
  *
  * Resets all core options to their default values.
  **/
-void core_options_set_defaults(core_option_manager_t *opt)
+void core_options_set_defaults(core_option_manager_t *opt_mgr)
 {
    size_t i;
 
-   if (!opt)
+   if (!opt_mgr)
       return;
 
-   for (i = 0; i < opt->num_opts; i++)
-      opt->opts[i].index = opt->opts[i].default_index;
+   for (i = 0; i < opt_mgr->num_opts; i++)
+      opt_mgr->opts[i].index = opt_mgr->opts[i].default_index;
 
-   opt->updated    = true;
-   options_touched = true;
+   opt_mgr->updated     = true;  /* need sync with core */
+   core_options_touched = true;  /* need flush to disk */
 }
 
 /**
  * core_options_conf_reload:
- * @opt                    : pointer to core option manager object.
+ * @opt_mgr                : pointer to core option manager object.
  *
- * Reloads @opt->conf from @opt->conf_path so that its entries will be saved
- * on flush. Does not change in-use option values.
+ * Reloads @opt_mgr->conf from @opt_mgr->conf_path so that its entries will be
+ * saved on flush. Does not change in-use option values.
  */
-void core_options_conf_reload(core_option_manager_t *opt)
+void core_options_conf_reload(core_option_manager_t *opt_mgr)
 {
-   config_file_free(opt->conf);
-   if (path_file_exists(opt->conf_path))
-      opt->conf = config_file_new(opt->conf_path);
+   config_file_free(opt_mgr->conf);
+   if (path_file_exists(opt_mgr->conf_path))
+      opt_mgr->conf = config_file_new(opt_mgr->conf_path);
    else
-      opt->conf = config_file_new(NULL);
+      opt_mgr->conf = config_file_new(NULL);
 }
 
 /**
  * core_option_conf_path:
- * @opt                 : pointer to core option manager object.
+ * @opt_mgr             : pointer to core option manager object.
  *
  * Returns pointer to core options file path.
  */
-char* core_option_conf_path(core_option_manager_t *opt)
+char* core_option_conf_path(core_option_manager_t *opt_mgr)
 {
-   if (!opt)
+   if (!opt_mgr)
       return NULL;
-   return opt->conf_path;
+   return opt_mgr->conf_path;
 }
 
 /**

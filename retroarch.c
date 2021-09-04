@@ -1544,7 +1544,7 @@ void rarch_update_configs()
          scoped_config_files_save();
       if (global->system.core_options)
       {
-         if (options_touched)
+         if (core_options_touched)
             core_option_flush(global->system.core_options);
          core_option_free(global->system.core_options);
          global->system.core_options = NULL;

@@ -96,10 +96,10 @@ static int action_start_options_file_scope(unsigned type, const char *label)
 
 static int action_start_options_file_load(unsigned type, const char *label)
 {
-   global_t *global           = global_get_ptr();
-   core_option_manager_t *opt = global->system.core_options;
+   global_t              *global  = global_get_ptr();
+   core_option_manager_t *opt_mgr = global->system.core_options;
 
-   core_options_set_defaults(opt);
+   core_options_set_defaults(opt_mgr);
    rarch_main_msg_queue_push("Default values applied", 1, 100, true);
 
    return 0;
@@ -457,7 +457,7 @@ static int menu_cbs_init_bind_start_compare_type(menu_file_list_cbs_t *cbs,
    else if (type >= MENU_SETTINGS_PERF_COUNTERS_BEGIN &&
          type <= MENU_SETTINGS_PERF_COUNTERS_END)
       cbs->action_start = action_start_performance_counters_frontend;
-   else if ((type >= MENU_SETTINGS_CORE_OPTION_START))
+   else if (type >= MENU_SETTINGS_CORE_OPTION_START)
       cbs->action_start = action_start_core_setting;
    else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
          && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)

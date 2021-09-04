@@ -269,7 +269,7 @@ void setting_get_string_representation(void *data, char *s, size_t len);
  * Returns: 0 (always for now). TODO: make it handle -1 as well.
  **/
 int setting_get_description(const char *label, char *s, size_t len,
-                            unsigned entry_idx);
+        const char *path, unsigned type, unsigned entry_idx);
 
 /**
  * setting_get_label:

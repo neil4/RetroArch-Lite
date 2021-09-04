@@ -503,8 +503,8 @@ static int action_left_options_file_scope(unsigned type, const char *label,
 {
    if (core_options_scope > THIS_CORE)
    {
-      core_options_scope -= 1;
-      options_touched     = true;
+      core_options_scope   -= 1;
+      core_options_touched  = true;
    }
    return 0;
 }
@@ -513,8 +513,8 @@ static int action_l_options_file_scope(unsigned type, const char *label)
 {
    if (core_options_scope > THIS_CORE)
    {
-      core_options_scope = THIS_CORE;
-      options_touched    = true;
+      core_options_scope   = THIS_CORE;
+      core_options_touched = true;
    }
    return 0;
 }

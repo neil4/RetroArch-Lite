@@ -114,6 +114,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "core_cheat_options";
       case MENU_LABEL_CORE_OPTIONS:
          return "core_options";
+      case MENU_LABEL_CORE_OPTION:
+         return "core_option";
       case MENU_LABEL_CORE_OPTION_CATEGORY:
          return "core_options_category";
       case MENU_LABEL_VALUE_CHEAT_FILE_LOAD:
@@ -192,14 +194,14 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "take_screenshot";
       case MENU_LABEL_CORE_UPDATER_LIST:
          return "core_updater_list";
+      case MENU_LABEL_DOWNLOADABLE_CORE:
+         return "downloadable_core";
       case MENU_LABEL_VALUE_CORE_UPDATER_LIST:
          return "Core Updater";
       case MENU_LABEL_SYSTEM_INFORMATION:
          return "system_information";
       case MENU_LABEL_VALUE_SYSTEM_INFORMATION:
          return "System Information";
-      case MENU_LABEL_OPTIONS:
-         return "core_options";
       case MENU_LABEL_VALUE_OPTIONS:
          return "Core Options";
       case MENU_LABEL_CORE_INFORMATION:

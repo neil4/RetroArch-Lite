@@ -817,7 +817,6 @@ static void menu_action_setting_disp_set_label(file_list_t* list,
       const char *path,
       char *s2, size_t len2)
 {
-   global_t *global     = global_get_ptr();
    uint32_t hash_label  = menu_hash_calculate(label);
 
    *s = '\0';
@@ -845,16 +844,25 @@ static void menu_action_setting_disp_set_label(file_list_t* list,
          break;
    }
 
-   if (type >= MENU_SETTINGS_CORE_OPTION_START)
-      strlcpy(
-            s,
-            core_option_get_label(global->system.core_options, type),
-            len);
-   else
-      setting_get_label(list, s,
-            len, w, type, label, entry_label, i);
+   setting_get_label(list, s, len, w, type, label, entry_label, i);
 
    strlcpy(s2, path, len2);
+}
+
+static void menu_action_setting_disp_set_label_core_option(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   global_t *global = global_get_ptr();
+
+   *w = 19;
+   strlcpy(s2, path, len2);
+   strlcpy(s, core_option_label(global->system.core_options, type), len);
 }
 
 static void menu_action_setting_disp_set_label_libretro_device(
@@ -997,6 +1005,9 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
          && type <= MENU_SETTINGS_SHADER_PARAMETER_LAST)
       cbs->action_get_value =
          menu_action_setting_disp_set_label_shader_parameter;
+   else if (type >= MENU_SETTINGS_CORE_OPTION_START)
+      cbs->action_get_value =
+         menu_action_setting_disp_set_label_core_option;
    else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
          && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
       cbs->action_get_value =

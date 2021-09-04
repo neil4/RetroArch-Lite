@@ -65,11 +65,6 @@ static int deferred_push_shader_options(menu_displaylist_info_t *info)
    return menu_displaylist_push_list(info, DISPLAYLIST_OPTIONS_SHADERS);
 }
 
-static int deferred_push_options(menu_displaylist_info_t *info)
-{
-   return menu_displaylist_push_list(info, DISPLAYLIST_CORE_OPTIONS);
-}
-
 static int deferred_push_core_counters(menu_displaylist_info_t *info)
 {
    return menu_displaylist_push_list(info, DISPLAYLIST_PERFCOUNTERS_CORE);
@@ -319,9 +314,6 @@ static int menu_cbs_init_bind_deferred_push_compare_label(menu_file_list_cbs_t *
          break;
       case MENU_LABEL_SHADER_OPTIONS:
          cbs->action_deferred_push = deferred_push_shader_options;
-         break;
-      case MENU_LABEL_OPTIONS:
-         cbs->action_deferred_push = deferred_push_options;
          break;
       case MENU_LABEL_DEFERRED_CORE_LIST:
          cbs->action_deferred_push = deferred_push_core_list_deferred;

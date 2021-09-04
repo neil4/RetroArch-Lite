@@ -518,10 +518,10 @@ static int action_ok_remap_file_load(const char *path,
 static int action_ok_options_file_load(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   global_t        *global    = global_get_ptr();
-   menu_list_t     *menu_list = menu_list_get_ptr();
-   const char      *menu_path = NULL;
-   core_option_manager_t *opt = global->system.core_options;
+   global_t            *global    = global_get_ptr();
+   menu_list_t         *menu_list = menu_list_get_ptr();
+   const char          *menu_path = NULL;
+   core_option_manager_t *opt_mgr = global->system.core_options;
 
    char option_path[PATH_MAX_LENGTH];
    char         buf[NAME_MAX_LENGTH];
@@ -533,7 +533,7 @@ static int action_ok_options_file_load(const char *path,
          NULL, NULL);
 
    fill_pathname_join(option_path, menu_path, path, PATH_MAX_LENGTH);
-   core_option_update_vals_from_file(opt, option_path);
+   core_option_update_vals_from_file(opt_mgr, option_path);
 
    snprintf(buf, NAME_MAX_LENGTH, "Option values applied from %s",
          path_basename(option_path));
@@ -681,7 +681,7 @@ static int action_ok_core_setting_category(const char *path,
    core_option_manager_t *opt_mgr = global->system.core_options;
 
    core_option_set_category(opt_mgr, core_option_key(opt_mgr, entry_idx),
-         core_option_get_desc(opt_mgr, entry_idx));
+         core_option_desc(opt_mgr, entry_idx));
 
    return action_ok_push_default(path, label, type, idx, entry_idx);
 }
@@ -1263,7 +1263,6 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_PERFORMANCE_COUNTERS:
       case MENU_LABEL_FRONTEND_COUNTERS:
       case MENU_LABEL_CORE_COUNTERS:
-      case MENU_LABEL_OPTIONS:
          cbs->action_ok = action_ok_push_default;
          break;
       case MENU_LABEL_CORE_OPTION_CATEGORY:

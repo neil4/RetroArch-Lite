@@ -72,8 +72,8 @@ static void print_buf_lines(file_list_t *list, char *buf, int buf_size,
       if (line_start[ln] == '\n')
          line_start[ln] = '\0';
 
-      menu_list_push(list, line_start, "",
-            type, 0, 0);
+      menu_list_push(list, line_start,
+            menu_hash_to_str(MENU_LABEL_DOWNLOADABLE_CORE), type, 0, 0);
 
       /* Restore the saved char */
       *(buf + i + 1) = c;
@@ -955,7 +955,7 @@ static void menu_displaylist_push_core_options(menu_displaylist_info_t *info)
       if (core_option_is_hidden(opt_mgr, i))
          continue;
 
-      desc = core_option_get_desc(opt_mgr, i);
+      desc = core_option_desc(opt_mgr, i);
 
       if (core_option_is_category(opt_mgr, i))
          menu_list_push(info->list,
@@ -963,7 +963,7 @@ static void menu_displaylist_push_core_options(menu_displaylist_info_t *info)
                MENU_SETTING_ACTION, 0, i);
       else
          menu_list_push(info->list,
-               desc, "",
+               desc, menu_hash_to_str(MENU_LABEL_CORE_OPTION),
                MENU_SETTINGS_CORE_OPTION_START + j, 0, 0);
 
       core_option_set_menu_offset(opt_mgr, i, j++);
