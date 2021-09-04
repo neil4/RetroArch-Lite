@@ -437,19 +437,6 @@ static int core_setting_left(unsigned type, const char *label,
    return 0;
 }
 
-static int core_setting_l(unsigned type, const char *label)
-{
-   global_t *global = global_get_ptr();
-   int i;
-
-   (void)label;
-
-   for (i = 0; i < 5; i++)
-      core_option_prev(global->system.core_options, type);
-
-   return 0;
-}
-
 static int disk_options_disk_idx_left(unsigned type, const char *label,
       bool wraparound)
 {
@@ -647,11 +634,8 @@ static int menu_cbs_init_bind_left_compare_type(menu_file_list_cbs_t *cbs,
    }
    else if (type == MENU_SETTINGS_VIDEO_RESOLUTION)
       cbs->action_left = action_left_video_resolution;
-   else if ((type >= MENU_SETTINGS_CORE_OPTION_START))
-   {
+   else if (type >= MENU_SETTINGS_CORE_OPTION_START)
       cbs->action_left = core_setting_left;
-      cbs->action_l = core_setting_l;
-   }
    else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
          && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
       cbs->action_left = action_left_libretro_device_type;
