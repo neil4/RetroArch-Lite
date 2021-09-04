@@ -2021,8 +2021,10 @@ bool main_config_file_save(const char *path)
    config_set_bool(conf, "savestate_auto_load",
          settings->savestate_auto_load);
 
-   config_set_bool(conf, "load_dummy_on_core_shutdown",
-                   settings->load_dummy_on_core_shutdown);
+   if (!*settings->libretro)
+      config_set_bool(conf, "load_dummy_on_core_shutdown",
+            settings->load_dummy_on_core_shutdown);
+
    config_set_bool(conf,  "ui_menubar_enable", settings->ui.menubar_enable);
 
    config_set_path(conf,  "recording_output_directory", global->record.output_dir);
@@ -2030,14 +2032,20 @@ bool main_config_file_save(const char *path)
 
    config_set_bool(conf,  "suspend_screensaver_enable", settings->ui.suspend_screensaver_enable);
 
-   config_set_bool(conf, "rewind_enable", settings->rewind_enable);
-   config_set_int(conf, "rewind_buffer_size", settings->rewind_buffer_size);
+   if (!*settings->libretro)
+   {
+      config_set_bool(conf, "rewind_enable", settings->rewind_enable);
+      config_set_int(conf, "rewind_buffer_size", settings->rewind_buffer_size);
+   }
    config_set_int(conf,   "rewind_granularity", settings->rewind_granularity);
 
    config_set_string(conf,"video_driver", settings->video.driver);
    config_set_int(conf,   "video_monitor_index", settings->video.monitor_index);
    config_set_string(conf,"video_context_driver", settings->video.context_driver);
-   config_set_bool(conf,  "video_shared_context", settings->video.shared_context);
+
+   if (!*settings->libretro)
+      config_set_bool(conf,  "video_shared_context", settings->video.shared_context);
+
    config_set_float(conf, "video_refresh_rate", settings->video.refresh_rate);
    config_set_bool(conf,  "fps_show", settings->fps_show);
    if (settings->video.vsync_scope == GLOBAL)
@@ -2389,10 +2397,13 @@ bool main_config_file_save(const char *path)
    config_set_bool(conf, "log_verbosity", global->verbosity);
    config_set_bool(conf, "perfcnt_enable", global->perfcnt_enable);
 
-   config_set_bool(conf, "core_set_supports_no_game_enable",
-                   settings->core.set_supports_no_game_enable);
-   config_set_bool(conf, "core_option_categories",
-                   settings->core.option_categories);
+   if (!*settings->libretro)
+   {
+      config_set_bool(conf, "core_set_supports_no_game_enable",
+         settings->core.set_supports_no_game_enable);
+      config_set_bool(conf, "core_option_categories",
+         settings->core.option_categories);
+   }
 
    config_set_int(conf, "archive_mode", settings->archive.mode);
 
