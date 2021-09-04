@@ -990,7 +990,7 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
    }
 
    menu_list_push(info->list, settings->input.max_users > 1 ?
-         "  Scope (Virtual Devices)" : "  Scope (Virtual Device)",
+         "Virtual Devices Scope" : "Virtual Device Scope",
          menu_hash_to_str(MENU_LABEL_LIBRETRO_DEVICE_SCOPE), 0, 0, 0);
 
    menu_list_push(info->list,
