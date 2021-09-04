@@ -33,6 +33,7 @@ struct core_option
 {
    char *desc;
    char *key;
+   char *category_key;
    char *info;
    struct string_list *vals;
    struct string_list *labels;
@@ -46,9 +47,14 @@ struct core_option_manager
    config_file_t *conf;
    char conf_path[PATH_MAX_LENGTH];
 
-   struct core_option *opts;
-   unsigned *index_map;  /* from menu index to 'opts' array index */
-   size_t size;
+   struct core_option *opts; /* options followed by categories */
+   unsigned *index_map;      /* maps menu index to @opts index */
+   size_t num_opts;          /* @opts size without categories */
+   size_t size;              /* @opts size including categories */
+
+   const char *category_key;
+   const char *category_desc;
+
    bool updated;
 };
 
@@ -69,6 +75,7 @@ void core_option_free(core_option_manager_t *opt)
    {
       free(opt->opts[i].desc);
       free(opt->opts[i].key);
+      free(opt->opts[i].category_key);
       free(opt->opts[i].info);
       string_list_free(opt->opts[i].vals);
       string_list_free(opt->opts[i].labels);
@@ -87,7 +94,7 @@ void core_option_get(core_option_manager_t *opt, struct retro_variable *var)
 
    opt->updated = false;
 
-   for (i = 0; i < opt->size; i++)
+   for (i = 0; i < opt->num_opts; i++)
    {
       if (!strcmp(opt->opts[i].key, var->key))
       {
@@ -100,39 +107,30 @@ void core_option_get(core_option_manager_t *opt, struct retro_variable *var)
 }
 
 static void core_option_copy_info_as_messagebox(struct core_option *option,
-      const struct retro_core_option_definition *option_def)
+      const char *desc, const char *info)
 {
    char title[NAME_MAX_LENGTH];
    unsigned len;
 
-   strlcpy(title, option_def->desc, NAME_MAX_LENGTH);
+   strlcpy(title, desc, NAME_MAX_LENGTH);
    len = strlcat(title, ":", NAME_MAX_LENGTH);
-   len += strlen(option_def->info) + 10; /* add room for ..\n insertions */
+   len += strlen(info) + 10; /* add room for ..\n insertions */
 
    option->info = malloc(len * sizeof(char));
-   menu_driver_wrap_text(option->info, option_def->info, title, len);
+   menu_driver_wrap_text(option->info, info, title, len);
 }
 
-/* From RA v1.8.5 core_option_manager_parse_option */
-static bool parse_option(
-      core_option_manager_t *opt, size_t idx,
-      const struct retro_core_option_definition *option_def)
+/* From RA v1.8.5 core_option_manager_parse_option.
+ * Parses @values for a v2 or v1 core option.
+ */
+static bool parse_option_vals(
+      struct core_option *option, config_file_t *conf,
+      const struct retro_core_option_value *values, const char *default_val)
 {
-   size_t i;
    union string_list_elem_attr attr;
-   size_t num_vals                              = 0;
-   char *config_val                             = NULL;
-   struct core_option *option                   = (struct core_option*)&opt->opts[idx];
-   const struct retro_core_option_value *values = option_def->values;
-
-   if (!string_is_empty(option_def->key))
-      option->key             = strdup(option_def->key);
-
-   if (!string_is_empty(option_def->desc))
-      option->desc            = strdup(option_def->desc);
-
-   if (!string_is_empty(option_def->info))
-      core_option_copy_info_as_messagebox(option, option_def);
+   size_t num_vals    = 0;
+   char *config_val   = NULL;
+   size_t i;
 
    /* Get number of values */
    for (;;)
@@ -170,9 +168,9 @@ static bool parse_option(
          string_list_append(option->labels, values[i].value, attr);
 
       /* Check whether this value is the default setting */
-      if (!string_is_empty(option_def->default_value))
+      if (!string_is_empty(default_val))
       {
-         if (!strcmp(option_def->default_value, values[i].value))
+         if (!strcmp(default_val, values[i].value))
          {
             option->index         = i;
             option->default_index = i;
@@ -181,7 +179,7 @@ static bool parse_option(
    }
 
    /* Set current config value */
-   if (config_get_string(opt->conf, option->key, &config_val))
+   if (config_get_string(conf, option->key, &config_val))
    {
       for (i = 0; i < option->vals->size; i++)
       {
@@ -198,7 +196,76 @@ static bool parse_option(
    return true;
 }
 
-static bool parse_variable(core_option_manager_t *opt, size_t idx,
+static bool parse_v2_option(
+      core_option_manager_t *opt_mgr, size_t idx,
+      const struct retro_core_option_v2_definition *option_def,
+      const bool use_categories)
+{
+   struct core_option *option = (struct core_option*)&opt_mgr->opts[idx];
+   const char *info;
+
+   option->key             = strdup(option_def->key);
+
+   if (use_categories && !string_is_empty(option_def->category_key))
+      option->category_key = strdup(option_def->category_key);
+
+   if (use_categories && !string_is_empty(option_def->desc_categorized))
+      option->desc         = strdup(option_def->desc_categorized);
+   else
+      option->desc         = strdup(option_def->desc);
+
+   if (use_categories && !string_is_empty(option_def->info_categorized))
+      info                 = option_def->info_categorized;
+   else
+      info                 = option_def->info;
+
+   if (!string_is_empty(info))
+      core_option_copy_info_as_messagebox(option, option->desc, info);
+
+   return parse_option_vals(option, opt_mgr->conf,
+         option_def->values, option_def->default_value);
+}
+
+static void parse_v2_category(
+      core_option_manager_t *opt_mgr, size_t idx,
+      const struct retro_core_option_v2_category *category_def)
+{
+   struct core_option *option = (struct core_option*)&opt_mgr->opts[idx];
+   const char *info;
+
+   option->key  = strdup(category_def->key);
+   option->desc = strdup(category_def->desc);
+
+   if (!string_is_empty(category_def->info))
+      info      = strdup(category_def->info);
+   else
+      info      = NULL;
+
+   if (!string_is_empty(info))
+      core_option_copy_info_as_messagebox(option, option->desc, info);
+}
+
+static bool parse_v1_option(
+      core_option_manager_t *opt_mgr, size_t idx,
+      const struct retro_core_option_definition *option_def)
+{
+   struct core_option *option = (struct core_option*)&opt_mgr->opts[idx];
+
+   if (!string_is_empty(option_def->key))
+      option->key  = strdup(option_def->key);
+
+   if (!string_is_empty(option_def->desc))
+      option->desc = strdup(option_def->desc);
+
+   if (!string_is_empty(option->desc) && !string_is_empty(option_def->info))
+      core_option_copy_info_as_messagebox(
+            option, option->desc, option_def->info);
+
+   return parse_option_vals(option, opt_mgr->conf,
+         option_def->values, option_def->default_value);
+}
+
+static bool parse_legacy_variable(core_option_manager_t *opt, size_t idx,
       const struct retro_variable *var)
 {
    size_t i;
@@ -255,97 +322,200 @@ static bool parse_variable(core_option_manager_t *opt, size_t idx,
 }
 
 /**
- * core_option_new:
+ * core_option_v2_new:
  * @conf_path        : Filesystem path to write core option config file to.
- * @option_defs      : Pointer to option definition array handle (v1)
- * @vars             : Pointer to variable array handle (legacy)
+ * @options_v2       : Pointer to core options v2 struct
  *
- * Creates and initializes a core manager handle. @vars only used if
- * @option_defs is NULL.
+ * Creates and initializes a core manager handle.
  *
  * Returns: handle to new core manager handle, otherwise NULL.
  **/
-static core_option_manager_t *core_option_new(const char *conf_path,
-      const struct retro_core_option_definition *option_defs,
-      const struct retro_variable *vars)
+static core_option_manager_t *core_option_v2_new(const char *conf_path,
+       const struct retro_core_options_v2 *options_v2)
 {
-   const struct retro_variable *var;
-   const struct retro_core_option_definition *option_def;
-   size_t size                      = 0;
-   core_option_manager_t *opt       = (core_option_manager_t*)
-      calloc(1, sizeof(*opt));
+   settings_t *settings       = config_get_ptr();
+   const bool use_categories  = settings->core.option_categories;
 
-   if (!opt)
+   const struct retro_core_option_v2_category *v2_cats
+         = options_v2->categories;
+   const struct retro_core_option_v2_category *v2_cat;
+
+   const struct retro_core_option_v2_definition *v2_defs
+         = options_v2->definitions;
+   const struct retro_core_option_v2_definition *v2_def;
+
+   core_option_manager_t *opt_mgr;
+   size_t num_opts = 0;
+   size_t num_cats = 0;
+   size_t i;
+
+   opt_mgr = (core_option_manager_t*) calloc(1, sizeof(*opt_mgr));
+   if (!opt_mgr)
       return NULL;
 
    if (*conf_path)
-      opt->conf = config_file_new(conf_path);
-   if (!opt->conf)
-      opt->conf = config_file_new(NULL);
+      opt_mgr->conf = config_file_new(conf_path);
+   if (!opt_mgr->conf)
+      opt_mgr->conf = config_file_new(NULL);
 
-   strlcpy(opt->conf_path, conf_path, sizeof(opt->conf_path));
+   strlcpy(opt_mgr->conf_path, conf_path, sizeof(opt_mgr->conf_path));
 
-   if (!opt->conf)
+   if (!opt_mgr->conf)
       goto error;
 
-   if (option_defs)
-   {
-      for (option_def = option_defs;
-         option_def->key && option_def->desc && option_def->values[0].value;
-         option_def++)
-      size++;
-   }
-   else if (vars) /* legacy */
-   {
-      for (var = vars; var->key && var->value; var++)
-         size++;
-   }
+   for (v2_def = v2_defs;
+        v2_def->key && v2_def->desc && v2_def->values[0].value;
+        v2_def++)
+      num_opts++;
 
-   opt->opts = (struct core_option*)calloc(size, sizeof(*opt->opts));
-   opt->index_map = (unsigned*)calloc(size, sizeof(unsigned));
-   if (!opt->opts || !opt->index_map)
+   if (use_categories)
+      for (v2_cat = v2_cats; v2_cat->key && v2_cat->desc; v2_cat++)
+         num_cats++;
+
+   opt_mgr->num_opts  = num_opts;
+   opt_mgr->size      = num_opts + num_cats;
+
+   opt_mgr->opts      = calloc(opt_mgr->size, sizeof(*opt_mgr->opts));
+   opt_mgr->index_map = calloc(opt_mgr->size, sizeof(unsigned));
+
+   if (!opt_mgr->opts || !opt_mgr->index_map)
       goto error;
 
-   opt->size = size;
-   size      = 0;
+   for (i = 0, v2_def = v2_defs; i < num_opts; v2_def++, i++)
+      if (!parse_v2_option(opt_mgr, i, v2_def, use_categories))
+         goto error;
 
-   if (option_defs)
-   {
-      for (option_def = option_defs;
-           option_def->key && option_def->desc && option_def->values[0].value;
-           size++, option_def++)
-      {
-         if (!parse_option(opt, size, option_def))
-            goto error;
-      }
-   }
-   else if (vars) /* legacy */
-   {
-      for (var = vars; var->key && var->value; size++, var++)
-      {
-         if (!parse_variable(opt, size, var))
-            goto error;
-      }
-   }
+   /* Append categories to end of option list */
+   if (use_categories)
+      for (i = 0, v2_cat = v2_cats; i < num_cats; v2_cat++, i++)
+         parse_v2_category(opt_mgr, i + num_opts, v2_cat);
 
-   return opt;
+   return opt_mgr;
 
 error:
-   core_option_free(opt);
+   core_option_free(opt_mgr);
+   return NULL;
+}
+
+/**
+ * core_option_v1_new:
+ * @conf_path        : Filesystem path to write core option config file to.
+ * @v1_defs          : Pointer to option definition v1 array handle
+ *
+ * Creates and initializes a core manager handle.
+ *
+ * Returns: handle to new core manager handle, otherwise NULL.
+ **/
+static core_option_manager_t *core_option_v1_new(const char *conf_path,
+      const struct retro_core_option_definition *v1_defs)
+{
+   const struct retro_core_option_definition *v1_def;
+
+   core_option_manager_t *opt_mgr;
+   size_t num_opts = 0;
+   size_t i;
+
+   opt_mgr = (core_option_manager_t*) calloc(1, sizeof(*opt_mgr));
+   if (!opt_mgr)
+      return NULL;
+
+   if (*conf_path)
+      opt_mgr->conf = config_file_new(conf_path);
+   if (!opt_mgr->conf)
+      opt_mgr->conf = config_file_new(NULL);
+
+   strlcpy(opt_mgr->conf_path, conf_path, sizeof(opt_mgr->conf_path));
+
+   if (!opt_mgr->conf)
+      goto error;
+
+   for (v1_def = v1_defs;
+        v1_def->key && v1_def->desc && v1_def->values[0].value;
+        v1_def++)
+      num_opts++;
+
+   opt_mgr->num_opts  = num_opts;
+   opt_mgr->size      = num_opts;
+   opt_mgr->opts      = calloc(num_opts, sizeof(*opt_mgr->opts));
+   opt_mgr->index_map = calloc(opt_mgr->size, sizeof(unsigned));
+
+   if (!opt_mgr->opts || !opt_mgr->index_map)
+      goto error;
+
+   for (v1_def = v1_defs, i = 0; i < num_opts; v1_def++, i++)
+      if (!parse_v1_option(opt_mgr, i, v1_def))
+         goto error;
+
+   return opt_mgr;
+
+error:
+   core_option_free(opt_mgr);
+   return NULL;
+}
+
+/**
+ * core_option_legacy_new:
+ * @conf_path            : Filesystem path to write core option config file to.
+ * @vars                 : Pointer to variable array handle
+ *
+ * Creates and initializes a core manager handle.
+ *
+ * Returns: handle to new core manager handle, otherwise NULL.
+ **/
+static core_option_manager_t *core_option_legacy_new(const char *conf_path,
+      const struct retro_variable *vars)
+{
+   const struct retro_variable *var;
+
+   core_option_manager_t *opt_mgr;
+   size_t num_opts = 0;
+   size_t i;
+
+   opt_mgr = (core_option_manager_t*) calloc(1, sizeof(*opt_mgr));
+   if (!opt_mgr)
+      return NULL;
+
+   if (*conf_path)
+      opt_mgr->conf = config_file_new(conf_path);
+   if (!opt_mgr->conf)
+      opt_mgr->conf = config_file_new(NULL);
+
+   strlcpy(opt_mgr->conf_path, conf_path, sizeof(opt_mgr->conf_path));
+
+   if (!opt_mgr->conf)
+      goto error;
+
+   for (var = vars; var->key && var->value; var++)
+      num_opts++;
+
+   opt_mgr->num_opts  = num_opts;
+   opt_mgr->size      = num_opts;
+   opt_mgr->opts      = calloc(opt_mgr->size, sizeof(*opt_mgr->opts));
+   opt_mgr->index_map = calloc(opt_mgr->size, sizeof(unsigned));
+
+   if (!opt_mgr->opts || !opt_mgr->index_map)
+      goto error;
+
+   for (var = vars, i = 0; i < num_opts; i++, var++)
+      if (!parse_legacy_variable(opt_mgr, i, var))
+         goto error;
+
+   return opt_mgr;
+
+error:
+   core_option_free(opt_mgr);
    return NULL;
 }
 
 /**
  * core_options_init:
- * @option_defs     : Pointer to option definition array handle (version 1)
- * @vars            : Pointer to variable array handle (legacy)
+ * @data            : Pointer to option definition array handle (v1 or v2) or variable array handle (legacy)
+ * @version         : Version of option definition type. 0 for legacy.
  *
- * Creates and initializes a core manager handle. @vars is only used if
- * @option_defs is NULL.
+ * Creates and initializes a core manager handle.
  *
  **/
-void core_options_init(const struct retro_core_option_definition *option_defs,
-      const struct retro_variable *vars)
+void core_options_init(void *data, unsigned version)
 {
    global_t *global = global_get_ptr();
    char path[PATH_MAX_LENGTH];
@@ -374,7 +544,23 @@ void core_options_init(const struct retro_core_option_definition *option_defs,
    core_options_scope = THIS_CORE;
 
 finish:
-   global->system.core_options = core_option_new(path, option_defs, vars);
+   switch(version)
+   {
+      case 2:
+         global->system.core_options = core_option_v2_new(path, data);
+         break;
+
+      case 1:
+         global->system.core_options = core_option_v1_new(path, data);
+         break;
+
+      case 0:
+         global->system.core_options = core_option_legacy_new(path, data);
+         break;
+
+      default:
+         return;
+   }
 
    path_basedir(path);
    path_mkdir(path);
@@ -396,13 +582,47 @@ void core_option_set_visible(core_option_manager_t *opt,
    if (!opt || !key)
       return;
 
-   for (i = 0; i < opt->size; i++)
+   for (i = 0; i < opt->num_opts; i++)
    {
       if (!strcmp(opt->opts[i].key, key))
       {
          opt->opts[i].hide = !visible;
          menu_entries_set_refresh();
          return;
+      }
+   }
+}
+
+/**
+ * core_option_update_category_visibilities:
+ * @opt_mgr                                : options manager handle
+ *
+ * Sets category menu visibilities based on visible options.
+ */
+void core_option_update_category_visibilities(core_option_manager_t *opt_mgr)
+{
+   struct core_option *cat, *opt;
+   unsigned i, j;
+
+   /* Hide each category until an option is found using it.
+    * Categories start at @opt_mgr->num_opts. */
+   for (i = opt_mgr->num_opts; i < opt_mgr->size; i++)
+   {
+      cat = &opt_mgr->opts[i];
+      cat->hide = true;
+
+      for (j = 0; j < opt_mgr->num_opts; j++)
+      {
+         opt = &opt_mgr->opts[j];
+
+         if (opt->hide == true || opt->category_key == NULL)
+            continue;
+
+         if (!strcmp(opt->category_key, cat->key))
+         {
+            cat->hide = false;
+            break;
+         }
       }
    }
 }
@@ -477,7 +697,7 @@ bool core_option_flush(core_option_manager_t *opt)
    core_option_get_conf_path(opt->conf_path, core_options_scope);
    core_options_conf_reload(opt);
 
-   for (i = 0; i < opt->size; i++)
+   for (i = 0; i < opt->num_opts; i++)
    {
       struct core_option *option = (struct core_option*)&opt->opts[i];
 
@@ -500,9 +720,7 @@ bool core_option_flush(core_option_manager_t *opt)
  * core_option_size:
  * @opt              : options manager handle
  *
- * Gets total number of options.
- *
- * Returns: Total number of options.
+ * Returns: Total number of options and categories.
  **/
 size_t core_option_size(core_option_manager_t *opt)
 {
@@ -543,6 +761,15 @@ const char *core_option_get_desc(core_option_manager_t *opt, size_t idx)
 
    idx = core_option_index(opt, idx);
    return opt->opts[idx].desc;
+}
+
+const char *core_option_key(core_option_manager_t *opt_mgr, size_t idx)
+{
+   if (!opt_mgr)
+      return NULL;
+
+   idx = core_option_index(opt_mgr, idx);
+   return opt_mgr->opts[idx].key;
 }
 
 /**
@@ -601,9 +828,69 @@ const char *core_option_get_label(core_option_manager_t *opt, size_t idx)
  */
 bool core_option_is_hidden(core_option_manager_t *opt, size_t idx)
 {
+   struct core_option *option;
+
    if (!opt || idx >= opt->size)
       return true;
-   return opt->opts[idx].hide;
+
+   option = &opt->opts[idx];
+
+   /* Explicit */
+   if (option->hide)
+      return true;
+
+   /* Hidden by category */
+   if (opt->category_key != NULL && option->category_key != NULL)
+      return (strcmp(opt->category_key, option->category_key) != 0);
+   else
+      return (opt->category_key != NULL || option->category_key != NULL);
+}
+
+/**
+ * core_option_is_category:
+ * @opt_mgr               : options manager handle
+ * @idx                   : option index or menu entry type
+ *
+ * Returns: True if @idx indexes a category
+ */
+bool core_option_is_category(core_option_manager_t *opt_mgr, size_t idx)
+{
+   if (!opt_mgr)
+      return false;
+
+   idx = core_option_index(opt_mgr, idx);
+   return (idx >= opt_mgr->num_opts && idx < opt_mgr->size);
+}
+
+/**
+ * core_option_set_category:
+ * @opt_mgr                : options manager handle
+ * @cat_key                : category key to set as current
+ * @cat_desc               : category description (menu title) to set as current
+ *
+ * Sets current category and description to @cat_key and @cat_desc
+ */
+void core_option_set_category(core_option_manager_t *opt_mgr,
+                              const char *cat_key, const char *cat_desc)
+{
+   if (!opt_mgr)
+      return;
+
+   opt_mgr->category_key  = cat_key;
+   opt_mgr->category_desc = cat_desc;
+}
+
+/**
+ * core_option_category_desc:
+ * @opt_mgr                 : options manager handle
+ *
+ * Returns: Pointer to current category description
+ */
+const char* core_option_category_desc(core_option_manager_t *opt_mgr)
+{
+   if (!opt_mgr)
+      return NULL;
+   return opt_mgr->category_desc;
 }
 
 /**
@@ -701,7 +988,7 @@ void core_option_update_vals_from_file(core_option_manager_t *opt,
    if (!conf)
       return;
 
-   for (i = 0; i < opt->size; i++)
+   for (i = 0; i < opt->num_opts; i++)
    {
       struct core_option *option = &opt->opts[i];
 
@@ -794,7 +1081,7 @@ void core_options_set_defaults(core_option_manager_t *opt)
    if (!opt)
       return;
 
-   for (i = 0; i < opt->size; i++)
+   for (i = 0; i < opt->num_opts; i++)
       opt->opts[i].index = opt->opts[i].default_index;
 
    opt->updated    = true;

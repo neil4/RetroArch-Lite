@@ -594,12 +594,12 @@ bool rarch_environment_cb(unsigned cmd, void *data)
       /* SET_VARIABLES: Legacy path */
       case RETRO_ENVIRONMENT_SET_VARIABLES:
          RARCH_LOG("Environ SET_VARIABLES.\n");
-         core_options_init(NULL, data);
+         core_options_init(data, 0);
          break;
 
       case RETRO_ENVIRONMENT_SET_CORE_OPTIONS:
          RARCH_LOG("Environ SET_CORE_OPTIONS.\n");
-         core_options_init(data, NULL);
+         core_options_init(data, 1);
          break;
 
       case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL:
@@ -607,14 +607,29 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          RARCH_LOG("Environ SET_CORE_OPTIONS_INTL.\n");
          const struct retro_core_options_intl *core_options_intl
                = ((const struct retro_core_options_intl *)data);
-         core_options_init(core_options_intl->us, NULL);
+         core_options_init(core_options_intl->us, 1);
          break;
+      }
+
+      case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+         RARCH_LOG("Environ SET_CORE_OPTIONS_V2.\n");
+         core_options_init(data, 2);
+         return settings->core.option_categories;
+
+      case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+      {  /* TODO: don't ignore core_options_intl->local */
+         RARCH_LOG("Environ SET_CORE_OPTIONS_V2_INTL.\n");
+         const struct retro_core_options_v2_intl *core_options_intl
+               = ((const struct retro_core_options_v2_intl *)data);
+         core_options_init(core_options_intl->us, 2);
+         return settings->core.option_categories;
       }
 
       case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
       {
-         RARCH_LOG("Environ RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY.\n");
-         const struct retro_core_option_display *core_options_display = (const struct retro_core_option_display *)data;
+         RARCH_LOG("Environ SET_CORE_OPTIONS_DISPLAY.\n");
+         const struct retro_core_option_display *core_options_display =
+               (const struct retro_core_option_display *)data;
 
          if (global->system.core_options && core_options_display)
             core_option_set_visible(global->system.core_options,
@@ -1188,8 +1203,8 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          break;
 
       case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
-         /* Current API version is 1 */
-         *(unsigned *)data = 1;
+         /* Current API version is 2 */
+         *(unsigned *)data = 2;
          break;
 
       case RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE:

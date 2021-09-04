@@ -674,6 +674,18 @@ static int action_ok_cheat(const char *path,
    return 0;
 }
 
+static int action_ok_core_setting_category(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   global_t              *global  = global_get_ptr();
+   core_option_manager_t *opt_mgr = global->system.core_options;
+
+   core_option_set_category(opt_mgr, core_option_key(opt_mgr, entry_idx),
+         core_option_get_desc(opt_mgr, entry_idx));
+
+   return action_ok_push_default(path, label, type, idx, entry_idx);
+}
+
 static int action_ok_shader_preset_save_as(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -1253,6 +1265,9 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_CORE_COUNTERS:
       case MENU_LABEL_OPTIONS:
          cbs->action_ok = action_ok_push_default;
+         break;
+      case MENU_LABEL_CORE_OPTION_CATEGORY:
+         cbs->action_ok = action_ok_core_setting_category;
          break;
       case MENU_LABEL_LOAD_CONTENT:
       case MENU_LABEL_DETECT_CORE_LIST:

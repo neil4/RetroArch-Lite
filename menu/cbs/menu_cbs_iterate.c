@@ -222,6 +222,7 @@ static int action_iterate_info(char *s, size_t len, const char *label)
    int ret = 0;
    char needle[PATH_MAX_LENGTH]     = {0};
    unsigned info_type               = 0;
+   size_t   entry_idx               = 0;
    rarch_setting_t *current_setting = NULL;
    file_list_t *list                = NULL;
    menu_list_t *menu_list           = menu_list_get_ptr();
@@ -247,7 +248,8 @@ static int action_iterate_info(char *s, size_t len, const char *label)
    else
    {
       const char *lbl = NULL;
-      menu_list_get_at_offset(list, selection, &path, &lbl, &info_type, NULL);
+      menu_list_get_at_offset(list, selection, &path, &lbl,
+            &info_type, &entry_idx);
 
       if (lbl)
          strlcpy(needle, lbl, sizeof(needle));
@@ -258,7 +260,7 @@ static int action_iterate_info(char *s, size_t len, const char *label)
    else if (info_type == MENU_FILE_DOWNLOAD_CORE)
       action_iterate_get_core_desc(s, len, path);
    else
-      setting_get_description(needle, s, len);
+      setting_get_description(needle, s, len, entry_idx);
 
    return ret;
 }

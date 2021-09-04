@@ -694,6 +694,7 @@ static void config_set_defaults(void)
    settings->input.analog_dpad_deadzone        = analog_dpad_deadzone;
 
    settings->core.set_supports_no_game_enable  = true;
+   settings->core.option_categories            = true;
 
    video_viewport_reset_custom();
 
@@ -1361,6 +1362,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, video.force_srgb_disable, "video_force_srgb_disable");
 
    CONFIG_GET_BOOL_BASE(conf, settings, core.set_supports_no_game_enable, "core_set_supports_no_game_enable");
+   CONFIG_GET_BOOL_BASE(conf, settings, core.option_categories, "core_option_categories");
 
 #ifdef RARCH_CONSOLE
    /* TODO - will be refactored later to make it more clean - it's more
@@ -2389,6 +2391,8 @@ bool main_config_file_save(const char *path)
 
    config_set_bool(conf, "core_set_supports_no_game_enable",
                    settings->core.set_supports_no_game_enable);
+   config_set_bool(conf, "core_option_categories",
+                   settings->core.option_categories);
 
    config_set_int(conf, "archive_mode", settings->archive.mode);
 
@@ -2545,6 +2549,8 @@ static void scoped_config_file_save(unsigned scope)
                       settings->load_dummy_on_core_shutdown);
       config_set_bool(conf, "core_set_supports_no_game_enable",
                       settings->core.set_supports_no_game_enable);
+      config_set_bool(conf, "core_option_categories",
+                      settings->core.option_categories);
       config_set_bool(conf, "rewind_enable", settings->rewind_enable);
       config_set_int(conf, "rewind_buffer_size", settings->rewind_buffer_size);
    }
@@ -3217,6 +3223,8 @@ void config_unmask_globals()
                       &settings->load_dummy_on_core_shutdown);
       config_get_bool(conf, "core_set_supports_no_game_enable",
                       &settings->core.set_supports_no_game_enable);
+      config_get_bool(conf, "core_option_categories",
+                      &settings->core.option_categories);
       config_get_bool(conf, "rewind_enable", &settings->rewind_enable);
       config_get_uint(conf, "rewind_buffer_size",
                       &settings->rewind_buffer_size);
@@ -3232,6 +3240,8 @@ void config_unmask_globals()
                       settings->load_dummy_on_core_shutdown);
       config_set_bool(conf, "core_set_supports_no_game_enable",
                       settings->core.set_supports_no_game_enable);
+      config_set_bool(conf, "core_option_categories",
+                      settings->core.option_categories);
       config_set_bool(conf, "rewind_enable", settings->rewind_enable);
       config_set_int(conf, "rewind_buffer_size", settings->rewind_buffer_size);
    }
@@ -3457,6 +3467,8 @@ static void scoped_config_file_load(unsigned scope)
                       &settings->load_dummy_on_core_shutdown);
       config_get_bool(conf, "core_set_supports_no_game_enable",
                       &settings->core.set_supports_no_game_enable);
+      config_get_bool(conf, "core_option_categories",
+                      &settings->core.option_categories);
       config_get_bool(conf, "rewind_enable", &settings->rewind_enable);
       config_get_uint(conf, "rewind_buffer_size",
                       &settings->rewind_buffer_size);

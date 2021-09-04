@@ -95,6 +95,11 @@ static int deferred_push_core_options(menu_displaylist_info_t *info)
    return menu_displaylist_push_list(info, DISPLAYLIST_CORE_OPTIONS);
 }
 
+static int deferred_push_core_options_category(menu_displaylist_info_t *info)
+{
+   return menu_displaylist_push_list(info, DISPLAYLIST_CORE_OPTIONS_CATEGORY);
+}
+
 static int deferred_push_disk_options(menu_displaylist_info_t *info)
 {
    return menu_displaylist_push_list(info, DISPLAYLIST_OPTIONS_DISK);
@@ -347,6 +352,9 @@ static int menu_cbs_init_bind_deferred_push_compare_label(menu_file_list_cbs_t *
          break;
       case MENU_LABEL_CORE_OPTIONS:
          cbs->action_deferred_push = deferred_push_core_options;
+         break;
+      case MENU_LABEL_CORE_OPTION_CATEGORY:
+         cbs->action_deferred_push = deferred_push_core_options_category;
          break;
       case MENU_LABEL_CORE_CHEAT_OPTIONS:
          cbs->action_deferred_push = deferred_push_core_cheat_options;

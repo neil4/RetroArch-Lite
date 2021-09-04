@@ -2441,7 +2441,7 @@ static rarch_setting_t setting_string_setting_options(enum setting_type type,
 }
 
 static int setting_get_description_compare_label(uint32_t label_hash,
-      settings_t *settings, char *s, size_t len)
+      settings_t *settings, char *s, size_t len, unsigned entry_idx)
 {
    uint32_t driver_hash = 0;
 
@@ -3368,6 +3368,17 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                   "inside the menu and RetroArch won't \n"
                   "shutdown.");
          break;
+      case MENU_LABEL_CORE_OPTION_CATEGORY:
+         core_option_get_info(
+               global_get_ptr()->system.core_options, s, len, entry_idx);
+         break;
+      case MENU_LABEL_CORE_OPTION_CATEGORIES:
+         snprintf(s, len,
+                  "Allow cores to present options in \n"
+                  "category-based submenus. \n"
+                  "NOTE: Core must be reloaded for \n"
+                  "changes to take effect.");
+         break;
       case MENU_LABEL_NETPLAY_DELAY_FRAMES:
          snprintf(s, len,
                      " -- Netplay's rewind buffer size, in frames. \n"
@@ -3394,6 +3405,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
  * @label              : identifier label of setting
  * @s                  : output message 
  * @len                : size of @s
+ * @entry_idx          : entry_idx of menu entry
  *
  * Writes a 'Help' description message to @s if there is
  * one available based on the identifier label of the setting
@@ -3401,13 +3413,14 @@ static int setting_get_description_compare_label(uint32_t label_hash,
  *
  * Returns: 0 (always for now). TODO: make it handle -1 as well.
  **/
-int setting_get_description(const char *label, char *s,
-      size_t len)
+int setting_get_description(const char *label, char *s, size_t len,
+                            unsigned entry_idx)
 {
    settings_t      *settings = config_get_ptr();
    uint32_t label_hash       = menu_hash_calculate(label);
 
-   if (setting_get_description_compare_label(label_hash, settings, s, len) == 0)
+   if (setting_get_description_compare_label(
+            label_hash, settings, s, len, entry_idx) == 0)
       return 0;
 
    snprintf(s, len,
@@ -4295,6 +4308,21 @@ static bool setting_append_list_core_options(
          settings->core.set_supports_no_game_enable,
          "core_set_supports_no_game_enable",
          "Supports No Content Enable",
+         true,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_on_off_core_specific;
+
+   CONFIG_BOOL(
+         settings->core.option_categories,
+         menu_hash_to_str(MENU_LABEL_CORE_OPTION_CATEGORIES),
+         "Core Option Categories",
          true,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),

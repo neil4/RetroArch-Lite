@@ -939,6 +939,42 @@ static INLINE void menu_displaylist_push_remap(menu_displaylist_info_t *info,
          (p * (RARCH_FIRST_CUSTOM_BIND + 4)) +  retro_id, 0, 0);
 }
 
+static void menu_displaylist_push_core_options(menu_displaylist_info_t *info)
+{
+   size_t i, j, opts_size;
+   global_t              *global  = global_get_ptr();
+   core_option_manager_t *opt_mgr = global->system.core_options;
+   const char *desc;
+
+   core_option_update_category_visibilities(opt_mgr);
+
+   opts_size = core_option_size(opt_mgr);
+
+   for (i = 0, j = 0; i < opts_size; i++)
+   {
+      if (core_option_is_hidden(opt_mgr, i))
+         continue;
+
+      desc = core_option_get_desc(opt_mgr, i);
+
+      if (core_option_is_category(opt_mgr, i))
+         menu_list_push(info->list,
+               desc, menu_hash_to_str(MENU_LABEL_CORE_OPTION_CATEGORY),
+               MENU_SETTING_ACTION, 0, i);
+      else
+         menu_list_push(info->list,
+               desc, "",
+               MENU_SETTINGS_CORE_OPTION_START + j, 0, 0);
+
+      core_option_set_menu_offset(opt_mgr, i, j++);
+   }
+
+   if (info->list->size == 0)
+      menu_list_push(info->list,
+            menu_hash_to_str(MENU_LABEL_VALUE_NO_CORE_OPTIONS_AVAILABLE),
+            "", MENU_SETTINGS_CORE_OPTION_NONE, 0, 0);
+}
+
 static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *info)
 {
    unsigned p, retro_id;
@@ -1218,7 +1254,7 @@ static unsigned menu_displaylist_path_nav_idx(file_list_t *list, char *path)
 
 int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
 {
-   size_t i, j, list_size;
+   size_t i, list_size;
    int ret                  = 0;
    bool need_sort           = false;
    bool need_refresh        = false;
@@ -1447,12 +1483,12 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
                   menu_hash_to_str(MENU_LABEL_VALUE_CORE_CHEAT_OPTIONS),
                   menu_hash_to_str(MENU_LABEL_CORE_CHEAT_OPTIONS),
                   MENU_SETTING_ACTION, 0, 0);
-         
+
          if (global->system.core_options)
          {
-            size_t num_opts = core_option_size(global->system.core_options);
+            size_t opt_size = core_option_size(global->system.core_options);
             
-            if (num_opts > 0)
+            if (opt_size > 0)
             {
                menu_list_push(info->list,
                      "Core Options Scope",
@@ -1464,24 +1500,18 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
                      menu_hash_to_str(MENU_LABEL_OPTIONS_FILE_LOAD),
                      MENU_SETTING_ACTION, 0, 0);
             }
-
-            for (i = 0, j = 0; i < num_opts; i++)
-            {
-               if (core_option_is_hidden(global->system.core_options, i))
-                  continue;
-
-               menu_list_push(info->list,
-                     core_option_get_desc(global->system.core_options, i), "",
-                     MENU_SETTINGS_CORE_OPTION_START + j, 0, 0);
-
-               core_option_set_menu_offset(global->system.core_options, i, j++);
-            }
          }
-         else if (info->list->size == 0)
-            menu_list_push(info->list,
-                  menu_hash_to_str(MENU_LABEL_VALUE_NO_CORE_OPTIONS_AVAILABLE), "",
-                  MENU_SETTINGS_CORE_OPTION_NONE, 0, 0);
-         
+
+         /* clear category */
+         core_option_set_category(global->system.core_options, NULL, NULL);
+
+         menu_displaylist_push_core_options(info);
+
+         need_push = true;
+         break;
+      case DISPLAYLIST_CORE_OPTIONS_CATEGORY:
+         menu_list_clear(info->list);
+         menu_displaylist_push_core_options(info);
          need_push = true;
          break;
       case DISPLAYLIST_DEFAULT:

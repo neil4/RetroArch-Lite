@@ -227,6 +227,17 @@ static int action_get_title_action_generic(const char *path, const char *label,
    return 0;
 }
 
+static int action_get_title_core_option(const char *path, const char *label,
+      unsigned menu_type, char *s, size_t len)
+{
+   global_t *global = global_get_ptr();
+   const char *desc = core_option_category_desc(global->system.core_options);
+
+   sanitize_to_string(s, desc, len);
+
+   return 0;
+}
+
 static int action_get_title_core_updater(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
@@ -497,6 +508,9 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_CORE_CHEAT_OPTIONS:
       case MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS:
          cbs->action_get_title = action_get_title_action_generic;
+         break;
+      case MENU_LABEL_CORE_OPTION_CATEGORY:
+         cbs->action_get_title = action_get_title_core_option;
          break;
       case MENU_LABEL_DEFERRED_CORE_UPDATER_LIST:
          cbs->action_get_title = action_get_title_core_updater;

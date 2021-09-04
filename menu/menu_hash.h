@@ -258,6 +258,8 @@ extern "C" {
 #define MENU_LABEL_DISK_OPTIONS                                                0xe087bf5bU
 #define MENU_LABEL_VALUE_DISK_OPTIONS                                          0xbee508e5U
 #define MENU_LABEL_CORE_OPTIONS                                                0xf65e60f9U
+#define MENU_LABEL_CORE_OPTION_CATEGORY                                        0xbd3a46d6U
+#define MENU_LABEL_CORE_OPTION_CATEGORIES                                      0x2bec2a6bU
 #define MENU_LABEL_DISK_CYCLE_TRAY_STATUS                                      0x3035cdc1U
 #define MENU_LABEL_VALUE_DISK_CYCLE_TRAY_STATUS                                0xf44928c4U
 #define MENU_LABEL_VALUE_NO_CORE_OPTIONS_AVAILABLE                             0xd064cbe6U

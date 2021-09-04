@@ -34,15 +34,13 @@ typedef struct core_option_manager core_option_manager_t;
 
 /**
  * core_options_init:
- * @option_defs     : Pointer to option definition array handle (version 1)
- * @vars            : Pointer to variable array handle (legacy)
+ * @data            : Pointer to option definition array handle (v1 or v2) or variable array handle (legacy)
+ * @version         : Version of option definition type. 0 for legacy.
  *
- * Creates and initializes a core manager handle. @vars is only used if
- * @option_defs is NULL.
+ * Creates and initializes a core manager handle.
  *
  **/
-void core_options_init(const struct retro_core_option_definition *option_defs,
-      const struct retro_variable *vars);
+void core_options_init(void *data, unsigned version);
 
 /**
  * core_option_set_visible:
@@ -52,6 +50,14 @@ void core_options_init(const struct retro_core_option_definition *option_defs,
  */
 void core_option_set_visible(core_option_manager_t *opt,
                              const char* key, bool visible);
+
+/**
+ * core_option_update_category_visibilities:
+ * @opt_mgr                                : options manager handle
+ *
+ * Sets category menu visibilities based on visible options.
+ */
+void core_option_update_category_visibilities(core_option_manager_t *opt_mgr);
 
 /**
  * core_option_updated:
@@ -89,9 +95,7 @@ void core_option_get(core_option_manager_t *opt, struct retro_variable *var);
  * core_option_size:
  * @opt              : options manager handle
  *
- * Gets total number of options.
- *
- * Returns: Total number of options.
+ * Returns: Total number of options and categories.
  **/
 size_t core_option_size(core_option_manager_t *opt);
 
@@ -116,6 +120,8 @@ void core_option_set_menu_offset(core_option_manager_t *opt,
  * Returns: Description for an option.
  **/
 const char *core_option_get_desc(core_option_manager_t *opt, size_t idx);
+
+const char *core_option_key(core_option_manager_t *opt_mgr, size_t idx);
 
 /**
  * core_option_get_val:
@@ -147,6 +153,34 @@ const char *core_option_get_label(core_option_manager_t *opt, size_t idx);
  * Returns: True if option should be hidden in menu, false if not
  */
 bool core_option_is_hidden(core_option_manager_t *opt, size_t idx);
+
+/**
+ * core_option_is_category:
+ * @opt_mgr               : options manager handle
+ * @idx                   : option index or menu entry type
+ *
+ * Returns: True if @idx indexes a category
+ */
+bool core_option_is_category(core_option_manager_t *opt_mgr, size_t idx);
+
+/**
+ * core_option_set_category:
+ * @opt_mgr                : options manager handle
+ * @cat_key                : category key to set as current
+ * @cat_desc               : category description (menu title) to set as current
+ *
+ * Sets current category and description to @cat_key and @cat_desc
+ */
+void core_option_set_category(core_option_manager_t *opt_mgr,
+                              const char *cat_key, const char *cat_desc);
+
+/**
+ * core_option_category_desc:
+ * @opt_mgr                 : options manager handle
+ *
+ * Returns: Pointer to current category description
+ */
+const char* core_option_category_desc(core_option_manager_t *opt);
 
 /**
  * core_option_get_info:
@@ -249,6 +283,16 @@ char* core_option_conf_path(core_option_manager_t *opt);
  * Sets @path to options file path for the @scope given
  */
 void core_option_get_conf_path(char *path, enum setting_scope scope);
+
+/**
+ * core_option_set_update_cb:
+ * @opt_mgr                 : pointer to core option manager object.
+ * @cb                      : callback function
+ *
+ * Sets callback to force core to update displayed options.
+ **/
+void core_option_set_update_cb(core_option_manager_t *opt_mgr,
+      retro_core_options_update_display_callback_t cb);
 
 #ifdef __cplusplus
 }

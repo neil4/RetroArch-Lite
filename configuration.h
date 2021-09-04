@@ -342,6 +342,7 @@ typedef struct settings
    struct
    {
       bool set_supports_no_game_enable;
+      bool option_categories;
    } core;
 
    int state_slot;
