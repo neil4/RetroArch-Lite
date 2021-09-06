@@ -815,6 +815,11 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    desc->range_y = desc->range_y_orig;
 
    snprintf(conf_key, sizeof(conf_key),
+         "overlay%u_desc%u_exclusive", ol_idx, desc_idx);
+   desc->exclusive = false;
+   config_get_bool(ol->conf, conf_key, &desc->exclusive);
+
+   snprintf(conf_key, sizeof(conf_key),
          "overlay%u_desc%u_alpha_mod", ol_idx, desc_idx);
    desc->alpha_mod = alpha_mod;
    config_get_float(ol->conf, conf_key, &desc->alpha_mod);
@@ -1726,51 +1731,6 @@ static INLINE uint64_t eightway_state(const struct overlay_desc *desc_ptr,
 }
 
 /**
- * input_overlay_undo_meta_overlap:
- * @ol                            : Overlay handle.
- * @out                           : Overlay state for a single pointer.
- * @ptr_idx                       : Pointer index.
- *
- * Disallows simultaneous use of meta keys with other controls by the same
- * pointer. Meta keys take priority unless other controls were already active.
- */
-static INLINE void input_overlay_undo_meta_overlap(input_overlay_t *ol,
-                                                   input_overlay_state_t* out,
-                                                   const uint8_t ptr_idx)
-{
-   uint64_t active_meta  = out->buttons & META_KEY_MASK;
-   uint64_t active_other = out->buttons & ~META_KEY_MASK;
-   uint32_t* analog32    = (uint32_t*)out->analog;
-   
-   if (active_meta && (active_other || analog32[0] != 0 || analog32[1] != 0))
-   {
-      input_overlay_state_t* old_state = &driver_get_ptr()->old_overlay_state;
-      uint32_t* analog32_old           = (uint32_t*)old_state->analog;
-      struct overlay_desc *descs       = ol->active->descs;
-      bool undo_meta;
-      size_t i;
-
-      if ( (active_other & old_state->buttons)
-           || (analog32_old[0] != 0 && analog32[0] != 0)
-           || (analog32_old[1] != 0 && analog32[1] != 0) )
-      {
-         out->buttons = active_other;
-         undo_meta = true;
-      }
-      else
-      {
-         out->buttons = active_meta;
-         memset(out->analog, 0, 4*sizeof(int16_t));
-         undo_meta = false;
-      }
-
-      for (i = 0; i < ol->active->size; i++)
-         if (!((descs[i].key_mask & META_KEY_MASK) == 0ULL) == undo_meta)
-            descs[i].updated &= ~(1 << ptr_idx);
-   }
-}
-
-/**
  * inside_hitbox:
  * @desc                  : Overlay descriptor handle.
  * @x                     : X coordinate value.
@@ -1859,8 +1819,9 @@ static INLINE bool input_overlay_poll_descs(
 
       any_desc_hit = true;
 
-      if (desc->range_mod_exclusive
-          && desc->range_x_mod > desc->range_x_hitbox)
+      if (desc->exclusive
+          || (desc->range_mod_exclusive &&
+              desc->range_x_mod > desc->range_x_hitbox))
       {
          exclusive_desc_hit = true;
          memset(out, 0, sizeof(*out));
@@ -1909,9 +1870,6 @@ static INLINE bool input_overlay_poll_descs(
          }
       }
    }
-
-   if (!exclusive_desc_hit)
-      input_overlay_undo_meta_overlap(ol, out, ptr_idx);
 
    return any_desc_hit;
 }

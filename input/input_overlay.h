@@ -159,6 +159,7 @@ struct overlay_desc
    float range_y_hitbox;
 
    enum overlay_hitbox hitbox;
+   bool  exclusive;
    float range_mod;
    float range_x_mod, range_y_mod;
    bool  range_mod_exclusive;
