@@ -473,9 +473,11 @@ static int do_state_checks(event_cmd_state_t *cmd)
                cmd->fullscreen_toggle,
                cmd->rewind_pressed))
          return 1;
+
+      check_fast_forward_button(
+            cmd->fastforward_pressed, cmd->hold_pressed, cmd->old_hold_pressed);
    }
 
-   check_fast_forward_button(cmd->fastforward_pressed, cmd->hold_pressed, cmd->old_hold_pressed);
    check_stateslots(cmd->state_slot_increase, cmd->state_slot_decrease);
 
    if (cmd->save_state_pressed)
