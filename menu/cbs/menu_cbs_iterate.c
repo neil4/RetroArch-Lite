@@ -172,10 +172,8 @@ static int action_iterate_help(char *s, size_t len, const char *label)
    {
       const struct retro_keybind *keybind = (const struct retro_keybind*)
          &settings->input.binds[0][binds[i]];
-      const struct retro_keybind *auto_bind = (const struct retro_keybind*)
-         input_get_auto_bind(0, binds[i]);
 
-      input_get_bind_string(desc[i], keybind, auto_bind, sizeof(desc[i]));
+      input_get_bind_string(desc[i], keybind, NULL, sizeof(desc[i]));
    }
 
    snprintf(s, len,
