@@ -192,19 +192,6 @@ const char* core_option_category_desc(core_option_manager_t *opt);
 void core_option_get_info(core_option_manager_t *opt_mgr,
                           char *s, size_t len, size_t idx);
 
-/**
- * core_option_vals:
- * @opt_mgr        : pointer to core option manager object.
- * @idx            : option index or menu entry type
- *
- * Gets list of core option values from core option specified by @idx.
- *
- * Returns: string list of core option values if successful, otherwise
- * NULL.
- **/
-struct string_list *core_option_vals(core_option_manager_t *opt_mgr,
-                                     size_t idx);
-
 void core_option_set_val(core_option_manager_t *opt_mgr,
       size_t idx, size_t val_idx);
 

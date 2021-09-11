@@ -378,8 +378,6 @@ extern "C" {
 #define MENU_LABEL_VALUE_RESUME_CONTENT                                        0xae6e5911U
 #define MENU_LABEL_VALUE_RESUME                                                0xce8ac2f6U
 #define MENU_LABEL_RESTART_CONTENT                                             0x1ea2e224U
-#define MENU_LABEL_TAKE_SCREENSHOT                                             0x6786e867U
-#define MENU_LABEL_VALUE_TAKE_SCREENSHOT                                       0xab767128U
 #define MENU_LABEL_FILE_LOAD_OR_RESUME                                         0x952941f4U
 #define MENU_LABEL_DISK_IMAGE_APPEND                                           0x5af7d709U
 #define MENU_LABEL_CONFIGURATIONS                                              0x3e930a50U

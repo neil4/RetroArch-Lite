@@ -1096,12 +1096,6 @@ static int action_ok_restart_content(const char *path,
    return generic_action_ok_command(EVENT_CMD_RESET);
 }
 
-static int action_ok_screenshot(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   return generic_action_ok_command(EVENT_CMD_TAKE_SCREENSHOT);
-}
-
 static int action_ok_file_load_or_resume(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -1211,9 +1205,6 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_RESTART_CONTENT:
          cbs->action_ok = action_ok_restart_content;
-         break;
-      case MENU_LABEL_TAKE_SCREENSHOT:
-         cbs->action_ok = action_ok_screenshot;
          break;
       case MENU_LABEL_FILE_LOAD_OR_RESUME:
          cbs->action_ok = action_ok_file_load_or_resume;

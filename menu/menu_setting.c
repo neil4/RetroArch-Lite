@@ -1185,49 +1185,6 @@ static int setting_action_right_video_refresh_rate(void *data)
    return 0;
 }
 
-#if defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT)
-static int core_list_action_toggle(void *data, bool wraparound)
-{
-   rarch_setting_t *setting  = (rarch_setting_t *)data;
-   settings_t      *settings = config_get_ptr();
-
-   /* If the user CANCELs the browse, then settings->libretro is now
-    * set to a directory, which is very bad and will cause a crash
-    * later on. I need to be able to add something to call when a
-    * cancel happens.
-    */
-   return setting_set_with_string_representation(setting, settings->libretro_directory);
-}
-#endif
-
-/**
- * load_content_action_toggle:
- * @data               : pointer to setting
- * @action             : toggle action value. Can be either one of :
- *                       MENU_ACTION_RIGHT | MENU_ACTION_LEFT
- *
- * Function callback for 'Load Content' action's 'Action Toggle'
- * function pointer.
- *
- * Returns: 0 on success, -1 on error.
- **/
-static int load_content_action_toggle(void *data, bool wraparound)
-{
-   rarch_setting_t *setting  = (rarch_setting_t *)data;
-   settings_t      *settings = config_get_ptr();
-   global_t        *global   = global_get_ptr();
-
-   if (setting_set_with_string_representation(setting, settings->menu_content_directory) != 0)
-      return -1;
-
-   if (global->menu.info.valid_extensions)
-      setting->values = global->menu.info.valid_extensions;
-   else
-      setting->values = global->system.valid_extensions;
-
-   return 0;
-}
-
 /**
  ******* ACTION OK CALLBACK FUNCTIONS *******
 **/
@@ -3585,22 +3542,6 @@ static void general_write_handler(void *data)
 
    switch (hash)
    {
-      case MENU_LABEL_HELP:
-         if (!menu_list)
-            return;
-
-         if (*setting->value.boolean)
-         {
-            info.list          = menu_list->menu_stack;
-            info.type          = 0; 
-            info.directory_ptr = 0;
-            strlcpy(info.label,
-                  menu_hash_to_str(MENU_LABEL_HELP), sizeof(info.label));
-
-            menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
-            setting_set_with_string_representation(setting, "false");
-         }
-         break;
       case MENU_LABEL_AUDIO_MAX_TIMING_SKEW:
          settings->audio.max_timing_skew = *setting->value.fraction;
          break;
@@ -3913,17 +3854,6 @@ static bool setting_append_list_main_menu_options(
             group_info.name,
             subgroup_info.name,
             parent_group);
-      (*list)[list_info->index - 1].size = sizeof(settings->libretro);
-      (*list)[list_info->index - 1].value.string = settings->libretro;
-      (*list)[list_info->index - 1].values = EXT_EXECUTABLES;
-      /* It is not a good idea to have chosen action_toggle as the place
-         to put this callback. It should be called whenever the browser
-         needs to get the directory to browse into. It's not quite like
-         get_string_representation, but it is close. */
-      (*list)[list_info->index - 1].action_left  = core_list_action_toggle;
-      (*list)[list_info->index - 1].action_right = core_list_action_toggle;
-      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_LOAD_CORE);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
    }
    else  /* core loaded */
    {
@@ -3935,13 +3865,6 @@ static bool setting_append_list_main_menu_options(
                group_info.name,
                subgroup_info.name,
                parent_group);
-         (*list)[list_info->index - 1].size = sizeof(global->fullpath);
-         (*list)[list_info->index - 1].value.string   = global->fullpath;
-         (*list)[list_info->index - 1].action_left    = load_content_action_toggle;
-         (*list)[list_info->index - 1].action_right   = load_content_action_toggle;
-         (*list)[list_info->index - 1].action_select  = load_content_action_toggle;
-         menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_LOAD_CONTENT);
-         settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
       }
       
       CONFIG_ACTION(
@@ -3950,7 +3873,6 @@ static bool setting_append_list_main_menu_options(
             group_info.name,
             subgroup_info.name,
             parent_group);
-      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_UNLOAD_CORE);
    }
 #endif /* #if defined(HAVE_DYNAMIC)... */
    if (!core_loaded && global->core_info
@@ -3962,7 +3884,6 @@ static bool setting_append_list_main_menu_options(
             group_info.name,
             subgroup_info.name,
             parent_group);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
    }
 #else /* #ifndef EXTERNAL_LAUNCHER */
    if (global->libretro_supports_content)
@@ -3975,11 +3896,6 @@ static bool setting_append_list_main_menu_options(
             parent_group);
       (*list)[list_info->index - 1].size = sizeof(global->fullpath);
       (*list)[list_info->index - 1].value.string   = global->fullpath;
-      (*list)[list_info->index - 1].action_left    = load_content_action_toggle;
-      (*list)[list_info->index - 1].action_right   = load_content_action_toggle;
-      (*list)[list_info->index - 1].action_select  = load_content_action_toggle;
-      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_LOAD_CONTENT);
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_BROWSER_ACTION);
    }
 #endif  /* #ifndef EXTERNAL_LAUNCHER */
 
@@ -4077,16 +3993,6 @@ static bool setting_append_list_main_menu_options(
       (*list)[list_info->index - 1].get_string_representation = &get_string_representation_savestate;
       menu_settings_list_current_add_cmd  (list, list_info, EVENT_CMD_LOAD_STATE);
 
-#if 0
-      CONFIG_ACTION(
-            menu_hash_to_str(MENU_LABEL_TAKE_SCREENSHOT),
-            menu_hash_to_str(MENU_LABEL_VALUE_TAKE_SCREENSHOT),
-            group_info.name,
-            subgroup_info.name,
-            parent_group);
-      menu_settings_list_current_add_cmd  (list, list_info, EVENT_CMD_TAKE_SCREENSHOT);
-#endif
-
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_RESTART_CONTENT),
             global->libretro_no_content ? "Restart" : "Restart ROM",
@@ -4105,15 +4011,6 @@ static bool setting_append_list_main_menu_options(
          subgroup_info.name,
          parent_group);
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_RESTART_RETROARCH);
-#endif
-
-#if 0
-   CONFIG_ACTION(
-         menu_hash_to_str(MENU_LABEL_HELP),
-         menu_hash_to_str(MENU_LABEL_VALUE_HELP),
-         group_info.name,
-         subgroup_info.name,
-         parent_group);
 #endif
 
 #if !defined(IOS)

@@ -920,22 +920,6 @@ void core_option_get_info(core_option_manager_t *opt_mgr,
       strlcpy(s, info, len);
 }
 
-/**
- * core_option_vals:
- * @opt_mgr        : pointer to core option manager object.
- * @idx            : option index or menu entry type
- *
- * Returns: string list of core option values if successful, otherwise
- * NULL.
- **/
-struct string_list *core_option_vals(core_option_manager_t *opt_mgr,
-                                     size_t idx)
-{
-   if (!opt_mgr)
-      return NULL;
-   idx = core_option_index(opt_mgr, idx);
-   return opt_mgr->opts[idx].vals;
-}
 
 void core_option_set_val(core_option_manager_t *opt_mgr,
       size_t idx, size_t val_idx)

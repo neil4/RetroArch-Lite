@@ -138,8 +138,6 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "disk_image_append";
       case MENU_LABEL_DEFERRED_CORE_LIST:
          return "deferred_core_list";
-      case MENU_LABEL_VALUE_TAKE_SCREENSHOT:
-         return "Take Screenshot";
       case MENU_LABEL_INFO:
          return "info";
       case MENU_LABEL_INFO_SCREEN:
@@ -190,8 +188,6 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "help";
       case MENU_LABEL_RESTART_CONTENT:
          return "restart_content";
-      case MENU_LABEL_TAKE_SCREENSHOT:
-         return "take_screenshot";
       case MENU_LABEL_CORE_UPDATER_LIST:
          return "core_updater_list";
       case MENU_LABEL_DOWNLOADABLE_CORE:
