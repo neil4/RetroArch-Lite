@@ -3517,12 +3517,10 @@ static void general_read_handler(void *data)
 static void general_write_handler(void *data)
 {
    enum event_command rarch_cmd = EVENT_CMD_NONE;
-   menu_displaylist_info_t info = {0};
    rarch_setting_t *setting = (rarch_setting_t*)data;
    settings_t *settings     = config_get_ptr();
    driver_t *driver         = driver_get_ptr();
    global_t *global         = global_get_ptr();
-   menu_list_t *menu_list   = menu_list_get_ptr();
    uint32_t hash            = setting ? menu_hash_calculate(setting->name) : 0;
 
    if (!setting)
