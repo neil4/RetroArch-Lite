@@ -237,7 +237,7 @@ static void parse_v2_category(
    option->desc = strdup(category_def->desc);
 
    if (!string_is_empty(category_def->info))
-      info      = strdup(category_def->info);
+      info      = category_def->info;
    else
       info      = NULL;
 
