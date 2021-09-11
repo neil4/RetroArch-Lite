@@ -816,8 +816,8 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
 
    snprintf(conf_key, sizeof(conf_key),
          "overlay%u_desc%u_exclusive", ol_idx, desc_idx);
-   /* Default overlay_next keys to exclusive */
-   desc->exclusive = (desc->key_mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT));
+   /* Default meta keys to exclusive */
+   desc->exclusive = (desc->key_mask & META_KEY_MASK);
    config_get_bool(ol->conf, conf_key, &desc->exclusive);
 
    snprintf(conf_key, sizeof(conf_key),
