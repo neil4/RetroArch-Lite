@@ -44,10 +44,17 @@
 #define RGUI_TERM_WIDTH          (((frame_buf->width - RGUI_TERM_START_X - RGUI_TERM_START_X) / (FONT_WIDTH_STRIDE)))
 #define RGUI_TERM_HEIGHT         (((frame_buf->height - RGUI_TERM_START_Y - RGUI_TERM_START_X) / (FONT_HEIGHT_STRIDE)) - 1)
 
-#define RENDER_WIDTH 320
-#define RENDER_HEIGHT 240
-
 #define NUM_PARTICLES 256
+
+/* default colors (clean green) */
+#define rgui_hover_32b_default 0xFF64FF64
+#define rgui_normal_32b_default 0xFFFFFFFF
+#define rgui_title_32b_default 0xFF64FF64
+#define rgui_bg_dark_32b_default 0xC0303030
+#define rgui_bg_light_32b_default 0xC0303030
+#define rgui_border_dark_32b_default 0xC0408040
+#define rgui_border_light_32b_default 0xC0408040
+#define rgui_particle_32b_default 0xC0879E87
 
 /* A 'particle' is just 4 float variables that can
  * be used for any purpose - e.g.:
@@ -69,7 +76,7 @@ typedef struct
 typedef struct
 {
    char *path;
-   uint16_t data[RENDER_WIDTH * RENDER_HEIGHT];
+   uint16_t data[RGUI_WIDTH * RGUI_HEIGHT];
 } wallpaper_t;
 
 struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS] = {
@@ -82,7 +89,7 @@ struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS] = {
 };
 
 static wallpaper_t rgui_wallpaper = {NULL, {0}};
-static uint8_t rgui_wallpaper_orig_alpha[RENDER_WIDTH * RENDER_HEIGHT];
+static uint8_t rgui_wallpaper_orig_alpha[RGUI_WIDTH * RGUI_HEIGHT];
 static char rgui_loaded_theme[PATH_MAX_LENGTH];
 static bool rgui_wallpaper_valid;
 
@@ -248,7 +255,7 @@ static void rgui_init_particle_effect(menu_framebuf_t *frame_buf)
                8, 8, 8,
                9, 9,
                10};
-            unsigned num_drops = (unsigned)(0.85f * ((float)frame_buf->width / (float)RENDER_WIDTH) * (float)NUM_PARTICLES);
+            unsigned num_drops = (unsigned)(0.85f * ((float)frame_buf->width / (float)RGUI_WIDTH) * (float)NUM_PARTICLES);
             
             num_drops = num_drops < NUM_PARTICLES ? num_drops : NUM_PARTICLES;
             
@@ -405,7 +412,7 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                8, 8, 8,
                9, 9,
                10};
-            unsigned num_drops = (unsigned)(0.85f * ((float)fb_width / (float)RENDER_WIDTH) * (float)NUM_PARTICLES);
+            unsigned num_drops = (unsigned)(0.85f * ((float)fb_width / (float)RGUI_WIDTH) * (float)NUM_PARTICLES);
             bool on_screen;
             
             num_drops = num_drops < NUM_PARTICLES ? num_drops : NUM_PARTICLES;
@@ -612,7 +619,7 @@ static void rgui_adjust_wallpaper_alpha()
    scale = global->libretro_dummy ?
       1.0f : settings->menu.wallpaper_opacity;
 
-   for (i = 0; i < RENDER_WIDTH * RENDER_HEIGHT; i++)
+   for (i = 0; i < RGUI_WIDTH * RGUI_HEIGHT; i++)
    {
       alpha = scale * rgui_wallpaper_orig_alpha[i];
       rgui_wallpaper.data[i] = (rgui_wallpaper.data[i] & 0xfff0) | alpha;
@@ -793,9 +800,9 @@ static void rgui_render_wallpaper(menu_framebuf_t *frame_buf)
    if (frame_buf)
    {
       /* Sanity check */
-      if ((frame_buf->width != RENDER_WIDTH)
-          || (frame_buf->height != RENDER_HEIGHT)
-          || (frame_buf->pitch != RENDER_WIDTH << 1) )
+      if ((frame_buf->width != RGUI_WIDTH)
+          || (frame_buf->height != RGUI_HEIGHT)
+          || (frame_buf->pitch != RGUI_WIDTH << 1) )
       {
          rgui_wallpaper_valid = false;
          return;
@@ -803,7 +810,7 @@ static void rgui_render_wallpaper(menu_framebuf_t *frame_buf)
 
       /* Copy wallpaper to framebuffer */
       memcpy(frame_buf->data, rgui_wallpaper.data,
-             RENDER_WIDTH * RENDER_HEIGHT * sizeof(uint16_t));
+             RGUI_WIDTH * RGUI_HEIGHT * sizeof(uint16_t));
 
       return;
    }
@@ -1155,13 +1162,13 @@ static void *rgui_init(void)
    frame_buf                  = &menu->display.frame_buf;
 
    /* 4 extra lines to cache the checkered background */
-   frame_buf->data = (uint16_t*)calloc(400 * (RENDER_HEIGHT + 4), sizeof(uint16_t));
+   frame_buf->data = (uint16_t*)calloc(400 * (RGUI_HEIGHT + 4), sizeof(uint16_t));
 
    if (!frame_buf->data)
       goto error;
 
-   frame_buf->width                   = RENDER_WIDTH;
-   frame_buf->height                  = RENDER_HEIGHT;
+   frame_buf->width                   = RGUI_WIDTH;
+   frame_buf->height                  = RGUI_HEIGHT;
    menu->display.header_height        = FONT_HEIGHT_STRIDE * 2;
    frame_buf->pitch                   = frame_buf->width * sizeof(uint16_t);
 
@@ -1314,20 +1321,20 @@ static void process_wallpaper(struct texture_image *image)
 {
    unsigned x, y;
    /* Sanity check */
-   if (!image->pixels || (image->width != RENDER_WIDTH) || (image->height != RENDER_HEIGHT))
+   if (!image->pixels || (image->width != RGUI_WIDTH) || (image->height != RGUI_HEIGHT))
       return;
 
    /* Copy image to wallpaper buffer, performing pixel format conversion */
-   for (x = 0; x < RENDER_WIDTH; x++)
+   for (x = 0; x < RGUI_WIDTH; x++)
    {
-      for (y = 0; y < RENDER_HEIGHT; y++)
+      for (y = 0; y < RGUI_HEIGHT; y++)
       {
-         rgui_wallpaper.data[x + (y * RENDER_WIDTH)] =
-            argb32_to_rgba4444(image->pixels[x + (y * RENDER_WIDTH)]);
+         rgui_wallpaper.data[x + (y * RGUI_WIDTH)] =
+            argb32_to_rgba4444(image->pixels[x + (y * RGUI_WIDTH)]);
       }
    }
 
-   for (x = 0; x < RENDER_WIDTH * RENDER_HEIGHT; x++)
+   for (x = 0; x < RGUI_WIDTH * RGUI_HEIGHT; x++)
       rgui_wallpaper_orig_alpha[x] = rgui_wallpaper.data[x] & 0xf;
 
    rgui_adjust_wallpaper_alpha();
