@@ -373,11 +373,7 @@ extern "C" {
 #define MENU_LABEL_CUSTOM_BIND_DEFAULTS                                        0xe88f7b13U
 #define MENU_LABEL_SAVESTATE                                                   0x3a4849b5U
 #define MENU_LABEL_LOADSTATE                                                   0xa39eb286U
-#define MENU_LABEL_RESUME_CONTENT                                              0xd9f088b0U
-#define MENU_LABEL_VALUE_RESUME_CONTENT                                        0xae6e5911U
-#define MENU_LABEL_VALUE_RESUME                                                0xce8ac2f6U
 #define MENU_LABEL_RESTART_CONTENT                                             0x1ea2e224U
-#define MENU_LABEL_FILE_LOAD_OR_RESUME                                         0x952941f4U
 #define MENU_LABEL_DISK_IMAGE_APPEND                                           0x5af7d709U
 #define MENU_LABEL_VALUE_CONFIGURATIONS                                        0x88eb27f0U
 #define MENU_LABEL_VALUE_CHEAT_FILE_SAVE_AS                                    0xf2498a2dU

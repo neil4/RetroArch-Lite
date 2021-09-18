@@ -140,8 +140,6 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "info";
       case MENU_LABEL_INFO_SCREEN:
          return "info_screen";
-      case MENU_LABEL_VALUE_RESUME:
-         return "Resume";
       case MENU_LABEL_DISK_INDEX:
          return "disk_index";
       case MENU_LABEL_VALUE_DISK_INDEX:
@@ -228,10 +226,6 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "loadstate";
       case MENU_LABEL_VALUE_LOAD_STATE:
          return "Load State";
-      case MENU_LABEL_VALUE_RESUME_CONTENT:
-         return "Resume ROM";
-      case MENU_LABEL_RESUME_CONTENT:
-         return "resume_content";
       case MENU_LABEL_DRIVER_SETTINGS:
          return "Driver Settings";
       case MENU_LABEL_OVERLAY_SETTINGS:

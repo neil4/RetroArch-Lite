@@ -1033,37 +1033,10 @@ static int action_ok_quit(const char *path,
    return generic_action_ok_command(EVENT_CMD_QUIT);
 }
 
-static int action_ok_resume_content(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   return generic_action_ok_command(EVENT_CMD_RESUME);
-}
-
 static int action_ok_restart_content(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    return generic_action_ok_command(EVENT_CMD_RESET);
-}
-
-static int action_ok_file_load_or_resume(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   menu_handle_t *menu   = menu_driver_get_ptr();
-   global_t      *global = global_get_ptr();
-
-   if (!menu)
-      return -1;
-
-   if (!strcmp(menu->deferred_path, global->fullpath))
-      return generic_action_ok_command(EVENT_CMD_RESUME);
-   else
-   {
-      strlcpy(global->fullpath,
-            menu->deferred_path, sizeof(global->fullpath));
-      event_command(EVENT_CMD_LOAD_CORE);
-      rarch_main_set_state(RARCH_ACTION_STATE_LOAD_CONTENT);
-      return -1;
-   }
 }
 
 static int action_ok_shader_apply_changes(const char *path,
@@ -1149,14 +1122,8 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_LOADSTATE:
          cbs->action_ok = action_ok_load_state;
          break;
-      case MENU_LABEL_RESUME_CONTENT:
-         cbs->action_ok = action_ok_resume_content;
-         break;
       case MENU_LABEL_RESTART_CONTENT:
          cbs->action_ok = action_ok_restart_content;
-         break;
-      case MENU_LABEL_FILE_LOAD_OR_RESUME:
-         cbs->action_ok = action_ok_file_load_or_resume;
          break;
       case MENU_LABEL_QUIT_RETROARCH:
          cbs->action_ok = action_ok_quit;
