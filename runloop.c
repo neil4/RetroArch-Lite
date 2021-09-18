@@ -724,7 +724,7 @@ static bool input_flush(retro_input_t *input)
 }
 
 /**
- * rarch_main_load_dummy_core:
+ * rarch_main_iterate_quit:
  *
  * Quits out of RetroArch main loop.
  *
@@ -744,6 +744,11 @@ static int rarch_main_iterate_quit(void)
    {
       if (!event_command(EVENT_CMD_PREPARE_DUMMY))
          return -1;
+
+      /* Reload core without starting */
+      event_command(EVENT_CMD_LOAD_CORE);
+      event_command(EVENT_CMD_OVERLAY_INIT);
+      menu_reset();
 
       global->core_shutdown_initiated = false;
 

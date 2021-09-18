@@ -906,6 +906,7 @@ bool event_command(enum event_command cmd)
 
             rarch_main_set_state(RARCH_ACTION_STATE_LOAD_CONTENT);
             global->system.shutdown = false;
+            global->content_is_init = false;
          }
          break;
       case EVENT_CMD_UNLOAD_CORE:
@@ -918,8 +919,6 @@ bool event_command(enum event_command cmd)
          event_command(EVENT_CMD_LOAD_CORE_DEINIT);
 
          menu_navigation_set(menu_navigation_get_ptr(), 0, true);
-         
-         global->content_is_init = false;
          break;
       case EVENT_CMD_QUIT:
          rarch_main_set_state(RARCH_ACTION_STATE_QUIT);
