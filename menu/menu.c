@@ -310,10 +310,9 @@ int menu_iterate(retro_input_t input,
 
 void menu_reset(void)
 {
-   menu_handle_t *menu   = menu_driver_get_ptr();
+   menu_handle_t *menu = menu_driver_get_ptr();
    
-   menu_displaylist_init(menu);
-   
-   while (menu_entries_show_back())
-      menu_list_pop_stack(menu->entries.menu_list);
+   menu_list_free(menu->entries.menu_list);
+   menu->entries.menu_list = menu_list_new();
+   menu_displaylist_init();
 }
