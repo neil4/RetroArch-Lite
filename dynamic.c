@@ -638,6 +638,22 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          break;
       }
 
+      case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK:
+      {
+         RARCH_LOG("Environ SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK.\n");
+         const struct retro_core_options_update_display_callback *cb =
+               (const struct retro_core_options_update_display_callback*)data;
+
+         if (cb && cb->callback)
+            core_option_set_update_cb(global->system.core_options,
+                                      cb->callback);
+         else
+            core_option_set_update_cb(global->system.core_options,
+                                      NULL);
+
+         break;
+      }
+
       case RETRO_ENVIRONMENT_SET_MESSAGE:
       {
          const struct retro_message *msg = (const struct retro_message*)data;
