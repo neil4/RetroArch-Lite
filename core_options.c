@@ -25,6 +25,7 @@
 #include <retro_miscellaneous.h>
 #include <string/stdstring.h>
 #include "menu/menu.h"
+#include "menu/menu_hash.h"
 
 bool core_options_touched = false;
 unsigned core_options_scope = THIS_CORE;
@@ -604,6 +605,9 @@ void core_option_update_category_visibilities(core_option_manager_t *opt_mgr)
    struct core_option *cat, *opt;
    unsigned i, j;
 
+   if (!opt_mgr)
+      return;
+
    /* Hide each category until an option is found using it.
     * Categories start at @opt_mgr->num_opts. */
    for (i = opt_mgr->num_opts; i < opt_mgr->size; i++)
@@ -810,6 +814,9 @@ const char *core_option_label(core_option_manager_t *opt_mgr, size_t idx)
 {
    struct core_option *option;
 
+   if (!opt_mgr)
+      return "";
+
    idx = core_option_index(opt_mgr, idx);
    option = (struct core_option*)&opt_mgr->opts[idx];
 
@@ -891,7 +898,7 @@ void core_option_set_category(core_option_manager_t *opt_mgr,
 const char* core_option_category_desc(core_option_manager_t *opt_mgr)
 {
    if (!opt_mgr)
-      return NULL;
+      return menu_hash_to_str(MENU_LABEL_CORE_OPTIONS);
    return opt_mgr->category_desc;
 }
 
@@ -968,6 +975,9 @@ void core_option_update_vals_from_file(core_option_manager_t *opt_mgr,
    config_file_t *conf;
    char *conf_val;
    size_t i;
+
+   if (!opt_mgr)
+      return;
 
    conf = config_file_new(path);
    if (!conf)
@@ -1084,6 +1094,9 @@ void core_options_set_defaults(core_option_manager_t *opt_mgr)
  */
 void core_options_conf_reload(core_option_manager_t *opt_mgr)
 {
+   if (!opt_mgr)
+      return;
+
    config_file_free(opt_mgr->conf);
    if (path_file_exists(opt_mgr->conf_path))
       opt_mgr->conf = config_file_new(opt_mgr->conf_path);
