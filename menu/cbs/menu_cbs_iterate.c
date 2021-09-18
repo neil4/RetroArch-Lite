@@ -25,6 +25,7 @@
 #include "../menu_input.h"
 #include "../menu_shader.h"
 #include "../menu_navigation.h"
+#include "../drivers/rgui.h"
 
 #include "../../general.h"
 #include "../../retroarch.h"
@@ -398,7 +399,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
          break;
 
       case MENU_ACTION_L:  /* zoom out */
-         if (!settings->video.scale_integer && custom->height > 2)
+         if (!settings->video.scale_integer && custom->height > RGUI_HEIGHT)
          {
             if (!start_vp.width)
                start_vp = *custom;
@@ -430,13 +431,13 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
 
          break;
 
-      case MENU_ACTION_L2:  /* shift up or left */
+      case MENU_ACTION_L2:  /* shift down or left */
          if (!settings->video.scale_integer)
          {
             if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
             {
-               custom->y  -= 1;
-               start_vp.y -= 1;
+               custom->y  += 1;
+               start_vp.y += 1;
             }
             else
             {
@@ -447,13 +448,13 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
 
          break;
 
-      case MENU_ACTION_R2:  /* shift down or right */
+      case MENU_ACTION_R2:  /* shift up or right */
          if (!settings->video.scale_integer)
          {
             if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
             {
-               custom->y  += 1;
-               start_vp.y += 1;
+               custom->y  -= 1;
+               start_vp.y -= 1;
             }
             else
             {
