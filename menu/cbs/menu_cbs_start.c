@@ -40,7 +40,6 @@ static int action_start_remap_file_load(unsigned type, const char *label)
    if (!settings)
       return -1;
 
-   settings->input.remapping_path[0] = '\0';
    input_remapping_set_defaults();
    rarch_main_msg_queue_push("Default input map applied", 1, 100, true);
 
