@@ -927,7 +927,6 @@ void core_option_get_info(core_option_manager_t *opt_mgr,
       strlcpy(s, info, len);
 }
 
-
 void core_option_set_val(core_option_manager_t *opt_mgr,
       size_t idx, size_t val_idx)
 {
@@ -1102,19 +1101,6 @@ void core_options_conf_reload(core_option_manager_t *opt_mgr)
       opt_mgr->conf = config_file_new(opt_mgr->conf_path);
    else
       opt_mgr->conf = config_file_new(NULL);
-}
-
-/**
- * core_option_conf_path:
- * @opt_mgr             : pointer to core option manager object.
- *
- * Returns pointer to core options file path.
- */
-char* core_option_conf_path(core_option_manager_t *opt_mgr)
-{
-   if (!opt_mgr)
-      return NULL;
-   return opt_mgr->conf_path;
 }
 
 /**

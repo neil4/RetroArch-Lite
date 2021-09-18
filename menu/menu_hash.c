@@ -72,8 +72,6 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Shader Passes";
       case MENU_LABEL_VIDEO_SHADER_NUM_PASSES:
          return "video_shader_num_passes";
-      case MENU_LABEL_CONFIGURATIONS:
-         return "configurations";
       case MENU_LABEL_VALUE_CONFIGURATIONS:
          return "Configuration Files";
       case MENU_LABEL_LOAD_OPEN_ZIP:

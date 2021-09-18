@@ -66,26 +66,6 @@ static void menu_action_setting_disp_set_label_core_options_scope(
    strlcpy(s, scope_lut[core_options_scope].name, len);
 }
 
-static void menu_action_setting_disp_set_label_configurations(
-      file_list_t* list,
-      unsigned *w, unsigned type, unsigned i,
-      const char *label,
-      char *s, size_t len,
-      const char *entry_label,
-      const char *path,
-      char *s2, size_t len2)
-{
-   global_t *global = global_get_ptr();
-
-   *w = 19;
-   strlcpy(s2, path, len2);
-   if (*global->config_path)
-      fill_pathname_base(s, global->config_path,
-            len);
-   else
-      strlcpy(s, "<default>", len);
-}
-
 static void menu_action_setting_disp_set_label_shader_filter_pass(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
@@ -702,19 +682,6 @@ static void menu_action_setting_disp_set_label_menu_file_overlay(
          path, "(OVERLAY)", s2, len2);
 }
 
-static void menu_action_setting_disp_set_label_menu_file_config(
-      file_list_t* list,
-      unsigned *w, unsigned type, unsigned i,
-      const char *label,
-      char *s, size_t len,
-      const char *entry_label,
-      const char *path,
-      char *s2, size_t len2)
-{
-   menu_action_setting_generic_disp_set_label(w, s, len,
-         path, "(CONFIG)", s2, len2);
-}
-
 static void menu_action_setting_disp_set_label_menu_file_theme(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
@@ -955,10 +922,6 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
          cbs->action_get_value =
             menu_action_setting_disp_set_label_shader_preset;
          break;
-      case MENU_LABEL_CONFIGURATIONS:
-         cbs->action_get_value =
-            menu_action_setting_disp_set_label_configurations;
-         break;
       case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_libretro_scope;
@@ -1059,10 +1022,6 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
          case MENU_FILE_SHADER_PRESET:
             cbs->action_get_value =
                menu_action_setting_disp_set_label_menu_file_shader_preset;
-            break;
-         case MENU_FILE_CONFIG:
-            cbs->action_get_value =
-               menu_action_setting_disp_set_label_menu_file_config;
             break;
          case MENU_FILE_THEME:
             cbs->action_get_value =

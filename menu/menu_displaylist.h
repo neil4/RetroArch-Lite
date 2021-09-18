@@ -54,8 +54,6 @@ enum
    DISPLAYLIST_CHEAT_FILES,
    DISPLAYLIST_OPTIONS_FILES,
    DISPLAYLIST_REMAP_FILES,
-   DISPLAYLIST_RECORD_CONFIG_FILES,
-   DISPLAYLIST_CONFIG_FILES,
    DISPLAYLIST_THEMES,
    DISPLAYLIST_IMAGES,
    DISPLAYLIST_FONTS,
@@ -90,13 +88,12 @@ int menu_displaylist_push(file_list_t *list, file_list_t *menu_list);
 
 /**
  * menu_displaylist_init:
- * @menu                     : Menu handle.
  *
  * Creates and initializes menu display list.
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
-bool menu_displaylist_init(void *data);
+bool menu_displaylist_init();
 
 #ifdef __cplusplus
 }

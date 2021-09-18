@@ -1527,8 +1527,6 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
       case DISPLAYLIST_CHEAT_FILES:
       case DISPLAYLIST_OPTIONS_FILES:
       case DISPLAYLIST_REMAP_FILES:
-      case DISPLAYLIST_RECORD_CONFIG_FILES:
-      case DISPLAYLIST_CONFIG_FILES:
       case DISPLAYLIST_THEMES:
       case DISPLAYLIST_OVERLAYS:
          menu_list_clear(info->list);
@@ -1640,19 +1638,17 @@ int menu_displaylist_push(file_list_t *list, file_list_t *menu_list)
 
 /**
  * menu_displaylist_init:
- * @menu                     : Menu handle.
  *
  * Creates and initializes menu display list.
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
-bool menu_displaylist_init(void *data)
+bool menu_displaylist_init()
 {
-   menu_handle_t       *menu    = (menu_handle_t*)data;
    menu_list_t       *menu_list = menu_list_get_ptr();
    menu_navigation_t       *nav = menu_navigation_get_ptr();
    menu_displaylist_info_t info = {0};
-   if (!menu || !menu_list)
+   if (!menu_list)
       return false;
 
    info.list  = menu_list->selection_buf;

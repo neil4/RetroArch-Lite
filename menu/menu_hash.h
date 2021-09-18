@@ -239,7 +239,6 @@ extern "C" {
 #define MENU_LABEL_VALUE_STARTING_DOWNLOAD                                     0x42e10f03U
 #define MENU_LABEL_DEFERRED_CORE_LIST                                          0xf157d289U
 #define MENU_LABEL_DEFERRED_CORE_UPDATER_LIST                                  0xbd4d493dU
-#define MENU_LABEL_CONFIGURATIONS                                              0x3e930a50U
 #define MENU_LABEL_DISK_IMAGE_APPEND                                           0x5af7d709U
 #define MENU_LABEL_PERFORMANCE_COUNTERS                                        0xd8ab5049U
 #define MENU_LABEL_VALUE_PERFORMANCE_COUNTERS                                  0x20eb18caU
@@ -380,7 +379,6 @@ extern "C" {
 #define MENU_LABEL_RESTART_CONTENT                                             0x1ea2e224U
 #define MENU_LABEL_FILE_LOAD_OR_RESUME                                         0x952941f4U
 #define MENU_LABEL_DISK_IMAGE_APPEND                                           0x5af7d709U
-#define MENU_LABEL_CONFIGURATIONS                                              0x3e930a50U
 #define MENU_LABEL_VALUE_CONFIGURATIONS                                        0x88eb27f0U
 #define MENU_LABEL_VALUE_CHEAT_FILE_SAVE_AS                                    0xf2498a2dU
 #define MENU_LABEL_CHEAT_FILE_SAVE_AS                                          0x1f58dccaU

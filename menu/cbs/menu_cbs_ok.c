@@ -326,28 +326,6 @@ static int action_ok_disk_image_append_list(const char *path,
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
 }
 
-static int action_ok_configurations_list(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   menu_displaylist_info_t info = {0};
-   settings_t *settings         = config_get_ptr();
-   const char *dir              = settings->menu_config_directory;
-   menu_list_t       *menu_list = menu_list_get_ptr();
-   if (!menu_list)
-      return -1;
-
-   info.list          = menu_list->menu_stack;
-   info.type          = type;
-   info.directory_ptr = idx;
-   if (dir)
-      strlcpy(info.path, dir, sizeof(info.path));
-   else
-      strlcpy(info.path, label, sizeof(info.path));
-   strlcpy(info.label, label, sizeof(info.label));
-
-   return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
-}
-
 static int action_ok_cheat_file(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -853,35 +831,6 @@ static int action_ok_directory_push(const char *path,
    return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
 }
 
-static int action_ok_config_load(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   const char *menu_path         = NULL;
-   char config[PATH_MAX_LENGTH]  = {0};
-   menu_navigation_t        *nav = menu_navigation_get_ptr();
-   menu_handle_t           *menu = menu_driver_get_ptr();
-   menu_display_t          *disp = menu_display_get_ptr();
-   menu_list_t        *menu_list = menu_list_get_ptr();
-
-   if (!menu || !menu_list)
-      return -1;
-
-   menu_list_get_last_stack(menu_list, &menu_path, NULL, NULL, NULL);
-
-   fill_pathname_join(config, menu_path, path, sizeof(config));
-   menu_list_flush_stack(menu_list, NULL, MENU_SETTINGS);
-
-   disp->msg_force = true;
-
-   if (rarch_replace_config(config))
-   {
-      menu_navigation_clear(nav, false);
-      return -1;
-   }
-
-   return 0;
-}
-
 static int action_ok_theme_load(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -1290,9 +1239,6 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_DISK_IMAGE_APPEND:
          cbs->action_ok = action_ok_disk_image_append_list;
          break;
-      case MENU_LABEL_CONFIGURATIONS:
-         cbs->action_ok = action_ok_configurations_list;
-         break;
       default:
          return -1;
    }
@@ -1345,9 +1291,6 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
             break;
          case MENU_FILE_USE_DIRECTORY:
             cbs->action_ok = action_ok_path_use_directory;
-            break;
-         case MENU_FILE_CONFIG:
-            cbs->action_ok = action_ok_config_load;
             break;
          case MENU_FILE_THEME:
             cbs->action_ok = action_ok_theme_load;

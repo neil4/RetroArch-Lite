@@ -151,7 +151,7 @@ void init_menu(void)
    if (!(driver->menu = (menu_handle_t*)menu_init(driver->menu_ctx)))
       rarch_fail(1, "init_menu()");
 
-   if (!(menu_displaylist_init(driver->menu)))
+   if (!(menu_displaylist_init()))
       rarch_fail(1, "init_menu()");
 }
 

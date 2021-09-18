@@ -253,14 +253,6 @@ void core_options_set_defaults(core_option_manager_t *opt_mgr);
 void core_options_conf_reload(core_option_manager_t *opt_mgr);
 
 /**
- * core_option_conf_path:
- * @opt_mgr             : pointer to core option manager object.
- *
- * Returns pointer to core options file path.
- */
-char* core_option_conf_path(core_option_manager_t *opt_mgr);
-
-/**
  * core_option_get_conf_path:
  * @path                    : pointer to PATH_MAX_LENGTH buffer
  * @scope                   : THIS_CORE, THIS_CONTENT_DIR, or THIS_CONTENT_ONLY

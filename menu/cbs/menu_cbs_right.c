@@ -552,7 +552,6 @@ static int menu_cbs_init_bind_right_compare_type(menu_file_list_cbs_t *cbs,
          case MENU_FILE_OVERLAY:
          case MENU_FILE_VIDEOFILTER:
          case MENU_FILE_AUDIOFILTER:
-         case MENU_FILE_CONFIG:
          case MENU_FILE_USE_DIRECTORY:
          case MENU_FILE_DOWNLOAD_CORE:
          case MENU_FILE_DOWNLOAD_CORE_INFO:

@@ -157,14 +157,6 @@ static int deferred_push_core_list(menu_displaylist_info_t *info)
    return menu_displaylist_push_list(info, DISPLAYLIST_CORES);
 }
 
-static int deferred_push_configurations(menu_displaylist_info_t *info)
-{
-   info->type_default = MENU_FILE_CONFIG;
-   strlcpy(info->exts, "cfg", sizeof(info->exts));
-
-   return menu_displaylist_push_list(info, DISPLAYLIST_CONFIG_FILES);
-}
-
 static int deferred_push_video_shader_preset(menu_displaylist_info_t *info)
 {
    info->type_default = MENU_FILE_SHADER_PRESET;
@@ -359,9 +351,6 @@ static int menu_cbs_init_bind_deferred_push_compare_label(menu_file_list_cbs_t *
          break;
       case MENU_LABEL_CORE_LIST:
          cbs->action_deferred_push = deferred_push_core_list;
-         break;
-      case MENU_LABEL_CONFIGURATIONS:
-         cbs->action_deferred_push = deferred_push_configurations;
          break;
       case MENU_LABEL_VIDEO_SHADER_PRESET:
          cbs->action_deferred_push = deferred_push_video_shader_preset;
