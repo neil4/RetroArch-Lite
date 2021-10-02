@@ -3892,8 +3892,6 @@ static bool setting_append_list_main_menu_options(
             group_info.name,
             subgroup_info.name,
             parent_group);
-      (*list)[list_info->index - 1].size = sizeof(global->fullpath);
-      (*list)[list_info->index - 1].value.string   = global->fullpath;
    }
 #endif  /* #ifndef EXTERNAL_LAUNCHER */
 

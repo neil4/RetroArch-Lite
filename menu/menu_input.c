@@ -647,20 +647,6 @@ static int menu_input_mouse(unsigned *action)
    if (!menu_driver_viewport_info(&vp))
       return -1;
 
-   if (menu_input->mouse.hwheeldown)
-   {
-      *action = MENU_ACTION_LEFT;
-      menu_input->mouse.hwheeldown = false;
-      return 0;
-   }
-
-   if (menu_input->mouse.hwheelup)
-   {
-      *action = MENU_ACTION_RIGHT;
-      menu_input->mouse.hwheelup = false;
-      return 0;
-   }
-
    menu_input->mouse.left       = input_driver_state(binds, 0, RETRO_DEVICE_MOUSE,
          0, RETRO_DEVICE_ID_MOUSE_LEFT);
    menu_input->mouse.right      = input_driver_state(binds, 0, RETRO_DEVICE_MOUSE,
@@ -793,10 +779,9 @@ static int menu_input_pointer(unsigned *action)
    return 0;
 }
 
-static INLINE bool menu_input_value_can_step(rarch_setting_t *setting,
+static bool menu_input_value_can_step(rarch_setting_t *setting,
       menu_entry_t *entry)
 {
-   /* todo: savestate slot? */
    if (setting)
    {
       if (setting->type == ST_BOOL || setting->type == ST_INT ||
@@ -919,21 +904,15 @@ static int menu_input_mouse_post_iterate(uint64_t *input_mouse,
                menu_list->selection_buf->list[nav->selection_ptr].label);
          menu_input->mouse.oldleft = true;
 
-         if (menu_input->mouse.ptr == nav->selection_ptr &&
-             cbs && cbs->action_right &&
-             menu_input_value_can_step(setting, entry))
+         if (menu_input->mouse.ptr == nav->selection_ptr && cbs)
          {
-            BIT64_SET(*input_mouse, MOUSE_ACTION_BUTTON_L_TOGGLE);
-         }
-         else if (menu_input->mouse.ptr == nav->selection_ptr
-            && cbs && cbs->action_ok)
-         {
-            BIT64_SET(*input_mouse, MOUSE_ACTION_BUTTON_L_OK);
+            if (cbs->action_right && menu_input_value_can_step(setting, entry))
+               BIT64_SET(*input_mouse, MOUSE_ACTION_BUTTON_L_TOGGLE);
+            else if (cbs->action_ok)
+               BIT64_SET(*input_mouse, MOUSE_ACTION_BUTTON_L_OK);
          }
          else if (menu_input->mouse.ptr <= menu_list_get_size(menu_list)-1)
-         {
             BIT64_SET(*input_mouse, MOUSE_ACTION_BUTTON_L_SET_NAVIGATION);
-         }
       }
    }
    else
@@ -984,14 +963,10 @@ static int menu_input_mouse_post_iterate(uint64_t *input_mouse,
       menu_input->mouse.oldbtn5 = false;
 
    if (menu_input->mouse.wheeldown)
-   {
       BIT64_SET(*input_mouse, MOUSE_ACTION_WHEEL_DOWN);
-   }
 
    if (menu_input->mouse.wheelup)
-   {
       BIT64_SET(*input_mouse, MOUSE_ACTION_WHEEL_UP);
-   }
 
    return 0;
 }

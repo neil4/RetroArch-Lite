@@ -149,11 +149,14 @@ static int16_t input_state(unsigned port, unsigned device,
    int16_t res                    = 0;
    settings_t *settings           = config_get_ptr();
    driver_t *driver               = driver_get_ptr();
+
+   /* flushing_input will be cleared in rarch_main_iterate. */
+   if (driver->flushing_input || driver->block_libretro_input)
+      return 0;
    
    device &= RETRO_DEVICE_MASK;
    
-   if (id == RETRO_DEVICE_ID_JOYPAD_MASK
-       && device == RETRO_DEVICE_JOYPAD)
+   if (id == RETRO_DEVICE_ID_JOYPAD_MASK && device == RETRO_DEVICE_JOYPAD)
    {
       unsigned i;
 
@@ -166,25 +169,18 @@ static int16_t input_state(unsigned port, unsigned device,
    if (settings->input.remap_binds_enable)
       input_remapping_state(port, &device, &idx, &id);
 
-   if (!driver->block_libretro_input)
+   if (device == RETRO_DEVICE_KEYBOARD && id < RETROK_LAST)
    {
-      if (device == RETRO_DEVICE_KEYBOARD && id < RETROK_LAST)
-      {
-         res = input_driver_state(libretro_input_binds, port, device, idx, id);
-         res |= input_joykbd_state(id);
-      }
-      else if (id < RARCH_CUSTOM_BIND_LIST_END)
-         res = input_driver_state(libretro_input_binds, port, device, idx, id);
+      res = input_driver_state(libretro_input_binds, port, device, idx, id);
+      res |= input_joykbd_state(id);
+   }
+   else if (id < RARCH_CUSTOM_BIND_LIST_END)
+      res = input_driver_state(libretro_input_binds, port, device, idx, id);
 
 #ifdef HAVE_OVERLAY
-      if (settings->input.overlay_enable)
-         res |= input_overlay_state(port, device, idx, id);
+   if (settings->input.overlay_enable)
+      res |= input_overlay_state(port, device, idx, id);
 #endif
-   }
-
-   /* flushing_input will be cleared in rarch_main_iterate. */
-   if (driver->flushing_input)
-      res = 0;
 
    return res;
 }

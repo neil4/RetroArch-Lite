@@ -64,19 +64,18 @@ const struct retro_input_descriptor default_rid[DEFAULT_NUM_REMAPS] = {
 bool input_remapping_load_file(const char *path)
 {
    unsigned i, j;
-   config_file_t *conf  = config_file_new(path);
-   settings_t *settings = config_get_ptr();
+   config_file_t *conf        = config_file_new(path);
+   struct input_struct *input = &config_get_ptr()->input;
    char buf[32];
 
    if (!conf)
       return false;
 
-   strlcpy(settings->input.remapping_path, path,
-         sizeof(settings->input.remapping_path));
+   strlcpy(input->remapping_path, path, sizeof(input->remapping_path));
 
    for (i = 0; i < MAX_USERS; i++)
    {
-      char key_ident[RARCH_FIRST_CUSTOM_BIND + 4][32]  = {{0}};
+      char key_ident[32] = {0};
       char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = { "b", "y", "select", "start",
          "up", "down", "left", "right", "a", "x", "l", "r", "l2", "r2", "l3", "r3", "l_x", "l_y", "r_x", "r_y" };
 
@@ -86,18 +85,19 @@ bool input_remapping_load_file(const char *path)
       {
          int key_remap = -1;
 
-         snprintf(key_ident[j], sizeof(key_ident[j]), "%s_%s", buf, key_strings[j]);
-         if (config_get_int(conf, key_ident[j], &key_remap))
-            settings->input.remap_ids[i][j] = key_remap;
+         snprintf(key_ident, sizeof(key_ident), "%s_%s", buf, key_strings[j]);
+         if (config_get_int(conf, key_ident, &key_remap))
+            input->remap_ids[i][j] = key_remap;
       }
 
       for (j = 0; j < 4; j++)
       {
          int key_remap = -1;
 
-         snprintf(key_ident[RARCH_FIRST_CUSTOM_BIND + j], sizeof(key_ident[RARCH_FIRST_CUSTOM_BIND + j]), "%s_%s", buf, key_strings[RARCH_FIRST_CUSTOM_BIND + j]);
-         if (config_get_int(conf, key_ident[RARCH_FIRST_CUSTOM_BIND + j], &key_remap) && key_remap < 4)
-            settings->input.remap_ids[i][RARCH_FIRST_CUSTOM_BIND + j] = key_remap;
+         snprintf(key_ident, sizeof(key_ident), "%s_%s", buf,
+               key_strings[RARCH_FIRST_CUSTOM_BIND + j]);
+         if (config_get_int(conf, key_ident, &key_remap) && key_remap < 4)
+            input->remap_ids[i][RARCH_FIRST_CUSTOM_BIND + j] = key_remap;
       }
    }
 
@@ -178,8 +178,8 @@ static bool input_remapping_save_file(const char *path)
    bool ret;
    unsigned i, j;
    char buf[32];
-   config_file_t *conf     = NULL;
-   settings_t    *settings = config_get_ptr();
+   config_file_t *conf        = NULL;
+   struct input_struct *input = &config_get_ptr()->input;
 
    conf = config_file_new(path);
 
@@ -190,9 +190,9 @@ static bool input_remapping_save_file(const char *path)
 	     return false;
    }
 
-   for (i = 0; i < settings->input.max_users; i++)
+   for (i = 0; i < input->max_users; i++)
    {
-      char key_ident[RARCH_FIRST_CUSTOM_BIND + 4][32]  = {{0}};
+      char key_ident[32] = {0};
       char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = { "b", "y", "select", "start",
          "up", "down", "left", "right", "a", "x", "l", "r", "l2", "r2", "l3", "r3", "l_x", "l_y", "r_x", "r_y" };
 
@@ -200,8 +200,8 @@ static bool input_remapping_save_file(const char *path)
 
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND + 4; j++)
       {
-         snprintf(key_ident[j], sizeof(key_ident[j]), "%s_%s", buf, key_strings[j]);
-         config_set_int(conf, key_ident[j], settings->input.remap_ids[i][j]);
+         snprintf(key_ident, sizeof(key_ident), "%s_%s", buf, key_strings[j]);
+         config_set_int(conf, key_ident, input->remap_ids[i][j]);
       }
    }
 
@@ -224,7 +224,7 @@ static bool input_remapping_save_file(const char *path)
    config_file_free(conf);
    
    if (ret)
-      strlcpy(settings->input.remapping_path, path, PATH_MAX_LENGTH);
+      strlcpy(input->remapping_path, path, PATH_MAX_LENGTH);
 
    return ret;
 }
@@ -272,14 +272,14 @@ bool input_remapping_save()
 void input_remapping_set_defaults(void)
 {
    unsigned i, j;
-   settings_t *settings = config_get_ptr();
+   struct input_struct *input = &config_get_ptr()->input;
 
    for (i = 0; i < MAX_USERS; i++)
    {
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND; j++)
-         settings->input.remap_ids[i][j] = settings->input.binds[i][j].id;
+         input->remap_ids[i][j] = input->binds[i][j].id;
       for (j = 0; j < 4; j++)
-         settings->input.remap_ids[i][RARCH_FIRST_CUSTOM_BIND + j] = j;
+         input->remap_ids[i][RARCH_FIRST_CUSTOM_BIND + j] = j;
    }
 
    input_joykbd_init_binds();
