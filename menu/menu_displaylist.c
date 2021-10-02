@@ -915,6 +915,40 @@ static INLINE void menu_displaylist_push_joykbd_binds(
    }
 }
 
+static INLINE bool menu_displaylist_push_turbo_input(
+      menu_displaylist_info_t *info, unsigned p)
+{
+   global_t *global     = global_get_ptr();
+   settings_t *settings = config_get_ptr();
+   unsigned id          = settings->input.turbo_id[p];
+   unsigned user        = p + 1;
+   bool turbo_all       = (id == TURBO_ID_ALL);
+   char desc_label[64];
+   const char *description;
+
+   snprintf(desc_label, sizeof(desc_label), "User %u Turbo Bind: ", user);
+   menu_list_push(info->list, desc_label,
+         menu_hash_to_str(MENU_LABEL_INPUT_TURBO_ID), p, 0, 0);
+
+   if (id > TURBO_ID_ALL)
+      return false;
+
+   if (!turbo_all)
+   {
+      description = global->system.input_desc_btn[p][id];
+      if (!description)
+         return false;
+
+      snprintf(desc_label, sizeof(desc_label),
+            "User %u Turbo %s: ", user, description);
+      menu_list_push(info->list, desc_label, "TS",
+            MENU_SETTINGS_INPUT_DESC_BEGIN +
+            (p * (RARCH_FIRST_CUSTOM_BIND + 4)) + id, 0, 0);
+   }
+
+   return turbo_all;
+}
+
 static INLINE void menu_displaylist_push_remap(menu_displaylist_info_t *info,
                                                unsigned p, unsigned retro_id)
 {
@@ -1011,6 +1045,9 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
          kbd_shown = true;
          continue;
       }
+
+      if (settings->input.turbo_binds_enable)
+         menu_displaylist_push_turbo_input(info, p);
 
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_B);
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_A);

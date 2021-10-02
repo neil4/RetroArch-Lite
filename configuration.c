@@ -620,6 +620,8 @@ static void config_set_defaults(void)
 
    settings->input.autoconfig_descriptor_label_show = true;
    settings->input.remap_binds_enable               = true;
+   settings->input.turbo_binds_enable               = false;
+   settings->input.turbo_period                     = turbo_period;
    settings->input.max_users                        = 2;
    settings->input.rumble_enable                    = false;
 
@@ -1423,6 +1425,8 @@ static bool config_load_file(const char *path, bool set_defaults)
       *settings->audio.filter_dir = '\0';
 
    CONFIG_GET_BOOL_BASE(conf, settings, input.remap_binds_enable, "input_remap_binds_enable");
+   CONFIG_GET_BOOL_BASE(conf, settings, input.turbo_binds_enable, "input_turbo_binds_enable");
+   CONFIG_GET_INT_BASE(conf, settings, input.turbo_period, "input_turbo_period");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.axis_threshold, "input_axis_threshold");
    CONFIG_GET_INT_BASE(conf, settings, input.analog_dpad_mode, "input_analog_dpad_mode");
    CONFIG_GET_FLOAT_BASE(conf, settings, input.analog_diagonal_sensitivity, "input_analog_diagonal_sensitivity");
@@ -2304,6 +2308,13 @@ bool main_config_file_save(const char *path)
          settings->input.rumble_enable);
    config_set_bool(conf, "input_remap_binds_enable",
          settings->input.remap_binds_enable);
+   if (settings->input.turbo_settings_scope == GLOBAL)
+   {
+      config_set_bool(conf, "input_turbo_binds_enable",
+         settings->input.turbo_binds_enable);
+      config_set_int(conf, "input_turbo_period",
+         settings->input.turbo_period);
+   }
    if (settings->input.analog_dpad_scope == GLOBAL)
    {
       config_set_int(conf, "input_analog_dpad_mode",
@@ -2806,6 +2817,19 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "input_analog_diagonal_sensitivity");
       config_remove_entry(conf, "input_analog_dpad_deadzone");
    }
+
+   if (settings->input.turbo_settings_scope == scope)
+   {
+      config_set_bool(conf, "input_turbo_binds_enable",
+            settings->input.turbo_binds_enable);
+      config_set_int(conf, "input_turbo_period",
+            settings->input.turbo_period);
+   }
+   else if (settings->input.turbo_settings_scope < scope)
+   {
+      config_remove_entry(conf, "input_turbo_binds_enable");
+      config_remove_entry(conf, "input_turbo_period");
+   }
    
 #ifdef HAVE_MENU
    if (settings->menu.theme_scope == scope)
@@ -3165,6 +3189,22 @@ void config_unmask_globals()
       config_set_int(conf, "input_analog_dpad_deadzone",
             settings->input.analog_dpad_deadzone);
    }
+
+   if (settings->input.turbo_settings_scope != GLOBAL)
+   {  /* restore */
+      settings->input.turbo_settings_scope = GLOBAL;
+      config_get_bool(conf, "input_turbo_binds_enable",
+            &settings->input.turbo_binds_enable);
+      config_get_uint(conf, "input_turbo_period",
+            &settings->input.turbo_period);
+   }
+   else
+   {  /* back up */
+      config_set_bool(conf, "input_turbo_binds_enable",
+            settings->input.turbo_binds_enable);
+      config_set_int(conf, "input_turbo_period",
+            settings->input.turbo_period);
+   }
    
    if (settings->video.filter_shader_scope != GLOBAL)
    {  /* restore */
@@ -3428,6 +3468,14 @@ static void scoped_config_file_load(unsigned scope)
             &settings->input.analog_dpad_deadzone);
 
       input_joypad_update_analog_dpad_params();
+   }
+
+   if (config_get_bool(conf, "input_turbo_binds_enable",
+         &settings->input.turbo_binds_enable))
+   {
+      settings->input.turbo_settings_scope = scope;
+      config_get_uint(conf, "input_turbo_period",
+            &settings->input.turbo_period);
    }
 
    if (config_get_path(conf, "video_filter", settings->video.softfilter_plugin,

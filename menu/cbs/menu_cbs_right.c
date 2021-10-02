@@ -98,19 +98,25 @@ int action_right_input_desc(unsigned type, const char *label,
    unsigned inp_desc_user         = inp_desc_index_offset / (RARCH_FIRST_CUSTOM_BIND + 4);
    unsigned inp_desc_button_index_offset = inp_desc_index_offset - (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
    settings_t *settings = config_get_ptr();
+   unsigned *mapped_id;
+
+   if (label[0] == 'T')
+      mapped_id = &settings->input.turbo_remap_id[inp_desc_user];
+   else
+      mapped_id = &settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset];
 
    /* Treat NO_BTN as leftmost value */
    if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
    {
-      if (settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] < RARCH_FIRST_CUSTOM_BIND - 1)
-         settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset]++;
-      else if (settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] > RARCH_FIRST_CUSTOM_BIND)
-         settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = 0;
+      if (*mapped_id < RARCH_FIRST_CUSTOM_BIND - 1)
+         (*mapped_id)++;
+      else if (*mapped_id > RARCH_FIRST_CUSTOM_BIND)
+         *mapped_id = 0;
    }
    else
    {
-      if (settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] < 4 - 1)
-         settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset]++;
+      if (*mapped_id < 4 - 1)
+         (*mapped_id)++;
    }
 
    input_remapping_touched = true;
@@ -123,11 +129,17 @@ int action_r_input_desc(unsigned type, const char *label)
    unsigned inp_desc_user         = inp_desc_index_offset / (RARCH_FIRST_CUSTOM_BIND + 4);
    unsigned inp_desc_button_index_offset = inp_desc_index_offset - (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
    settings_t *settings = config_get_ptr();
+   unsigned *mapped_id;
+
+   if (label[0] == 'T')
+      mapped_id = &settings->input.turbo_remap_id[inp_desc_user];
+   else
+      mapped_id = &settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset];
 
    if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
-      settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = RARCH_FIRST_CUSTOM_BIND - 1;
+      *mapped_id = RARCH_FIRST_CUSTOM_BIND - 1;
    else
-      settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] = 4 - 1;
+      *mapped_id = 4 - 1;
 
    input_remapping_touched = true;
    return 0;
@@ -454,6 +466,46 @@ static int action_right_remap_file_scope(unsigned type, const char *label,
    return 0;
 }
 
+static int action_right_turbo_id(unsigned type, const char *label,
+      bool wraparound)
+{
+   global_t *global     = global_get_ptr();
+   settings_t *settings = config_get_ptr();
+   unsigned *turbo_id   = &settings->input.turbo_id[type];
+
+   menu_entries_set_refresh();
+   input_remapping_touched = true;
+
+   /* Treat NO_BTN as leftmost value */
+   if (*turbo_id > TURBO_ID_ALL)
+   {
+      *turbo_id = 0;
+      return 0;
+   }
+
+   /* Find mappable id */
+   while (++(*turbo_id) < TURBO_ID_ALL)
+   {
+      if ((1 << *turbo_id) & TURBO_ID_MASK
+            && global->system.input_desc_btn[type][*turbo_id])
+         return 0;
+   }
+
+   *turbo_id = TURBO_ID_ALL;
+   return 0;
+}
+
+static int action_r_turbo_id(unsigned type, const char *label)
+{
+   settings_t *settings = config_get_ptr();
+
+   menu_entries_set_refresh();
+   input_remapping_touched = true;
+
+   settings->input.turbo_id[type] = TURBO_ID_ALL;
+   return 0;
+}
+
 static int action_r_remap_file_scope(unsigned type, const char *label)
 {
    global_t   *global    = global_get_ptr();
@@ -654,6 +706,10 @@ static int menu_cbs_init_bind_right_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_REMAPPING_SCOPE:
          cbs->action_right = action_right_remap_file_scope;
          cbs->action_r = action_r_remap_file_scope;
+         break;
+      case MENU_LABEL_INPUT_TURBO_ID:
+         cbs->action_right = action_right_turbo_id;
+         cbs->action_r = action_r_turbo_id;
          break;
       default:
          return -1;

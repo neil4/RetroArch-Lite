@@ -725,6 +725,9 @@ static const float analog_diagonal_sensitivity = 100.0f;
  * How far an axis must be tilted to result in a button press. */
 static const float axis_threshold = 0.5f;
 
+/* Turbo input rate (~10Hz default) */
+static const unsigned turbo_period = 6;
+
 /* Enable input auto-detection. Will attempt to autoconfigure
  * gamepads, plug-and-play style. */
 static const bool input_autodetect_enable = true;

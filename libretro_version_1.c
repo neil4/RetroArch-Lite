@@ -167,7 +167,13 @@ static int16_t input_state(unsigned port, unsigned device,
    }
 
    if (settings->input.remap_binds_enable)
+   {
+      if (settings->input.turbo_binds_enable
+            && device == RETRO_DEVICE_JOYPAD)
+         res = input_joypad_turbo_state(port, &id);
+
       input_remapping_state(port, &device, &idx, &id);
+   }
 
    if (device == RETRO_DEVICE_KEYBOARD && id < RETROK_LAST)
    {
@@ -175,7 +181,7 @@ static int16_t input_state(unsigned port, unsigned device,
       res |= input_joykbd_state(id);
    }
    else if (id < RARCH_CUSTOM_BIND_LIST_END)
-      res = input_driver_state(libretro_input_binds, port, device, idx, id);
+      res |= input_driver_state(libretro_input_binds, port, device, idx, id);
 
 #ifdef HAVE_OVERLAY
    if (settings->input.overlay_enable)

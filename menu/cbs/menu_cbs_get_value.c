@@ -308,6 +308,31 @@ static void menu_action_setting_disp_set_label_menu_file_core(
       strlcpy(s2, alt, len2);
 }
 
+static void menu_action_setting_turbo_id(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   global_t *global     = global_get_ptr();
+   settings_t *settings = config_get_ptr();
+   unsigned turbo_id    = settings->input.turbo_id[type];
+
+   if (turbo_id < TURBO_ID_ALL
+         && global->system.input_desc_btn[type][turbo_id])
+      strlcpy(s, global->system.input_desc_btn[type][turbo_id], len);
+   else if (turbo_id == TURBO_ID_ALL)
+      strlcpy(s, "All", len);
+   else
+      strlcpy(s, "---", len);
+
+   *w = 19;
+   strlcpy(s2, path, len2);
+}
+
 static void menu_action_setting_disp_set_label_input_desc(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
@@ -323,17 +348,21 @@ static void menu_action_setting_disp_set_label_input_desc(
       (RARCH_FIRST_CUSTOM_BIND + 4);
    unsigned inp_desc_button_index_offset = inp_desc_index_offset -
       (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
-   unsigned remap_id = settings->input.remap_ids
-      [inp_desc_user][inp_desc_button_index_offset];
+   unsigned mapped_id;
 
-   if (remap_id > RARCH_FIRST_CUSTOM_BIND + 3)
+   if (entry_label[0] == 'T')
+      mapped_id = settings->input.turbo_remap_id[inp_desc_user];
+   else
+      mapped_id = settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset];
+
+   if (mapped_id > RARCH_FIRST_CUSTOM_BIND + 3)
       snprintf(s, len, "---");
    else if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
       snprintf(s, len, "%s",
-            settings->input.binds[inp_desc_user][remap_id].desc);
+            settings->input.binds[inp_desc_user][mapped_id].desc);
    else
       snprintf(s, len, "%s",
-            axis_labels[remap_id]);
+            axis_labels[mapped_id]);
 
    *w = 19;
    strlcpy(s2, path, len2);
@@ -929,6 +958,9 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
       case MENU_LABEL_REMAPPING_SCOPE:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_remapping_scope;
+         break;
+      case MENU_LABEL_INPUT_TURBO_ID:
+         cbs->action_get_value = menu_action_setting_turbo_id;
          break;
       case MENU_LABEL_INPUT_REMAPPING:
       case MENU_LABEL_DISK_CONTROL:

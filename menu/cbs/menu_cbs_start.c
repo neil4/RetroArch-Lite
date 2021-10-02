@@ -160,19 +160,24 @@ static int action_start_performance_counters_core(unsigned type, const char *lab
 
 static int action_start_input_desc(unsigned type, const char *label)
 {
-   settings_t           *settings = config_get_ptr();
+   struct input_struct *input     = &config_get_ptr()->input;
    unsigned inp_desc_index_offset = type - MENU_SETTINGS_INPUT_DESC_BEGIN;
    unsigned inp_desc_user         = inp_desc_index_offset / (RARCH_FIRST_CUSTOM_BIND + 4);
    unsigned inp_desc_button_index_offset = inp_desc_index_offset - (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
+   bool     is_turbo              = (label[0] == 'T');
+   unsigned *mapped_id            = is_turbo ?
+         &input->turbo_remap_id[inp_desc_user]
+         : &input->remap_ids[inp_desc_user][inp_desc_button_index_offset];
 
-   (void)label;
-
+   /* If turbo, set id to match normal remap */
    if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
-      settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] =
-         settings->input.binds[inp_desc_user][inp_desc_button_index_offset].id;
+   {
+      *mapped_id = is_turbo ?
+            input->remap_ids[inp_desc_user][inp_desc_button_index_offset]
+            : input->binds[inp_desc_user][inp_desc_button_index_offset].id;
+   }
    else
-      settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset] =
-         inp_desc_button_index_offset - RARCH_FIRST_CUSTOM_BIND;
+      *mapped_id = inp_desc_button_index_offset - RARCH_FIRST_CUSTOM_BIND;
 
    input_remapping_touched = true;
    return 0;
@@ -392,6 +397,17 @@ static int action_start_libretro_device_scope(unsigned type, const char *label)
    return 0;
 }
 
+static int action_start_turbo_id(unsigned type, const char *label)
+{
+   settings_t *settings = config_get_ptr();
+
+   menu_entries_set_refresh();
+   input_remapping_touched = true;
+
+   settings->input.turbo_id[type] = NO_BTN;
+   return 0;
+}
+
 int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
       uint32_t hash)
 {
@@ -429,6 +445,9 @@ int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
          cbs->action_start = action_start_libretro_device_scope;
+         break;
+      case MENU_LABEL_INPUT_TURBO_ID:
+         cbs->action_start = action_start_turbo_id;
          break;
       default:
          return -1;

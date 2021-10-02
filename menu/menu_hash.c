@@ -316,6 +316,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "core_option_categories";
       case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
          return "libretro_device_scope";
+      case MENU_LABEL_INPUT_TURBO_ID:
+         return "turbo_id";
       case MENU_VALUE_SECONDS:
          return "seconds";
       case MENU_VALUE_OFF:

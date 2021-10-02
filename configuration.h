@@ -271,6 +271,9 @@ typedef struct settings
       struct retro_keybind binds[MAX_USERS][RARCH_BIND_LIST_END];
       struct retro_keybind autoconf_binds[MAX_USERS][RARCH_BIND_LIST_END];
 
+      unsigned turbo_id[MAX_USERS];
+      unsigned turbo_remap_id[MAX_USERS];
+
       unsigned max_users;
       unsigned max_users_scope;
 
@@ -282,6 +285,9 @@ typedef struct settings
       unsigned libretro_device_scope;
 
       bool remap_binds_enable;
+      bool turbo_binds_enable;
+      unsigned turbo_period;
+      unsigned turbo_settings_scope;
       bool rumble_enable;
       float axis_threshold;
       unsigned analog_dpad_mode;
