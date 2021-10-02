@@ -484,7 +484,7 @@ static int action_ok_remap_file_load(const char *path,
    input_remapping_load_file(remap_path);
 
    menu_list_flush_stack(menu_list,
-         menu_hash_to_str(MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS), 0);
+         menu_hash_to_str(MENU_LABEL_INPUT_REMAPPING), 0);
 
    snprintf(buf, NAME_MAX_LENGTH, "Remapping applied from %s",
          path_basename(remap_path));
@@ -1162,10 +1162,10 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_VALUE_INPUT_SETTINGS:
       case MENU_LABEL_CORE_OPTIONS:
       case MENU_LABEL_CORE_CHEAT_OPTIONS:
-      case MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS:
+      case MENU_LABEL_INPUT_REMAPPING:
       case MENU_LABEL_CORE_INFORMATION:
       case MENU_LABEL_SYSTEM_INFORMATION:
-      case MENU_LABEL_DISK_OPTIONS:
+      case MENU_LABEL_DISK_CONTROL:
       case MENU_LABEL_SETTINGS:
       case MENU_LABEL_PERFORMANCE_COUNTERS:
       case MENU_LABEL_FRONTEND_COUNTERS:

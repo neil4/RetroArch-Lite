@@ -343,10 +343,10 @@ static int menu_cbs_init_bind_deferred_push_compare_label(menu_file_list_cbs_t *
       case MENU_LABEL_CORE_CHEAT_OPTIONS:
          cbs->action_deferred_push = deferred_push_core_cheat_options;
          break;
-      case MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS:
+      case MENU_LABEL_INPUT_REMAPPING:
          cbs->action_deferred_push = deferred_push_core_input_remapping_options;
          break;
-      case MENU_LABEL_DISK_OPTIONS:
+      case MENU_LABEL_DISK_CONTROL:
          cbs->action_deferred_push = deferred_push_disk_options;
          break;
       case MENU_LABEL_CORE_LIST:

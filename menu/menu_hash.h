@@ -254,8 +254,8 @@ extern "C" {
 #define MENU_LABEL_CORE_INFORMATION                                            0xb638e0d3U
 #define MENU_LABEL_VALUE_CORE_INFORMATION                                      0x781981b4U
 #define MENU_LABEL_VIDEO_SHADER_PARAMETERS                                     0x9895c3e5U
-#define MENU_LABEL_DISK_OPTIONS                                                0xe087bf5bU
-#define MENU_LABEL_VALUE_DISK_OPTIONS                                          0xbee508e5U
+#define MENU_LABEL_DISK_CONTROL                                                0x83c0ae48U
+#define MENU_LABEL_VALUE_DISK_CONTROL                                          0xa1da06a9U
 #define MENU_LABEL_CORE_OPTIONS                                                0xf65e60f9U
 #define MENU_LABEL_CORE_OPTION                                                 0xf03167c6U
 #define MENU_LABEL_CORE_OPTION_CATEGORY                                        0xbd3a46d6U
@@ -270,8 +270,8 @@ extern "C" {
 #define MENU_LABEL_VALUE_VIDEO_OPTIONS                                         0xb4349948U
 #define MENU_LABEL_VALUE_CORE_CHEAT_OPTIONS                                    0x8ba478bfU
 #define MENU_LABEL_CORE_CHEAT_OPTIONS                                          0x9293171dU
-#define MENU_LABEL_VALUE_CORE_INPUT_REMAPPING_OPTIONS                          0x7c65016dU
-#define MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS                                0x7836a8caU
+#define MENU_LABEL_VALUE_INPUT_REMAPPING                                       0xdd0dbf58U
+#define MENU_LABEL_INPUT_REMAPPING                                             0xd4234eb7U
 #define MENU_LABEL_VALUE_CURSOR_MANAGER                                        0xc3696afeU
 #define MENU_LABEL_VIDEO_SHADER_PASS                                           0x4fa31028U
 #define MENU_LABEL_VALUE_VIDEO_SHADER_PRESET                                   0x5990f82eU

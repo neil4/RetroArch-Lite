@@ -1468,14 +1468,14 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          menu_list_clear(info->list);
          
          menu_list_push(info->list,
-               menu_hash_to_str(MENU_LABEL_VALUE_CORE_INPUT_REMAPPING_OPTIONS),
-               menu_hash_to_str(MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS),
+               menu_hash_to_str(MENU_LABEL_VALUE_INPUT_REMAPPING),
+               menu_hash_to_str(MENU_LABEL_INPUT_REMAPPING),
                MENU_SETTING_ACTION, 0, 0);
 
          if (!global->libretro_dummy && global->system.disk_control.get_num_images)
             menu_list_push(info->list,
-                  menu_hash_to_str(MENU_LABEL_VALUE_DISK_OPTIONS),
-                  menu_hash_to_str(MENU_LABEL_DISK_OPTIONS),
+                  menu_hash_to_str(MENU_LABEL_VALUE_DISK_CONTROL),
+                  menu_hash_to_str(MENU_LABEL_DISK_CONTROL),
                   MENU_SETTING_ACTION_CORE_DISK_OPTIONS, 0, 0);
 
          if (settings->menu.show_cheat_options)

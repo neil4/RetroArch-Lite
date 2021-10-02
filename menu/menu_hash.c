@@ -102,9 +102,9 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "custom_bind";
       case MENU_LABEL_CUSTOM_BIND_ALL:
          return "custom_bind_all";
-      case MENU_LABEL_DISK_OPTIONS:
-         return "core_disc_options";
-      case MENU_LABEL_VALUE_DISK_OPTIONS:
+      case MENU_LABEL_DISK_CONTROL:
+         return "disc_control";
+      case MENU_LABEL_VALUE_DISK_CONTROL:
          return "Disc Control";
       case MENU_LABEL_VALUE_CORE_CHEAT_OPTIONS:
          return "Core Cheat Options";
@@ -272,9 +272,9 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "menu_boxart_enable";
       case MENU_LABEL_VALUE_BOXART:
          return "Display Boxart";
-      case MENU_LABEL_CORE_INPUT_REMAPPING_OPTIONS:
-         return "core_input_remapping_options";
-      case MENU_LABEL_VALUE_CORE_INPUT_REMAPPING_OPTIONS:
+      case MENU_LABEL_INPUT_REMAPPING:
+         return "input_remapping";
+      case MENU_LABEL_VALUE_INPUT_REMAPPING:
          return "Input Remapping";
       case MENU_LABEL_VALUE_VIDEO_OPTIONS:
          return "Video Options";
