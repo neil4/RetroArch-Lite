@@ -2339,7 +2339,8 @@ int16_t input_overlay_state(unsigned port, unsigned device_base,
       switch (device_base)
       {
          case RETRO_DEVICE_JOYPAD:
-             if (driver->overlay_state.buttons & (UINT64_C(1) << id))
+             if (id < RARCH_CUSTOM_BIND_LIST_END &&
+                   (driver->overlay_state.buttons & (UINT64_C(1) << id)))
                res = 1;
             break;
          case RETRO_DEVICE_KEYBOARD:
