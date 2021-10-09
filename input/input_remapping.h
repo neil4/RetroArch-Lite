@@ -62,18 +62,6 @@ void input_remapping_set_defaults(void);
 void input_remapping_state(unsigned port,
       unsigned *device, unsigned *idx, unsigned *id);
 
-/**
- * input_joypad_turbo_state:
- * @port                   : user number
- * @id                     : pointer to key identifier before remapping
- *
- * Assumes RETRO_DEVICE_JOYPAD and gets turbo state of @id.
- * Sets @id to NO_BTN if normal remap should be overridden.
- * 
- * Returns: nonzero if @id is turbo-pressed this frame
- */
-int16_t input_joypad_turbo_state(unsigned port, unsigned *id);
-
 void input_remapping_set_default_desc();
 
 /**

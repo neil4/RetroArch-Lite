@@ -132,6 +132,66 @@ static void video_frame(const void *data, unsigned width,
 }
 
 /**
+ * input_joypad_turbo_state:
+ * @port                   : user number
+ * @id                     : pointer to key identifier before remapping
+ *
+ * Assumes RETRO_DEVICE_JOYPAD and gets turbo state of @id.
+ * Sets @id to NO_BTN if normal remap should be overridden.
+ * 
+ * Returns: nonzero if @id is turbo-pressed this frame
+ */
+static int16_t input_joypad_turbo_state(unsigned port, unsigned *id)
+{
+   struct input_struct *input = &config_get_ptr()->input;
+   unsigned mapped_id;
+   int16_t  pressed;
+
+   static int16_t old_pressed[MAX_USERS][RARCH_FIRST_CUSTOM_BIND];
+   static unsigned frame[MAX_USERS][RARCH_FIRST_CUSTOM_BIND];
+
+   if ( !((1 << *id) & TURBO_ID_MASK) )
+      return 0;
+
+   if (*id == input->turbo_id[port])
+      mapped_id = input->turbo_remap_id[port];  /* Apply to turbo bind only */
+   else if (input->turbo_id[port] == TURBO_ID_ALL)
+      mapped_id = input->remap_ids[port][*id];  /* Apply to TURBO_ID_MASK */
+   else
+      return 0;
+
+   if (mapped_id >= RARCH_FIRST_CUSTOM_BIND)
+      return 0;
+
+   pressed = input_driver_state(
+         libretro_input_binds, port, RETRO_DEVICE_JOYPAD, 0, mapped_id);
+
+#ifdef HAVE_OVERLAY
+   if (port == 0 && input->overlay_enable
+          && (driver_get_ptr()->overlay_state.buttons & (1 << mapped_id)))
+      pressed |= 1;
+#endif
+
+   /* Want immediate response to new input */
+   if (pressed && !old_pressed[port][mapped_id])
+      frame[port][mapped_id] = 0;
+
+   old_pressed[port][mapped_id] = pressed;
+
+   if (pressed)
+   {
+      /* Override normal remap */
+      *id = NO_BTN;
+
+      /* 50% duty cycle */
+      return ( frame[port][mapped_id]++ % input->turbo_period
+                     < (input->turbo_period >> 1) );
+   }
+
+   return 0;
+}
+
+/**
  * input_state:
  * @port                 : user number.
  * @device               : device identifier of user.
