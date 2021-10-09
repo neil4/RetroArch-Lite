@@ -485,6 +485,7 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_CONFIRM_CORE_DELETION:
       case MENU_LABEL_CONFIRM_SHADER_PRESET_DELETION:
       case MENU_LABEL_SETTINGS:
+      case MENU_LABEL_INPUT_SETTINGS:
       case MENU_LABEL_FRONTEND_COUNTERS:
       case MENU_LABEL_CORE_COUNTERS:
       case MENU_LABEL_INFO_SCREEN:

@@ -652,6 +652,26 @@ static int action_ok_cheat(const char *path,
    return 0;
 }
 
+static int action_ok_libretro_device_type(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   menu_displaylist_info_t info = {0};
+   menu_list_t       *menu_list = menu_list_get_ptr();
+   menu_navigation_t *nav       = menu_navigation_get_ptr();
+   if (!menu_list)
+      return -1;
+
+   info.list  = menu_list->selection_buf;
+   info.flags = SL_FLAG_INPUT_OPTIONS;
+   info.type  = MENU_SETTING_GROUP;
+   strlcpy(info.label,
+         menu_hash_to_str(MENU_LABEL_INPUT_SETTINGS), sizeof(info.label));
+
+   menu_list_push(menu_list->menu_stack, "", info.label, info.type, 0, 0);
+   menu_navigation_set(nav, 0, true);
+   return menu_displaylist_push_list(&info, DISPLAYLIST_SETTINGS);
+}
+
 static int action_ok_core_setting_category(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -1225,6 +1245,9 @@ static int menu_cbs_init_bind_ok_compare_type(menu_file_list_cbs_t *cbs,
    else if (type >= MENU_SETTINGS_CHEAT_BEGIN
          && type <= MENU_SETTINGS_CHEAT_END)
       cbs->action_ok = action_ok_cheat;
+   else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
+         && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
+      cbs->action_ok = action_ok_libretro_device_type;
    else
    {
       switch (type)
