@@ -668,7 +668,7 @@ static int action_ok_libretro_device_type(const char *path,
          menu_hash_to_str(MENU_LABEL_INPUT_SETTINGS), sizeof(info.label));
 
    menu_list_push(menu_list->menu_stack, "", info.label, info.type, 0, 0);
-   menu_navigation_set(nav, 0, true);
+   menu_navigation_clear(nav, true);
    return menu_displaylist_push_list(&info, DISPLAYLIST_SETTINGS);
 }
 
