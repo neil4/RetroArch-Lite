@@ -962,6 +962,10 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
       case MENU_LABEL_INPUT_TURBO_ID:
          cbs->action_get_value = menu_action_setting_turbo_id;
          break;
+      case MENU_LABEL_JOYPAD_TO_KEYBOARD_BIND:
+         cbs->action_get_value =
+            menu_action_setting_disp_set_label_joykbd_input_desc;
+         break;
       case MENU_LABEL_INPUT_REMAPPING:
       case MENU_LABEL_DISK_CONTROL:
       case MENU_LABEL_VIDEO_SHADER_PARAMETERS:
@@ -1008,10 +1012,6 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
          && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
       cbs->action_get_value =
          menu_action_setting_disp_set_label_libretro_device;
-   else if (type >= MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN
-         && type <= MENU_SETTINGS_INPUT_JOYKBD_LIST_END)
-      cbs->action_get_value =
-         menu_action_setting_disp_set_label_joykbd_input_desc;
    else
    {
       switch (type)

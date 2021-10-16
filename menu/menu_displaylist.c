@@ -910,7 +910,8 @@ static INLINE void menu_displaylist_push_joykbd_binds(
       rk_buf[0] -= 32; /* uppercase 1st letter */
       snprintf(desc_label, sizeof(desc_label), "Keyboard %s: ", rk_buf);
 
-      menu_list_push(info->list, desc_label, "",
+      menu_list_push(info->list, desc_label,
+         menu_hash_to_str(MENU_LABEL_JOYPAD_TO_KEYBOARD_BIND),
          MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN + i, 0, 0);
    }
 }

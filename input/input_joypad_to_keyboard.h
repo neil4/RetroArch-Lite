@@ -52,6 +52,7 @@ void input_joykbd_poll();
 
 int16_t input_joykbd_state(enum retro_key rk);
 
+void input_joykbd_get_info(char *s, size_t len);
 
 #ifdef __cplusplus
 }

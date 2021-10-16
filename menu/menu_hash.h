@@ -272,6 +272,7 @@ extern "C" {
 #define MENU_LABEL_CORE_CHEAT_OPTIONS                                          0x9293171dU
 #define MENU_LABEL_VALUE_INPUT_REMAPPING                                       0xdd0dbf58U
 #define MENU_LABEL_INPUT_REMAPPING                                             0xd4234eb7U
+#define MENU_LABEL_JOYPAD_TO_KEYBOARD_BIND                                     0x93c4e81aU
 #define MENU_LABEL_VALUE_CURSOR_MANAGER                                        0xc3696afeU
 #define MENU_LABEL_VIDEO_SHADER_PASS                                           0x4fa31028U
 #define MENU_LABEL_VALUE_VIDEO_SHADER_PRESET                                   0x5990f82eU

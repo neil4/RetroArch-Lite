@@ -1185,6 +1185,7 @@ enum retro_key input_keymaps_translate_keysym_to_rk(unsigned sym)
 void input_keymaps_translate_rk_to_str(enum retro_key key, char *buf, size_t size)
 {
    unsigned i;
+   static const char* lut[RETROK_LAST];
 
    rarch_assert(size >= 2);
    *buf = '\0';
@@ -1196,12 +1197,19 @@ void input_keymaps_translate_rk_to_str(enum retro_key key, char *buf, size_t siz
       return;
    }
 
+   if (lut[key])
+   {
+      strlcpy(buf, lut[key], size);
+      return;
+   }
+
    for (i = 0; input_config_key_map[i].str; i++)
    {
       if (input_config_key_map[i].key != key)
          continue;
 
-      strlcpy(buf, input_config_key_map[i].str, size);
+      lut[key] = input_config_key_map[i].str;
+      strlcpy(buf, lut[key], size);
       break;
    }
 }

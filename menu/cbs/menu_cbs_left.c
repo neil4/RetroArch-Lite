@@ -658,6 +658,10 @@ static int menu_cbs_init_bind_left_compare_label(menu_file_list_cbs_t *cbs,
          cbs->action_left = action_left_turbo_id;
          cbs->action_l = action_l_turbo_id;
          break;
+      case MENU_LABEL_JOYPAD_TO_KEYBOARD_BIND:
+         cbs->action_left = action_left_joykbd_input_desc;
+         cbs->action_l = action_l_joykbd_input_desc;
+         break;
       default:
          return -1;
    }
@@ -690,12 +694,6 @@ static int menu_cbs_init_bind_left_compare_type(menu_file_list_cbs_t *cbs,
    else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
          && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
       cbs->action_left = action_left_libretro_device_type;
-   else if (type >= MENU_SETTINGS_INPUT_JOYKBD_LIST_BEGIN
-         && type <= MENU_SETTINGS_INPUT_JOYKBD_LIST_END)
-   {
-      cbs->action_left = action_left_joykbd_input_desc;
-      cbs->action_l = action_l_joykbd_input_desc;
-   }
    else
    {
       switch (type)
