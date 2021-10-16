@@ -117,7 +117,7 @@ static void core_option_wrap_info_to_messagebox(struct core_option *option,
 
    strlcpy(title, desc, NAME_MAX_LENGTH);
    len = strlcat(title, ":", NAME_MAX_LENGTH);
-   len += strlen(info) + 10; /* add room for ..\n insertions */
+   len += strlen(info) + 7; /* add room for "-\n" insertions */
 
    option->info = malloc(len * sizeof(char));
    menu_driver_wrap_text(option->info, info, title, len);

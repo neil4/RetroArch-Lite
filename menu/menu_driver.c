@@ -409,13 +409,12 @@ void menu_driver_wrap_text(char *buf, const char *text,
       else
       {
          /* Can't find a space; split last word. */
-         msg_size = min(msg_size + 3, buf_len); /* +3 to insert ..\n */
+         msg_size = min(msg_size + 2, buf_len); /* +2 to insert -\n */
          i = line_start + max_line_len;
 
-         /* Shift text right and insert ..\n */
-         memmove(buf + (i+1), buf + (i-2), msg_size - (i+1));
-         buf[i-2] = '.';
-         buf[i-1] = '.';
+         /* Shift text right and insert -\n */
+         memmove(buf + (i+1), buf + (i-1), msg_size - (i+1));
+         buf[i-1] = '-';
          buf[i]   = '\n';
       }
 
