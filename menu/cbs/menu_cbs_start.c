@@ -192,7 +192,10 @@ static int action_start_joykbd_input_desc(unsigned type, const char *label)
    (void)label;
 
    if (joy_btn < NUM_JOYKBD_BTNS)
+   {
       input_joykbd_remove_bind(rk, joy_btn);
+      input_remapping_touched = true;
+   }
 
    return 0;
 }
