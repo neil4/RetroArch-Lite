@@ -493,7 +493,7 @@ static bool show_netplay_menu = false;
 static unsigned netplay_sync_frames = 3;
 #endif
 static bool show_saving_menu = false;
-static bool show_core_menu = false;
+static bool show_core_menu = true;
 static bool show_driver_menu = false;
 static bool show_ui_menu = false;
 static bool show_logging_menu = false;
