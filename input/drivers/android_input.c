@@ -769,96 +769,26 @@ static void handle_hotplug(android_input_t *android,
       return;
    }
 
+   if (strstr(device_name, "gpio") == device_name)
+      return;
+
    /* followed by a 4 (hex) char HW id */
    if (strstr(device_name, "iControlPad-"))
       strlcpy(name_buf, "iControlPad HID Joystick profile", sizeof(name_buf));
    else if (strstr(device_name, "TTT THT Arcade console 2P USB Play"))
    {
-      /* FIXME - need to do a similar thing here as we did for nVidia Shield.
-       * We need to keep 'count' of the amount of similar (grouped) devices.
-       *
-       * For nVidia Shield - see above
-       *
-       * For TTT HT - keep track of how many of these 'pads' are already
-       * connected, and based on that, assign one of them to be User 1 and
-       * the other to be User 2.
-       *
-       * If this is finally implemented right, then these port conditionals can go. */
       if (*port == 0)
          strlcpy(name_buf, "TTT THT Arcade (User 1)", sizeof(name_buf));
       else if (*port == 1)
          strlcpy(name_buf, "TTT THT Arcade (User 2)", sizeof(name_buf));
-   }      
-   else if (strstr(device_name, "Sun4i-keypad"))
-      strlcpy(name_buf, "iDroid x360", sizeof(name_buf));
-   else if (strstr(device_name, "mtk-kpd"))
-      strlcpy(name_buf, "MUCH iReadyGo i5", sizeof(name_buf));
-   else if (strstr(device_name, "360 Wireless"))
-      strlcpy(name_buf, "XBox 360 Wireless", sizeof(name_buf));
-   else if (strstr(device_name, "Microsoft"))
-   {
-      if (strstr(device_name, "Dual Strike"))
-         strlcpy(device_name, "SideWinder Dual Strike", sizeof(device_name));
-      else if (strstr(device_name, "SideWinder"))
-         strlcpy(name_buf, "SideWinder Classic", sizeof(name_buf));
-      else if (strstr(device_name, "X-Box 360")
-            || strstr(device_name, "X-Box"))
-         strlcpy(name_buf, "XBox 360 Controller", sizeof(name_buf));
    }
-   else if (strstr(device_name, "WiseGroup"))
-   {
-      if (
-            strstr(device_name, "TigerGame") ||
-            strstr(device_name, "Game Controller Adapter") ||
-            strstr(device_name, "JC-PS102U") ||
-            strstr(device_name, "Dual USB Joypad"))
-      {
-         if (strstr(device_name, "WiseGroup"))
-            strlcpy(name_buf, "PlayStation2 WiseGroup", sizeof(name_buf));
-         else if (strstr(device_name, "JC-PS102U"))
-            strlcpy(name_buf, "PlayStation2 JCPS102", sizeof(name_buf));
-         else
-            strlcpy(name_buf, "PlayStation2 Generic", sizeof(name_buf));
-      }
-   }
-   else if (
-         strstr(device_name, "PLAYSTATION(R)3") ||
-         strstr(device_name, "Dualshock3") ||
-         strstr(device_name, "Sixaxis") ||
-         strstr(device_name, "Gasia,Co") ||
-         (strstr(device_name, "Gamepad 0") ||
-          strstr(device_name, "Gamepad 1") || 
-          strstr(device_name, "Gamepad 2") ||
-          strstr(device_name, "Gamepad 3"))
-         )
-      strlcpy(name_buf, "PlayStation3", sizeof(name_buf));
    else if (strstr(device_name, "MOGA"))
       strlcpy(name_buf, "Moga IME", sizeof(name_buf));
-   else if (strstr(device_name, "adc joystick"))
-      strlcpy(name_buf, "JXD S7300B", sizeof(name_buf));
-   else if (strstr(device_name, "2-Axis, 8-Button"))
-      strlcpy(name_buf, "Genius Maxfire G08XU", sizeof(name_buf));
-   else if (strstr(device_name, "USB,2-axis 8-button gamepad"))
-      strlcpy(name_buf, "USB 2 Axis 8 button", sizeof(name_buf));
-   else if (strstr(device_name, "joy_key"))
-      strlcpy(name_buf, "Archos Gamepad", sizeof(name_buf));
-   else if (strstr(device_name, "matrix_keyboard"))
-      strlcpy(name_buf, "JXD S5110B", sizeof(name_buf));
-   else if (strstr(device_name, "tincore_adc_joystick"))
-      strlcpy(name_buf, "JXD S5110B (Skelrom)", sizeof(name_buf));
-   else if (strstr(device_name, "USB Gamepad"))
-      strlcpy(name_buf, "Thrust Predator", sizeof(name_buf));
-   else if (strstr(device_name, "ADC joystick"))
-      strlcpy(name_buf, "JXD S7800B", sizeof(name_buf));
-   else if (strstr(device_name, "2Axes 11Keys Game  Pad"))
-      strlcpy(name_buf, "Tomee NES USB", sizeof(name_buf));
    else if (
          strstr(device_name, "rk29-keypad") ||
          strstr(device_name, "GAMEMID")
          )
       strlcpy(name_buf, "GameMID", sizeof(name_buf));
-   else if (strstr(device_name, "USB Gamepad"))
-      strlcpy(name_buf, "Defender Game Racer Classic", sizeof(name_buf));
    else if (strstr(device_name, "NVIDIA Controller"))
    {
       /* Shield is always user 1. FIXME: This is kinda ugly.
