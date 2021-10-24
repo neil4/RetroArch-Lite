@@ -327,6 +327,8 @@ typedef struct settings
       float touch_ellipse_magnify;   /* hack for inaccurate touchscreens */
       uint32_t overlay_vibrate_time;
 
+      unsigned menu_toggle_btn_combo;
+
       char autoconfig_dir[PATH_MAX_LENGTH];
       bool autoconfig_descriptor_label_show;
 

@@ -47,6 +47,7 @@
 #include "drivers/rgui.h"
 extern struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS];
 #endif
+extern struct enum_lut button_combo_lut[NUM_BTN_COMBO_TYPES];
 
 static void menu_settings_info_list_free(rarch_setting_info_t *list_info)
 {
@@ -1736,6 +1737,13 @@ static void setting_get_string_representation_touch_method(void *data,
       else
          strcpy(s, "Vector + Area");
    }
+}
+
+static void setting_get_string_button_combo(void *data, char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting)
+      strlcpy(s, button_combo_lut[*setting->value.unsigned_integer].name, len);
 }
 
 static void setting_get_string_representation_on_off_core_specific(void *data,
@@ -5944,6 +5952,21 @@ static bool setting_append_list_input_hotkey_options(
             group_info.name, subgroup_info.name, parent_group);
       menu_settings_list_current_add_bind_type(list, list_info, i + MENU_SETTINGS_BIND_BEGIN);
    }
+
+   CONFIG_UINT(
+         settings->input.menu_toggle_btn_combo,
+         "input_menu_toggle_btn_combo",
+         "Menu toggle button combo",
+         BTN_COMBO_NONE,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, NUM_BTN_COMBO_TYPES-1, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_button_combo;
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);

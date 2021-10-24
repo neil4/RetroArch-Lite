@@ -1331,6 +1331,9 @@ void rarch_main_set_state(unsigned cmd)
             input_driver_keyboard_mapping_set_block(false);
             menu_entries_set_refresh();
             menu_driver_set_alive();
+
+            /* Prevent stray input from going to menu */
+            driver->flushing_input = true;
          }
 #endif
          break;

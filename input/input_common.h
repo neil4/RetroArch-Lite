@@ -52,6 +52,16 @@ struct input_bind_map
    unsigned retro_key;
 };
 
+enum button_combo_type
+{
+   BTN_COMBO_NONE = 0,
+   BTN_COMBO_L3_R3,
+   BTN_COMBO_L2_R2,
+   BTN_COMBO_START_SELECT,
+   BTN_COMBO_DOWN_SELECT,
+   NUM_BTN_COMBO_TYPES
+};
+
 extern const struct input_bind_map input_config_bind_map[];
 
 /**

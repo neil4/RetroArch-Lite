@@ -19,6 +19,7 @@
 #include "../configuration.h"
 #include "../gfx/video_driver.h"
 #include "input_driver.h"
+#include "input_common.h"
 #include "../general.h"
 #include "../libretro.h"
 
@@ -72,6 +73,22 @@ static const input_driver_t *input_drivers[] = {
 #endif
    &input_null,
    NULL,
+};
+
+struct enum_lut button_combo_lut[NUM_BTN_COMBO_TYPES] = {
+   { "None", BTN_COMBO_NONE },
+   { "L3 + R3", BTN_COMBO_L3_R3 },
+   { "L2 + R2", BTN_COMBO_L2_R2 },
+   { "Start + Select", BTN_COMBO_START_SELECT },
+   { "Down + Select", BTN_COMBO_DOWN_SELECT }
+};
+
+static const retro_input_t button_combo[NUM_BTN_COMBO_TYPES] = {
+   ~0ULL,
+   (1ULL << RETRO_DEVICE_ID_JOYPAD_L3) | (1ULL << RETRO_DEVICE_ID_JOYPAD_R3),
+   (1ULL << RETRO_DEVICE_ID_JOYPAD_L2) | (1ULL << RETRO_DEVICE_ID_JOYPAD_R2),
+   (1ULL << RETRO_DEVICE_ID_JOYPAD_START) | (1ULL << RETRO_DEVICE_ID_JOYPAD_SELECT),
+   (1ULL << RETRO_DEVICE_ID_JOYPAD_DOWN) | (1ULL << RETRO_DEVICE_ID_JOYPAD_SELECT)
 };
 
 /**
@@ -217,6 +234,7 @@ retro_input_t input_driver_keys_pressed(void)
    int key;
    retro_input_t           ret = 0;
    driver_t            *driver = driver_get_ptr();
+   settings_t        *settings = config_get_ptr();
    const input_driver_t *input = input_get_ptr(driver);
 
    if (!driver->block_libretro_input)
@@ -231,6 +249,9 @@ retro_input_t input_driver_keys_pressed(void)
       for (key = RARCH_FIRST_META_KEY; key < RARCH_BIND_LIST_END; key++)
          if (input->key_pressed(driver->input_data, key))
             ret |= (1ULL << key);
+
+      if (ret == button_combo[settings->input.menu_toggle_btn_combo])
+         ret = (1ULL << RARCH_MENU_TOGGLE);
    }
 
 #ifdef HAVE_OVERLAY

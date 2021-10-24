@@ -1459,6 +1459,9 @@ static bool config_load_file(const char *path, bool set_defaults)
       }
    }
 
+   CONFIG_GET_INT_BASE(conf, settings,
+         input.menu_toggle_btn_combo, "input_menu_toggle_btn_combo");
+
    if (!global->has_set_ups_pref)
    {
       CONFIG_GET_BOOL_BASE(conf, global, ups_pref, "ups_pref");
@@ -2288,6 +2291,9 @@ bool main_config_file_save(const char *path)
    config_set_int(conf, "menu_default_btn",     settings->menu_default_btn);
    config_set_int(conf, "menu_scroll_down_btn", settings->menu_scroll_down_btn);
    config_set_int(conf, "menu_scroll_up_btn",   settings->menu_scroll_up_btn);
+
+   config_set_int(conf, "input_menu_toggle_btn_combo",
+         settings->input.menu_toggle_btn_combo);
 
    config_set_bool(conf, "auto_remaps_enable",
          settings->auto_remaps_enable);
