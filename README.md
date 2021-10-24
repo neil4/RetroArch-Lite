@@ -10,16 +10,17 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
   * e.g. aspect ratio, input overlay, shader preset, etc.
 * Overlay Features
   * Dpad and ABXY areas with 8-way direction input
-  * Lightgun support (use a SNES overlay)
+  * Lightgun and mouse support (on SNES, DOS & keyboard overlays)
 * Android Features
-  * Combined 32/64-bit core lists if both apps are installed
-  * Core backup & restore
+  * Combined 32/64-bit launcher if both apps are installed
   * Contact-area based input
-  * Haptic feedback
 
 ### Control Notes
-* Menu
-  * In Directory Settings, "Use Loaded ROM's Dir" will quickset a core-specific browser directory.
-  * 'Start' deletes a Core, Options file or Shader Preset, and deletes a Remap if "Save..." highlighted.
-  * 'L'/'R' sets min/max value; in a few cases, jumps left/right by 10.
-* Touchscreen: On most overlays, tapping the screen center toggles the menu.
+* RGUI Menu
+  * In Directory Settings, "Use Loaded ROM Path" will quickset a core-specific browser directory.
+  * 'Select' displays a highlighted core option's description.
+  * Hold 'Start' to delete a highlighted core or shader preset.
+  * 'L'/'R' sets min/max value.
+* Touchscreen
+  * On most overlays, tapping the screen center toggles the menu.
+  * Overlay mouse: Use 1/2/3-finger tap for L/R/M click. Hold 0.25s to hold & drag.
