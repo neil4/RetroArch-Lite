@@ -6176,7 +6176,7 @@ static bool setting_append_list_input_options(
    CONFIG_BOOL(
          settings->input.turbo_binds_enable,
          "input_turbo_binds_enable",
-         "Enable Turbo Binds",
+         "Enable Turbo Bind",
          false,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
