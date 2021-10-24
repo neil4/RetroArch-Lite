@@ -1062,6 +1062,56 @@ void core_option_prev(core_option_manager_t *opt_mgr, size_t idx)
 }
 
 /**
+ * core_option_first:
+ * @opt_mgr         : pointer to core option manager object.
+ * @idx             : option index or menu entry type
+ *
+ * Get value at index 0 for core option specified by @idx.
+ **/
+void core_option_first(core_option_manager_t *opt_mgr, size_t idx)
+{
+   struct core_option *option;
+   if (!opt_mgr)
+      return;
+
+   idx = core_option_index(opt_mgr, idx);
+   option = (struct core_option*)&opt_mgr->opts[idx];
+
+   option->index = 0;
+
+   if (opt_mgr->update_display_cb)
+      opt_mgr->update_display_cb();
+
+   opt_mgr->updated     = true;  /* need sync with core */
+   core_options_touched = true;  /* need flush to disk */
+}
+
+/**
+ * core_option_last:
+ * @opt_mgr        : pointer to core option manager object.
+ * @idx            : option index or menu entry type
+ *
+ * Get value at the last index for the core option specified by @idx.
+ **/
+void core_option_last(core_option_manager_t *opt_mgr, size_t idx)
+{
+   struct core_option *option;
+   if (!opt_mgr)
+      return;
+
+   idx = core_option_index(opt_mgr, idx);
+   option = (struct core_option*)&opt_mgr->opts[idx];
+
+   option->index = option->vals->size - 1;
+
+   if (opt_mgr->update_display_cb)
+      opt_mgr->update_display_cb();
+
+   opt_mgr->updated     = true;  /* need sync with core */
+   core_options_touched = true;  /* need flush to disk */
+}
+
+/**
  * core_option_set_default:
  * @opt_mgr               : pointer to core option manager object.
  * @idx                   : option index or menu entry type
