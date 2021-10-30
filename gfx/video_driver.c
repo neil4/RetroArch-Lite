@@ -740,27 +740,23 @@ void video_driver_set_osd_msg(const char *msg,
 
 void video_driver_set_texture_enable(bool enable, bool fullscreen)
 {
-#ifdef HAVE_MENU
    driver_t                   *driver = driver_get_ptr();
    const video_poke_interface_t *poke = video_driver_get_poke_ptr();
 
    if (poke && poke->set_texture_enable)
       poke->set_texture_enable(driver->video_data,
             enable, fullscreen);
-#endif
 }
 
 void video_driver_set_texture_frame(const void *frame, bool rgb32,
       unsigned width, unsigned height, float alpha)
 {
-#ifdef HAVE_MENU
    driver_t                   *driver = driver_get_ptr();
    const video_poke_interface_t *poke = video_driver_get_poke_ptr();
 
    if (poke &&  poke->set_texture_frame)
       poke->set_texture_frame(driver->video_data,
             frame, rgb32, width, height, alpha);
-#endif
 }
 
 bool video_driver_viewport_info(struct video_viewport *vp)

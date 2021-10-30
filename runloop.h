@@ -196,7 +196,6 @@ typedef struct global
       unsigned num_ports;
    } system;
 
-#ifdef HAVE_MENU
    struct
    {
       struct retro_system_info info;
@@ -206,7 +205,6 @@ typedef struct global
       bool force_dirty;
       bool block_push;
    } menu;
-#endif
 
    bool exec;
 

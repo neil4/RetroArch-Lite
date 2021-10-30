@@ -112,14 +112,13 @@ typedef struct video_poke_interface
    void (*set_aspect_ratio)(void *data, unsigned aspectratio_index);
    void (*apply_state_changes)(void *data);
 
-#ifdef HAVE_MENU
    /* Update texture. */
    void (*set_texture_frame)(void *data, const void *frame, bool rgb32,
          unsigned width, unsigned height, float alpha);
 
    /* Enable or disable rendering. */
    void (*set_texture_enable)(void *data, bool enable, bool full_screen);
-#endif
+
    void (*set_osd_msg)(void *data, const char *msg,
          const struct font_params *params, void *font);
 

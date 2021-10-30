@@ -706,7 +706,6 @@ static void psp_update_viewport(psp1_video_t* psp)
       float delta;
       float desired_aspect = video_driver_get_aspect_ratio();
 
-#if defined(HAVE_MENU)
       if (settings->video.aspect_ratio_idx == ASPECT_RATIO_CUSTOM)
       {
          struct video_viewport *custom = video_viewport_get_custom();
@@ -720,7 +719,6 @@ static void psp_update_viewport(psp1_video_t* psp)
          }
       }
       else
-#endif
       {
          if ((fabsf(device_aspect - desired_aspect) < 0.0001f)
                || (fabsf((16.0/9.0) - desired_aspect) < 0.02f))
@@ -852,10 +850,8 @@ static const video_poke_interface_t psp_poke_interface = {
    NULL, /* get_proc_address */
    psp_set_aspect_ratio,
    psp_apply_state_changes,
-#ifdef HAVE_MENU
    psp_set_texture_frame,
    psp_set_texture_enable,
-#endif
    NULL,
    NULL,
    NULL

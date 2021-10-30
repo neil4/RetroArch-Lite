@@ -33,6 +33,7 @@
 #include "../file_ext.h"
 #include "../performance.h"
 #include "../preempt.h"
+#include "drivers/rgui.h"
 
 #if defined(__CELLOS_LV2__)
 #include <sdk_version.h>
@@ -43,10 +44,7 @@
 
 #endif
 
-#ifdef HAVE_RGUI
-#include "drivers/rgui.h"
 extern struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS];
-#endif
 extern struct enum_lut button_combo_lut[NUM_BTN_COMBO_TYPES];
 
 static void menu_settings_info_list_free(rarch_setting_info_t *list_info)
@@ -1675,7 +1673,6 @@ static void setting_get_string_representation_uint_scope_index(void *data,
             len);
 }
 
-#ifdef HAVE_RGUI
 static void setting_get_string_representation_uint_rgui_particle_effect_index
       (void *data, char *s, size_t len)
 {
@@ -1685,7 +1682,6 @@ static void setting_get_string_representation_uint_rgui_particle_effect_index
             rgui_particle_effect_lut[*setting->value.unsigned_integer].name,
             len);
 }
-#endif
 
 static void setting_get_string_representation_fastforward_ratio(void *data,
       char *s, size_t len)
@@ -6810,7 +6806,6 @@ static bool setting_append_list_menu_options(
       (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
    }
    
-#ifdef HAVE_RGUI
    if (using_rgui)
    {
       CONFIG_UINT(
@@ -6846,7 +6841,6 @@ static bool setting_append_list_menu_options(
       menu_settings_list_current_add_range(list, list_info, 0.1, 10, 0.1, true, true);
       (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
    }
-#endif
 
    CONFIG_UINT(
          settings->menu.theme_scope,
@@ -6883,7 +6877,6 @@ static bool setting_append_list_menu_options(
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
 
-#ifdef HAVE_RGUI
    if (using_rgui)
    {
       CONFIG_BOOL(
@@ -6916,7 +6909,6 @@ static bool setting_append_list_menu_options(
       (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    }
-#endif
 
    CONFIG_PATH(
          global->menu.wallpaper,

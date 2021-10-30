@@ -51,14 +51,12 @@
 #include "git_version.h"
 #include "intl/intl.h"
 
-#ifdef HAVE_MENU
 #include "menu/menu.h"
 #include "menu/menu_hash.h"
 #include "menu/menu_entries.h"
 #include "menu/menu_setting.h"
 #include "menu/menu_shader.h"
 #include "menu/menu_input.h"
-#endif
 
 /* Descriptive names for options without short variant. Please keep the name in
    sync with the option name. Order does not matter. */
@@ -1302,7 +1300,6 @@ void rarch_main_set_state(unsigned cmd)
    switch (cmd)
    {
       case RARCH_ACTION_STATE_MENU_RUNNING:
-#ifdef HAVE_MENU
          {
             menu_handle_t *menu = menu_driver_get_ptr();
             if (!menu)
@@ -1335,19 +1332,15 @@ void rarch_main_set_state(unsigned cmd)
             /* Prevent stray input from going to menu */
             driver->flushing_input = true;
          }
-#endif
          break;
       case RARCH_ACTION_STATE_LOAD_CONTENT:
-#ifdef HAVE_MENU
          /* If content loading fails, we go back to menu. */
          if (!menu_load_content())
             rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING);
-#endif
          if (driver->frontend_ctx && driver->frontend_ctx->content_loaded)
             driver->frontend_ctx->content_loaded();
          break;
       case RARCH_ACTION_STATE_MENU_RUNNING_FINISHED:
-#ifdef HAVE_MENU
          menu_setting_apply_deferred();
 
          menu_driver_toggle(false);
@@ -1369,7 +1362,6 @@ void rarch_main_set_state(unsigned cmd)
             if (global->keyboard_focus)
                input_driver_keyboard_mapping_set_block(true);
          }
-#endif
          video_driver_set_texture_enable(false, false);
          break;
       case RARCH_ACTION_STATE_QUIT:

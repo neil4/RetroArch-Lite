@@ -342,12 +342,10 @@ typedef struct gl
 #endif
    void *readback_buffer_screenshot;
 
-#if defined(HAVE_MENU)
    GLuint menu_texture;
    bool menu_texture_enable;
    bool menu_texture_full_screen;
    GLfloat menu_texture_alpha;
-#endif
 
 #ifdef HAVE_GL_SYNC
 #define MAX_FENCES 4

@@ -22,10 +22,7 @@
 #include "compat/posix_string.h"
 #include "gfx/video_monitor.h"
 #include "audio/audio_monitor.h"
-
-#ifdef HAVE_MENU
 #include "menu/menu.h"
-#endif
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -103,11 +100,9 @@ static const void *find_driver_nonempty(const char *label, int i,
             strlcpy(s, location_driver_find_ident(i), len);
          break;
       case HASH_MENU_DRIVER:
-#ifdef HAVE_MENU
          drv = menu_driver_find_handle(i);
          if (drv)
             strlcpy(s, menu_driver_find_ident(i), len);
-#endif
          break;
       case HASH_INPUT_DRIVER:
          drv = input_driver_find_handle(i);
@@ -238,9 +233,7 @@ void init_drivers_pre(void)
    find_input_driver();
    find_camera_driver();
    find_location_driver();
-#ifdef HAVE_MENU
    find_menu_driver();
-#endif
 }
 
 static void driver_adjust_system_rates(void)
@@ -369,10 +362,8 @@ void init_drivers(int flags)
    driver_t *driver   = driver_get_ptr();
    global_t *global   = global_get_ptr();
 
-#ifdef HAVE_MENU
    /* By default, we want the menu to persist through driver reinits. */
    driver->menu_data_own = true;
-#endif
 
    if (flags & (DRIVER_VIDEO | DRIVER_AUDIO))
       driver_adjust_system_rates();
@@ -405,7 +396,6 @@ void init_drivers(int flags)
    if ((flags & DRIVER_LOCATION) && driver->location_active)
       init_location();
 
-#ifdef HAVE_MENU
    if (flags & DRIVER_MENU)
    {
       init_menu();
@@ -413,7 +403,6 @@ void init_drivers(int flags)
    }
    
    menu_update_libretro_info();
-#endif
 
    if (flags & (DRIVER_VIDEO | DRIVER_AUDIO))
    {
@@ -435,7 +424,6 @@ void uninit_drivers(int flags)
 {
    driver_t *driver = driver_get_ptr();
 
-#ifdef HAVE_MENU
    if (flags & DRIVER_MENU)
    {
       menu_driver_context_destroy();
@@ -446,7 +434,6 @@ void uninit_drivers(int flags)
          driver->menu = NULL;
       }
    }
-#endif
 
    if (flags & DRIVER_LOCATION)
    {

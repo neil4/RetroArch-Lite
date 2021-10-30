@@ -580,7 +580,6 @@ static bool d3d_construct(d3d_video_t *d3d,
 
    d3d->should_resize = false;
 
-#if defined(HAVE_MENU)
    if (d3d->menu)
       free(d3d->menu);
 
@@ -597,7 +596,6 @@ static bool d3d_construct(d3d_video_t *d3d,
    d3d->menu->vert_coords.y = 1;
    d3d->menu->vert_coords.w = 1;
    d3d->menu->vert_coords.h = -1;
-#endif
 
 #if defined(HAVE_WINDOW) && !defined(_XBOX)
    memset(&d3d->windowClass, 0, sizeof(d3d->windowClass));
@@ -821,9 +819,7 @@ static void *d3d_init(const video_info_t *info,
 #ifdef _XBOX
    vid->should_resize        = false;
 #else
-#ifdef HAVE_MENU
    vid->menu                 = NULL;
-#endif
 #endif
 
    driver->video_context     = ctx;
@@ -865,7 +861,7 @@ static void d3d_free(void *data)
    gfx_ctx_free(d3d);
 #else
 
-#if defined(HAVE_MENU) && defined(HAVE_OVERLAY)
+#if defined(HAVE_OVERLAY)
    d3d_free_overlay(d3d, d3d->menu);
 #endif
 
@@ -1155,7 +1151,6 @@ static bool texture_image_render(d3d_video_t *d3d,
 }
 #endif
 
-#ifdef HAVE_MENU
 static void d3d_draw_texture(d3d_video_t *d3d)
 {
    if (!d3d)
@@ -1175,7 +1170,6 @@ static void d3d_draw_texture(d3d_video_t *d3d)
    }
 #endif
 }
-#endif
 
 #endif
 
@@ -1721,7 +1715,7 @@ static bool d3d_frame(void *data, const void *frame,
       font_ctx->render_msg(driver->font_osd_data, msg, &font_parms);
    }
 
-#if defined(HAVE_MENU) && defined(HAVE_OVERLAY) && !defined(_XBOX)
+#if defined(HAVE_OVERLAY) && !defined(_XBOX)
    if (d3d->menu && d3d->menu->enabled)
       d3d_overlay_render(d3d, d3d->menu);
 #endif
@@ -1734,7 +1728,6 @@ static bool d3d_frame(void *data, const void *frame,
    }
 #endif
 
-#ifdef HAVE_MENU
    if (menu_driver_alive())
       menu_driver_frame();
 
@@ -1742,7 +1735,6 @@ static bool d3d_frame(void *data, const void *frame,
    /* TODO - should be refactored. */
    if (d3d && d3d->menu->enabled)
       d3d_draw_texture(d3d);
-#endif
 #endif
 
    RARCH_PERFORMANCE_STOP(d3d_frame);
@@ -1874,7 +1866,6 @@ static bool d3d_set_shader(void *data,
    return !restore_old;
 }
 
-#ifdef HAVE_MENU
 static void d3d_set_menu_texture_frame(void *data,
       const void *frame, bool rgb32, unsigned width, unsigned height,
       float alpha)
@@ -1971,7 +1962,6 @@ static void d3d_set_menu_texture_enable(void *data,
    d3d->menu->enabled            = state;
    d3d->menu->fullscreen         = full_screen;
 }
-#endif
 
 static uint64_t d3d_get_frame_count(void *data)
 {
@@ -1992,13 +1982,8 @@ static const video_poke_interface_t d3d_poke_interface = {
    NULL, /* get_proc_address */
    d3d_set_aspect_ratio,
    d3d_apply_state_changes,
-#ifdef HAVE_MENU
    d3d_set_menu_texture_frame,
    d3d_set_menu_texture_enable,
-#else
-   NULL,
-   NULL,
-#endif
    d3d_set_osd_msg,
 
    d3d_show_mouse,

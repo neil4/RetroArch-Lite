@@ -814,7 +814,6 @@ static void gl_set_viewport(void *data, unsigned viewport_width,
       float delta;
       float desired_aspect = video_driver_get_aspect_ratio();
 
-#if defined(HAVE_MENU)
       if (settings->video.aspect_ratio_idx == ASPECT_RATIO_CUSTOM)
       {
          const struct video_viewport *custom = video_viewport_get_custom();
@@ -826,7 +825,6 @@ static void gl_set_viewport(void *data, unsigned viewport_width,
          viewport_height = custom->height;
       }
       else
-#endif
       {
          if (fabsf(device_aspect - desired_aspect) < 0.0001f)
          {
@@ -1424,7 +1422,7 @@ static INLINE void gl_set_shader_viewport(gl_t *gl, unsigned shader)
    gl_set_viewport(gl, width, height, false, true);
 }
 
-#if defined(HAVE_GL_ASYNC_READBACK) && defined(HAVE_MENU)
+#if defined(HAVE_GL_ASYNC_READBACK)
 static void gl_pbo_async_readback(gl_t *gl)
 {
    glBindBuffer(GL_PIXEL_PACK_BUFFER,
@@ -1454,7 +1452,6 @@ static void gl_pbo_async_readback(gl_t *gl)
 }
 #endif
 
-#if defined(HAVE_MENU)
 static INLINE void gl_draw_texture(gl_t *gl)
 {
    unsigned width, height;
@@ -1501,7 +1498,6 @@ static INLINE void gl_draw_texture(gl_t *gl)
    gl->coords.tex_coord = gl->tex_info.coord;
    gl->coords.color     = gl->white_color_ptr;
 }
-#endif
 
 static bool gl_frame(void *data, const void *frame,
       unsigned frame_width, unsigned frame_height,
@@ -1645,13 +1641,11 @@ static bool gl_frame(void *data, const void *frame,
    if (!recursing)
       gl_set_prev_texture(gl, &gl->tex_info);
 
-#if defined(HAVE_MENU)
    if (menu_driver_alive())
       menu_driver_frame();
 
    if (gl->menu_texture_enable)
       gl_draw_texture(gl);
-#endif
 
    if (msg && *msg && driver->font_osd_driver && driver->font_osd_data)
       font_driver->render_msg(driver->font_osd_data, msg, NULL);
@@ -1691,7 +1685,7 @@ static bool gl_frame(void *data, const void *frame,
                gl->vp.width, gl->vp.height,
                GL_RGBA, GL_UNSIGNED_BYTE, gl->readback_buffer_screenshot);
       }
-#if defined(HAVE_GL_ASYNC_READBACK) && defined(HAVE_MENU)
+#if defined(HAVE_GL_ASYNC_READBACK)
       /* Don't readback if we're in menu mode. */
       else if (gl->pbo_readback_enable && !gl->menu_texture_enable)
          gl_pbo_async_readback(gl);
@@ -1812,10 +1806,8 @@ static void gl_free(void *data)
 
    glDeleteTextures(gl->textures, gl->texture);
 
-#if defined(HAVE_MENU)
    if (gl->menu_texture)
       glDeleteTextures(1, &gl->menu_texture);
-#endif
 
 #ifdef HAVE_OVERLAY
    gl_free_overlay(gl);
@@ -3153,7 +3145,6 @@ static void gl_set_aspect_ratio(void *data, unsigned aspect_ratio_idx)
    gl->should_resize = true;
 }
 
-#if defined(HAVE_MENU)
 static void gl_set_texture_frame(void *data,
       const void *frame, bool rgb32, unsigned width, unsigned height,
       float alpha)
@@ -3191,7 +3182,6 @@ static void gl_set_texture_enable(void *data, bool state, bool full_screen)
    gl->menu_texture_enable      = state;
    gl->menu_texture_full_screen = full_screen;
 }
-#endif
 
 static void gl_apply_state_changes(void *data)
 {
@@ -3269,10 +3259,8 @@ static const video_poke_interface_t gl_poke_interface = {
    gl_get_proc_address,
    gl_set_aspect_ratio,
    gl_apply_state_changes,
-#if defined(HAVE_MENU)
    gl_set_texture_frame,
    gl_set_texture_enable,
-#endif
    gl_set_osd_msg,
    gl_show_mouse,
    NULL,

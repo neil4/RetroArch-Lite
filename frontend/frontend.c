@@ -68,10 +68,8 @@ void main_exit(void *args)
 
    if (global->main_is_init)
    {
-#ifdef HAVE_MENU
       /* Do not want menu context to live any more. */
       driver->menu_data_own = false;
-#endif
       rarch_main_deinit();
    }
 

@@ -163,7 +163,6 @@ typedef struct thread_video
    const input_driver_t **input;
    void **input_data;
 
-#if defined(HAVE_MENU)
    struct
    {
       void *frame;
@@ -176,7 +175,7 @@ typedef struct thread_video
       bool enable;
       bool full_screen;
    } texture;
-#endif
+
    bool apply_state_changes;
 
    bool alive;

@@ -708,7 +708,6 @@ SCREENSHOTS
 /*============================================================
 MENU
 ============================================================ */
-#ifdef HAVE_MENU
 #include "../menu/menu.c"
 #include "../menu/menu_hash.c"
 #include "../menu/menu_input.c"
@@ -739,16 +738,12 @@ MENU
 #include "../menu/menu_animation.c"
 
 #include "../menu/drivers/null.c"
-#endif
-
 
 #ifdef HAVE_RMENU
 #include "../menu/drivers/rmenu.c"
 #endif
 
-#ifdef HAVE_RGUI
 #include "../menu/drivers/rgui.c"
-#endif
 
 #ifdef HAVE_COMMAND
 #include "../command.c"

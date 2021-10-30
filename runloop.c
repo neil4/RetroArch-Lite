@@ -34,9 +34,7 @@
 #include "input/keyboard_line.h"
 #include "input/input_common.h"
 
-#ifdef HAVE_MENU
 #include "menu/menu.h"
-#endif
 
 #ifdef HAVE_NETPLAY
 #include "netplay.h"
@@ -331,7 +329,6 @@ static void check_shader_dir(bool pressed_next, bool pressed_prev)
       RARCH_WARN("Failed to apply shader.\n");
 }
 
-#ifdef HAVE_MENU
 static void do_state_check_menu_toggle(void)
 {
    global_t *global   = global_get_ptr();
@@ -345,7 +342,6 @@ static void do_state_check_menu_toggle(void)
 
    rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING);
 }
-#endif
 
 /**
  * do_pre_state_checks:
@@ -374,10 +370,8 @@ static int do_pre_state_checks(event_cmd_state_t *cmd)
    if (cmd->grab_mouse_pressed)
       event_command(EVENT_CMD_GRAB_MOUSE_TOGGLE);
 
-#ifdef HAVE_MENU
    if (cmd->menu_pressed || (global->libretro_dummy))
       do_state_check_menu_toggle();
-#endif
    
    if (cmd->kbd_focus_toggle_pressed)
       event_command(EVENT_CMD_KEYBOARD_FOCUS_TOGGLE);
@@ -965,9 +959,7 @@ static void rarch_main_cmd_get_state(event_cmd_state_t *cmd,
    cmd->fullscreen_toggle           = BIT64_GET(trigger_input, RARCH_FULLSCREEN_TOGGLE_KEY);
    cmd->overlay_next_pressed        = BIT64_GET(trigger_input, RARCH_OVERLAY_NEXT);
    cmd->grab_mouse_pressed          = BIT64_GET(trigger_input, RARCH_GRAB_MOUSE_TOGGLE);
-#ifdef HAVE_MENU
    cmd->menu_pressed                = BIT64_GET(trigger_input, RARCH_MENU_TOGGLE);
-#endif
    cmd->quit_key_pressed            = BIT64_GET(trigger_input, RARCH_QUIT_KEY);
    cmd->screenshot_pressed          = BIT64_GET(trigger_input, RARCH_SCREENSHOT);
    cmd->mute_pressed                = BIT64_GET(trigger_input, RARCH_MUTE);
@@ -1046,8 +1038,7 @@ int rarch_main_iterate(void)
       
       return 1;
    }
-   
-#ifdef HAVE_MENU
+
    if (menu_driver_alive())
    {
       menu_handle_t *menu = menu_driver_get_ptr();
@@ -1059,7 +1050,6 @@ int rarch_main_iterate(void)
         ret = 1;
       goto success;
    }
-#endif
 
    if (global->exec)
    {

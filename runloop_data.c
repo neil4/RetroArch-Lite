@@ -22,11 +22,9 @@
 #include <rthreads/rthreads.h>
 #endif
 
-#ifdef HAVE_MENU
 #include "menu/menu.h"
 #include "menu/menu_entries.h"
 #include "menu/menu_input.h"
-#endif
 
 static struct data_runloop *g_data_runloop;
 
@@ -133,9 +131,7 @@ void rarch_main_data_iterate(void)
 #ifdef HAVE_RPNG
    rarch_main_data_nbio_image_upload_iterate(runloop);
 #endif
-#ifdef HAVE_MENU
    menu_entries_refresh(MENU_ACTION_REFRESH);
-#endif
    
    data_runloop_iterate(runloop);
 }

@@ -131,9 +131,8 @@ typedef struct d3d_video
    std::vector<overlay_t> overlays;
 #endif
 
-#if defined(HAVE_MENU)
    overlay_t *menu;
-#endif
+
    const renderchain_driver_t *renderchain_driver;
    void *renderchain_data;
 

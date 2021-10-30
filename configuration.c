@@ -326,7 +326,6 @@ const char *config_get_default_joypad(void)
    return "null";
 }
 
-#ifdef HAVE_MENU
 /**
  * config_get_default_menu:
  *
@@ -354,7 +353,6 @@ const char *config_get_default_menu(void)
 
    return "null";
 }
-#endif
 
 /**
  * config_get_default_camera:
@@ -430,9 +428,7 @@ static void config_set_defaults(void)
    const char *def_audio_resampler = config_get_default_audio_resampler();
    const char *def_input           = config_get_default_input();
    const char *def_joypad          = config_get_default_joypad();
-#ifdef HAVE_MENU
    const char *def_menu            = config_get_default_menu();
-#endif
    const char *def_camera          = config_get_default_camera();
    const char *def_location        = config_get_default_location();
    const char *def_record          = config_get_default_record();
@@ -461,11 +457,9 @@ static void config_set_defaults(void)
    if (def_record)
       strlcpy(settings->record.driver,
             def_record, sizeof(settings->record.driver));
-#ifdef HAVE_MENU
    if (def_menu)
       strlcpy(settings->menu.driver,
             def_menu,  sizeof(settings->menu.driver));
-#endif
 
    settings->load_dummy_on_core_shutdown = load_dummy_on_core_shutdown;
 
@@ -561,7 +555,6 @@ static void config_set_defaults(void)
    settings->stdin_cmd_enable                  = stdin_cmd_enable;
    settings->libretro_log_level                = libretro_log_level;
 
-#ifdef HAVE_MENU
    settings->menu_show_start_screen            = menu_show_start_screen;
    settings->menu.pause_libretro               = true;
    settings->menu.mouse.enable                 = menu_mouse_support;
@@ -575,9 +568,7 @@ static void config_set_defaults(void)
    settings->menu.wallpaper_opacity            = wallpaper_opacity;
    settings->menu.show_advanced_settings       = show_advanced_settings;
    settings->menu.ticker_speed                 = menu_ticker_speed;
-#ifdef HAVE_RGUI
    settings->menu.rgui_particle_effect_speed_factor = 1.0f;
-#endif
 
    settings->menu.dpi.override_enable          = menu_dpi_override_enable;
    settings->menu.dpi.override_value           = menu_dpi_override_value;
@@ -609,7 +600,6 @@ static void config_set_defaults(void)
    settings->menu.show_privacy_menu            = show_privacy_menu;
    settings->menu.show_recording_menu          = show_recording_menu;
    settings->menu.show_core_updater_menu       = show_core_updater_menu;
-#endif /* #ifdef HAVE_MENU */
 
    settings->ui.companion_start_on_boot             = true;
    settings->ui.menubar_enable                      = true;
@@ -739,11 +729,9 @@ static void config_set_defaults(void)
    *settings->audio.filter_dir = '\0';
    *settings->video.softfilter_plugin = '\0';
    *settings->audio.dsp_plugin = '\0';
-#ifdef HAVE_MENU
    *settings->menu_content_directory = '\0';
    *settings->core_content_directory = '\0';
    *settings->menu_config_directory = '\0';
-#endif
    settings->auto_remaps_enable = default_auto_remaps_enable;
 
    settings->sort_savefiles_enable = default_sort_savefiles_enable;
@@ -825,7 +813,6 @@ static void config_set_defaults(void)
       strlcpy(global->osk_overlay_dir,
             global->overlay_dir, sizeof(global->osk_overlay_dir));
 #endif
-#ifdef HAVE_MENU
    if (*g_defaults.menu_config_dir)
       strlcpy(settings->menu_config_directory,
             g_defaults.menu_config_dir,
@@ -834,7 +821,6 @@ static void config_set_defaults(void)
       strlcpy(settings->menu.theme_dir,
             g_defaults.menu_theme_dir,
             sizeof(settings->menu.theme_dir));
-#endif
    if (*g_defaults.shader_dir)
       fill_pathname_expand_special(settings->video.shader_dir,
             g_defaults.shader_dir, sizeof(settings->video.shader_dir));
@@ -855,11 +841,9 @@ static void config_set_defaults(void)
    if (*g_defaults.screenshot_dir)
       strlcpy(settings->screenshot_directory,
             g_defaults.screenshot_dir, sizeof(settings->screenshot_directory));
-#ifdef HAVE_MENU
    if (*g_defaults.content_dir)
       strlcpy(settings->menu_content_directory,
               g_defaults.content_dir, sizeof(settings->menu_content_directory));
-#endif
 
 #ifdef HAVE_NETPLAY
    global->netplay_sync_frames = netplay_sync_frames;
@@ -1266,7 +1250,6 @@ static bool config_load_file(const char *path, bool set_defaults)
    if (settings->video.hard_sync_frames > 3)
       settings->video.hard_sync_frames = 3;
 
-#ifdef HAVE_MENU
    CONFIG_GET_BOOL_BASE(conf, settings, menu.dpi.override_enable, "dpi_override_enable");
    CONFIG_GET_INT_BASE (conf, settings, menu.dpi.override_value,  "dpi_override_value");
 
@@ -1277,12 +1260,10 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, menu.core_enable,   "menu_core_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.dynamic_wallpaper_enable,   "menu_dynamic_wallpaper_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.boxart_enable,   "menu_boxart_enable");
-#ifdef HAVE_RGUI
    CONFIG_GET_BOOL_BASE(conf, settings, menu.rgui_thick_bg_checkerboard,   "rgui_thick_background_checkerboard");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.rgui_thick_bd_checkerboard,   "rgui_thick_border_checkerboard");
    CONFIG_GET_INT_BASE (conf, settings, menu.rgui_particle_effect, "rgui_particle_effect");
    CONFIG_GET_FLOAT_BASE(conf, settings, menu.rgui_particle_effect_speed_factor, "rgui_particle_effect_speed_factor");
-#endif
    CONFIG_GET_FLOAT_BASE(conf, settings, menu.ticker_speed, "menu_ticker_speed");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.navigation.wraparound.vertical_enable,   "menu_navigation_wraparound_vertical_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.navigation.browser.filter.supported_extensions_enable,   "menu_navigation_browser_filter_supported_extensions_enable");
@@ -1323,7 +1304,6 @@ static bool config_load_file(const char *path, bool set_defaults)
    config_get_path(conf, "menu_theme", settings->menu.theme, sizeof(settings->menu.theme));
    if (!strcmp(settings->menu.theme, "default"))
       *settings->menu.theme = '\0';
-#endif /* #ifdef HAVE_MENU */
 
    CONFIG_GET_INT_BASE(conf, settings, video.frame_delay, "video_frame_delay");
    if (settings->video.frame_delay > 15)
@@ -1495,9 +1475,7 @@ static bool config_load_file(const char *path, bool set_defaults)
 
    CONFIG_GET_BOOL_BASE(conf, settings, location.allow, "location_allow");
    CONFIG_GET_STRING_BASE(conf, settings, video.driver, "video_driver");
-#ifdef HAVE_MENU
    CONFIG_GET_STRING_BASE(conf, settings, menu.driver, "menu_driver");
-#endif
    CONFIG_GET_STRING_BASE(conf, settings, video.context_driver, "video_context_driver");
    CONFIG_GET_STRING_BASE(conf, settings, audio.driver, "audio_driver");
 
@@ -1575,7 +1553,7 @@ static bool config_load_file(const char *path, bool set_defaults)
       *settings->dynamic_wallpapers_directory = '\0';
    if (!strcmp(settings->boxarts_directory, "default"))
       *settings->boxarts_directory = '\0';
-#ifdef HAVE_MENU
+
    /* override content directory if specified */
    if (global->content_dir_override)
       strlcpy(settings->menu_content_directory, g_defaults.content_dir, PATH_MAX_LENGTH);
@@ -1599,7 +1577,7 @@ static bool config_load_file(const char *path, bool set_defaults)
       path_mkdir(settings->menu_config_directory);
    }
    CONFIG_GET_BOOL_BASE(conf, settings, menu_show_start_screen, "rgui_show_start_screen");
-#endif
+
    CONFIG_GET_INT_BASE(conf, settings, libretro_log_level, "libretro_log_level");
 
    if (!global->has_set_verbosity)
@@ -1988,7 +1966,6 @@ bool main_config_file_save(const char *path)
 
    RARCH_LOG("Saving config at path: \"%s\"\n", path);
 
-#ifdef HAVE_MENU
    if (!global->content_dir_override)
       config_set_path(conf, "rgui_browser_directory",
             *settings->menu_content_directory ?
@@ -1996,7 +1973,6 @@ bool main_config_file_save(const char *path)
    config_set_path(conf, "rgui_config_directory",
          *settings->menu_config_directory ?
          settings->menu_config_directory : "default");
-#endif
    config_set_path(conf, "system_directory",
          *settings->system_directory ?
          settings->system_directory : "default");
@@ -2142,7 +2118,6 @@ bool main_config_file_save(const char *path)
    config_set_float(conf, "video_message_pos_y", settings->video.msg_pos_y);
    config_set_float(conf, "video_font_size", settings->video.font_size);
 
-#ifdef HAVE_MENU
    config_set_bool(conf, "dpi_override_enable", settings->menu.dpi.override_enable);
    config_set_int (conf, "dpi_override_value", settings->menu.dpi.override_value);
    config_set_string(conf,"menu_driver", settings->menu.driver);
@@ -2161,10 +2136,8 @@ bool main_config_file_save(const char *path)
    {
       config_set_float(conf, "menu_wallpaper_opacity", settings->menu.wallpaper_opacity);
       config_set_path(conf, "menu_theme", settings->menu.theme);
-#ifdef HAVE_RGUI
       config_set_int(conf, "rgui_particle_effect", settings->menu.rgui_particle_effect);
       config_set_float(conf, "rgui_particle_effect_speed_factor", settings->menu.rgui_particle_effect_speed_factor);
-#endif
    }
 
    config_set_bool(conf, "rgui_show_start_screen",
@@ -2205,7 +2178,6 @@ bool main_config_file_save(const char *path)
    config_set_bool(conf, "show_recording_menu", settings->menu.show_recording_menu);
    config_set_bool(conf, "show_core_updater_menu", settings->menu.show_core_updater_menu);
    config_set_bool(conf, "show_font_menu", settings->menu.show_font_menu);
-#endif
 
    config_set_string(conf, "core_updater_buildbot_url", settings->network.buildbot_url);
    config_set_string(conf, "core_updater_buildbot_assets_url", settings->network.buildbot_assets_url);
@@ -2837,7 +2809,6 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "input_turbo_period");
    }
    
-#ifdef HAVE_MENU
    if (settings->menu.theme_scope == scope)
    {
       if (!*settings->menu.theme)
@@ -2847,23 +2818,18 @@ static void scoped_config_file_save(unsigned scope)
 
       config_set_float(conf, "menu_wallpaper_opacity",
                        settings->menu.wallpaper_opacity);
-#ifdef HAVE_RGUI
       config_set_int(conf, "rgui_particle_effect",
                      settings->menu.rgui_particle_effect);
       config_set_float(conf, "rgui_particle_effect_speed_factor",
                        settings->menu.rgui_particle_effect_speed_factor);
-#endif
    }
    else if (settings->menu.theme_scope < scope)
    {
       config_remove_entry(conf, "menu_theme");
       config_remove_entry(conf, "menu_wallpaper_opacity");
-#ifdef HAVE_RGUI
       config_remove_entry(conf, "rgui_particle_effect");
       config_remove_entry(conf, "rgui_particle_effect_speed_factor");
-#endif
    }
-#endif
 
    /* Create/update or delete config file */
    if (conf->entries)
@@ -3239,8 +3205,7 @@ void config_unmask_globals()
    {  /* back up */
       config_set_int(conf, "preempt_frames", settings->preempt_frames);
    }
-   
-#ifdef HAVE_MENU
+
    if (settings->menu.theme_scope != GLOBAL)
    {  /* restore */
       settings->menu.theme_scope = GLOBAL;
@@ -3249,27 +3214,22 @@ void config_unmask_globals()
          *settings->menu.theme = '\0';
       config_get_float(conf, "menu_wallpaper_opacity",
                        &settings->menu.wallpaper_opacity);
-#ifdef HAVE_RGUI
       config_get_uint(conf, "rgui_particle_effect",
                       &settings->menu.rgui_particle_effect);
       config_get_float(conf, "rgui_particle_effect_speed_factor",
                        &settings->menu.rgui_particle_effect_speed_factor);
-#endif
    }
    else
    {  /* back up */
       config_set_path(conf, "menu_theme", settings->menu.theme);
       config_set_float(conf, "menu_wallpaper_opacity",
                        settings->menu.wallpaper_opacity);
-#ifdef HAVE_RGUI
       config_set_int(conf, "rgui_particle_effect",
                      settings->menu.rgui_particle_effect);
       config_set_float(conf, "rgui_particle_effect_speed_factor",
                        settings->menu.rgui_particle_effect_speed_factor);
-#endif
    }
    global->menu.theme_update_flag = true;
-#endif
    
    /* Core specific settings */
    if (prev_libretro && !*settings->libretro)
@@ -3502,7 +3462,6 @@ static void scoped_config_file_load(unsigned scope)
    if (config_get_uint(conf, "preempt_frames", &settings->preempt_frames))
       settings->preempt_frames_scope = scope;
    
-#ifdef HAVE_MENU
    if (config_get_path(conf, "menu_theme", settings->menu.theme,
                        sizeof(settings->menu.theme)))
    {
@@ -3510,16 +3469,13 @@ static void scoped_config_file_load(unsigned scope)
          *settings->menu.theme = '\0';
       config_get_float(conf, "menu_wallpaper_opacity",
                        &settings->menu.wallpaper_opacity);
-#ifdef HAVE_RGUI
       config_get_uint(conf, "rgui_particle_effect",
                       &settings->menu.rgui_particle_effect);
       config_get_float(conf, "rgui_particle_effect_speed_factor",
                        &settings->menu.rgui_particle_effect_speed_factor);
-#endif
       settings->menu.theme_scope = scope;
       global->menu.theme_update_flag = true;
    }
-#endif
 
    /* Core specific settings */
    if (scope == THIS_CORE)

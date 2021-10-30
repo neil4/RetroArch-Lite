@@ -135,7 +135,6 @@ typedef struct settings
       bool companion_start_on_boot;
    } ui;
 
-#ifdef HAVE_MENU
    struct
    {
       char driver[32];
@@ -144,12 +143,10 @@ typedef struct settings
       bool core_enable;
       bool dynamic_wallpaper_enable;
       bool boxart_enable;
-#ifdef HAVE_RGUI
       bool rgui_thick_bg_checkerboard;
       bool rgui_thick_bd_checkerboard;
       unsigned rgui_particle_effect;
       float rgui_particle_effect_speed_factor;
-#endif
       char theme_dir[PATH_MAX_LENGTH];
       float wallpaper_opacity;
       char theme[PATH_MAX_LENGTH];
@@ -217,7 +214,6 @@ typedef struct settings
 #endif
       bool swap_ok_cancel;
    } menu;
-#endif /* #ifdef HAVE_MENU */
 
    struct
    {
@@ -398,11 +394,9 @@ typedef struct settings
    char dynamic_wallpapers_directory[PATH_MAX_LENGTH];
    char boxarts_directory[PATH_MAX_LENGTH];
    char menu_config_directory[PATH_MAX_LENGTH];
-#if defined(HAVE_MENU)
    char menu_content_directory[PATH_MAX_LENGTH];
    char core_content_directory[PATH_MAX_LENGTH];
    bool menu_show_start_screen;
-#endif
    bool fps_show;
    bool load_dummy_on_core_shutdown;
 
@@ -500,7 +494,6 @@ const char *config_get_default_input(void);
  **/
 const char *config_get_default_joypad(void);
 
-#ifdef HAVE_MENU
 /**
  * config_get_default_menu:
  *
@@ -509,7 +502,6 @@ const char *config_get_default_joypad(void);
  * Returns: Default menu driver.
  **/
 const char *config_get_default_menu(void);
-#endif
 
 const char *config_get_default_record(void);
 

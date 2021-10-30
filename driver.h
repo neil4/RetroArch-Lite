@@ -39,9 +39,7 @@
 
 #include "libretro_version_1.h"
 
-#ifdef HAVE_MENU
 #include "menu/menu_driver.h"
-#endif
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -292,10 +290,9 @@ typedef struct driver
    bool osk_enable;
    bool keyboard_linefeed_enable;
 
-#ifdef HAVE_MENU
    menu_handle_t *menu;
    const menu_ctx_driver_t *menu_ctx;
-#endif
+
    bool threaded_video;
 
    /* If set during context deinit, the driver should keep
@@ -318,9 +315,7 @@ typedef struct driver
     *
     * Typically, if a driver intends to make use of this, it should 
     * set this to true at the end of its 'init' function. */
-#ifdef HAVE_MENU
    bool menu_data_own;
-#endif
 
 #ifdef HAVE_COMMAND
    rarch_cmd_t *command;

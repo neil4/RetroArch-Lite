@@ -492,10 +492,8 @@ static bool sdl2_gfx_frame(void *data, const void *frame, unsigned width,
 
    SDL_RenderCopyEx(vid->renderer, vid->frame.tex, NULL, NULL, vid->rotation, NULL, SDL_FLIP_NONE);
 
-#ifdef HAVE_MENU
    if (menu_driver_alive())
       menu_driver_frame();
-#endif
 
    if (vid->menu.active)
       SDL_RenderCopy(vid->renderer, vid->menu.tex, NULL, NULL);
@@ -720,10 +718,8 @@ static video_poke_interface_t sdl2_video_poke_interface = {
    NULL, /* get_proc_address */
    sdl2_poke_set_aspect_ratio,
    sdl2_poke_apply_state_changes,
-#ifdef HAVE_MENU
    sdl2_poke_set_texture_frame,
    sdl2_poke_texture_enable,
-#endif
    sdl2_poke_set_osd_msg,
    sdl2_show_mouse,
    sdl2_grab_mouse_toggle,

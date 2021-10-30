@@ -27,9 +27,7 @@
 static bool menu_alive = false;
 
 static const menu_ctx_driver_t *menu_ctx_drivers[] = {
-#if defined(HAVE_RGUI)
    &menu_ctx_rgui,
-#endif
 #if defined(HAVE_RMENU)
    &menu_ctx_rmenu,
 #endif

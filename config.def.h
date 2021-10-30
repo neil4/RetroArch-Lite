@@ -465,7 +465,6 @@ static bool config_save_on_exit = true;
 
 static const bool default_overlay_enable = false;
 
-#ifdef HAVE_MENU
 static bool default_block_config_read = true;
 
 static bool show_advanced_settings    = false;
@@ -523,9 +522,6 @@ static bool show_core_updater = true;
 static bool show_rewind_menu = false;
 #else
 static bool show_rewind_menu = true;
-#endif
-#else
-static bool default_block_config_read = false;
 #endif
 
 static bool default_auto_remaps_enable = true;

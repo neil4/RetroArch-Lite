@@ -33,12 +33,10 @@
 #include "input/input_remapping.h"
 #include "input/input_joypad.h"
 
-#ifdef HAVE_MENU
 #include "menu/menu.h"
 #include "menu/menu_display.h"
 #include "menu/menu_shader.h"
 #include "menu/menu_input.h"
-#endif
 
 #ifdef HAVE_NETPLAY
 #include "netplay.h"
@@ -803,7 +801,6 @@ bool event_command(enum event_command cmd)
       case EVENT_CMD_LOAD_CORE_PERSIST:
          event_command(EVENT_CMD_LOAD_CORE_DEINIT);
          {
-#ifdef HAVE_MENU
             menu_handle_t *menu = menu_driver_get_ptr();
             if (menu)
                event_update_system_info(&global->menu.info,
@@ -814,7 +811,6 @@ bool event_command(enum event_command cmd)
                global->libretro_supports_content = true;
             else
                global->libretro_supports_content = false;
-#endif
          }
          break;
       case EVENT_CMD_LOAD_CORE:
@@ -895,11 +891,10 @@ bool event_command(enum event_command cmd)
          break;
       case EVENT_CMD_PREPARE_DUMMY:
          {
-#ifdef HAVE_MENU
             menu_handle_t *menu = menu_driver_get_ptr();
             if (menu)
                menu->load_no_content = false;
-#endif
+
             rarch_main_data_deinit();
 
             *global->fullpath = '\0';
@@ -936,12 +931,10 @@ bool event_command(enum event_command cmd)
             /* Poll input to avoid possibly stale data to corrupt things. */
             input_driver_poll();
 
-#ifdef HAVE_MENU
             menu_display_fb_set_dirty();
 
             if (menu_driver_alive())
                event_command(EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
-#endif
          }
          break;
       case EVENT_CMD_CHEATS_DEINIT:
@@ -1115,7 +1108,7 @@ bool event_command(enum event_command cmd)
       case EVENT_CMD_CORE_DEINIT:
          event_command(EVENT_CMD_AUDIO_START);
          video_driver_free_hw_context();
-         
+
          pretro_unload_game();
          pretro_deinit();
          
@@ -1200,9 +1193,7 @@ bool event_command(enum event_command cmd)
             driver->frontend_ctx->set_fork(true, false);
          break;
       case EVENT_CMD_SHADERS_APPLY_CHANGES:
-#ifdef HAVE_MENU
          menu_shader_manager_apply_changes();
-#endif
          break;
       case EVENT_CMD_PAUSE_CHECKS:
          if (runloop->is_paused)

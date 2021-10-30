@@ -27,7 +27,6 @@
 #define CB_MENU_WALLPAPER     0xb476e505U
 #define CB_MENU_BOXART        0x68b307cdU
 
-#ifdef HAVE_MENU
 #include "../configuration.h"
 #include "../menu/menu_driver.h"
 
@@ -326,7 +325,6 @@ void rarch_main_data_nbio_image_upload_iterate(void *data)
 }
 #endif
 
-#endif
 
 static int cb_nbio_default(void *data, size_t len)
 {
@@ -452,7 +450,7 @@ static int rarch_main_data_nbio_iterate_poll(nbio_handle_t *nbio)
 
    switch (cb_type_hash)
    {
-#if defined(HAVE_MENU) && defined(HAVE_RPNG)
+#if defined(HAVE_RPNG)
       case CB_MENU_WALLPAPER:
          nbio->cb = &cb_nbio_image_menu_wallpaper;
          break;

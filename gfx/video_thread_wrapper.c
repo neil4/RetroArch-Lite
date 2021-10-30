@@ -84,7 +84,6 @@ static void thread_send_and_wait(thread_video_t *thr, thread_packet_t *pkt)
 
 static void thread_update_driver_state(thread_video_t *thr)
 {
-#if defined(HAVE_MENU)
    if (thr->texture.frame_updated)
    {
       if (thr->poke && thr->poke->set_texture_frame)
@@ -98,7 +97,6 @@ static void thread_update_driver_state(thread_video_t *thr)
    if (thr->poke && thr->poke->set_texture_enable)
       thr->poke->set_texture_enable(thr->driver_data,
             thr->texture.enable, thr->texture.full_screen);
-#endif
 
 #if defined(HAVE_OVERLAY)
    slock_lock(thr->alpha_lock);
@@ -556,13 +554,11 @@ static bool thread_frame(void *data, const void *frame_,
 
       scond_signal(thr->cond_thread);
 
-#if defined(HAVE_MENU)
       if (thr->texture.enable)
       {
          while (thr->frame.updated)
             scond_wait(thr->cond_cmd, thr->lock);
       }
-#endif
       thr->hit_count++;
    }
    else
@@ -713,9 +709,7 @@ static void thread_free(void *data)
 
    sthread_join(thr->thread);
 
-#if defined(HAVE_MENU)
    free(thr->texture.frame);
-#endif
    free(thr->frame.buffer);
    slock_free(thr->frame.lock);
    slock_free(thr->lock);
@@ -910,7 +904,6 @@ static void thread_set_aspect_ratio(void *data, unsigned aspectratio_idx)
    thread_send_and_wait(thr, &pkt);
 }
 
-#if defined(HAVE_MENU)
 static void thread_set_texture_frame(void *data, const void *frame,
       bool rgb32, unsigned width, unsigned height, float alpha)
 {
@@ -950,7 +943,6 @@ static void thread_set_texture_enable(void *data, bool state, bool full_screen)
    thr->texture.full_screen = full_screen;
    slock_unlock(thr->frame.lock);
 }
-#endif
 
 static void thread_set_osd_msg(void *data, const char *msg,
       const struct font_params *params, void *font)
@@ -1012,11 +1004,8 @@ static const video_poke_interface_t thread_poke = {
    NULL, /* get_proc_address */
    thread_set_aspect_ratio,
    thread_apply_state_changes,
-#if defined(HAVE_MENU)
    thread_set_texture_frame,
    thread_set_texture_enable,
-#endif
-
    thread_set_osd_msg,
    NULL,
    NULL,

@@ -532,10 +532,8 @@ static const video_poke_interface_t sdl_poke_interface = {
    NULL, /* get_proc_address */
    sdl_set_aspect_ratio,
    sdl_apply_state_changes,
-#ifdef HAVE_MENU
    sdl_set_texture_frame,
    sdl_set_texture_enable,
-#endif
    NULL,
    sdl_show_mouse,
    sdl_grab_mouse_toggle,
