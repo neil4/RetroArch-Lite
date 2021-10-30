@@ -498,6 +498,7 @@ void uninit_libretro_sym(void)
    driver->camera_active = false;
    driver->location_active = false;
    core_set_shared_context = false;
+   global->frontend_key_event = NULL;
 
    /* Performance counters no longer valid. */
    retro_perf_clear();
