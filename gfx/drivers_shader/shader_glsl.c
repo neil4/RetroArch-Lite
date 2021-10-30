@@ -1096,14 +1096,14 @@ static void gl_glsl_set_params(void *data, unsigned width, unsigned height,
             attribs_size++;
             attr++;
 
-            buffer[size  ]      = fbo_info->coord[0];
-            buffer[size + 1]    = fbo_info->coord[1];
-            buffer[size + 2]    = fbo_info->coord[2];
-            buffer[size + 3]    = fbo_info->coord[3];
-            buffer[size + 4]    = fbo_info->coord[4];
-            buffer[size + 5]    = fbo_info->coord[5];
-            buffer[size + 6]    = fbo_info->coord[6];
-            buffer[size + 7]    = fbo_info->coord[7];
+            buffer[size  ]      = fbo_info[i].coord[0];
+            buffer[size + 1]    = fbo_info[i].coord[1];
+            buffer[size + 2]    = fbo_info[i].coord[2];
+            buffer[size + 3]    = fbo_info[i].coord[3];
+            buffer[size + 4]    = fbo_info[i].coord[4];
+            buffer[size + 5]    = fbo_info[i].coord[5];
+            buffer[size + 6]    = fbo_info[i].coord[6];
+            buffer[size + 7]    = fbo_info[i].coord[7];
             size += 8;
          }
       }
@@ -1135,14 +1135,14 @@ static void gl_glsl_set_params(void *data, unsigned width, unsigned height,
          attribs_size++;
          attr++;
 
-         buffer[size  ]      = fbo_info[i].coord[0];
-         buffer[size + 1]    = fbo_info[i].coord[1];
-         buffer[size + 2]    = fbo_info[i].coord[2];
-         buffer[size + 3]    = fbo_info[i].coord[3];
-         buffer[size + 4]    = fbo_info[i].coord[4];
-         buffer[size + 5]    = fbo_info[i].coord[5];
-         buffer[size + 6]    = fbo_info[i].coord[6];
-         buffer[size + 7]    = fbo_info[i].coord[7];
+         buffer[size  ]      = prev_info[i].coord[0];
+         buffer[size + 1]    = prev_info[i].coord[1];
+         buffer[size + 2]    = prev_info[i].coord[2];
+         buffer[size + 3]    = prev_info[i].coord[3];
+         buffer[size + 4]    = prev_info[i].coord[4];
+         buffer[size + 5]    = prev_info[i].coord[5];
+         buffer[size + 6]    = prev_info[i].coord[6];
+         buffer[size + 7]    = prev_info[i].coord[7];
          size += 8;
       }
    }
