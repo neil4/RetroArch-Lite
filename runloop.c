@@ -149,7 +149,7 @@ static void check_fast_forward_button(bool fastforward_pressed,
  **/
 static void check_stateslots(bool pressed_increase, bool pressed_decrease)
 {
-   char msg[PATH_MAX_LENGTH] = {0};
+   char msg[32] = {0};
    settings_t *settings      = config_get_ptr();
 
    /* Save state slots */

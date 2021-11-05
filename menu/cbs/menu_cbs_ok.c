@@ -989,7 +989,7 @@ static int action_ok_core_updater_download(const char *path,
 {
 #ifdef HAVE_NETWORKING
    char core_path[PATH_MAX_LENGTH] = {0};
-   char buf[PATH_MAX_LENGTH]       = {0};
+   char buf[NAME_MAX_LENGTH]       = {0};
    settings_t *settings            = config_get_ptr();
    global_t *global                = global_get_ptr();
    data_runloop_t *runloop         = rarch_main_data_get_ptr();

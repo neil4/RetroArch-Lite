@@ -117,7 +117,7 @@ typedef struct
 
       struct
       {
-         char msg[PATH_MAX_LENGTH];
+         char msg[NAME_MAX_LENGTH];
          struct font_params params;
       } osd_message;
 
@@ -212,7 +212,7 @@ typedef struct thread_video
       unsigned pitch;
       bool updated;
       bool within_thread;
-      char msg[PATH_MAX_LENGTH];
+      char msg[NAME_MAX_LENGTH];
    } frame;
 
    video_driver_t video_thread;

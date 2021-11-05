@@ -77,8 +77,8 @@ bool menu_load_content(void)
    if (!(main_load_content(0, NULL, NULL, menu_environment_get,
          driver->frontend_ctx->process_args)))
    {
-      char name[PATH_MAX_LENGTH] = {0};
-      char msg[PATH_MAX_LENGTH]  = {0};
+      char name[NAME_MAX_LENGTH] = {0};
+      char msg[NAME_MAX_LENGTH]  = {0};
 
       fill_pathname_base(name, global->fullpath, sizeof(name));
       snprintf(msg, sizeof(msg), "Failed to load %s.\n", name);

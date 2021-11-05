@@ -167,7 +167,7 @@ static void event_save_files(void)
  **/
 static void event_disk_control_set_eject(bool new_state, bool print_log)
 {
-   char msg[PATH_MAX_LENGTH] = {0};
+   char msg[NAME_MAX_LENGTH] = {0};
    global_t *global          = global_get_ptr();
    bool error                = false;
    const struct retro_disk_control_callback *control = 
@@ -272,7 +272,7 @@ static void event_check_disk_eject(
 static void event_disk_control_set_index(unsigned idx)
 {
    unsigned num_disks;
-   char msg[PATH_MAX_LENGTH] = {0};
+   char msg[NAME_MAX_LENGTH] = {0};
    global_t *global          = global_get_ptr();
    const struct retro_disk_control_callback *control = 
       (const struct retro_disk_control_callback*)&global->system.disk_control;
@@ -370,7 +370,7 @@ static void event_check_disk_next(
  **/
 static void event_set_volume(float gain)
 {
-   char msg[PATH_MAX_LENGTH] = {0};
+   char msg[NAME_MAX_LENGTH] = {0};
    settings_t *settings      = config_get_ptr();
 
    settings->audio.volume += gain;
@@ -1413,7 +1413,7 @@ bool event_command(enum event_command cmd)
             }
          }
          else
-            rarch_main_msg_queue_push("Core does not support Disc Options.", 1, 120, true);
+            rarch_main_msg_queue_push("Core does not support Disc Control.", 1, 120, true);
          break;
       case EVENT_CMD_DISK_NEXT:
          if (global->system.disk_control.get_num_images)
@@ -1431,7 +1431,7 @@ bool event_command(enum event_command cmd)
             event_check_disk_next(control);
          }
          else
-            rarch_main_msg_queue_push("Core does not support Disc Options.", 1, 120, true);
+            rarch_main_msg_queue_push("Core does not support Disc Control.", 1, 120, true);
          break;
       case EVENT_CMD_DISK_PREV:
          if (global->system.disk_control.get_num_images)
@@ -1449,7 +1449,7 @@ bool event_command(enum event_command cmd)
             event_check_disk_prev(control);
          }
          else
-            rarch_main_msg_queue_push("Core does not support Disk Options.", 1, 120, true);
+            rarch_main_msg_queue_push("Core does not support Disk Control.", 1, 120, true);
          break;
       case EVENT_CMD_RUMBLE_STOP:
          for (i = 0; i < MAX_USERS; i++)

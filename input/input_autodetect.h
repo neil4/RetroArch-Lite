@@ -22,8 +22,8 @@
 
 typedef struct autoconfig_params
 {
-   char  name[PATH_MAX_LENGTH];
-   char  driver[PATH_MAX_LENGTH];
+   char  name[NAME_MAX_LENGTH];
+   char  driver[NAME_MAX_LENGTH];
    unsigned idx;
    int32_t vid;
    int32_t pid;

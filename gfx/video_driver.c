@@ -998,7 +998,7 @@ void video_monitor_adjust_system_rates(void)
  **/
 void video_monitor_set_refresh_rate(float hz)
 {
-   char msg[PATH_MAX_LENGTH];
+   char msg[NAME_MAX_LENGTH];
    settings_t *settings = config_get_ptr();
 
    snprintf(msg, sizeof(msg), "Setting refresh rate to: %.3f Hz.", hz);

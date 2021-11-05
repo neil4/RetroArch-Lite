@@ -31,7 +31,7 @@ static INLINE void replace_chars(char *str, char c1, char c2)
 
 static INLINE void sanitize_to_string(char *s, const char *label, size_t len)
 {
-   char new_label[PATH_MAX_LENGTH] = {0};
+   char new_label[NAME_MAX_LENGTH] = {0};
 
    strlcpy(new_label, label, sizeof(new_label));
    strlcpy(s, string_to_upper(new_label), len);

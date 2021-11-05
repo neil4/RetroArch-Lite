@@ -957,10 +957,10 @@ static void rgui_render(void)
    int title_w;
    uint16_t color;
    float offset;
-   char title[256];
-   char title_buf[256];
+   char title[NAME_MAX_LENGTH];
+   char title_buf[NAME_MAX_LENGTH];
    char title_msg[64];
-   char timedate[PATH_MAX_LENGTH];
+   char timedate[NAME_MAX_LENGTH];
    menu_handle_t *menu            = menu_driver_get_ptr();
    menu_input_t *menu_input       = menu_input_get_ptr();
    menu_display_t *disp           = menu_display_get_ptr();
@@ -1067,9 +1067,9 @@ static void rgui_render(void)
 
    for (; i < end; i++, y += FONT_HEIGHT_STRIDE)
    {
-      char message[PATH_MAX_LENGTH];
-      char entry_title_buf[PATH_MAX_LENGTH];
-      char type_str_buf[PATH_MAX_LENGTH];
+      char message[NAME_MAX_LENGTH];
+      char entry_title_buf[NAME_MAX_LENGTH];
+      char type_str_buf[NAME_MAX_LENGTH];
       menu_entry_t entry = {{0}};
       unsigned entry_spacing;
       bool entry_selected;

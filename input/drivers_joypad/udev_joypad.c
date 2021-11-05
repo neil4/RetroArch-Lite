@@ -68,7 +68,7 @@ struct udev_joypad
    uint16_t strength[2];
    uint16_t configured_strength[2];
 
-   char ident[PATH_MAX_LENGTH];
+   char ident[NAME_MAX_LENGTH];
    char *path;
    int32_t vid;
    int32_t pid;
@@ -351,7 +351,7 @@ static void udev_check_device(struct udev_device *dev, const char *path, bool ho
       default:
          if (hotplugged)
          {
-            char msg[PATH_MAX_LENGTH] = {0};
+            char msg[NAME_MAX_LENGTH] = {0};
 
             snprintf(msg, sizeof(msg), "Device #%u (%s) connected.", pad, path);
             rarch_main_msg_queue_push(msg, 0, 60, false);

@@ -201,11 +201,11 @@ static void rmenu_render(void)
 
    for (i = begin; i < end; i++, j++)
    {
-      char entry_path[PATH_MAX_LENGTH]      = {0};
-      char entry_value[PATH_MAX_LENGTH]     = {0};
-      char message[PATH_MAX_LENGTH]         = {0};
-      char entry_title_buf[PATH_MAX_LENGTH] = {0};
-      char type_str_buf[PATH_MAX_LENGTH]    = {0};
+      char entry_path[NAME_MAX_LENGTH]      = {0};
+      char entry_value[NAME_MAX_LENGTH]     = {0};
+      char message[NAME_MAX_LENGTH]         = {0};
+      char entry_title_buf[NAME_MAX_LENGTH] = {0};
+      char type_str_buf[NAME_MAX_LENGTH]    = {0};
       unsigned entry_spacing                = menu_entry_get_spacing(i);
       bool entry_selected                   = menu_entry_is_currently_selected(i);
 

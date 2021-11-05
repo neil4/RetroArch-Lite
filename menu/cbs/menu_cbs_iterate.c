@@ -208,7 +208,7 @@ static int action_iterate_help(char *s, size_t len, const char *label)
 static int action_iterate_info(char *s, size_t len, const char *label)
 {
    int ret = 0;
-   char needle[PATH_MAX_LENGTH]     = {0};
+   char needle[NAME_MAX_LENGTH]     = {0};
    unsigned info_type               = 0;
    size_t   entry_idx               = 0;
    rarch_setting_t *current_setting = NULL;

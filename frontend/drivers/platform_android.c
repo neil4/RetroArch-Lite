@@ -307,7 +307,7 @@ int system_property_get(const char *name, char *value)
    FILE *pipe;
    int length                   = 0;
    char buffer[PATH_MAX_LENGTH] = {0};
-   char cmd[PATH_MAX_LENGTH]    = {0};
+   char cmd[NAME_MAX_LENGTH]    = {0};
    char *curpos                 = NULL;
 
    snprintf(cmd, sizeof(cmd), "getprop %s", name);

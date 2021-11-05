@@ -95,7 +95,7 @@ static void dump_to_file_desperate(const void *data,
 {
    time_t time_;
    char path[PATH_MAX_LENGTH]    = {0};
-   char timebuf[PATH_MAX_LENGTH] = {0};
+   char timebuf[NAME_MAX_LENGTH] = {0};
 #if defined(_WIN32) && !defined(_XBOX)
    const char *base = getenv("APPDATA");
 #elif defined(__CELLOS_LV2__) || defined(_XBOX)

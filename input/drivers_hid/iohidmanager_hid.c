@@ -31,7 +31,7 @@ struct iohidmanager_hid_adapter
 {
    uint32_t slot;
    IOHIDDeviceRef handle;
-   char name[PATH_MAX_LENGTH];
+   char name[NAME_MAX_LENGTH];
    uint8_t data[2048];
 };
 

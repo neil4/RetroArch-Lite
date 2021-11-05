@@ -42,9 +42,9 @@ enum menu_entry_type
 
 typedef struct menu_entry
 {
-   char  path[PATH_MAX_LENGTH];
-   char label[PATH_MAX_LENGTH];
-   char value[PATH_MAX_LENGTH];
+   char  path[NAME_MAX_LENGTH];
+   char label[NAME_MAX_LENGTH];
+   char value[NAME_MAX_LENGTH];
    size_t entry_idx;
    unsigned idx;
    unsigned type;

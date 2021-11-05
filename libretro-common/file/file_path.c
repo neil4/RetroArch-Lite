@@ -759,7 +759,7 @@ void fill_pathname_join_delim(char *out_path, const char *dir,
 void fill_short_pathname_representation(char* out_rep,
       const char *in_path, size_t size)
 {
-   char path_short[PATH_MAX_LENGTH] = {0};
+   char path_short[NAME_MAX_LENGTH] = {0};
    char *last_hash                  = NULL;
 
    fill_pathname(path_short, path_basename(in_path), "",
