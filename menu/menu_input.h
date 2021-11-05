@@ -169,7 +169,7 @@ typedef struct menu_input
    {
       const char **buffer;
       const char *label;
-      const char *label_setting;
+      char label_setting[NAME_MAX_LENGTH];
       bool display;
       unsigned type;
       unsigned idx;

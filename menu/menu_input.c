@@ -58,7 +58,8 @@ void menu_input_key_start_line(const char *label,
 
    menu_input->keyboard.display       = true;
    menu_input->keyboard.label         = label;
-   menu_input->keyboard.label_setting = label_setting;
+   strlcpy(menu_input->keyboard.label_setting, label_setting,
+         sizeof(menu_input->keyboard.label_setting));
    menu_input->keyboard.type          = type;
    menu_input->keyboard.idx           = idx;
    menu_input->keyboard.buffer        = input_keyboard_start_line(menu, cb);
@@ -71,9 +72,9 @@ static void menu_input_key_end_line(void)
    if (!menu_input)
       return;
 
-   menu_input->keyboard.display       = false;
-   menu_input->keyboard.label         = NULL;
-   menu_input->keyboard.label_setting = NULL;
+   menu_input->keyboard.display          = false;
+   menu_input->keyboard.label            = NULL;
+   menu_input->keyboard.label_setting[0] = '\0';
 
    /* Avoid triggering states on pressing return. */
    driver->flushing_input = true;
