@@ -607,6 +607,32 @@ static void menu_action_setting_disp_set_label_menu_file_plain(
          (alt? alt : path), "(FILE)", s2, len2);
 }
 
+static void menu_action_setting_disp_set_label_menu_file_remap(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   menu_action_setting_generic_disp_set_label(w, s, len,
+         path, "(REMAP)", s2, len2);
+}
+
+static void menu_action_setting_disp_set_label_menu_file_core_option(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   menu_action_setting_generic_disp_set_label(w, s, len,
+         path, "(OPTION)", s2, len2);
+}
+
 static void menu_action_setting_disp_set_label_menu_file_image(
       file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
@@ -813,35 +839,26 @@ static void menu_action_setting_disp_set_label(file_list_t* list,
       const char *path,
       char *s2, size_t len2)
 {
-   uint32_t hash_label  = menu_hash_calculate(label);
-
    *s = '\0';
    *w = 19;
 
-   switch (hash_label)
-   {
-      case MENU_LABEL_PERFORMANCE_COUNTERS:
-         *w = strlen(label);
-         break;
-      case MENU_LABEL_INFO_SCREEN:
-      {
-         /* todo: something less kludgey */
-         file_list_t *stack = menu_list_get_ptr()->menu_stack;
-         if (stack->size > 1)
-            hash_label = menu_hash_calculate(stack->list[stack->size-2].label);
-
-         if (hash_label != MENU_LABEL_CORE_INFORMATION
-             && hash_label != MENU_LABEL_SYSTEM_INFORMATION)
-            break;  /* else fall through */
-      }
-      case MENU_LABEL_CORE_INFORMATION:
-      case MENU_LABEL_SYSTEM_INFORMATION:
-         *w = 0;
-         break;
-   }
-
    setting_get_label(list, s, len, w, type, label, entry_label, i);
 
+   strlcpy(s2, path, len2);
+}
+
+static void menu_action_setting_disp_set_label_info(file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   *s = '\0';
+   *w = 0;
+
+   setting_get_label(list, s, len, w, type, label, entry_label, i);
    strlcpy(s2, path, len2);
 }
 
@@ -1020,6 +1037,14 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
             cbs->action_get_value =
                menu_action_setting_disp_set_label_menu_file_core;
             break;
+         case MENU_FILE_REMAP:
+            cbs->action_get_value =
+               menu_action_setting_disp_set_label_menu_file_remap;
+            break;
+         case MENU_FILE_CORE_OPTIONS:
+            cbs->action_get_value =
+               menu_action_setting_disp_set_label_menu_file_core_option;
+            break;
          case MENU_FILE_PLAIN:
             cbs->action_get_value =
                menu_action_setting_disp_set_label_menu_file_plain;
@@ -1100,6 +1125,10 @@ static int menu_cbs_init_bind_get_string_representation_compare_type(
          case MENU_SETTINGS_VIDEO_RESOLUTION:
             cbs->action_get_value =
                menu_action_setting_disp_set_label_menu_video_resolution;
+            break;
+         case MENU_SETTINGS_CORE_INFO_NONE:
+            cbs->action_get_value =
+               menu_action_setting_disp_set_label_info;
             break;
          default:
             cbs->action_get_value = menu_action_setting_disp_set_label;
