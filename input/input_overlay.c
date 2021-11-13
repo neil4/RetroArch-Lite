@@ -561,7 +561,7 @@ static void input_overlay_update_aspect_and_shift(struct overlay *ol)
 
 void input_overlays_update_aspect_shift_scale(input_overlay_t *ol)
 {
-   settings_t *settings = config_get_ptr();
+   float scale = config_get_ptr()->input.overlay_scale;
    size_t i;
 
    if (!ol || !ol->active)
@@ -570,7 +570,7 @@ void input_overlays_update_aspect_shift_scale(input_overlay_t *ol)
    for (i = 0; i < ol->size; i++)
    {
       input_overlay_update_aspect_and_shift(&ol->overlays[i]);
-      input_overlay_scale(&ol->overlays[i], settings->input.overlay_scale);
+      input_overlay_scale(&ol->overlays[i], scale);
    }
 
    input_overlay_set_vertex_geom(ol);
@@ -931,8 +931,7 @@ static bool input_overlay_resolve_targets(struct overlay *ol,
    return true;
 }
 
-static void input_overlay_load_active(input_overlay_t *ol,
-      float opacity)
+static void input_overlay_load_active(input_overlay_t *ol)
 {
    if (!ol)
       return;
@@ -940,7 +939,7 @@ static void input_overlay_load_active(input_overlay_t *ol,
    ol->iface->load(ol->iface_data, ol->active->load_images,
          ol->active->load_images_size);
 
-   input_overlay_set_alpha_mod(ol, opacity);
+   input_overlay_set_alpha(ol);
    input_overlay_set_vertex_geom(ol);
    ol->iface->full_screen(ol->iface_data, ol->active->full_screen);
 }
@@ -970,7 +969,7 @@ bool input_overlay_load_overlays_resolve_iterate(input_overlay_t *ol)
    {  
       ol->active = &ol->overlays[ol->index];
       
-      input_overlay_load_active(ol, ol->deferred.opacity);
+      input_overlay_load_active(ol);
       input_overlay_enable(ol, ol->deferred.enable);
    }
 
@@ -1383,7 +1382,7 @@ bool input_overlay_new_done(input_overlay_t *ol)
    if (!ol)
       return false;
 
-   input_overlay_set_alpha_mod(ol, ol->deferred.opacity);
+   input_overlay_set_alpha(ol);
    ol->next_index = (ol->index + 1) % ol->size;
 
    ol->state = OVERLAY_STATUS_ALIVE;
@@ -1397,21 +1396,19 @@ bool input_overlay_new_done(input_overlay_t *ol)
 
 static bool input_overlay_load_overlays_init(input_overlay_t *ol)
 {
-   if (!config_get_uint(ol->conf, "overlays", &ol->config.overlays.size))
+   if (!config_get_uint(ol->conf, "overlays", &ol->size))
    {
       RARCH_ERR("overlays variable not defined in config.\n");
       goto error;
    }
 
-   if (!ol->config.overlays.size)
+   if (!ol->size)
       goto error;
 
-   ol->overlays = (struct overlay*)calloc(
-         ol->config.overlays.size, sizeof(*ol->overlays));
+   ol->overlays = (struct overlay*)calloc(ol->size, sizeof(*ol->overlays));
    if (!ol->overlays)
       goto error;
 
-   ol->size          = ol->config.overlays.size;
    ol->pos           = 0;
    ol->resolve_pos   = 0;
    ol->pos_increment = (ol->size / 4) ? (ol->size / 4) : 4;
@@ -1426,18 +1423,18 @@ error:
 
 /**
  * input_overlay_new:
- * @path                  : Path to overlay file.
- * @enable                : Enable the overlay after initializing it?
+ * @path            : Path to overlay file.
+ * @enable          : Enable the overlay after initializing it?
  *
  * Creates and initializes an overlay handle.
  *
  * Returns: Overlay handle on success, otherwise NULL.
  **/
-input_overlay_t *input_overlay_new(const char *path, bool enable,
-      float opacity, float scale_factor)
+input_overlay_t *input_overlay_new(const char *path, bool enable)
 {
-   input_overlay_t *ol = (input_overlay_t*)calloc(1, sizeof(*ol));
-   driver_t *driver    = driver_get_ptr();
+   input_overlay_t  *ol = (input_overlay_t*)calloc(1, sizeof(*ol));
+   driver_t     *driver = driver_get_ptr();
+   settings_t *settings = config_get_ptr();
 
    if (!ol)
       goto error;
@@ -1467,9 +1464,7 @@ input_overlay_t *input_overlay_new(const char *path, bool enable,
 
    ol->state                 = OVERLAY_STATUS_DEFERRED_LOAD;
    ol->deferred.enable       = enable;
-   ol->deferred.opacity      = opacity;
-   ol->deferred.scale_factor = scale_factor;
-   ol->pos                   = 0;
+   ol->deferred.scale_factor = settings->input.overlay_scale;
 
    input_overlay_load_overlays_init(ol);
    input_overlay_update_eightway_diag_sens();
@@ -1489,8 +1484,7 @@ error:
  **/
 void input_overlay_load_cached(input_overlay_t *ol, bool enable)
 {
-   settings_t *settings = config_get_ptr();
-   driver_t     *driver = driver_get_ptr();
+   driver_t *driver = driver_get_ptr();
    if (!ol)
       return;
 
@@ -1499,7 +1493,7 @@ void input_overlay_load_cached(input_overlay_t *ol, bool enable)
    video_driver_overlay_interface(&ol->iface);
 
    /* Load last-used overlay */
-   input_overlay_load_active(ol, settings->input.overlay_opacity);
+   input_overlay_load_active(ol);
 
    /* Adjust to current settings and enable/disable */
    input_overlays_update_aspect_shift_scale(ol);
@@ -1974,7 +1968,7 @@ static INLINE void input_overlay_post_poll(input_overlay_t *ol)
    if (!ol)
       return;
 
-   input_overlay_set_alpha_mod(ol, opacity);
+   input_overlay_set_alpha(ol);
 
    for (i = 0; i < ol->active->size; i++)
    {
@@ -2013,8 +2007,6 @@ static INLINE void input_overlay_post_poll(input_overlay_t *ol)
  **/
 static INLINE void input_overlay_poll_clear(input_overlay_t *ol)
 {
-   settings_t *settings = config_get_ptr();
-   float       opacity  = settings->input.overlay_opacity;
    size_t i;
 
    if (!ol)
@@ -2022,7 +2014,7 @@ static INLINE void input_overlay_poll_clear(input_overlay_t *ol)
 
    ol->blocked = false;
 
-   input_overlay_set_alpha_mod(ol, opacity);
+   input_overlay_set_alpha(ol);
 
    for (i = 0; i < ol->active->size; i++)
    {
@@ -2382,7 +2374,7 @@ int16_t input_overlay_state(unsigned port, unsigned device_base,
  * Switch to the next available overlay
  * screen.
  **/
-void input_overlay_next(input_overlay_t *ol, float opacity)
+void input_overlay_next(input_overlay_t *ol)
 {
    if (!ol)
       return;
@@ -2390,7 +2382,7 @@ void input_overlay_next(input_overlay_t *ol, float opacity)
    ol->index = ol->next_index;
    ol->active = &ol->overlays[ol->index];
 
-   input_overlay_load_active(ol, opacity);
+   input_overlay_load_active(ol);
 
    input_overlay_connect_mouse(ol);
    input_overlay_connect_lightgun(ol);
@@ -2425,22 +2417,21 @@ void input_overlay_free(input_overlay_t *ol)
 }
 
 /**
- * input_overlay_set_alpha_mod:
+ * input_overlay_set_alpha:
  * @ol                    : Overlay handle.
- * @mod                   : New modulating factor to apply.
  *
- * Sets a modulating factor for alpha channel. Default is 1.0.
- * The alpha factor is applied for all overlays.
+ * Sets the configured opacity for the active overlay.
  **/
-void input_overlay_set_alpha_mod(input_overlay_t *ol, float mod)
+void input_overlay_set_alpha(input_overlay_t *ol)
 {
+   float opacity = config_get_ptr()->input.overlay_opacity;
    unsigned i;
 
    if (!ol)
       return;
 
    for (i = 0; i < ol->active->load_images_size; i++)
-      ol->iface->set_alpha(ol->iface_data, i, mod);
+      ol->iface->set_alpha(ol->iface_data, i, opacity);
 }
 
 void input_overlay_notify_video_updated()

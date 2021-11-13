@@ -1095,8 +1095,8 @@ bool event_command(enum event_command cmd)
          else
             event_command(EVENT_CMD_OVERLAY_UNLOAD);
 
-         driver->overlay = input_overlay_new(path, enable,
-               settings->input.overlay_opacity, settings->input.overlay_scale);
+         driver->overlay = input_overlay_new(path, enable);
+
          if (!driver->overlay)
             RARCH_ERR("Failed to load overlay.\n");
       }
@@ -1104,7 +1104,7 @@ bool event_command(enum event_command cmd)
          break;
       case EVENT_CMD_OVERLAY_NEXT:
 #ifdef HAVE_OVERLAY
-         input_overlay_next(driver->overlay, settings->input.overlay_opacity);
+         input_overlay_next(driver->overlay);
 #endif
          break;
       case EVENT_CMD_DSP_FILTER_DEINIT:
@@ -1194,10 +1194,9 @@ bool event_command(enum event_command cmd)
          input_overlays_update_aspect_shift_scale(driver->overlay);
 #endif
          break;
-      case EVENT_CMD_OVERLAY_SET_ALPHA_MOD:
+      case EVENT_CMD_OVERLAY_SET_ALPHA:
 #ifdef HAVE_OVERLAY
-         input_overlay_set_alpha_mod(driver->overlay,
-               settings->input.overlay_opacity);
+         input_overlay_set_alpha(driver->overlay);
 #endif
          break;
       case EVENT_CMD_OVERLAY_UPDATE_EIGHTWAY_DIAG_SENS:

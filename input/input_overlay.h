@@ -264,16 +264,7 @@ struct input_overlay
 
    struct
    {
-      struct
-      {
-         unsigned size;
-      } overlays;
-   } config;
-
-   struct
-   {
       bool enable;
-      float opacity;
       float scale_factor;
    } deferred;
 };
@@ -303,16 +294,7 @@ typedef struct input_overlay_state
  *
  * Returns: Overlay handle on success, otherwise NULL.
  **/
-input_overlay_t *input_overlay_new(const char *path, bool enable,
-      float alpha_mod, float scale_factor);
-
-/**
- * input_overlay_load_cached:
- * @ol                      : Cached overlay handle.
- *
- * Loads and enables/disables a cached overlay.
- **/
-void input_overlay_load_cached(input_overlay_t *ol, bool enable);
+input_overlay_t *input_overlay_new(const char *path, bool enable);
 
 bool input_overlay_load_overlays(input_overlay_t *ol);
 
@@ -361,6 +343,14 @@ void input_overlay_free(input_overlay_t *ol);
  **/
 void input_overlay_enable(input_overlay_t *ol, bool enable);
 
+/**
+ * input_overlay_load_cached:
+ * @ol                      : Cached overlay handle.
+ *
+ * Loads and enables/disables a cached overlay.
+ **/
+void input_overlay_load_cached(input_overlay_t *ol, bool enable);
+
 /*
  * input_overlay_poll:
  * @overlay_device   : pointer to overlay
@@ -385,20 +375,18 @@ int16_t input_overlay_state(unsigned port, unsigned device_base,
       unsigned idx, unsigned id);
 
 /**
- * input_overlay_set_alpha_mod:
+ * input_overlay_set_alpha:
  * @ol                    : Overlay handle.
- * @mod                   : New modulating factor to apply.
  *
- * Sets a modulating factor for alpha channel. Default is 1.0.
- * The alpha factor is applied for all overlays.
+ * Sets the configured opacity for the active overlay.
  **/
-void input_overlay_set_alpha_mod(input_overlay_t *ol, float mod);
+void input_overlay_set_alpha(input_overlay_t *ol);
 
 /**
  * input_overlays_update_aspect_shift_scale:
- * @ol : Overlay handle.
+ * @ol                                     : Overlay handle.
  *
- * Updates aspect ratio, shifts, and scale.
+ * Updates aspect ratio, shifts, and scale for all overlays.
  **/
 void input_overlays_update_aspect_shift_scale(input_overlay_t *ol);
 
@@ -409,7 +397,7 @@ void input_overlays_update_aspect_shift_scale(input_overlay_t *ol);
  * Switch to the next available overlay
  * screen.
  **/
-void input_overlay_next(input_overlay_t *ol, float opacity);
+void input_overlay_next(input_overlay_t *ol);
 
 /**
  * input_overlay_update_eightway_diag_sens:

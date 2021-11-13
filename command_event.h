@@ -76,8 +76,8 @@ enum event_command
    EVENT_CMD_OVERLAY_SET_SCALE_FACTOR,
    EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT,
    EVENT_CMD_OVERLAY_UPDATE_EIGHTWAY_DIAG_SENS,
-   /* Sets current alpha modulation for overlay. */
-   EVENT_CMD_OVERLAY_SET_ALPHA_MOD,
+   /* Sets current opacity for overlay. */
+   EVENT_CMD_OVERLAY_SET_ALPHA,
    /* Cycle to next overlay. */
    EVENT_CMD_OVERLAY_NEXT,
    /* Initializes audio filter. */

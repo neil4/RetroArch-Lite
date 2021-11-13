@@ -638,7 +638,8 @@ static int menu_input_mouse(unsigned *action)
    static retro_time_t input_usec;
 
 #ifdef HAVE_OVERLAY
-   if (settings->input.overlay_enable && driver && driver->overlay)
+   if (driver && driver->overlay
+         && (driver->osk_enable || settings->input.overlay_enable))
    {
       memset(&menu_input->mouse, 0, sizeof(menu_input->mouse));
       return 0;
@@ -886,7 +887,8 @@ static int menu_input_mouse_post_iterate(uint64_t *input_mouse,
 
    if (!settings->menu.mouse.enable
 #ifdef HAVE_OVERLAY
-       || (settings->input.overlay_enable && driver && driver->overlay)
+       || (driver && driver->overlay
+           && (driver->osk_enable || settings->input.overlay_enable))
 #endif
        )
    {
@@ -1031,7 +1033,8 @@ static int menu_input_pointer_post_iterate(menu_file_list_cbs_t *cbs,
 
    if (!settings->menu.pointer.enable
 #ifdef HAVE_OVERLAY
-       || (settings->input.overlay_enable && driver && driver->overlay)
+       || (driver && driver->overlay
+           && (driver->osk_enable || settings->input.overlay_enable))
 #endif
       )
    {
