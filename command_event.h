@@ -64,10 +64,14 @@ enum event_command
    EVENT_CMD_AUDIO_START,
    /* Mutes audio. */
    EVENT_CMD_AUDIO_MUTE_TOGGLE,
-   /* Initializes overlay. */
-   EVENT_CMD_OVERLAY_INIT,
-   /* Deinitializes overlay. */
-   EVENT_CMD_OVERLAY_DEINIT,
+   /* Loads overlay. */
+   EVENT_CMD_OVERLAY_LOAD,
+   /* Disables and caches overlay */
+   EVENT_CMD_OVERLAY_UNLOAD,
+   /* Swaps current overlay with cached overlay. */
+   EVENT_CMD_OVERLAY_SWAP_CACHED,
+   /* Deletes cached overlay. */
+   EVENT_CMD_OVERLAY_FREE_CACHED,
    /* Sets current scale factor for overlay. */
    EVENT_CMD_OVERLAY_SET_SCALE_FACTOR,
    EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT,
@@ -76,9 +80,9 @@ enum event_command
    EVENT_CMD_OVERLAY_SET_ALPHA_MOD,
    /* Cycle to next overlay. */
    EVENT_CMD_OVERLAY_NEXT,
-   /* Deinitializes overlay. */
+   /* Initializes audio filter. */
    EVENT_CMD_DSP_FILTER_INIT,
-   /* Deinitializes graphics filter. */
+   /* Deinitializes audio filter. */
    EVENT_CMD_DSP_FILTER_DEINIT,
    /* Deinitializes GPU recoring. */
    EVENT_CMD_GPU_RECORD_DEINIT,

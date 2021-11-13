@@ -1392,26 +1392,7 @@ bool input_overlay_new_done(input_overlay_t *ol)
       config_file_free(ol->conf);
    ol->conf = NULL;
 
-   input_overlay_connect_lightgun(ol);
-   input_overlay_connect_mouse(ol);
-
    return true;
-}
-
-void input_overlay_set_marker(input_overlay_t *ol)
-{
-   global_t *global = global_get_ptr();
-
-   if (ol)
-   {
-      strlcpy(global->overlay_marker.path, ol->overlay_path, PATH_MAX_LENGTH);
-      global->overlay_marker.index = ol->index;
-   }
-   else
-   {
-      global->overlay_marker.path[0] = '\0';
-      global->overlay_marker.index   = 0;
-   }
 }
 
 static bool input_overlay_load_overlays_init(input_overlay_t *ol)
@@ -1457,7 +1438,6 @@ input_overlay_t *input_overlay_new(const char *path, bool enable,
 {
    input_overlay_t *ol = (input_overlay_t*)calloc(1, sizeof(*ol));
    driver_t *driver    = driver_get_ptr();
-   global_t *global    = global_get_ptr();
 
    if (!ol)
       goto error;
@@ -1492,15 +1472,6 @@ input_overlay_t *input_overlay_new(const char *path, bool enable,
    ol->pos                   = 0;
 
    input_overlay_load_overlays_init(ol);
-
-   if (!driver->osk_enable)
-   {
-      if (!strncmp(path, global->overlay_marker.path, PATH_MAX_LENGTH))
-         ol->index = global->overlay_marker.index;
-      else
-         input_overlay_set_marker(NULL);
-   }
-
    input_overlay_update_eightway_diag_sens();
 
    return ol;
@@ -1508,6 +1479,31 @@ input_overlay_t *input_overlay_new(const char *path, bool enable,
 error:
    input_overlay_free(ol);
    return NULL;
+}
+
+/**
+ * input_overlay_load_cached:
+ * @ol                      : Cached overlay handle.
+ *
+ * Loads and enables/disables a cached overlay.
+ **/
+void input_overlay_load_cached(input_overlay_t *ol, bool enable)
+{
+   settings_t *settings = config_get_ptr();
+   driver_t     *driver = driver_get_ptr();
+   if (!ol)
+      return;
+
+   /* Make video interface current */
+   ol->iface_data = driver->video_data;
+   video_driver_overlay_interface(&ol->iface);
+
+   /* Load last-used overlay */
+   input_overlay_load_active(ol, settings->input.overlay_opacity);
+
+   /* Adjust to current settings and enable/disable */
+   input_overlays_update_aspect_shift_scale(ol);
+   input_overlay_enable(ol, enable);
 }
 
 /**
@@ -1523,6 +1519,12 @@ void input_overlay_enable(input_overlay_t *ol, bool enable)
       return;
    ol->enable = enable;
    ol->iface->enable(ol->iface_data, enable);
+
+   if (enable)
+   {
+      input_overlay_connect_lightgun(ol);
+      input_overlay_connect_mouse(ol);
+   }
 }
 
 /**

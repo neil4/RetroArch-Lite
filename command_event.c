@@ -1018,18 +1018,55 @@ bool event_command(enum event_command cmd)
             RARCH_LOG("%s\n", msg);
          }
          break;
-      case EVENT_CMD_OVERLAY_DEINIT:
+      case EVENT_CMD_OVERLAY_UNLOAD:
 #ifdef HAVE_OVERLAY
+         /* Disable and move to cache */
+         input_overlay_enable(driver->overlay, false);
          if (driver->overlay)
-            input_overlay_free(driver->overlay);
-         driver->overlay = NULL;
+            driver->overlay->iface = NULL;
+
+         if (driver->overlay_cache)
+            input_overlay_free(driver->overlay_cache);
+
+         driver->overlay_cache = driver->overlay;
+         driver->overlay       = NULL;
 
          memset(&driver->overlay_state, 0, sizeof(driver->overlay_state));
 #endif
          break;
-      case EVENT_CMD_OVERLAY_INIT:
-         event_command(EVENT_CMD_OVERLAY_DEINIT);
+      case EVENT_CMD_OVERLAY_FREE_CACHED:
 #ifdef HAVE_OVERLAY
+         if (driver->overlay_cache)
+            input_overlay_free(driver->overlay_cache);
+         driver->overlay_cache = NULL;
+#endif
+         break;
+      case EVENT_CMD_OVERLAY_SWAP_CACHED:
+#ifdef HAVE_OVERLAY
+      {
+         input_overlay_t *overlay;
+         bool enable = driver->osk_enable ?
+               settings->input.osk_enable : settings->input.overlay_enable;
+
+         input_overlay_enable(driver->overlay, false);
+         if (driver->overlay)
+            driver->overlay->iface = NULL;
+
+         overlay               = driver->overlay_cache;
+         driver->overlay_cache = driver->overlay;
+         driver->overlay       = overlay;
+
+         input_overlay_load_cached(overlay, enable);
+         break;
+      }
+#endif
+         break;
+      case EVENT_CMD_OVERLAY_LOAD:
+#ifdef HAVE_OVERLAY
+      {
+         const char *path;
+         bool enable;
+
          if (driver->osk_enable)
          {
             if (!settings->input.osk_enable || !*settings->input.osk_overlay)
@@ -1037,18 +1074,32 @@ bool event_command(enum event_command cmd)
                driver->keyboard_linefeed_enable = false;
                break;
             }
+            path   = settings->input.osk_overlay;
+            enable = true;
          }
          else
          {
             if (!*settings->input.overlay)
                break;
+            path   = settings->input.overlay;
+            enable = settings->input.overlay_enable;
          }
 
-         driver->overlay = input_overlay_new(driver->osk_enable ? settings->input.osk_overlay : settings->input.overlay,
-               driver->osk_enable ? settings->input.osk_enable   : settings->input.overlay_enable,
+         /* Load from cache if possible. */
+         if (driver->overlay_cache
+                  && !strcmp(path, driver->overlay_cache->overlay_path))
+         {
+            event_command(EVENT_CMD_OVERLAY_SWAP_CACHED);
+            break;
+         }
+         else
+            event_command(EVENT_CMD_OVERLAY_UNLOAD);
+
+         driver->overlay = input_overlay_new(path, enable,
                settings->input.overlay_opacity, settings->input.overlay_scale);
          if (!driver->overlay)
             RARCH_ERR("Failed to load overlay.\n");
+      }
 #endif
          break;
       case EVENT_CMD_OVERLAY_NEXT:

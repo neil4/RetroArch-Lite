@@ -1405,6 +1405,8 @@ void rarch_main_deinit(void)
 
    event_command(EVENT_CMD_CORE_DEINIT);
 
+   event_command(EVENT_CMD_OVERLAY_FREE_CACHED);
+
    event_command(EVENT_CMD_TEMPORARY_CONTENT_DEINIT);
    event_command(EVENT_CMD_SUBSYSTEM_FULLPATHS_DEINIT);
    event_command(EVENT_CMD_SAVEFILES_DEINIT);

@@ -3795,11 +3795,11 @@ static void overlay_enable_toggle_change_handler(void *data)
       return;
 
    if (*setting->value.boolean)
-      event_command(EVENT_CMD_OVERLAY_INIT);
+      event_command(EVENT_CMD_OVERLAY_LOAD);
    else
    {
-      event_command(EVENT_CMD_OVERLAY_DEINIT);
-      input_overlay_set_marker(NULL);
+      event_command(EVENT_CMD_OVERLAY_UNLOAD);
+      event_command(EVENT_CMD_OVERLAY_FREE_CACHED);
    }
 }
 #endif
@@ -6384,7 +6384,7 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_values(list, list_info, "cfg");
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_INIT);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_LOAD);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
    
    CONFIG_FLOAT(

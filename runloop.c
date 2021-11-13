@@ -741,7 +741,7 @@ static int rarch_main_iterate_quit(void)
 
       /* Reload core without starting */
       event_command(EVENT_CMD_LOAD_CORE);
-      event_command(EVENT_CMD_OVERLAY_INIT);
+      event_command(EVENT_CMD_OVERLAY_LOAD);
       menu_reset();
 
       global->core_shutdown_initiated = false;
@@ -758,24 +758,15 @@ static void rarch_main_iterate_linefeed_overlay(void)
    driver_t *driver = driver_get_ptr();
 
    if (driver->osk_enable && !driver->keyboard_linefeed_enable)
-   {
       driver->osk_enable = false;
-      event_command(EVENT_CMD_OVERLAY_INIT);
-
-      if (driver->overlay)
-      {
-         rarch_main_data_overlay_finish();
-         driver->overlay->blocked = true;
-      }
-      return;
-   }
    else if (!driver->osk_enable && driver->keyboard_linefeed_enable)
-   {
-      input_overlay_set_marker(driver->overlay);
       driver->osk_enable = true;
-      event_command(EVENT_CMD_OVERLAY_INIT);
+   else
       return;
-   }
+
+   event_command(EVENT_CMD_OVERLAY_LOAD);
+   if (driver->overlay)
+      driver->overlay->blocked = true;
 }
 #endif
 

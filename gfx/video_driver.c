@@ -455,9 +455,7 @@ void uninit_video_input(void)
 {
    driver_t *driver = driver_get_ptr();
 
-   if (!driver->osk_enable)
-      input_overlay_set_marker(driver->overlay);
-   event_command(EVENT_CMD_OVERLAY_DEINIT);
+   event_command(EVENT_CMD_OVERLAY_UNLOAD);
 
    if (!driver->video_cache_context)
       video_driver_free_hw_context();
@@ -622,7 +620,7 @@ void init_video(void)
    if (!driver->input)
       init_video_input(tmp);
 
-   event_command(EVENT_CMD_OVERLAY_INIT);
+   event_command(EVENT_CMD_OVERLAY_LOAD);
 
    if (global->libretro_dummy)
       video_driver_cached_frame_set(&dummy_pixels, 4, 4, 8);

@@ -250,11 +250,11 @@ struct input_overlay
 
    struct overlay *overlays;
    const struct overlay *active;
-   size_t index;
-   size_t size;
+   unsigned index;
+   unsigned size;
    unsigned pos;
-   size_t resolve_pos;
-   size_t pos_increment;
+   unsigned resolve_pos;
+   unsigned pos_increment;
 
    unsigned next_index;
    char *overlay_path;
@@ -306,6 +306,14 @@ typedef struct input_overlay_state
 input_overlay_t *input_overlay_new(const char *path, bool enable,
       float alpha_mod, float scale_factor);
 
+/**
+ * input_overlay_load_cached:
+ * @ol                      : Cached overlay handle.
+ *
+ * Loads and enables/disables a cached overlay.
+ **/
+void input_overlay_load_cached(input_overlay_t *ol, bool enable);
+
 bool input_overlay_load_overlays(input_overlay_t *ol);
 
 bool input_overlay_load_overlays_image_iterate(input_overlay_t *ol);
@@ -315,8 +323,6 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol);
 bool input_overlay_load_overlays_resolve_iterate(input_overlay_t *ol);
 
 bool input_overlay_new_done(input_overlay_t *ol);
-
-void input_overlay_set_marker(input_overlay_t *ol);
 
 /**
  * input_overlay_set_ellipse:
