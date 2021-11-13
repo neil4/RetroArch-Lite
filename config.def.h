@@ -518,11 +518,7 @@ static bool show_hotkey_menu = true;
 #ifndef EXTERNAL_LAUNCHER
 static bool show_core_updater = true;
 #endif
-#ifdef RARCH_MOBILE
 static bool show_rewind_menu = false;
-#else
-static bool show_rewind_menu = true;
-#endif
 
 static bool default_auto_remaps_enable = true;
 

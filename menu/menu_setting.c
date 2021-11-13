@@ -8317,55 +8317,55 @@ rarch_setting_t *menu_setting_new(unsigned mask)
       if (!setting_append_list_main_menu_options(&list, list_info, root, mask))
          goto error;
    }
-   
+
    if (mask & SL_FLAG_OVERLAY_OPTIONS)
    {
       if (!setting_append_list_overlay_options(&list, list_info, root))
          goto error;
    }
-   
+
    if (mask & SL_FLAG_VIDEO_OPTIONS)
    {
       if (!setting_append_list_video_options(&list, list_info, root))
          goto error;
    }
-   
+
    if (mask & SL_FLAG_LATENCY_OPTIONS)
    {
       if (!setting_append_list_latency_options(&list, list_info, root))
          goto error;
    }
 
-   if (mask & SL_FLAG_INPUT_OPTIONS)
-   {
-      if (!setting_append_list_input_options(&list, list_info, root))
-         goto error;
-   }
-   
    if (mask & SL_FLAG_AUDIO_OPTIONS)
    {
       if (!setting_append_list_audio_options(&list, list_info, root))
          goto error;
    }
-   
+
    if (mask & SL_FLAG_FRAME_THROTTLE_OPTIONS)
    {
       if (!setting_append_list_frame_throttling_options(&list, list_info, root))
          goto error;
    }
-   
+
    if (mask & SL_FLAG_MENU_OPTIONS)
    {
       if (!setting_append_list_menu_options(&list, list_info, root))
          goto error;
    }
-   
+
    if (mask & SL_FLAG_NETPLAY_OPTIONS)
    {
       if (!setting_append_list_netplay_options(&list, list_info, root))
          goto error;
    }
-   
+
+   if (mask & SL_FLAG_REWIND_OPTIONS)
+   {
+      if (!setting_append_list_rewind_options(&list, list_info, root))
+         goto error;
+   }
+
    if (mask & SL_FLAG_SAVING_OPTIONS)
    {
       if (!setting_append_list_saving_options(&list, list_info, root))
@@ -8377,22 +8377,22 @@ rarch_setting_t *menu_setting_new(unsigned mask)
       if (!setting_append_list_driver_options(&list, list_info, root))
          goto error;
    }
-   
-   if (mask & SL_FLAG_CONFIGURATION_OPTIONS)
+
+   if (mask & SL_FLAG_INPUT_OPTIONS)
    {
-      if (!setting_append_list_configuration_options(&list, list_info, root))
+      if (!setting_append_list_input_options(&list, list_info, root))
          goto error;
    }
-   
-   if (mask & SL_FLAG_REWIND_OPTIONS)
-   {
-      if (!setting_append_list_rewind_options(&list, list_info, root))
-         goto error;
-   }
-   
+
    if (mask & SL_FLAG_INPUT_HOTKEY_OPTIONS)
    {
       if (!setting_append_list_input_hotkey_options(&list, list_info, root))
+         goto error;
+   }
+
+   if (mask & SL_FLAG_CONFIGURATION_OPTIONS)
+   {
+      if (!setting_append_list_configuration_options(&list, list_info, root))
          goto error;
    }
 
@@ -8401,25 +8401,25 @@ rarch_setting_t *menu_setting_new(unsigned mask)
       if (!setting_append_list_core_options(&list, list_info, root))
          goto error;
    }
-   
+
    if (mask & SL_FLAG_UI_OPTIONS)
    {
       if (!setting_append_list_ui_options(&list, list_info, root))
          goto error;
    }
-   
+
    if (mask & SL_FLAG_USER_OPTIONS)
    {
       if (!setting_append_list_user_options(&list, list_info, root))
          goto error;
    }
-   
+
    if (mask & SL_FLAG_DIRECTORY_OPTIONS)
    {
       if (!setting_append_list_directory_options(&list, list_info, root))
          goto error;
    }
-   
+
    if (mask & SL_FLAG_PRIVACY_OPTIONS)
    {
       if (!setting_append_list_privacy_options(&list, list_info, root))
@@ -8431,7 +8431,7 @@ rarch_setting_t *menu_setting_new(unsigned mask)
       if (!setting_append_list_recording_options(&list, list_info, root))
          goto error;
    }
-   
+
    if (mask & SL_FLAG_LOGGING_OPTIONS)
    {
       if (!setting_append_list_logging_options(&list, list_info, root))
@@ -8443,7 +8443,7 @@ rarch_setting_t *menu_setting_new(unsigned mask)
       if (!setting_append_list_core_updater_options(&list, list_info, root))
          goto error;
    }
-   
+
    if (mask & SL_FLAG_FONT_OPTIONS)
    {
       if (!setting_append_list_font_options(&list, list_info, root))
