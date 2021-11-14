@@ -705,7 +705,7 @@ static INLINE void android_input_poll_event_type_key(
 
    if ((keycode == AKEYCODE_VOLUME_UP || keycode == AKEYCODE_VOLUME_DOWN))
       *handled = 0;
-   else if (keycode == AKEYCODE_BACK && source == AINPUT_SOURCE_KEYBOARD)
+   else if (keycode == AKEYCODE_BACK || keycode == AKEYCODE_MENU)
    {
       if (action == AKEY_EVENT_ACTION_DOWN)
          global->lifecycle_state |= (1ULL << RARCH_MENU_TOGGLE);

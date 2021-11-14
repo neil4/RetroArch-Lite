@@ -158,8 +158,8 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       ListView coreList = findViewById(R.id.list);
 
       if (coreList.hasFocus()
-            && event.getAction() == android.view.KeyEvent.ACTION_DOWN
-            && keyCode == android.view.KeyEvent.KEYCODE_BUTTON_SELECT)
+            && event.getAction() == KeyEvent.ACTION_DOWN
+            && (keyCode == KeyEvent.KEYCODE_BUTTON_SELECT || keyCode == KeyEvent.KEYCODE_MENU))
       {
          startActivity(new Intent(this, PreferenceActivity.class));
       }
