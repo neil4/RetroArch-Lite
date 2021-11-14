@@ -6178,7 +6178,7 @@ static bool setting_append_list_input_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
-      CONFIG_BOOL(
+   CONFIG_BOOL(
          settings->input.remap_binds_enable,
          "input_remap_binds_enable",
          "Enable Remap Binds",
@@ -8348,9 +8348,27 @@ rarch_setting_t *menu_setting_new(unsigned mask)
          goto error;
    }
 
+   if (mask & SL_FLAG_INPUT_OPTIONS)
+   {
+      if (!setting_append_list_input_options(&list, list_info, root))
+         goto error;
+   }
+
+   if (mask & SL_FLAG_CORE_OPTIONS)
+   {
+      if (!setting_append_list_core_options(&list, list_info, root))
+         goto error;
+   }
+
    if (mask & SL_FLAG_MENU_OPTIONS)
    {
       if (!setting_append_list_menu_options(&list, list_info, root))
+         goto error;
+   }
+
+   if (mask & SL_FLAG_INPUT_HOTKEY_OPTIONS)
+   {
+      if (!setting_append_list_input_hotkey_options(&list, list_info, root))
          goto error;
    }
 
@@ -8372,33 +8390,9 @@ rarch_setting_t *menu_setting_new(unsigned mask)
          goto error;
    }
 
-   if (mask & SL_FLAG_DRIVER_OPTIONS)
-   {
-      if (!setting_append_list_driver_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_INPUT_OPTIONS)
-   {
-      if (!setting_append_list_input_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_INPUT_HOTKEY_OPTIONS)
-   {
-      if (!setting_append_list_input_hotkey_options(&list, list_info, root))
-         goto error;
-   }
-
    if (mask & SL_FLAG_CONFIGURATION_OPTIONS)
    {
       if (!setting_append_list_configuration_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_CORE_OPTIONS)
-   {
-      if (!setting_append_list_core_options(&list, list_info, root))
          goto error;
    }
 
@@ -8411,12 +8405,6 @@ rarch_setting_t *menu_setting_new(unsigned mask)
    if (mask & SL_FLAG_USER_OPTIONS)
    {
       if (!setting_append_list_user_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_DIRECTORY_OPTIONS)
-   {
-      if (!setting_append_list_directory_options(&list, list_info, root))
          goto error;
    }
 
@@ -8447,6 +8435,18 @@ rarch_setting_t *menu_setting_new(unsigned mask)
    if (mask & SL_FLAG_FONT_OPTIONS)
    {
       if (!setting_append_list_font_options(&list, list_info, root))
+         goto error;
+   }
+
+   if (mask & SL_FLAG_DRIVER_OPTIONS)
+   {
+      if (!setting_append_list_driver_options(&list, list_info, root))
+         goto error;
+   }
+
+   if (mask & SL_FLAG_DIRECTORY_OPTIONS)
+   {
+      if (!setting_append_list_directory_options(&list, list_info, root))
          goto error;
    }
 
