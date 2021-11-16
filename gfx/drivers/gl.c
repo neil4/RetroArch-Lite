@@ -1708,7 +1708,7 @@ static bool gl_frame(void *data, const void *frame,
 
 #ifdef HAVE_GL_SYNC
    if (settings->video.hard_sync && gl->have_sync && !driver->nonblock_state
-       && !gl->menu_texture_enable && !recursing)
+         && !recursing)
    {
       glClear(GL_COLOR_BUFFER_BIT);
       gl->fences[gl->fence_count++] = 
@@ -1735,7 +1735,7 @@ static bool gl_frame(void *data, const void *frame,
    context_bind_hw_render(gl, true);
 
    if (gl->swap_interval > 1 && settings->video.fake_swap_interval
-       && !recursing)
+         && !recursing)
    {
       recursing = true;
       for (i = 1; i < gl->swap_interval; i++)
