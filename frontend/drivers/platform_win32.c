@@ -155,7 +155,9 @@ static void frontend_win32_get_os(char *s, size_t len, int *major, int *minor)
    switch (vi.dwMajorVersion)
    {
       case 10:
-         if (server)
+         if (atoi(buildStr) >= 21996)
+            strlcpy(s, "Windows 11", len);
+         else if (server)
             strlcpy(s, "Windows Server 2016", len);
          else
             strlcpy(s, "Windows 10", len);
