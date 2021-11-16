@@ -1087,7 +1087,8 @@ bool event_command(enum event_command cmd)
 
          /* Load from cache if possible. */
          if (driver->overlay_cache
-                  && !strcmp(path, driver->overlay_cache->overlay_path))
+               && driver->overlay_cache->state == OVERLAY_STATUS_ALIVE
+               && !strcmp(path, driver->overlay_cache->overlay_path))
          {
             event_command(EVENT_CMD_OVERLAY_SWAP_CACHED);
             break;
