@@ -309,6 +309,8 @@ void set_paths_redirect()
    uint32_t global_library_name_hash = ((global && global->system.info.library_name &&
             (global->system.info.library_name[0] != '\0'))
          ? djb2_calculate(global->system.info.library_name) : 0);
+   char *basename = *global->fullpath ?
+         global->basename : global->libretro_name;
    
    /* Default to subdirectories 'save' and 'state' */
    if (*global->savefile_dir)
@@ -389,21 +391,21 @@ void set_paths_redirect()
 
    if (path_is_directory(global->savefile_name))
    {
-      fill_pathname_dir(global->savefile_name, global->basename,
+      fill_pathname_dir(global->savefile_name, basename,
             ".srm", sizeof(global->savefile_name));
       RARCH_LOG("Redirecting save file to \"%s\".\n", global->savefile_name);
    }
 
    if (path_is_directory(global->savestate_name))
    {
-      fill_pathname_dir(global->savestate_name, global->basename,
+      fill_pathname_dir(global->savestate_name, basename,
             ".state", sizeof(global->savestate_name));
       RARCH_LOG("Redirecting save state to \"%s\".\n", global->savestate_name);
    }
 
    if (path_is_directory(global->cheatfile_name))
    {
-      fill_pathname_dir(global->cheatfile_name, global->basename,
+      fill_pathname_dir(global->cheatfile_name, basename,
             ".state", sizeof(global->cheatfile_name));
       RARCH_LOG("Redirecting cheat file to \"%s\".\n", global->cheatfile_name);
    }

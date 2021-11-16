@@ -578,9 +578,6 @@ static bool event_init_content(void)
    if (!init_content_file())
       return false;
 
-   if (global->libretro_no_content)
-      return true;
-
    event_set_savestate_auto_index();
 
    if (event_load_save_files())
