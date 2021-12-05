@@ -321,7 +321,7 @@ typedef struct settings
       unsigned osk_scope;
 
       float touch_ellipse_magnify;   /* hack for inaccurate touchscreens */
-      uint32_t overlay_vibrate_time;
+      int overlay_vibrate_time;
 
       unsigned menu_toggle_btn_combo;
 

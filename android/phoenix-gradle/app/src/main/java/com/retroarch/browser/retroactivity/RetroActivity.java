@@ -1,6 +1,7 @@
 package com.retroarch.browser.retroactivity;
 
 import android.view.View;
+import android.os.Vibrator;
 import android.os.Build;
 import android.app.NativeActivity;
 
@@ -11,6 +12,9 @@ import com.retroarch.browser.preferences.util.UserPreferences;
 
 public class RetroActivity extends NativeActivity
 {
+   View decorView;
+   Vibrator vibrator;
+
    @Override
    public void onLowMemory()
    {
@@ -28,7 +32,9 @@ public class RetroActivity extends NativeActivity
 
       MainMenuActivity.retro = getIntent();
 
-      View thisView = getWindow().getDecorView();
+      vibrator  = (Vibrator)this.getSystemService(VIBRATOR_SERVICE);
+      decorView = getWindow().getDecorView();
+
       int visibility = View.SYSTEM_UI_FLAG_FULLSCREEN
                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
@@ -37,7 +43,7 @@ public class RetroActivity extends NativeActivity
          visibility |= View.SYSTEM_UI_FLAG_IMMERSIVE
                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
 
-      thisView.setSystemUiVisibility(visibility);
+      decorView.setSystemUiVisibility(visibility);
    }
 
    // Exiting cleanly from NDK seems to be nearly impossible.
@@ -50,8 +56,11 @@ public class RetroActivity extends NativeActivity
    }
 
    @Keep
-   public int getRotation()
+   public void hapticFeedback(int msec)
    {
-      return getWindowManager().getDefaultDisplay().getRotation();
+      if (msec < 0)
+         decorView.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
+      else
+         vibrator.vibrate(msec);
    }
 }

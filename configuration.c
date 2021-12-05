@@ -657,7 +657,7 @@ static void config_set_defaults(void)
    settings->input.overlay_dpad_method             = VECTOR;
    settings->input.overlay_abxy_method             = VECTOR_AND_AREA;
    settings->input.touch_ellipse_magnify           = 1.0f;
-   settings->input.overlay_vibrate_time            = overlay_vibrate_time;
+   settings->input.overlay_vibrate_time            = OVERLAY_DEFAULT_VIBE;
    settings->input.overlay_enable                  = true;
    settings->input.overlay_scale                   = 1.0f;
    settings->input.overlay_adjust_aspect           = true;
@@ -2358,7 +2358,7 @@ bool main_config_file_save(const char *path)
             settings->input.overlay_bisect_aspect_ratio);
    }
 
-   config_set_float(conf, "input_vibrate_time", settings->input.overlay_vibrate_time);
+   config_set_int(conf, "input_vibrate_time", settings->input.overlay_vibrate_time);
 #endif
 
    config_set_float(conf, "fastforward_ratio", settings->fastforward_ratio);

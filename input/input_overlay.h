@@ -32,6 +32,8 @@ extern "C" {
 #define OVERLAY_SET_KEY(state, key) (state)->keys[(key) / 32] |= 1 << ((key) % 32)
 #define OVERLAY_CLEAR_KEY(state, key) (state)->keys[(key) / 32] &= ~(1 << ((key) % 32))
 
+#define OVERLAY_DEFAULT_VIBE -1
+
 /* Overlay driver acts as a medium between input drivers 
  * and video driver.
  *

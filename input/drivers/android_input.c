@@ -110,8 +110,7 @@ typedef struct android_input_poll_scratchpad
 } android_input_poll_scratchpad_t;
 
 static android_input_poll_scratchpad_t frame;
-static pthread_cond_t vibrate_flag;
-static pthread_cond_t rotation_flag;
+static pthread_cond_t haptic_flag;
 
 static void frontend_android_get_version_sdk(int32_t *sdk);
 
@@ -447,76 +446,45 @@ static void engine_handle_cmd(void)
    }
 }
 
-static void android_update_rotation()
-{
-   pthread_cond_signal(&rotation_flag);
-}
-
-static void *jni_vibrate_thread(void* data)
+static void *jni_haptic_thread(void* data)
 {
    settings_t* settings = config_get_ptr();
    jobject jobj = g_android->activity->clazz;
    JavaVM* p_jvm = g_android->activity->vm;
    JNIEnv* p_jenv;
-   
-   jobject vibrator_service;
-   jclass vibrator_class;
-   jclass activity_class;
-   jmethodID getSystemService_id;
-   jmethodID vibrate_method_id;
-   pthread_mutex_t vibrate_mutex;
+
+   pthread_mutex_t haptic_mutex;
 
    (void)data;
 
    jint status = (*p_jvm)->AttachCurrentThreadAsDaemon(p_jvm, &p_jenv, 0);
    if (status < 0)
    {
-      RARCH_ERR("jni_vibrate_thread: Failed to attach current thread.\n");
+      RARCH_ERR("jni_haptic_thread: Failed to attach current thread.\n");
       return NULL;
    }
-   GET_OBJECT_CLASS( p_jenv, activity_class, jobj )
-   
-   /* setup timed vibrate method */
-   GET_METHOD_ID( p_jenv,
-                  getSystemService_id,
-                  activity_class,
-                  "getSystemService",
-                  "(Ljava/lang/String;)Ljava/lang/Object;" )
-   CALL_OBJ_METHOD_PARAM( p_jenv,
-                          vibrator_service,
-                          jobj,
-                          getSystemService_id,
-                          (*p_jenv)->NewStringUTF( p_jenv, "vibrator" ) )
-   GET_OBJECT_CLASS( p_jenv, vibrator_class, vibrator_service )
-   GET_METHOD_ID( p_jenv,
-                  vibrate_method_id,
-                  vibrator_class,
-                  "vibrate",
-                  "(J)V" )
 
-   pthread_mutex_init(&vibrate_mutex, NULL);
-   pthread_mutex_lock(&vibrate_mutex);
+   pthread_mutex_init(&haptic_mutex, NULL);
+   pthread_mutex_lock(&haptic_mutex);
    
-   /* Sit and wait for vibrate_flag.*/
+   /* Sit and wait for haptic_flag.*/
    for (;;)
    {
-      pthread_cond_wait(&vibrate_flag, &vibrate_mutex);
-      CALL_VOID_METHOD_PARAM( p_jenv,
-                              vibrator_service,
-                              vibrate_method_id,
-                              (jlong)(settings->input.overlay_vibrate_time) )
+      pthread_cond_wait(&haptic_flag, &haptic_mutex);
+      CALL_VOID_METHOD_PARAM(p_jenv, jobj, g_android->hapticFeedback,
+            (jlong)(settings->input.overlay_vibrate_time));
    }
 }
 
-static void android_input_vibrate()
+static void android_input_haptic_feedback()
 {
-   pthread_cond_signal(&vibrate_flag);
+   pthread_cond_signal(&haptic_flag);
 }
 
 static void *android_input_init(void)
 {  
    int32_t sdk;
-   static pthread_t vibe_thread_id = 0;
+   static pthread_t haptic_thread_id = 0;
    settings_t *settings = config_get_ptr();
    android_input_t *android = (android_input_t*)calloc(1, sizeof(*android));
 
@@ -537,8 +505,8 @@ static void *android_input_init(void)
    else
       engine_lookup_name = android_input_lookup_name_prekitkat;
 
-   if (!vibe_thread_id)
-      pthread_create(&vibe_thread_id, NULL, jni_vibrate_thread, NULL);
+   if (!haptic_thread_id)
+      pthread_create(&haptic_thread_id, NULL, jni_haptic_thread, NULL);
 	  
    return android;
 }
@@ -931,8 +899,6 @@ static void android_input_poll(void *data)
    /* reset pointer_count if no active pointers */
    if (!frame.any_events && frame.last_known_action == AMOTION_EVENT_ACTION_UP)
       android->pointer_count = 0;
-   
-   android_update_rotation();
 }
 
 bool android_run_events(void *data)
@@ -1171,5 +1137,5 @@ input_driver_t input_android = {
    android_input_get_joypad_driver,
    android_input_keyboard_mapping_is_blocked,
    android_input_keyboard_mapping_set_block,
-   android_input_vibrate
+   android_input_haptic_feedback
 };

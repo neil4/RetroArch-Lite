@@ -50,6 +50,7 @@ struct android_app
    char current_ime[NAME_MAX_LENGTH];
    jmethodID getIntent;
    jmethodID onRetroArchExit;
+   jmethodID hapticFeedback;
    jmethodID getStringExtra;
    jmethodID clearPendingIntent;
    jmethodID hasPendingIntent;

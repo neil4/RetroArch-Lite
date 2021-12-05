@@ -1094,6 +1094,45 @@ static int setting_uint_action_right_default(void *data, bool wraparound)
    return 0;
 }
 
+static int setting_int_action_left_default(void *data, bool wraparound)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+
+   if (!setting)
+      return -1;
+
+   if (*setting->value.integer != setting->min)
+      *setting->value.integer =
+            *setting->value.integer - setting->step;
+
+   if (setting->enforce_minrange)
+   {
+      if (*setting->value.integer < setting->min)
+         *setting->value.integer = setting->min;
+   }
+
+   return 0;
+}
+
+static int setting_int_action_right_default(void *data, bool wraparound)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+
+   if (!setting)
+      return -1;
+
+   *setting->value.integer =
+         *setting->value.integer + setting->step;
+
+   if (setting->enforce_maxrange)
+   {
+      if (*setting->value.integer > setting->max)
+         *setting->value.integer = setting->max;
+   }
+
+   return 0;
+}
+
 static int setting_fraction_action_left_default(
       void *data, bool wraparound)
 {
@@ -1706,6 +1745,21 @@ static void setting_get_string_representation_millisec(void *data,
    }
 }
 
+#ifdef HAVE_OVERLAY
+static void setting_get_string_representation_overlay_haptic_feedback(
+      void *data, char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting)
+   {
+      if (*setting->value.integer == OVERLAY_DEFAULT_VIBE)
+         strcpy(s, "Default");
+      else
+         setting_get_string_representation_millisec(data, s, len);
+   }
+}
+#endif
+
 static void setting_get_string_representation_preemptive_frames(void *data,
       char *s, size_t len)
 {
@@ -1896,6 +1950,15 @@ static void setting_get_string_representation_uint(void *data,
    if (setting)
       snprintf(s, len, "%u",
             *setting->value.unsigned_integer);
+}
+
+static void setting_get_string_representation_int(void *data,
+      char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting)
+      snprintf(s, len, "%i",
+               *setting->value.integer);
 }
 
 #if 0
@@ -2123,7 +2186,6 @@ static rarch_setting_t setting_bool_setting(const char* name,
  *
  * Returns: setting of type ST_INT.
  **/
-#if 0
 static rarch_setting_t setting_int_setting(const char* name,
       const char* short_description, int* target, int default_value,
       const char *group, const char *subgroup, const char *parent_group,
@@ -2158,7 +2220,6 @@ static rarch_setting_t setting_int_setting(const char* name,
 
    return result;
 }
-#endif
 
 /**
  * setting_uint_setting:
@@ -6681,20 +6742,20 @@ static bool setting_append_list_overlay_options(
    
    if (driver && driver->input && driver->input->overlay_haptic_feedback)
    {
-      CONFIG_UINT(
+      CONFIG_INT(
             settings->input.overlay_vibrate_time,
             "input_overlay_vibrate_time",
             "Haptic Feedback",
-            overlay_vibrate_time,
+            OVERLAY_DEFAULT_VIBE,
             group_info.name,
             subgroup_info.name,
             parent_group,
             general_write_handler,
             general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 0, 50, 1, true, true);
+      menu_settings_list_current_add_range(list, list_info, -1, 50, 1, true, true);
       menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
       (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_millisec;
+         &setting_get_string_representation_overlay_haptic_feedback;
    }
 
    CONFIG_BOOL(

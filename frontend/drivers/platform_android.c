@@ -736,6 +736,8 @@ static void frontend_android_init(void *data)
          "getIntent", "()Landroid/content/Intent;");
    GET_METHOD_ID(env, android_app->onRetroArchExit, class,
          "onRetroArchExit", "()V");
+   GET_METHOD_ID(env, android_app->hapticFeedback, class,
+         "hapticFeedback", "(I)V");
    GET_METHOD_ID(env, vol_control_id, class,
          "setVolumeControlStream", "(I)V" );
    CALL_OBJ_METHOD(env, obj, android_app->activity->clazz,
