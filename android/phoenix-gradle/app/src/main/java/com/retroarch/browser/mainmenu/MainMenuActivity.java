@@ -3,19 +3,20 @@ package com.retroarch.browser.mainmenu;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.net.Uri;
+import android.os.Environment;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
-import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -77,24 +78,51 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       // Bind audio stream to hardware controls.
       setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
-      if (android.os.Build.VERSION.SDK_INT >= 23)
-         getPermissions(this, this);
+      checkRuntimePermissions(this);
    }
 
-   public static void getPermissions(Context ctx, Activity act)
+   public static void checkRuntimePermissions(Activity act)
    {
-      final String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
-      boolean anyDenied = false;
+      // Android 6.0+ needs runtime permission checks
+      if (Build.VERSION.SDK_INT < 23)
+         return;
 
-      for (int i = 0; i < permissions.length; i++)
+      if (Build.VERSION.SDK_INT >= 30)
       {
-         int code = ContextCompat.checkSelfPermission(ctx, permissions[i]);
-         if (code != PackageManager.PERMISSION_GRANTED)
-            anyDenied = true;
-      }
+         if (!Environment.isExternalStorageManager())
+         {
+            Log.i("RuntimePermissions", "Requesting MANAGE_EXTERNAL_STORAGE");
 
-      if (anyDenied)
-         ActivityCompat.requestPermissions(act, permissions, REQUEST_APP_PERMISSIONS);
+            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+            intent.setData(Uri.fromParts("package", act.getPackageName(), null));
+
+            try
+            {
+               act.startActivity(intent);
+            }
+            catch (ActivityNotFoundException e)
+            {
+               // Redirect to app info page instead, so that the user can manually grant the permission
+               String text = "Navigate to Permissions -> Files and media -> Allow all the time";
+               Toast.makeText(act, text, Toast.LENGTH_LONG).show();
+
+               intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+               intent.setData(Uri.fromParts("package", act.getPackageName(), null));
+               act.startActivity(intent);
+            }
+         }
+      }
+      else
+      {
+         if (act.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+               != PackageManager.PERMISSION_GRANTED)
+         {
+            Log.i("RuntimePermissions", "Requesting WRITE_EXTERNAL_STORAGE");
+
+            act.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                  REQUEST_APP_PERMISSIONS);
+         }
+      }
    }
 
    @Override
@@ -106,7 +134,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
             for (int i = 0; i < permissions.length; i++)
             {
                if(grantResults[i] != PackageManager.PERMISSION_GRANTED)
-                  Log.e("RetroArch Lite",permissions[i] + " denied");
+                  Log.e("RuntimePermissions",permissions[i] + " denied");
             }
             break;
          default:

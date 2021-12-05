@@ -86,8 +86,7 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
       if (!dir.exists())
          dir.mkdir();
 
-      if (android.os.Build.VERSION.SDK_INT >= 23)
-         MainMenuActivity.getPermissions(this, this);
+      MainMenuActivity.checkRuntimePermissions(this);
    }
 
 
