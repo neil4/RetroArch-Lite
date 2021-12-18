@@ -472,7 +472,7 @@ static void *jni_haptic_thread(void* data)
    {
       pthread_cond_wait(&haptic_flag, &haptic_mutex);
       CALL_VOID_METHOD_PARAM(p_jenv, jobj, g_android->hapticFeedback,
-            (jlong)(settings->input.overlay_vibrate_time));
+            (jint)(settings->input.overlay_vibrate_time));
    }
 }
 
