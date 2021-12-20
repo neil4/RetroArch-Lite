@@ -646,11 +646,9 @@ bool rarch_environment_cb(unsigned cmd, void *data)
                (const struct retro_core_options_update_display_callback*)data;
 
          if (cb && cb->callback)
-            core_option_set_update_cb(global->system.core_options,
-                                      cb->callback);
+            core_option_set_update_cb(cb->callback);
          else
-            core_option_set_update_cb(global->system.core_options,
-                                      NULL);
+            core_option_set_update_cb(NULL);
 
          break;
       }

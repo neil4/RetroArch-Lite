@@ -281,12 +281,11 @@ void core_option_get_conf_path(char *path, enum setting_scope scope);
 
 /**
  * core_option_set_update_cb:
- * @opt_mgr                 : pointer to core option manager object.
  * @cb                      : callback function
  *
  * Sets callback to force core to update displayed options.
  **/
-void core_option_set_update_cb(core_option_manager_t *opt_mgr,
+void core_option_set_update_cb(
       retro_core_options_update_display_callback_t cb);
 
 #ifdef __cplusplus

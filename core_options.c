@@ -57,9 +57,9 @@ struct core_option_manager
    const char *category_desc;
 
    bool updated;
-
-   retro_core_options_update_display_callback_t update_display_cb;
 };
+
+static retro_core_options_update_display_callback_t core_option_update_display_cb;
 
 /**
  * core_option_free:
@@ -89,6 +89,8 @@ void core_option_free(core_option_manager_t *opt_mgr)
    free(opt_mgr->opts);
    free(opt_mgr->index_map);
    free(opt_mgr);
+
+   core_option_update_display_cb = NULL;
 }
 
 void core_option_get(core_option_manager_t *opt_mgr, struct retro_variable *var)
@@ -938,8 +940,8 @@ void core_option_set_val(core_option_manager_t *opt_mgr,
    idx = core_option_index(opt_mgr, idx);
    opt_mgr->opts[idx].index = val_idx % opt_mgr->opts[idx].vals->size;
 
-   if (opt_mgr->update_display_cb)
-      opt_mgr->update_display_cb();
+   if (core_option_update_display_cb)
+      core_option_update_display_cb();
 
    opt_mgr->updated         = true;  /* need sync with core */
    core_options_touched     = true;  /* need flush to disk */
@@ -999,8 +1001,8 @@ void core_option_update_vals_from_file(core_option_manager_t *opt_mgr,
       }
    }
 
-   if (opt_mgr->update_display_cb)
-      opt_mgr->update_display_cb();
+   if (core_option_update_display_cb)
+      core_option_update_display_cb();
 
    opt_mgr->updated     = true;  /* need sync with core */
    core_options_touched = true;  /* need flush to disk */
@@ -1026,8 +1028,8 @@ void core_option_next(core_option_manager_t *opt_mgr, size_t idx)
 
    option->index = (option->index + 1) % option->vals->size;
 
-   if (opt_mgr->update_display_cb)
-      opt_mgr->update_display_cb();
+   if (core_option_update_display_cb)
+      core_option_update_display_cb();
 
    opt_mgr->updated     = true;  /* need sync with core */
    core_options_touched = true;  /* need flush to disk */
@@ -1054,8 +1056,8 @@ void core_option_prev(core_option_manager_t *opt_mgr, size_t idx)
    option->index = (option->index + option->vals->size - 1) %
          option->vals->size;
 
-   if (opt_mgr->update_display_cb)
-      opt_mgr->update_display_cb();
+   if (core_option_update_display_cb)
+      core_option_update_display_cb();
 
    opt_mgr->updated     = true;  /* need sync with core */
    core_options_touched = true;  /* need flush to disk */
@@ -1079,8 +1081,8 @@ void core_option_first(core_option_manager_t *opt_mgr, size_t idx)
 
    option->index = 0;
 
-   if (opt_mgr->update_display_cb)
-      opt_mgr->update_display_cb();
+   if (core_option_update_display_cb)
+      core_option_update_display_cb();
 
    opt_mgr->updated     = true;  /* need sync with core */
    core_options_touched = true;  /* need flush to disk */
@@ -1104,8 +1106,8 @@ void core_option_last(core_option_manager_t *opt_mgr, size_t idx)
 
    option->index = option->vals->size - 1;
 
-   if (opt_mgr->update_display_cb)
-      opt_mgr->update_display_cb();
+   if (core_option_update_display_cb)
+      core_option_update_display_cb();
 
    opt_mgr->updated     = true;  /* need sync with core */
    core_options_touched = true;  /* need flush to disk */
@@ -1126,8 +1128,8 @@ void core_option_set_default(core_option_manager_t *opt_mgr, size_t idx)
    idx                      = core_option_index(opt_mgr, idx);
    opt_mgr->opts[idx].index = opt_mgr->opts[idx].default_index;
 
-   if (opt_mgr->update_display_cb)
-      opt_mgr->update_display_cb();
+   if (core_option_update_display_cb)
+      core_option_update_display_cb();
 
    opt_mgr->updated         = true;  /* need sync with core */
    core_options_touched     = true;  /* need flush to disk */
@@ -1149,8 +1151,8 @@ void core_options_set_defaults(core_option_manager_t *opt_mgr)
    for (i = 0; i < opt_mgr->num_opts; i++)
       opt_mgr->opts[i].index = opt_mgr->opts[i].default_index;
 
-   if (opt_mgr->update_display_cb)
-      opt_mgr->update_display_cb();
+   if (core_option_update_display_cb)
+      core_option_update_display_cb();
 
    opt_mgr->updated     = true;  /* need sync with core */
    core_options_touched = true;  /* need flush to disk */
@@ -1202,16 +1204,12 @@ void core_option_get_conf_path(char *path, enum setting_scope scope)
 
 /**
  * core_option_set_update_cb:
- * @opt_mgr                 : pointer to core option manager object.
  * @cb                      : callback function
  *
  * Sets callback to force core to update displayed options.
  **/
-void core_option_set_update_cb(core_option_manager_t *opt_mgr,
+void core_option_set_update_cb(
       retro_core_options_update_display_callback_t cb)
 {
-   if (!opt_mgr)
-      return;
-
-   opt_mgr->update_display_cb = cb;
+   core_option_update_display_cb = cb;
 }
