@@ -383,6 +383,10 @@ void init_drivers(int flags)
       driver->video_cache_context_ack = false;
 
       global->system.frame_time_last = 0;
+
+      /* Keep keyboard focus state */
+      if (global->keyboard_focus)
+         input_driver_keyboard_mapping_set_block(true);
    }
 
    if (flags & DRIVER_AUDIO)
