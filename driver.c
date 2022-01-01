@@ -385,7 +385,7 @@ void init_drivers(int flags)
       global->system.frame_time_last = 0;
 
       /* Keep keyboard focus state */
-      if (global->keyboard_focus)
+      if (global->keyboard_focus && !menu_driver_alive())
          input_driver_keyboard_mapping_set_block(true);
    }
 
