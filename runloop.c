@@ -527,9 +527,8 @@ static INLINE int time_to_exit(event_cmd_state_t *cmd)
    global_t  *global             = global_get_ptr();
    bool shutdown_pressed         = global->system.shutdown;
    bool video_alive              = video_driver_is_alive();
-   uint64_t frame_count          = video_driver_get_frame_count();
    bool frame_count_end          = (runloop->frames.video.max && 
-         frame_count >= runloop->frames.video.max);
+         video_driver_get_frame_count() >= runloop->frames.video.max);
    bool quit_key_confirmed       = false;
    const char *msg;
 
