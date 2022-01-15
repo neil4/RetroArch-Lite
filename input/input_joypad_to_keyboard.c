@@ -338,7 +338,7 @@ void input_joykbd_get_info(char *s, size_t size)
    uint64_t frame_count = video_driver_get_frame_count();
    char bind_buf[13];
 
-   strlcpy(s, "Joypad to Keyboard Binds\n \n", size);
+   strlcpy(s, "RetroPad to Keyboard Binds\n \n", size);
 
    strlcat(s, "  L3:      ", size);
    input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
@@ -375,19 +375,9 @@ void input_joykbd_get_info(char *s, size_t size)
          RETRO_DEVICE_ID_JOYPAD_UP, frame_count);
    strlcat(s, bind_buf, size);
 
-   strlcat(s, "|   B:       ", size);
+   strlcat(s, "|   X:       ", size);
    input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
-         RETRO_DEVICE_ID_JOYPAD_B, frame_count);
-   strlcat(s, bind_buf, size);
-
-   strlcat(s, "\nPad Down:  ", size);
-   input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
-         RETRO_DEVICE_ID_JOYPAD_DOWN, frame_count);
-   strlcat(s, bind_buf, size);
-
-   strlcat(s, "|   Y:       ", size);
-   input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
-         RETRO_DEVICE_ID_JOYPAD_Y, frame_count);
+         RETRO_DEVICE_ID_JOYPAD_X, frame_count);
    strlcat(s, bind_buf, size);
 
    strlcat(s, "\nPad Left:  ", size);
@@ -395,9 +385,9 @@ void input_joykbd_get_info(char *s, size_t size)
          RETRO_DEVICE_ID_JOYPAD_LEFT, frame_count);
    strlcat(s, bind_buf, size);
 
-   strlcat(s, "|   A:       ", size);
+   strlcat(s, "|   Y:       ", size);
    input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
-         RETRO_DEVICE_ID_JOYPAD_A, frame_count);
+         RETRO_DEVICE_ID_JOYPAD_Y, frame_count);
    strlcat(s, bind_buf, size);
 
    strlcat(s, "\nPad Right: ", size);
@@ -405,9 +395,19 @@ void input_joykbd_get_info(char *s, size_t size)
          RETRO_DEVICE_ID_JOYPAD_RIGHT, frame_count);
    strlcat(s, bind_buf, size);
 
-   strlcat(s, "|   X:       ", size);
+   strlcat(s, "|   A:       ", size);
    input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
-         RETRO_DEVICE_ID_JOYPAD_X, frame_count);
+         RETRO_DEVICE_ID_JOYPAD_A, frame_count);
+   strlcat(s, bind_buf, size);
+
+   strlcat(s, "\nPad Down:  ", size);
+   input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
+         RETRO_DEVICE_ID_JOYPAD_DOWN, frame_count);
+   strlcat(s, bind_buf, size);
+
+   strlcat(s, "|   B:       ", size);
+   input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
+         RETRO_DEVICE_ID_JOYPAD_B, frame_count);
    strlcat(s, bind_buf, size);
 
    strlcat(s, "\nAna.Up:    ", size);
@@ -418,16 +418,6 @@ void input_joykbd_get_info(char *s, size_t size)
    strlcat(s, "| Ana.Up:    ", size);
    input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
          RARCH_ANALOG_RIGHT_Y_MINUS, frame_count);
-   strlcat(s, bind_buf, size);
-
-   strlcat(s, "\nAna.Down:  ", size);
-   input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
-         RARCH_ANALOG_LEFT_Y_PLUS, frame_count);
-   strlcat(s, bind_buf, size);
-
-   strlcat(s, "| Ana.Down:  ", size);
-   input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
-         RARCH_ANALOG_RIGHT_Y_PLUS, frame_count);
    strlcat(s, bind_buf, size);
 
    strlcat(s, "\nAna.Left:  ", size);
@@ -448,6 +438,16 @@ void input_joykbd_get_info(char *s, size_t size)
    strlcat(s, "| Ana.Right: ", size);
    input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
          RARCH_ANALOG_RIGHT_X_PLUS, frame_count);
+   strlcat(s, bind_buf, size);
+
+   strlcat(s, "\nAna.Down:  ", size);
+   input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
+         RARCH_ANALOG_LEFT_Y_PLUS, frame_count);
+   strlcat(s, bind_buf, size);
+
+   strlcat(s, "| Ana.Down:  ", size);
+   input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
+         RARCH_ANALOG_RIGHT_Y_PLUS, frame_count);
    strlcat(s, bind_buf, size);
 
    strlcat(s, "\nSelect:    ", size);
