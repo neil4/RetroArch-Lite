@@ -155,10 +155,8 @@ struct overlay_desc
 
    float range_x, range_y;
    float range_x_orig, range_y_orig;
-   float reach_right, reach_left;
-   float range_x_hitbox;
-   float reach_up, reach_down;
-   float range_y_hitbox;
+   float reach_right, reach_left, reach_up, reach_down;
+   float range_x_hitbox, range_y_hitbox;
 
    enum overlay_hitbox hitbox;
    bool  exclusive;
