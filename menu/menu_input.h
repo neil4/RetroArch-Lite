@@ -119,10 +119,7 @@ typedef struct menu_input
 {
    struct menu_bind_state binds;
 
-   struct
-   {
-      unsigned state;
-   } joypad;
+   menu_action_t last_action;
 
    struct
    {

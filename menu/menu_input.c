@@ -834,6 +834,7 @@ static int menu_input_mouse_frame(
    {
       if (menu_input->mouse.y < disp->header_height)
       {
+         menu_input->last_action = MENU_ACTION_CANCEL;
          menu_list_pop_stack(menu_list);
          return 0;
       }
@@ -854,7 +855,10 @@ static int menu_input_mouse_frame(
    }
 
    if (BIT64_GET(input_mouse, MOUSE_ACTION_BUTTON_R))
+   {
+      menu_input->last_action = MENU_ACTION_CANCEL;
       menu_list_pop_stack(menu_list);
+   }
 
    if (BIT64_GET(input_mouse, MOUSE_ACTION_BUTTON_M))
       return menu_entry_action(entry, nav->selection_ptr, MENU_ACTION_START);
@@ -995,6 +999,7 @@ static int pointer_tap(menu_file_list_cbs_t *cbs, menu_entry_t *entry)
 
    if (menu_input->pointer.start_y < disp->header_height)
    {
+      menu_input->last_action = MENU_ACTION_CANCEL;
       menu_list_pop_stack(menu_list);
       return 0;
    }

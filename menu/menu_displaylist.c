@@ -1574,6 +1574,9 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
             need_push    = true;
          }
 
+         if (menu->input.last_action != MENU_ACTION_OK)
+            break;
+
          /* Set nav index leading to in-use path */
          switch (type)
          {

@@ -434,6 +434,7 @@ int menu_entry_action(menu_entry_t *entry, unsigned i, enum menu_action action)
 {
    int ret                   = 0;
    global_t *global          = global_get_ptr();
+   menu_input_t *menu_input  = menu_input_get_ptr();
    menu_navigation_t *nav    = menu_navigation_get_ptr();
    menu_display_t *disp      = menu_display_get_ptr();
    menu_list_t *menu_list    = menu_list_get_ptr();
@@ -521,6 +522,8 @@ int menu_entry_action(menu_entry_t *entry, unsigned i, enum menu_action action)
       default:
          break;
    }
+
+   menu_input->last_action = action;
 
    return ret;
 }

@@ -283,18 +283,14 @@ void menu_free(menu_handle_t *menu)
 int menu_iterate(retro_input_t input,
       retro_input_t old_input, retro_input_t trigger_input)
 {
-   int32_t ret              = 0;
-   unsigned action          = 0;
-   runloop_t *runloop       = rarch_main_get_ptr();
-   menu_display_t *disp     = menu_display_get_ptr();
-   menu_input_t *menu_input = menu_input_get_ptr();
+   int32_t ret          = 0;
+   unsigned action      = 0;
+   runloop_t *runloop   = rarch_main_get_ptr();
+   menu_display_t *disp = menu_display_get_ptr();
 
    menu_animation_update_time(disp->animation);
 
-   menu_input->joypad.state    = menu_input_frame(input, trigger_input);
-
-   action = menu_input->joypad.state;
-
+   action = menu_input_frame(input, trigger_input);
    ret = menu_entry_iterate(action);
 
    if (menu_driver_alive() && !runloop->is_idle)
