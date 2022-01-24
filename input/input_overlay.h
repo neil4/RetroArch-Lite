@@ -153,16 +153,18 @@ struct overlay_desc
    float x_orig, y_orig;
    float x_hitbox, y_hitbox;
 
-   float range_x, range_y;
+   float range_x, range_y;  /* for image and analog input */
    float range_x_orig, range_y_orig;
+
    float reach_right, reach_left, reach_up, reach_down;
-   float range_x_hitbox, range_y_hitbox;
+   float range_x_hitbox, range_y_hitbox;  /* initial hitbox range */
+
+   float range_mod;
+   float range_x_mod, range_y_mod;  /* extended hitbox range */
 
    enum overlay_hitbox hitbox;
-   bool  exclusive;
-   float range_mod;
-   float range_x_mod, range_y_mod;
-   bool  range_mod_exclusive;
+   bool exclusive;            /* disallow other input in hitbox */
+   bool range_mod_exclusive;  /* disallow other input in extended hitbox */
    uint16_t updated;
 
    enum overlay_type type;

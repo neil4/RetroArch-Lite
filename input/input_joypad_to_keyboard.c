@@ -310,7 +310,7 @@ static void input_joykbd_print_binds(char *out, size_t size,
 
    if (!bind)
       strcpy(key_list, "---");
-   else while (bind)
+   else do
    {
       if (key_list[0])
          strlcat(key_list, ", ", sizeof(key_list));
@@ -320,7 +320,7 @@ static void input_joykbd_print_binds(char *out, size_t size,
 
       strlcat(key_list, buf, sizeof(key_list));
       bind = bind->next;
-   }
+   } while (bind);
 
    menu_animation_ticker_line(buf, len, frame_count, key_list, true);
    snprintf(out, size, "%-*s", len, buf);

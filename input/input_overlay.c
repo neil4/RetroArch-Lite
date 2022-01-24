@@ -324,17 +324,17 @@ static void input_overlay_desc_init_hitbox(struct overlay_desc *desc)
    if (!desc)
       return;
 
-   desc->x_hitbox = ( (desc->x + desc->range_x * desc->reach_right)
-                      + (desc->x - desc->range_x * desc->reach_left) ) / 2.0f;
+   desc->x_hitbox = ((desc->x + desc->range_x * desc->reach_right)
+         + (desc->x - desc->range_x * desc->reach_left)) / 2.0f;
 
-   desc->y_hitbox = ( (desc->y + desc->range_y * desc->reach_down)
-                      + (desc->y - desc->range_y * desc->reach_up) ) / 2.0f;
+   desc->y_hitbox = ((desc->y + desc->range_y * desc->reach_down)
+         + (desc->y - desc->range_y * desc->reach_up)) / 2.0f;
 
-   desc->range_x_hitbox = ( desc->range_x * desc->reach_right
-                            + desc->range_x * desc->reach_left ) / 2.0f;
+   desc->range_x_hitbox = (desc->range_x * desc->reach_right
+         + desc->range_x * desc->reach_left) / 2.0f;
 
-   desc->range_y_hitbox = ( desc->range_y * desc->reach_down
-                            + desc->range_y * desc->reach_up ) / 2.0f;
+   desc->range_y_hitbox = (desc->range_y * desc->reach_down
+         + desc->range_y * desc->reach_up) / 2.0f;
    
    desc->range_x_mod = desc->range_x_hitbox;
    desc->range_y_mod = desc->range_y_hitbox;
