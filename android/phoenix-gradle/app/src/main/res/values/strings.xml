@@ -37,6 +37,7 @@
     <string name="download_core_confirm_msg">Download %1$s?</string>
     <string name="downloading_msg">Downloading %1$s…</string>
     <string name="installing_msg">Installing %1$s…</string>
+    <string name="extracting_msg">Extracting %1$s…</string>
     <string name="download_core_list_error">Error retrieving list of cores.</string>
 
     <!-- Core Downloader - Downloadable Cores Context Menu -->

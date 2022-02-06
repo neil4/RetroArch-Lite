@@ -32,8 +32,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static com.retroarch.browser.coremanager.CoreManagerActivity.getTitlePair;
 
@@ -60,8 +58,6 @@ public final class BackupCoresFragment extends ListFragment
 
    protected DownloadableCoresAdapter adapter = null;
    private SharedPreferences sharedPrefs = null;
-   
-   private static boolean zipHasInfoFile = false;
    
    @Override
    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -119,8 +115,18 @@ public final class BackupCoresFragment extends ListFragment
          @Override
          public void onClick(DialogInterface dialog, int which)
          {
-            // Begin copying the core.
-            new CopyCoreOperation(getActivity(), core.getCoreName()).execute(core.getShortURLName());
+            String destDir = getContext().getApplicationInfo().dataDir + "/cores";
+            String srcPath = backupCoresDir + '/' + core.getShortURLName();
+
+            if (srcPath.endsWith(".zip"))
+            {
+               new DownloadableCoresFragment.UnzipCoreOperation(
+                     getContext(), core.getCoreName(), srcPath, destDir, false).execute();
+            }
+            else
+            {
+               new CopyCoreOperation(getActivity(), core).execute(core.getShortURLName());
+            }
          }
       });
       notification.show();
@@ -192,25 +198,28 @@ public final class BackupCoresFragment extends ListFragment
       }
    }
 
-
-   // Executed when the user confirms a core download.
+   /**
+    * Executed when the user confirms to install an uncompressed backup.
+    */
    private final class CopyCoreOperation extends AsyncTask<String, Integer, Void>
    {
       private final ProgressDialog dlg;
       private final Context ctx;
       private final String coreName;
+      private final String fileName;
 
       /**
        * Constructor
        *
-       * @param ctx      The current {@link Context}.
-       * @param coreName The name of the core being downloaded.
+       * @param ctx  The current {@link Context}.
+       * @param core Object describing the core to copy.
        */
-      public CopyCoreOperation(Context ctx, String coreName)
+      public CopyCoreOperation(Context ctx, DownloadableCore core)
       {
          this.dlg = new ProgressDialog(ctx);
          this.ctx = ctx;
-         this.coreName = coreName;
+         this.coreName = core.getCoreName();
+         this.fileName = core.getShortURLName();
       }
 
       @Override
@@ -226,25 +235,23 @@ public final class BackupCoresFragment extends ListFragment
          dlg.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
          dlg.show();
       }
-      
+
       @Override
       protected Void doInBackground(String... params)
       {
          InputStream is = null, is2 = null;
          OutputStream os = null, os2 = null;
-         zipHasInfoFile = false;
-         
+
          try
          {
             // Set up the streams
-            File inFile = new File(backupCoresDir, params[0]);
-            File outFile = new File(ctx.getApplicationInfo().dataDir + "/cores", params[0]);
+            File inFile = new File(backupCoresDir, fileName);
+            File outFile = new File(ctx.getApplicationInfo().dataDir + "/cores", fileName);
             final long fileLen = inFile.length();
             is = new FileInputStream(inFile);
             os = new FileOutputStream(outFile);
 
-            // Write core to storage.
-            //
+            // Copy core to internal directory
             long copied = 0;
             byte[] buffer = new byte[4096];
             int bufLen;
@@ -255,26 +262,16 @@ public final class BackupCoresFragment extends ListFragment
                os.write(buffer, 0, bufLen);
             }
 
-            if (outFile.toString().endsWith(".zip"))
+            // Copy info file if there is one
+            String infoName = fileName.substring(0, fileName.indexOf("_android")) + ".info";
+            inFile = new File(backupCoresDir, infoName);
+            if (infoName.endsWith(".info") && inFile.exists())
             {
-               unzipCore(outFile);
-               outFile.delete();
-            }
-
-            if (!zipHasInfoFile)
-            { // Install info file from the same directory, if not part of the .zip
-               String infoName = params[0].replace("_android.so.zip", ".info")
-                                          .replace("_android.so", ".info")
-                                          .replace("_android.zip", ".info");
-               inFile = new File(backupCoresDir, infoName);
-               if (infoName.endsWith(".info") && inFile.exists())
-               {
-                  outFile = new File(ctx.getApplicationInfo().dataDir + "/info", infoName);
-                  is2 = new FileInputStream(inFile);
-                  os2 = new FileOutputStream(outFile);
-                  while ((bufLen = is2.read(buffer)) != -1)
-                     os2.write(buffer, 0, bufLen);
-               }
+               outFile = new File(ctx.getApplicationInfo().dataDir + "/info", infoName);
+               is2 = new FileInputStream(inFile);
+               os2 = new FileOutputStream(outFile);
+               while ((bufLen = is2.read(buffer)) != -1)
+                  os2.write(buffer, 0, bufLen);
             }
          }
          catch (IOException ignored)
@@ -315,69 +312,16 @@ public final class BackupCoresFragment extends ListFragment
       protected void onPostExecute(Void result)
       {
          super.onPostExecute(result);
-         dlg.dismiss();
 
          // Invoke callback to update the installed cores list.
          if (coreCopiedListener != null)
             coreCopiedListener.onCoreCopied();
 
-         Toast.makeText(getActivity(), (this.coreName.isEmpty() ? "Core" : this.coreName) + " installed.", Toast.LENGTH_LONG).show();
-      }
-   }
+         if (dlg.isShowing())
+            dlg.dismiss();
 
-   private static void unzipCore(File zipFile)
-   {
-      ZipInputStream zis = null;
-
-      try
-      {
-         zis = new ZipInputStream(new FileInputStream(zipFile));
-         ZipEntry entry = zis.getNextEntry();
-
-         while (entry != null)
-         {
-            File file;
-            if (entry.getName().endsWith(".so"))
-               file = new File(zipFile.getParent(), entry.getName());
-            else if (entry.getName().endsWith(".info"))
-            {
-               file = new File(zipFile.getParent().replace("/cores", "/info"), entry.getName());
-               zipHasInfoFile = true;
-            }
-            else
-            {
-               zis.getNextEntry();
-               continue;
-            }
-
-            FileOutputStream fos = new FileOutputStream(file);
-            int len;
-            byte[] buffer = new byte[4096];
-            while ((len = zis.read(buffer)) != -1)
-               fos.write(buffer, 0, len);
-            fos.close();
-
-            entry = zis.getNextEntry();
-         }
-      }
-      catch (IOException ignored)
-      {
-         // Can't do anything.
-      }
-      finally
-      {
-         try
-         {
-            if (zis != null)
-            {
-               zis.closeEntry();
-               zis.close();
-            }
-         }
-         catch (IOException ignored)
-         {
-            // Can't do anything
-         }
+         Toast.makeText(getActivity(), (coreName.isEmpty() ? "Core" : coreName) + " installed.",
+               Toast.LENGTH_LONG).show();
       }
    }
 
@@ -385,10 +329,7 @@ public final class BackupCoresFragment extends ListFragment
    {
       final DownloadableCore core = adapter.getItem(position);
       final String corePath = core.getCoreURL().replace("file:", "");
-      final String corePrefix = corePath.replace("_android.so.zip", "")
-                                        .replace("_android.zip", "")
-                                        .replace("_android.so", "");
-      
+
       // Begin building the AlertDialog
       final AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
       alert.setTitle(R.string.confirm_title);
@@ -402,14 +343,6 @@ public final class BackupCoresFragment extends ListFragment
             // Attempt to remove backup files
             if (new File(corePath).delete())
             {
-               // remove info file if no other core files are present
-               if ( !new File(corePrefix + "_android.so.zip").exists()
-                    && !new File(corePrefix + "_android.so").exists()
-                    && !new File(corePrefix + "_android.zip").exists() )
-               {
-                  new File(corePrefix + ".info").delete();
-               }
-               
                Toast.makeText(getActivity(), "Backup core removed.", Toast.LENGTH_LONG).show();
                adapter.remove(core);
                adapter.notifyDataSetChanged();

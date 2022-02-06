@@ -74,6 +74,7 @@ public final class DownloadableCoresFragment extends ListFragment
    public static String BUILDBOT_CORE_URL_ARM = BUILDBOT_BASE_URL + "/nightly/android/latest/armeabi-v7a/";
    public static String BUILDBOT_CORE_URL_INTEL = BUILDBOT_BASE_URL + "/nightly/android/latest/x86/";
    public static final String BUILDBOT_INFO_URL = BUILDBOT_BASE_URL + "/assets/frontend/info.zip";
+   public static final String INFO_NAME = "Core Info";
    
    protected static OnCoreDownloadedListener coreDownloadedListener = null;
    public static DownloadableCoresAdapter sAdapter = null;
@@ -115,11 +116,12 @@ public final class DownloadableCoresFragment extends ListFragment
    {
       super.onListItemClick(lv, v, position, id);
       final DownloadableCore core = (DownloadableCore) lv.getItemAtPosition(position);
+      final boolean isInfo = core.getCoreName().isEmpty();
 
       // Prompt the user for confirmation on downloading the core.
       AlertDialog.Builder notification = new AlertDialog.Builder(getActivity());
       notification.setMessage(String.format(getString(R.string.download_core_confirm_msg),
-            core.getCoreName().isEmpty() ? "Info Files" : core.getCoreName()));
+            isInfo ? INFO_NAME : core.getCoreName()));
       notification.setTitle(R.string.confirm_title);
       notification.setNegativeButton(R.string.no, null);
       notification.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
@@ -127,15 +129,21 @@ public final class DownloadableCoresFragment extends ListFragment
          public void onClick(DialogInterface dialog, int which)
          {
             // Begin downloading the core.
-            DownloadCore(getActivity(), core);
+            new DownloadCoreOperation(getContext(), core).execute();
          }
       });
       notification.show();
    }
-   
-   protected void DownloadCore(Context ctx, DownloadableCore core)
+
+   protected void DownloadInfoFiles(Context ctx)
    {
-      new DownloadCoreOperation(ctx, core.getCoreName()).execute(core.getCoreURL(), core.getShortURLName());
+      try
+      {
+         DownloadableCore info = new DownloadableCore("", "", BUILDBOT_INFO_URL, false);
+         new DownloadCoreOperation(ctx, info).execute();
+      }
+      catch (Exception ignored) {}
+      infoDownloadAttempted = true;
    }
 
    @Override
@@ -218,8 +226,9 @@ public final class DownloadableCoresFragment extends ListFragment
       for (int i = 1; i < sAdapter.getCount(); i++)
       {
          DownloadableCore item = sAdapter.getItem(i);
+         String fileName = item.getShortURLName();
          String infoPath = getContext().getApplicationInfo().dataDir + "/info/"
-               + item.getShortURLName().replace("_android.so.zip", ".info");
+               + fileName.substring(0, fileName.indexOf("_android")) + ".info";
 
          Pair<String,String> pair = getTitlePair(infoPath); // (name,mfr+system)
          cores.add(new DownloadableCore(pair.first, pair.second, item.getCoreURL(), sortBySys));
@@ -229,18 +238,9 @@ public final class DownloadableCoresFragment extends ListFragment
       sAdapter.addAll(cores);
    }
 
-   protected void DownloadInfoFiles()
-   {
-      try
-      {
-         new DownloadCoreOperation(getContext(), "")
-               .execute(BUILDBOT_INFO_URL, "info.zip");
-      }
-      catch (Exception ignored) {}
-      infoDownloadAttempted = true;
-   }
-
-   // Async event responsible for populating the Downloadable Cores list.
+   /**
+    * Async event responsible for populating the Downloadable Cores list.
+    */
    private final class PopulateCoresListOperation extends AsyncTask<Void, Void, ArrayList<DownloadableCore>>
    {
       // Acts as an object reference to an adapter in a list view.
@@ -321,31 +321,36 @@ public final class DownloadableCoresFragment extends ListFragment
          {
             adapter.addAll(result);
             if (numInfoFilesMissing > result.size()/2 && !infoDownloadAttempted)
-               DownloadInfoFiles();
+               DownloadInfoFiles(getContext());
             numInfoFilesMissing = 0;
          }
       }
    }
-
 
    public static final class DownloadCoreOperation extends AsyncTask<String, Integer, Void>
    {
       private final ProgressDialog dlg;
       private final Context ctx;
       private final String coreName;
-      private boolean overwrite = false;
+      private final String urlPath;
+      private final String destDir;
+      private final File destFile;
       
       /**
        * Constructor
        *
-       * @param ctx      The current {@link Context}.
-       * @param coreName The name of the core being downloaded.
+       * @param ctx  The current {@link Context}.
+       * @param core Object describing the core to download.
        */
-      public DownloadCoreOperation(Context ctx, String coreName)
+      public DownloadCoreOperation(Context ctx, DownloadableCore core)
       {
+         final boolean isInfo = core.getCoreName().isEmpty();
          this.dlg = new ProgressDialog(ctx);
          this.ctx = ctx;
-         this.coreName = coreName;
+         this.coreName = isInfo ? INFO_NAME : core.getCoreName();
+         this.urlPath = core.getCoreURL();
+         this.destDir = ctx.getApplicationInfo().dataDir + (isInfo ? "/info" : "/cores");
+         this.destFile = new File(this.destDir, core.getShortURLName());
       }
 
       @Override
@@ -369,30 +374,23 @@ public final class DownloadableCoresFragment extends ListFragment
          OutputStream os = null;
          HttpURLConnection connection = null;
 
-         // Assume info.zip if not a core
-         final File zipPath = new File(ctx.getApplicationInfo().dataDir
-               + (coreName.isEmpty() ? "/info/" : "/cores/"),
-                  coreName.isEmpty() ? "info.zip" : params[1]);
-
          try
          {
-            URL url = new URL(params[0]);
+            URL url = new URL(urlPath);
             connection = (HttpURLConnection) url.openConnection();
             connection.connect();
 
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK)
             {
-               Log.i("DownloadCoreOperation", "HTTP response code not OK. Response code: " + connection.getResponseCode());
+               Log.i("DownloadCoreOperation", "HTTP response code not OK. Response code: "
+                     + connection.getResponseCode());
                return null;
             }
 
             // Set up the streams
             final int fileLen = connection.getContentLength();
             is = new BufferedInputStream(connection.getInputStream(), 8192);
-            os = new FileOutputStream(zipPath);
-            
-            if (new File(zipPath.getParent(), zipPath.getName().replace(".zip", "")).exists())
-               overwrite = true;
+            os = new FileOutputStream(destFile);
 
             // Download and write to storage.
             long downloaded = 0;
@@ -412,9 +410,6 @@ public final class DownloadableCoresFragment extends ListFragment
 
                os.write(buffer, 0, bufLen);
             }
-
-            if (!isCancelled())
-               unzipFile(zipPath);
          }
          catch (IOException ignored)
          {
@@ -424,9 +419,6 @@ public final class DownloadableCoresFragment extends ListFragment
          {
             try
             {
-               if (zipPath.exists())
-                  zipPath.delete();
-
                if (os != null)
                   os.close();
 
@@ -459,73 +451,155 @@ public final class DownloadableCoresFragment extends ListFragment
     
          if (dlg.isShowing())
             dlg.dismiss();
-         
-         // Invoke callback to update the installed cores list.
-         if (coreDownloadedListener != null)
-            coreDownloadedListener.onCoreDownloaded();
 
-         if (coreName.isEmpty())
-         {
-            CoreManagerActivity.downloadableCoresFragment.refreshCores();
-            Toast.makeText(ctx, "Core Info Files updated.",
-                  Toast.LENGTH_LONG).show();
-         }
-         else
-            Toast.makeText(ctx, coreName + (overwrite ? " updated." : " installed."),
-                           Toast.LENGTH_LONG).show();
+         if (destFile.exists() && destFile.getName().endsWith(".zip"))
+            new UnzipCoreOperation(this.ctx, coreName, destFile.getPath(), destDir, true).execute();
       }
 
       @Override
       protected void onCancelled(Void result)
       {
+         if (destFile.exists())
+            destFile.delete();
          Toast.makeText(ctx, coreName + " download canceled.",
                         Toast.LENGTH_LONG).show();
       }
    }
 
-   private static void unzipFile(File zipFile)
+   static final class UnzipCoreOperation extends AsyncTask<String, Integer, Void>
    {
-      ZipInputStream zis = null;
+      private final ProgressDialog dlg;
+      private final Context ctx;
+      private final File zipFile;
+      private final String destDir;
+      private final String coreName;
+      private final boolean isInfo;
+      private final boolean isDownload;
+      private boolean isUpdate = false;
 
-      try
+      /**
+       * Constructor
+       *
+       * @param ctx        The current {@link Context}.
+       * @param coreName   The name of the zipped core.
+       * @param zipPath    Full path of the file to unzip.
+       * @param destDir    Destination directory for the inflated core.
+       * @param isDownload True if @zipPath was downloaded and should be deleted.
+       */
+      public UnzipCoreOperation(Context ctx, String coreName, String zipPath, String destDir,
+                                boolean isDownload)
       {
-         zis = new ZipInputStream(new FileInputStream(zipFile));
-         ZipEntry entry = zis.getNextEntry();
-
-         while (entry != null)
-         {
-            File file = new File(zipFile.getParent(), entry.getName());
-
-            FileOutputStream fos = new FileOutputStream(file);
-            int len;
-            byte[] buffer = new byte[4096];
-            while ((len = zis.read(buffer)) != -1)
-            {
-               fos.write(buffer, 0, len);
-            }
-            fos.close();
-
-            entry = zis.getNextEntry();
-         }
+         this.dlg = new ProgressDialog(ctx);
+         this.ctx = ctx;
+         this.zipFile = new File(zipPath);
+         this.destDir = destDir;
+         this.isDownload = isDownload;
+         this.coreName = coreName;
+         this.isInfo = coreName.equals(INFO_NAME);
       }
-      catch (IOException ignored)
+
+      @Override
+      protected void onPreExecute()
       {
-         // Can't do anything.
+         super.onPreExecute();
+
+         dlg.setMessage(String.format(ctx.getString(R.string.extracting_msg), coreName));
+         dlg.setCancelable(false);
+         dlg.setCanceledOnTouchOutside(false);
+         dlg.setIndeterminate(false);
+         dlg.setMax(100);
+         dlg.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+         dlg.show();
       }
-      finally
+
+      @Override
+      protected Void doInBackground(String... params)
       {
+         FileOutputStream fos;
+         FileInputStream fis;
+         ZipInputStream zis = null;
+         ZipEntry entry;
+         File file;
+         byte[] buffer = new byte[4096];
+         long zipLen = zipFile.length();
+         int readLen;
+
          try
          {
-            if (zis != null)
+            fis = new FileInputStream(zipFile);
+            zis = new ZipInputStream(fis);
+            entry = zis.getNextEntry();
+
+            while (entry != null)
             {
+               // Change destination if .info bundled with core
+               if (!isInfo && entry.getName().endsWith(".info"))
+                  file = new File(destDir.replace("/cores", "/info"), entry.getName());
+               else
+               {
+                  file = new File(destDir, entry.getName());
+                  isUpdate = isUpdate || file.exists();
+               }
+
+               fos = new FileOutputStream(file);
+               while ((readLen = zis.read(buffer)) != -1)
+               {
+                  fos.write(buffer, 0, readLen);
+                  publishProgress((int) (fis.getChannel().position() * 100 / zipLen));
+               }
+               fos.close();
+
                zis.closeEntry();
-               zis.close();
+               entry = zis.getNextEntry();
             }
          }
          catch (IOException ignored)
          {
             // Can't do anything
          }
+         finally
+         {
+            try
+            {
+               if (zis != null)
+                  zis.close();
+            }
+            catch (IOException ignored)
+            {
+               // Can't do anything
+            }
+         }
+
+         return null;
+      }
+
+      @Override
+      protected void onProgressUpdate(Integer... progress)
+      {
+         super.onProgressUpdate(progress);
+         dlg.setProgress(progress[0]);
+      }
+
+      @Override
+      protected void onPostExecute(Void result)
+      {
+         super.onPostExecute(result);
+
+         if (isDownload && zipFile.exists())
+            zipFile.delete();
+
+         // Invoke callback to update the installed cores list.
+         if (coreDownloadedListener != null)
+            coreDownloadedListener.onCoreDownloaded();
+
+         if (dlg.isShowing())
+            dlg.dismiss();
+
+         if (isInfo)
+            CoreManagerActivity.downloadableCoresFragment.refreshCores();
+
+         String msg = coreName + ((isDownload && isUpdate) ? " updated." : " installed.");
+         Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
       }
    }
 }

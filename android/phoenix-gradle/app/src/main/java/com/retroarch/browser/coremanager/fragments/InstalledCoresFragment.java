@@ -24,7 +24,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.retroarch.browser.ModuleWrapper;
-import com.retroarch.browser.NativeInterface;
 import com.retroarch.browser.preferences.util.UserPreferences;
 import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
@@ -357,7 +356,7 @@ public final class InstalledCoresFragment extends ListFragment
          public void onClick(DialogInterface dialog, int which)
          {
             // Begin downloading the core.
-            new DownloadableCoresFragment.DownloadCoreOperation(getContext(), core.getCoreName()).execute(core.getCoreURL(), core.getShortURLName());
+            new DownloadableCoresFragment.DownloadCoreOperation(getContext(), core).execute();
          }
       });
       notification.show();
@@ -389,7 +388,7 @@ public final class InstalledCoresFragment extends ListFragment
 
       alert.setTitle(R.string.confirm_title);
       alert.setMessage(String.format(getString(R.string.backup_core_message)
-               + (destFile.exists() ? "\nBackup exists and will be overwritten." : ""),
+               + (destFile.exists() ? "\nExisting backup will be replaced." : ""),
             item.getCoreTitle()));
       alert.setNegativeButton(R.string.no, null);
       alert.setPositiveButton(R.string.yes, new OnClickListener()
@@ -397,42 +396,48 @@ public final class InstalledCoresFragment extends ListFragment
          @Override
          public void onClick(DialogInterface dialog, int which)
          {
-            new BackupCoreOperation(getActivity(), item.getCoreTitle())
-                .execute(item.getUnderlyingFile().getAbsolutePath(), zipPath);
+            new BackupCoreOperation(getActivity(), item.getCoreTitle(),
+                  item.getUnderlyingFile().getAbsolutePath(), zipPath).execute();
          }
       });
       alert.show();
 
       return true;
    }
-   
+
    /**
     * Executed when the user confirms a core backup.
     */
-   private final class BackupCoreOperation extends AsyncTask<String, Integer, Void>
+   static final class BackupCoreOperation extends AsyncTask<String, Integer, Void>
    {
       private final ProgressDialog dlg;
       private final Context ctx;
       private final String coreName;
+      private final String libPath;
+      private final String zipPath;
 
       /**
        * Constructor
        *
        * @param ctx      The current {@link Context}.
-       * @param coreName The name of the core being downloaded.
+       * @param coreName The name of the core being zipped.
+       * @param libPath  Path to core file (.so)
+       * @param zipPath  Destination path for zipfile
        */
-      public BackupCoreOperation(Context ctx, String coreName)
+      public BackupCoreOperation(Context ctx, String coreName, String libPath, String zipPath)
       {
          this.dlg = new ProgressDialog(ctx);
          this.ctx = ctx;
          this.coreName = coreName;
+         this.libPath = libPath;
+         this.zipPath = zipPath;
       }
 
       @Override
       protected void onPreExecute()
       {
          super.onPreExecute();
-         
+
          dlg.setMessage(String.format(ctx.getString(R.string.backing_up_msg), coreName));
          dlg.setCancelable(false);
          dlg.setCanceledOnTouchOutside(false);
@@ -441,12 +446,10 @@ public final class InstalledCoresFragment extends ListFragment
          dlg.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
          dlg.show();
       }
-      
+
       @Override
       protected Void doInBackground(String... params)
       {
-         String libPath = params[0];
-         String zipPath = params[1];
          FileInputStream fis;
          FileOutputStream fos;
          ZipOutputStream zos;
@@ -463,7 +466,7 @@ public final class InstalledCoresFragment extends ListFragment
          try
          {
             fis = new FileInputStream(libFile);
-            fos = new FileOutputStream(new File(zipPath));
+            fos = new FileOutputStream(zipPath);
             zos = new ZipOutputStream(fos);
             entry = new ZipEntry(libFile.getName());
             byte[] buffer = new byte[8192];
@@ -511,7 +514,7 @@ public final class InstalledCoresFragment extends ListFragment
       {
          super.onPostExecute(result);
          dlg.dismiss();
-         Toast.makeText(getActivity(), coreName + " backup created.", Toast.LENGTH_LONG).show();
+         Toast.makeText(this.ctx, coreName + " backup created.", Toast.LENGTH_LONG).show();
       }
    }
 }
