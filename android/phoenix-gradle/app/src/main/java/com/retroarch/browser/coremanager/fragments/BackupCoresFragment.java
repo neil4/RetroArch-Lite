@@ -33,6 +33,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LOCKED;
+import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 import static com.retroarch.browser.coremanager.CoreManagerActivity.getTitlePair;
 
 /**
@@ -220,6 +222,9 @@ public final class BackupCoresFragment extends ListFragment
          this.ctx = ctx;
          this.coreName = core.getCoreName();
          this.fileName = core.getShortURLName();
+
+         // TODO: Handle orientation changes
+         getActivity().setRequestedOrientation(SCREEN_ORIENTATION_LOCKED);
       }
 
       @Override
@@ -233,6 +238,7 @@ public final class BackupCoresFragment extends ListFragment
          dlg.setIndeterminate(false);
          dlg.setMax(100);
          dlg.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+         dlg.setProgressNumberFormat(null);
          dlg.show();
       }
 
@@ -253,7 +259,7 @@ public final class BackupCoresFragment extends ListFragment
 
             // Copy core to internal directory
             long copied = 0;
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[8192];
             int bufLen;
             while ((bufLen = is.read(buffer)) != -1)
             {
@@ -322,6 +328,8 @@ public final class BackupCoresFragment extends ListFragment
 
          Toast.makeText(getActivity(), (coreName.isEmpty() ? "Core" : coreName) + " installed.",
                Toast.LENGTH_LONG).show();
+
+         getActivity().setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
       }
    }
 

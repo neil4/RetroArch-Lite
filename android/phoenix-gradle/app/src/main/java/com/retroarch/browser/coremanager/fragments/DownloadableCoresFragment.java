@@ -1,5 +1,6 @@
 package com.retroarch.browser.coremanager.fragments;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -44,6 +45,8 @@ import java.util.Collections;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LOCKED;
+import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 import static com.retroarch.browser.coremanager.CoreManagerActivity.getTitlePair;
 
 /**
@@ -351,6 +354,9 @@ public final class DownloadableCoresFragment extends ListFragment
          this.urlPath = core.getCoreURL();
          this.destDir = ctx.getApplicationInfo().dataDir + (isInfo ? "/info" : "/cores");
          this.destFile = new File(this.destDir, core.getShortURLName());
+
+         // TODO: Handle orientation changes
+         ((Activity)ctx).setRequestedOrientation(SCREEN_ORIENTATION_LOCKED);
       }
 
       @Override
@@ -364,6 +370,7 @@ public final class DownloadableCoresFragment extends ListFragment
          dlg.setIndeterminate(false);
          dlg.setMax(100);
          dlg.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+         dlg.setProgressNumberFormat(null);
          dlg.show();
       }
       
@@ -394,7 +401,7 @@ public final class DownloadableCoresFragment extends ListFragment
 
             // Download and write to storage.
             long downloaded = 0;
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[8192];
             int bufLen;
             while ((bufLen = is.read(buffer)) != -1)
             {
@@ -454,6 +461,8 @@ public final class DownloadableCoresFragment extends ListFragment
 
          if (destFile.exists() && destFile.getName().endsWith(".zip"))
             new UnzipCoreOperation(this.ctx, coreName, destFile.getPath(), destDir, true).execute();
+         else
+            ((Activity)ctx).setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
       }
 
       @Override
@@ -461,8 +470,10 @@ public final class DownloadableCoresFragment extends ListFragment
       {
          if (destFile.exists())
             destFile.delete();
-         Toast.makeText(ctx, coreName + " download canceled.",
-                        Toast.LENGTH_LONG).show();
+
+         Toast.makeText(ctx, coreName + " download canceled.", Toast.LENGTH_LONG).show();
+
+         ((Activity)ctx).setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
       }
    }
 
@@ -496,6 +507,9 @@ public final class DownloadableCoresFragment extends ListFragment
          this.isDownload = isDownload;
          this.coreName = coreName;
          this.isInfo = coreName.equals(INFO_NAME);
+
+         // TODO: Handle orientation changes
+         ((Activity)ctx).setRequestedOrientation(SCREEN_ORIENTATION_LOCKED);
       }
 
       @Override
@@ -509,6 +523,7 @@ public final class DownloadableCoresFragment extends ListFragment
          dlg.setIndeterminate(false);
          dlg.setMax(100);
          dlg.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+         dlg.setProgressNumberFormat(null);
          dlg.show();
       }
 
@@ -520,7 +535,7 @@ public final class DownloadableCoresFragment extends ListFragment
          ZipInputStream zis = null;
          ZipEntry entry;
          File file;
-         byte[] buffer = new byte[4096];
+         byte[] buffer = new byte[8192];
          long zipLen = zipFile.length();
          int readLen;
 
@@ -600,6 +615,8 @@ public final class DownloadableCoresFragment extends ListFragment
 
          String msg = coreName + ((isDownload && isUpdate) ? " updated." : " installed.");
          Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
+
+         ((Activity)ctx).setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
       }
    }
 }

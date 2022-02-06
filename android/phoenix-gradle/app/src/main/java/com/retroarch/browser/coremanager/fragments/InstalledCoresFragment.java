@@ -1,5 +1,6 @@
 package com.retroarch.browser.coremanager.fragments;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -38,6 +39,8 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LOCKED;
+import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 import static com.retroarch.browser.preferences.util.UserPreferences.getPreferences;
 
 /**
@@ -431,6 +434,9 @@ public final class InstalledCoresFragment extends ListFragment
          this.coreName = coreName;
          this.libPath = libPath;
          this.zipPath = zipPath;
+
+         // TODO: Handle orientation changes
+         ((Activity)ctx).setRequestedOrientation(SCREEN_ORIENTATION_LOCKED);
       }
 
       @Override
@@ -444,6 +450,7 @@ public final class InstalledCoresFragment extends ListFragment
          dlg.setIndeterminate(false);
          dlg.setMax(100);
          dlg.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+         dlg.setProgressNumberFormat(null);
          dlg.show();
       }
 
@@ -515,6 +522,8 @@ public final class InstalledCoresFragment extends ListFragment
          super.onPostExecute(result);
          dlg.dismiss();
          Toast.makeText(this.ctx, coreName + " backup created.", Toast.LENGTH_LONG).show();
+
+         ((Activity)ctx).setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
       }
    }
 }
