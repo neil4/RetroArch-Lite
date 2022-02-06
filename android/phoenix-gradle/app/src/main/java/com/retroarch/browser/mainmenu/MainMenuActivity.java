@@ -86,33 +86,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       // Android 6.0+ needs runtime permission checks
       if (Build.VERSION.SDK_INT < 23)
          return;
-
-      if (Build.VERSION.SDK_INT >= 30)
-      {
-         if (!Environment.isExternalStorageManager())
-         {
-            Log.i("RuntimePermissions", "Requesting MANAGE_EXTERNAL_STORAGE");
-
-            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-            intent.setData(Uri.fromParts("package", act.getPackageName(), null));
-
-            try
-            {
-               act.startActivity(intent);
-            }
-            catch (ActivityNotFoundException e)
-            {
-               // Redirect to app info page instead, so that the user can manually grant the permission
-               String text = "Navigate to Permissions -> Files and media -> Allow all the time";
-               Toast.makeText(act, text, Toast.LENGTH_LONG).show();
-
-               intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-               intent.setData(Uri.fromParts("package", act.getPackageName(), null));
-               act.startActivity(intent);
-            }
-         }
-      }
-      else
+      else if (Build.VERSION.SDK_INT < 30)
       {
          if (act.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                != PackageManager.PERMISSION_GRANTED)
@@ -121,6 +95,28 @@ public final class MainMenuActivity extends FragmentActivity implements Director
 
             act.requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                   REQUEST_APP_PERMISSIONS);
+         }
+      }
+      else if (!Environment.isExternalStorageManager())
+      {
+         Log.i("RuntimePermissions", "Requesting MANAGE_EXTERNAL_STORAGE");
+
+         Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+         intent.setData(Uri.fromParts("package", act.getPackageName(), null));
+
+         try
+         {
+            act.startActivity(intent);
+         }
+         catch (ActivityNotFoundException e)
+         {
+            // Redirect to app info page instead, so that the user can manually grant the permission
+            String text = "Navigate to Permissions -> Files and media -> Allow all the time";
+            Toast.makeText(act, text, Toast.LENGTH_LONG).show();
+
+            intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.fromParts("package", act.getPackageName(), null));
+            act.startActivity(intent);
          }
       }
    }
