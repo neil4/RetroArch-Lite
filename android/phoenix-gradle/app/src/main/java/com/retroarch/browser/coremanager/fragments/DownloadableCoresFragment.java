@@ -77,8 +77,8 @@ public final class DownloadableCoresFragment extends ListFragment
    
    protected static OnCoreDownloadedListener coreDownloadedListener = null;
    public static DownloadableCoresAdapter sAdapter = null;
-   private static boolean InfoFileMissing = false;
-   private static boolean InfoDownloadAttempted = false;
+   private static int numInfoFilesMissing = 0;
+   private static boolean infoDownloadAttempted = false;
    
    @Override
    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -229,7 +229,7 @@ public final class DownloadableCoresFragment extends ListFragment
       sAdapter.addAll(cores);
    }
 
-   protected void downloadInfoFiles()
+   protected void DownloadInfoFiles()
    {
       try
       {
@@ -237,7 +237,7 @@ public final class DownloadableCoresFragment extends ListFragment
                .execute(BUILDBOT_INFO_URL, "info.zip");
       }
       catch (Exception ignored) {}
-      InfoDownloadAttempted = true;
+      infoDownloadAttempted = true;
    }
 
    // Async event responsible for populating the Downloadable Cores list.
@@ -293,7 +293,7 @@ public final class DownloadableCoresFragment extends ListFragment
 
                Pair<String,String> pair = getTitlePair(infoPath); // (name, mfr+system)
                if (!new File(infoPath).exists())
-                  InfoFileMissing = true;
+                  numInfoFilesMissing++;
 
                downloadableCores.add(new DownloadableCore(pair.first, pair.second,
                      coreURL, sortBySys));
@@ -320,8 +320,9 @@ public final class DownloadableCoresFragment extends ListFragment
          else
          {
             adapter.addAll(result);
-            if (InfoFileMissing && !InfoDownloadAttempted)
-               downloadInfoFiles();
+            if (numInfoFilesMissing > result.size()/2 && !infoDownloadAttempted)
+               DownloadInfoFiles();
+            numInfoFilesMissing = 0;
          }
       }
    }

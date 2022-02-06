@@ -123,7 +123,7 @@ static bool core_is_installed(const char* libretro_name)
 static void menu_displaylist_get_downloadable_core_info(file_list_t* list)
 {
    global_t *global  = global_get_ptr();
-   bool missing_info = false;
+   unsigned num_missing_info = 0;
    char buf[NAME_MAX_LENGTH];
    char* path;
    int i;
@@ -152,12 +152,12 @@ static void menu_displaylist_get_downloadable_core_info(file_list_t* list)
       /* put display_name in 'alt' */
       if (!core_info_list_get_display_name(
                global->core_info_dl, buf, buf, NAME_MAX_LENGTH))
-          missing_info = true;
+          num_missing_info++;
       menu_list_set_alt_at_offset(list, i, buf);
    }
    
-   /* queue info file download */
-   if (missing_info && num_calls == 0)
+   /* auto download info if too many missing */
+   if (num_missing_info > list->size/2 && num_calls == 0)
    {
       core_info_queue_download();
       need_update = true;
