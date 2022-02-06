@@ -148,12 +148,12 @@ public final class InstalledCoresFragment extends ListFragment
    {
       if (adapter == null)
          return;
-      
+
+      final List<ModuleWrapper> list = getInstalledCoresList();
+
       adapter.clear();
-      for (int i = 0; i < getInstalledCoresList().size(); i++)
-      {
-         adapter.add(getInstalledCoresList().get(i));
-      }
+      for (int i = 0; i < list.size(); i++)
+         adapter.add(list.get(i));
       adapter.notifyDataSetChanged();
    }
 
