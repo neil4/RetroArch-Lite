@@ -125,6 +125,8 @@ static int cb_core_updater_download(void *data, size_t len)
    /* Refresh installed core info */
    core_info_list_free(global->core_info);
    global->core_info = core_info_list_new(INSTALLED_CORES);
+   core_info_list_get_info(global->core_info,
+            global->core_info_current, settings->libretro);
 
    /* Refresh core updater (or core list) menu */
    event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
@@ -174,6 +176,8 @@ end:
    /* Refresh installed core info */
    core_info_list_free(global->core_info);
    global->core_info = core_info_list_new(INSTALLED_CORES);
+   core_info_list_get_info(global->core_info,
+            global->core_info_current, settings->libretro);
 
    /* Refresh core updater (or core list) menu */
    event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
