@@ -55,7 +55,7 @@ const struct retro_input_descriptor default_rid[DEFAULT_NUM_REMAPS] = {
 
 /**
  * input_remapping_load_file:
- * @path                     : Path to remapping file (absolute path).
+ * @path                    : Path to remapping file (absolute path).
  *
  * Loads a remap file from disk to memory.
  *
@@ -82,6 +82,7 @@ bool input_remapping_load_file(const char *path)
 
       snprintf(buf, sizeof(buf), "input_player%u", i + 1);
 
+      /* RetroPad remaps */
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND + 4; j++)
       {
          int key_remap = -1;
@@ -91,16 +92,7 @@ bool input_remapping_load_file(const char *path)
             input->remap_ids[i][j] = key_remap;
       }
 
-      for (j = 0; j < 4; j++)
-      {
-         int key_remap = -1;
-
-         snprintf(key_ident, sizeof(key_ident), "%s_%s", buf,
-               key_strings[RARCH_FIRST_CUSTOM_BIND + j]);
-         if (config_get_int(conf, key_ident, &key_remap) && key_remap < 4)
-            input->remap_ids[i][RARCH_FIRST_CUSTOM_BIND + j] = key_remap;
-      }
-
+      /* RetroPad turbo binds */
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND; j++)
       {
          int key_map = -1;
@@ -126,6 +118,7 @@ bool input_remapping_load_file(const char *path)
       }
    }
 
+   /* RetroPad to Keyboard binds */
    for (j = 0; j < JOYKBD_LIST_LEN; j++)
    {
       char rk_buf[32]   = {0};
@@ -224,12 +217,14 @@ static bool input_remapping_save_file(const char *path)
 
       snprintf(buf, sizeof(buf), "input_player%u", i + 1);
 
+      /* RetroPad remaps */
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND + 4; j++)
       {
          snprintf(key_ident, sizeof(key_ident), "%s_%s", buf, key_strings[j]);
          config_set_int(conf, key_ident, input->remap_ids[i][j]);
       }
 
+      /* RetroPad turbo binds */
       turbo_all = (input->turbo_id[i] == TURBO_ID_ALL);
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND; j++)
       {
@@ -248,6 +243,7 @@ static bool input_remapping_save_file(const char *path)
       }
    }
 
+   /* RetroPad to Keyboard binds */
    for (j = 0; j < JOYKBD_LIST_LEN; j++)
    {
       char rk_buf[32]   = {0};
