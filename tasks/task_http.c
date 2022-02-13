@@ -180,6 +180,8 @@ end:
             global->core_info_current, settings->libretro);
 
    /* Refresh core updater (or core list) menu */
+   core_info_list_free(global->core_info_dl);
+   global->core_info_dl = NULL;
    event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
 
    return ret;
