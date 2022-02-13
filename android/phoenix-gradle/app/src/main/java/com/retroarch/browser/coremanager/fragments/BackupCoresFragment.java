@@ -169,21 +169,21 @@ public final class BackupCoresFragment extends ListFragment
 
          for (File file : files)
          {
-            String urlPath = file.toURI().toURL().toString();
-            String coreName = file.getName();
+            String urlPath = file.toURI().toString();
+            String fileName = file.getName();
 
-            boolean isZip = coreName.endsWith(".zip");
-            if (!isZip && !coreName.endsWith(".so"))
+            boolean isZip = fileName.endsWith(".zip");
+            if (!isZip && !fileName.endsWith(".so"))
                continue;
 
-            // Allow any name ending in .so or .zip
-            String searchStr = (coreName.contains("_android.") ? "_android" : "")
-                  + (isZip ? (coreName.contains(".so.") ? ".so.zip" : ".zip") : ".so");
-            String infoPath = backupCoresDir + "/" + coreName.replace(searchStr, ".info");
+            int idx = fileName.indexOf("_android");
+            if (idx < 0)
+               idx = fileName.indexOf('.');
 
-            if (!new File(infoPath).exists())
-               infoPath = getContext().getApplicationInfo().dataDir
-                     + "/info/" + coreName.replace(searchStr, ".info");
+            String infoName = fileName.substring(0, idx) + ".info";
+            String infoPath = getContext().getApplicationInfo().dataDir + "/info/" + infoName;
+            if (!isZip && !new File(infoPath).exists())
+               infoPath = backupCoresDir + '/' + infoName;
 
             Pair<String, String> pair = getTitlePair(infoPath); // (name,mfr+system)
 
