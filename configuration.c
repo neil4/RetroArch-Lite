@@ -2280,8 +2280,11 @@ bool main_config_file_save(const char *path)
 
    if (settings->input.max_users_scope == GLOBAL)
       config_set_int(conf, "input_max_users", settings->input.max_users);
-   config_set_float(conf, "input_axis_threshold",
+
+   if (settings->input.axis_threshold_scope == GLOBAL)
+      config_set_float(conf, "input_axis_threshold",
          settings->input.axis_threshold);
+
    config_set_bool(conf, "input_rumble_enable",
          settings->input.rumble_enable);
    config_set_bool(conf, "input_remap_binds_enable",
@@ -2796,6 +2799,12 @@ static void scoped_config_file_save(unsigned scope)
       config_remove_entry(conf, "input_analog_dpad_deadzone");
    }
 
+   if (settings->input.axis_threshold_scope == scope)
+      config_set_float(conf, "input_axis_threshold",
+                       settings->input.axis_threshold);
+   else if (settings->input.axis_threshold_scope < scope)
+      config_remove_entry(conf, "input_axis_threshold");
+
    if (settings->input.turbo_settings_scope == scope)
    {
       config_set_bool(conf, "input_turbo_binds_enable",
@@ -3162,6 +3171,18 @@ void config_unmask_globals()
             settings->input.analog_dpad_deadzone);
    }
 
+   if (settings->input.axis_threshold_scope != GLOBAL)
+   {  /* restore */
+      settings->input.axis_threshold_scope = GLOBAL;
+      config_get_float(conf, "input_axis_threshold",
+            &settings->input.axis_threshold);
+   }
+   else
+   {  /* back up */
+      config_set_float(conf, "input_axis_threshold",
+            settings->input.axis_threshold);
+   }
+
    if (settings->input.turbo_settings_scope != GLOBAL)
    {  /* restore */
       settings->input.turbo_settings_scope = GLOBAL;
@@ -3435,6 +3456,10 @@ static void scoped_config_file_load(unsigned scope)
 
       input_joypad_update_analog_dpad_params();
    }
+
+   if (config_get_float(conf, "input_axis_threshold",
+         &settings->input.axis_threshold))
+      settings->input.axis_threshold_scope = scope;
 
    if (config_get_bool(conf, "input_turbo_binds_enable",
          &settings->input.turbo_binds_enable))

@@ -286,6 +286,7 @@ typedef struct settings
       unsigned turbo_settings_scope;
       bool rumble_enable;
       float axis_threshold;
+      unsigned axis_threshold_scope;
       unsigned analog_dpad_mode;
       float analog_diagonal_sensitivity;
       float analog_dpad_deadzone;
