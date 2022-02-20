@@ -127,7 +127,8 @@ OBJ += frontend/frontend.o \
 		input/input_remapping.o \
 	        input/input_joypad_to_keyboard.o \
 		input/input_sensor.o \
-		input/keyboard_line.o
+		input/keyboard_line.o \
+		libretro-common/file/vfs_implementation.o
 	
 ifdef HAVE_OVERLAY
 OBJ += tasks/task_overlay.o \

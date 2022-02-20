@@ -569,6 +569,7 @@ FILE
 #include "../file_ops.c"
 #include "../libretro-common/file/nbio/nbio_stdio.c"
 #include "../libretro-common/file/file_list.c"
+#include "../libretro-common/file/vfs_implementation.c"
 
 /*============================================================
 MESSAGE
