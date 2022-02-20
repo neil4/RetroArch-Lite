@@ -30,7 +30,7 @@
 #include "menu_navigation.h"
 #include "menu_setting.h"
 #include "../gfx/video_viewport.h"
-#include "../libretro.h"
+#include <libretro.h>
 
 #ifdef __cplusplus
 extern "C" {

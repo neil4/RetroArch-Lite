@@ -18,7 +18,7 @@
 #define CORE_OPTIONS_H__
 
 #include <boolean.h>
-#include "libretro.h"
+#include <libretro.h>
 #include "configuration.h"
 #include <stddef.h>
 #include <string/string_list.h>

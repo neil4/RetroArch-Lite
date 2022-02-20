@@ -21,7 +21,7 @@
 #include "input_driver.h"
 #include "input_common.h"
 #include "../general.h"
-#include "../libretro.h"
+#include <libretro.h>
 
 extern int16_t analog_dpad_state_utd;
 

@@ -25,7 +25,7 @@
 
 #include "../../configuration.h"
 #include "../../general.h"
-#include "../../libretro.h"
+#include <libretro.h>
 
 #define MAX_PADS 4
 

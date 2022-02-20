@@ -19,7 +19,7 @@
 
 #include "../input/input_driver.h"
 #include "../input/keyboard_line.h"
-#include "../libretro.h"
+#include <libretro.h>
 
 #ifdef __cplusplus
 extern "C" {

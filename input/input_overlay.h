@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 #include <boolean.h>
-#include "../libretro.h"
+#include <libretro.h>
 #include <formats/image.h>
 #include <retro_miscellaneous.h>
 #include <file/config_file.h>

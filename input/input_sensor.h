@@ -17,7 +17,7 @@
 #ifndef __INPUT_SENSOR_H
 #define __INPUT_SENSOR_H
 
-#include "../libretro.h"
+#include <libretro.h>
 
 /**
  * input_sensor_set_state:

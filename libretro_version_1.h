@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-#include "libretro.h"
+#include <libretro.h>
 
 typedef struct retro_callbacks
 {

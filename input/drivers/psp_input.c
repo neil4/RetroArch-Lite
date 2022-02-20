@@ -30,7 +30,7 @@
 #include "../../gfx/drivers/psp_sdk_defines.h"
 
 #include "../../configuration.h"
-#include "../../libretro.h"
+#include <libretro.h>
 #include "../../general.h"
 #include "../input_common.h"
 #ifdef HAVE_KERNEL_PRX

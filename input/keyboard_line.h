@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 #include <boolean.h>
-#include "../libretro.h"
+#include <libretro.h>
 #include <stdint.h>
 
 /* Keyboard line reader. Handles textual input in a direct fashion. */

@@ -21,7 +21,7 @@
 
 #include "../general.h"
 #include "../dynamic.h"
-#include "../libretro.h"
+#include <libretro.h>
 #include "input_keymaps.h"
 #include "input_joypad_to_keyboard.h"
 

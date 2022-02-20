@@ -22,7 +22,7 @@
 #include "../video_context_driver.h"
 #include <gfx/math/matrix_3x3.h>
 #include <retro_inline.h>
-#include "../../libretro.h"
+#include <libretro.h>
 #include "../../general.h"
 #include "../../retroarch.h"
 #include "../../configuration.h"

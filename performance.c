@@ -15,7 +15,7 @@
  */
 
 #include <stdio.h>
-#include "libretro.h"
+#include <libretro.h>
 #include "performance.h"
 #include "general.h"
 #include "compat/strl.h"

@@ -20,7 +20,7 @@
 #include <stddef.h>
 #include <boolean.h>
 
-#include "../libretro.h"
+#include <libretro.h>
 #include "../general.h"
 
 #ifdef __cplusplus

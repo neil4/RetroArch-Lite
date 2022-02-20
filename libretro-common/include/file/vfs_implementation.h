@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include "../../libretro.h"
+#include <libretro.h>
 #include <file/vfs.h>
 
 #ifdef __cplusplus

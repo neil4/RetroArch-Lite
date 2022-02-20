@@ -25,7 +25,7 @@
 
 /* Private additions to libretro. No API/ABI stability guaranteed. */
 
-#include "libretro.h"
+#include <libretro.h>
 
 #define RETRO_ENVIRONMENT_SET_LIBRETRO_PATH (RETRO_ENVIRONMENT_PRIVATE | 0)
                                            /* const char * --

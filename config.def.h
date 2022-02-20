@@ -18,7 +18,7 @@
 #define __CONFIG_DEF_H
 
 #include <boolean.h>
-#include "libretro.h"
+#include <libretro.h>
 #include "configuration.h"
 #include "gfx/video_viewport.h"
 

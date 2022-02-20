@@ -136,7 +136,7 @@
 #endif
 
 #include <file/vfs_implementation.h>
-#include "../../libretro.h"
+#include <libretro.h>
 #if defined(HAVE_MMAP)
 #include <memmap.h>
 #endif

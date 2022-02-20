@@ -21,7 +21,7 @@
 
 #include "video_state_python.h"
 #include "../dynamic.h"
-#include "../libretro.h"
+#include <libretro.h>
 #include "../general.h"
 #include <compat/strl.h>
 #include <compat/posix_string.h>

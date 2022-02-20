@@ -18,7 +18,7 @@
 #include <boolean.h>
 
 #include "../../configuration.h"
-#include "../../libretro.h"
+#include <libretro.h>
 #include "../../general.h"
 #include "../input_common.h"
 #include "../input_joypad.h"

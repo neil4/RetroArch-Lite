@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <boolean.h>
-#include "../libretro.h"
+#include <libretro.h>
 
 #ifndef IDEAL_DT
 #define IDEAL_DT (1.0 / 60.0 * 1000000.0)

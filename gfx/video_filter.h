@@ -17,7 +17,7 @@
 #ifndef RARCH_FILTER_H__
 #define RARCH_FILTER_H__
 
-#include "../libretro.h"
+#include <libretro.h>
 #include <stddef.h>
 
 #define RARCH_SOFTFILTER_THREADS_AUTO 0

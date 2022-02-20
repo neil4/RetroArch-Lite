@@ -26,7 +26,7 @@
 #include "video_shader_parse.h"
 #include "video_viewport.h"
 
-#include "../libretro.h"
+#include <libretro.h>
 #include "../menu/menu_driver.h"
 #include "../input/input_driver.h"
 

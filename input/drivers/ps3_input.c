@@ -24,7 +24,7 @@
 #include "../../ps3/sdk_defines.h"
 
 #include "../../configuration.h"
-#include "../../libretro.h"
+#include <libretro.h>
 #include "../../general.h"
 
 #ifdef HAVE_MOUSE
