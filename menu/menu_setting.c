@@ -1363,7 +1363,7 @@ static int setting_action_ok_bind_all(void *data, bool wraparound)
    return 0;
 }
 
-static int setting_action_ok_bind_defaults(void *data, bool wraparound)
+static int setting_action_ok_bind_defaults(void *data)
 {
    unsigned i;
    struct retro_keybind *target = NULL;
@@ -1374,8 +1374,6 @@ static int setting_action_ok_bind_defaults(void *data, bool wraparound)
    global_t      *global     = global_get_ptr();
    driver_t      *driver     = driver_get_ptr();
    char buf[64];
-
-   (void)wraparound;
 
    if (!menu_input)
       return -1;
@@ -6141,12 +6139,10 @@ static bool setting_append_list_input_options(
       static char key[MAX_USERS][64];
       static char key_type[MAX_USERS][64];
       static char key_bind_all[MAX_USERS][64];
-      static char key_bind_defaults[MAX_USERS][64];
 
       static char label[MAX_USERS][64];
       static char label_type[MAX_USERS][64];
       static char label_bind_all[MAX_USERS][64];
-      static char label_bind_defaults[MAX_USERS][64];
 
       snprintf(key[user], sizeof(key[user]),
                "input_player%u_joypad_index", user + 1);
@@ -6154,8 +6150,6 @@ static bool setting_append_list_input_options(
                "input_libretro_device_p%u", user + 1);
       snprintf(key_bind_all[user], sizeof(key_bind_all[user]),
                "input_player%u_bind_all", user + 1);
-      snprintf(key_bind_defaults[user], sizeof(key_bind_defaults[user]),
-               "input_player%u_bind_defaults", user + 1);
 
       snprintf(label[user], sizeof(label[user]),
                "User %u Host Device", user + 1);
@@ -6163,8 +6157,6 @@ static bool setting_append_list_input_options(
                "User %u Virtual Device", user + 1);
       snprintf(label_bind_all[user], sizeof(label_bind_all[user]),
                "User %u Bind All", user + 1);
-      snprintf(label_bind_defaults[user], sizeof(label_bind_defaults[user]),
-               "User %u Bind Default All", user + 1);
 
       CONFIG_UINT(
             settings->input.libretro_device[user],
@@ -6208,17 +6200,7 @@ static bool setting_append_list_input_options(
       (*list)[list_info->index - 1].index          = user + 1;
       (*list)[list_info->index - 1].index_offset   = user;
       (*list)[list_info->index - 1].action_ok      = &setting_action_ok_bind_all;
-      (*list)[list_info->index - 1].action_cancel  = NULL;
-
-      CONFIG_ACTION(
-            key_bind_defaults[user],
-            label_bind_defaults[user],
-            group_info.name,
-            subgroup_info.name,
-            parent_group);
-      (*list)[list_info->index - 1].index          = user + 1;
-      (*list)[list_info->index - 1].index_offset   = user;
-      (*list)[list_info->index - 1].action_ok      = &setting_action_ok_bind_defaults;
+      (*list)[list_info->index - 1].action_start   = &setting_action_ok_bind_defaults;
       (*list)[list_info->index - 1].action_cancel  = NULL;
    }
 
