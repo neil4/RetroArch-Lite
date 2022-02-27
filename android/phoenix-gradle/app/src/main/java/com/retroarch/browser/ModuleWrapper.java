@@ -408,20 +408,20 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
 
    public static String bestCoreTitle(String displayName, String coreName)
    {
-      int i = displayName.indexOf('(');
+      int i = displayName.indexOf(" (") + 2;
       int j = displayName.lastIndexOf(')');
-      if (i > -1 && j > i+1 && j - i > coreName.length())
-         return displayName.substring(i+1, j);
-      else
-         return coreName;
+      if (i > 2 && j > i && j-i > coreName.length())
+         return displayName.substring(i, j);
+      return coreName;
    }
 
    public static String bestSystemTitle(String displayName, String systemName)
    {
-      int i = displayName.indexOf('(');
+      int i = displayName.indexOf(" (");
       if (i > 1)
-         return displayName.substring(0, i).trim();
-      else
+         return displayName.substring(0, i);
+      if (!systemName.isEmpty())
          return systemName;
+      return displayName;
    }
 }

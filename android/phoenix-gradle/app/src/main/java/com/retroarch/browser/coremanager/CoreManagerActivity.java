@@ -164,19 +164,19 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
 
          String[] lines = sb.toString().split("\n");
          for (String line : lines) {
-            if (line.contains("corename")) {
+            if (line.startsWith("corename")) {
                name = line.split("=")[1].trim().replace("\"", "");
                break;
             }
          }
          for (String line : lines) {
-            if (line.contains("systemname")) {
+            if (line.startsWith("systemname")) {
                system = line.split("=")[1].trim().replace("\"", "");
                break;
             }
          }
          for (String line : lines) {
-            if (line.contains("display_name")) {
+            if (line.startsWith("display_name")) {
                displayName = line.split("=")[1].trim().replace("\"", "");
                break;
             }
