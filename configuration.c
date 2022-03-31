@@ -665,6 +665,9 @@ static void config_set_defaults(void)
    settings->input.overlay_bisect_aspect_ratio     = overlay_bisect_aspect_ratio;
    settings->input.overlay_shift_y_lock_edges      = overlay_shift_y_lock_edges;
    settings->input.osk_enable                      = input_osk_overlay_enable;
+   settings->input.overlay_mouse_hold_to_drag      = overlay_mouse_hold_to_drag;
+   settings->input.overlay_mouse_hold_zone         = overlay_mouse_hold_zone;
+   settings->input.overlay_mouse_hold_ms           = overlay_mouse_hold_ms;
 #endif
 
    strlcpy(settings->network.buildbot_url, buildbot_server_url,
@@ -1628,6 +1631,10 @@ static bool config_load_file(const char *path, bool set_defaults)
 
    config_get_path(conf, "input_osk_overlay", settings->input.osk_overlay, sizeof(settings->input.osk_overlay));
    CONFIG_GET_BOOL_BASE(conf, settings, input.osk_enable, "input_osk_overlay_enable");
+
+   CONFIG_GET_BOOL_BASE(conf, settings, input.overlay_mouse_hold_to_drag, "input_overlay_mouse_hold_to_drag");
+   CONFIG_GET_INT_BASE(conf, settings, input.overlay_mouse_hold_ms, "input_overlay_mouse_hold_ms");
+   CONFIG_GET_INT_BASE(conf, settings, input.overlay_mouse_hold_zone, "input_overlay_mouse_hold_zone");
 #endif
 
    CONFIG_GET_BOOL_BASE(conf, settings, rewind_enable, "rewind_enable");
@@ -2322,10 +2329,10 @@ bool main_config_file_save(const char *path)
    config_set_bool(conf, "input_osk_overlay_enable", settings->input.osk_enable);
    if (settings->input.osk_scope == GLOBAL)
       config_set_path(conf, "input_osk_overlay", settings->input.osk_overlay);
-   
+
    if (settings->input.overlay_opacity_scope == GLOBAL)
       config_set_float(conf, "input_overlay_opacity", settings->input.overlay_opacity);
-   
+
    if (settings->input.overlay_dpad_abxy_config_scope == GLOBAL)
    {
       config_set_int(conf, "input_dpad_method",
@@ -2340,7 +2347,7 @@ bool main_config_file_save(const char *path)
 
    config_set_float(conf, "input_touch_ellipse_magnify",
                     settings->input.touch_ellipse_magnify);
-   
+
    if (settings->input.overlay_shift_xy_scope == GLOBAL)
    {
       config_set_float(conf, "input_overlay_adjust_vertical",
@@ -2361,17 +2368,26 @@ bool main_config_file_save(const char *path)
             settings->input.overlay_bisect_aspect_ratio);
    }
 
+   if (settings->input.overlay_mouse_hold_to_drag_scope == GLOBAL)
+      config_set_bool(conf, "input_overlay_mouse_hold_to_drag",
+           settings->input.overlay_mouse_hold_to_drag);
+
+   config_set_int(conf, "input_overlay_mouse_hold_ms",
+         settings->input.overlay_mouse_hold_ms);
+   config_set_int(conf, "input_overlay_mouse_hold_zone",
+         settings->input.overlay_mouse_hold_zone);
+
    config_set_int(conf, "input_vibrate_time", settings->input.overlay_vibrate_time);
 #endif
 
    config_set_float(conf, "fastforward_ratio", settings->fastforward_ratio);
-   
+
    if (settings->throttle_setting_scope == GLOBAL)
    {
       config_set_bool(conf, "core_throttle_enable", settings->core_throttle_enable);
       config_set_bool(conf, "throttle_using_core_fps", settings->throttle_using_core_fps);
    }
-   
+
    config_set_float(conf, "slowmotion_ratio", settings->slowmotion_ratio);
 
 #ifdef HAVE_NETPLAY
@@ -2736,7 +2752,7 @@ static void scoped_config_file_save(unsigned scope)
    if (settings->input.overlay_aspect_scope == scope)
    {
       config_set_bool(conf, "input_overlay_adjust_aspect",
-           settings->input.overlay_adjust_aspect);
+            settings->input.overlay_adjust_aspect);
       config_set_int(conf, "input_overlay_aspect_ratio_index",
             settings->input.overlay_aspect_ratio_index);
       config_set_float(conf, "input_overlay_bisect_aspect_ratio",
@@ -2759,6 +2775,12 @@ static void scoped_config_file_save(unsigned scope)
       config_set_path(conf, "input_osk_overlay", settings->input.osk_overlay);
    else if (settings->input.osk_scope < scope)
       config_remove_entry(conf, "input_osk_overlay");
+
+   if (settings->input.overlay_mouse_hold_to_drag_scope == scope)
+      config_set_bool(conf, "input_overlay_mouse_hold_to_drag",
+            settings->input.overlay_mouse_hold_to_drag);
+   else if (settings->input.overlay_mouse_hold_to_drag_scope < scope)
+      config_remove_entry(conf, "input_overlay_mouse_hold_to_drag");
 #endif /* HAVE_OVERLAY */
 
    if (settings->input.max_users_scope == scope)
@@ -3065,6 +3087,17 @@ void config_unmask_globals()
    else /* back up */
       config_set_path(conf, "input_osk_overlay", settings->input.osk_overlay);
 
+   if (settings->input.overlay_mouse_hold_to_drag_scope != GLOBAL)
+   {  /* restore */
+      settings->input.overlay_mouse_hold_to_drag_scope = GLOBAL;
+      config_get_bool(conf, "input_overlay_mouse_hold_to_drag",
+            &settings->input.overlay_mouse_hold_to_drag);
+   }
+   else
+   {  /* back up */
+      config_set_bool(conf, "input_overlay_mouse_hold_to_drag",
+            settings->input.overlay_mouse_hold_to_drag);
+   }
 #endif /* HAVE_OVERLAY */
       
    if (settings->throttle_setting_scope != GLOBAL)
@@ -3412,6 +3445,10 @@ static void scoped_config_file_load(unsigned scope)
          *settings->input.osk_overlay = '\0';
       settings->input.osk_scope = scope;
    }
+
+   if (config_get_bool(conf, "input_overlay_mouse_hold_to_drag",
+         &settings->input.overlay_mouse_hold_to_drag))
+      settings->input.overlay_mouse_hold_to_drag_scope = scope;
 #endif /* HAVE_OVERLAY */
 
    if (config_get_bool(conf, "core_throttle_enable", &settings->core_throttle_enable))

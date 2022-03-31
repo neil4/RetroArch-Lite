@@ -310,6 +310,10 @@ typedef struct settings
       float overlay_shift_x;
       bool overlay_shift_y_lock_edges;
       unsigned overlay_shift_xy_scope;
+      bool overlay_mouse_hold_to_drag;
+      unsigned overlay_mouse_hold_to_drag_scope;
+      uint32_t overlay_mouse_hold_ms;
+      uint32_t overlay_mouse_hold_zone;
 
       float overlay_dpad_diag_sens;  /* diagonal-to-normal ratio (percentage) */
       float overlay_abxy_diag_sens;  /* diagonal-to-normal ratio (percentage) */

@@ -1150,6 +1150,7 @@ bool input_overlay_load_overlays(input_overlay_t *ol)
             "overlay%u_mouse", ol->pos);
       overlay->mouse_overlay = false;
       config_get_bool(ol->conf, overlay_ptr_key, &overlay->mouse_overlay);
+      ol->has_mouse |= overlay->mouse_overlay;
 
       overlay->config.normalized = false;
       overlay->config.alpha_mod  = 1.0f;
@@ -1874,10 +1875,14 @@ static INLINE bool input_overlay_poll_descs(
 static INLINE void input_overlay_poll_mouse()
 {
    driver_t*              driver    = driver_get_ptr();
+   settings_t*            settings  = config_get_ptr();
    input_overlay_state_t* state     = &driver->overlay_state;
    input_overlay_state_t* old_state = &driver->old_overlay_state;
    retro_time_t           now_usec  = rarch_get_time_usec();
-   bool swiping, brief, longer;
+   uint32_t               hold_zone = settings->input.overlay_mouse_hold_zone;
+   retro_time_t           hold_usec = settings->input.overlay_mouse_hold_ms * 1000;
+   bool                   can_drag  = settings->input.overlay_mouse_hold_to_drag;
+   bool is_swipe, is_brief, is_long;
 
    static int x_start, y_start, peak_ptr_count;
    static retro_time_t start_usec;
@@ -1902,21 +1907,21 @@ static INLINE void input_overlay_poll_mouse()
    else if (now_usec - start_usec > 500000)
       ol_mouse.click = 0x0; /* remove any stale click */
 
-   swiping = abs(state->ptr_x - x_start) > 0x200 ||
-             abs(state->ptr_y - y_start) > 0x200;
-   brief   = (now_usec - start_usec) < 200000;
-   longer  = (now_usec - start_usec) > 250000;
+   is_swipe = abs(state->ptr_x - x_start) > hold_zone ||
+              abs(state->ptr_y - y_start) > hold_zone;
+   is_brief = (now_usec - start_usec) < 200000;
+   is_long  = (now_usec - start_usec) > ((can_drag == true) ? hold_usec : 250000);
 
-   if (!swiping && !ignore_new_buttons)
+   if (!is_swipe && !ignore_new_buttons)
    {
-      if (brief && !state->ptr_count)
-         ol_mouse.click = (1 << (peak_ptr_count - 1));
-      else if (longer && state->ptr_count)
+      if (is_long && state->ptr_count && can_drag)
       {
          ol_mouse.hold = (1 << (state->ptr_count - 1));
          if (driver->input->overlay_haptic_feedback)
             driver->input->overlay_haptic_feedback();
       }
+      else if (is_brief && !state->ptr_count)
+         ol_mouse.click = (1 << (peak_ptr_count - 1));
    }
 
    if (!state->ptr_count)
@@ -1924,7 +1929,7 @@ static INLINE void input_overlay_poll_mouse()
       ignore_new_buttons = false;
       peak_ptr_count = 0;
    }
-   else if (longer)
+   else if (is_long)
       ignore_new_buttons = true;
 }
 

@@ -265,6 +265,7 @@ struct input_overlay
    enum overlay_status state;
 
    bool has_osk_key;
+   bool has_mouse;
 
    struct
    {

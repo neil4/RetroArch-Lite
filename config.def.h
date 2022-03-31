@@ -484,6 +484,9 @@ static const float overlay_dpad_diag_sens = 80.0f;
 static const float overlay_abxy_diag_sens = 50.0f;
 static const float overlay_bisect_aspect_ratio = 2.15f;
 static const bool overlay_shift_y_lock_edges = true;
+static const bool overlay_mouse_hold_to_drag = true;
+static const unsigned overlay_mouse_hold_zone = 500;  /* [0, 32767] */
+static const unsigned overlay_mouse_hold_ms = 250;
 #endif
 static bool show_frame_throttle_menu = true;
 #ifdef HAVE_NETPLAY
