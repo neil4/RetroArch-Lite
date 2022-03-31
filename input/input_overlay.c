@@ -867,7 +867,7 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    /* show keyboard overlay choice in menu */
    if (desc->key_mask & (UINT64_C(1) << RARCH_OSK))
    {
-      global_get_ptr()->overlay_osk_key = true;
+      ol->has_osk_key = true;
       menu_entries_set_refresh();
    }
 
@@ -2413,7 +2413,6 @@ void input_overlay_free(input_overlay_t *ol)
 
    free(ol->overlay_path);
    free(ol);
-   global_get_ptr()->overlay_osk_key = false;
 }
 
 /**

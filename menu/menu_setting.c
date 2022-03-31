@@ -6405,6 +6405,8 @@ static bool setting_append_list_overlay_options(
    global_t   *global   = global_get_ptr();
    driver_t   *driver   = driver_get_ptr();
 
+   bool show_osk_settings = driver->overlay && driver->overlay->has_osk_key;
+
    if (!settings->menu.show_overlay_menu)
       return true;
       
@@ -6785,7 +6787,7 @@ static bool setting_append_list_overlay_options(
          general_read_handler);
    menu_settings_list_current_add_values(list, list_info, "cfg");
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
-   if (!global->overlay_osk_key)
+   if (!show_osk_settings)
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_UINT(
@@ -6802,7 +6804,7 @@ static bool setting_append_list_overlay_options(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
-   if (!global->overlay_osk_key)
+   if (!show_osk_settings)
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);

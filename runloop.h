@@ -140,7 +140,6 @@ typedef struct global
 #ifdef HAVE_OVERLAY
    char overlay_dir[PATH_MAX_LENGTH];
    char osk_overlay_dir[PATH_MAX_LENGTH];
-   bool overlay_osk_key;
    bool overlay_lightgun_autotrigger;  /* trigger on x,y input */
 #endif
 
