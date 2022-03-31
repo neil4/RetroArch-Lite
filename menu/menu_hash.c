@@ -235,7 +235,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_OVERLAY_SCALE:
          return "input_overlay_scale";
       case MENU_LABEL_VALUE_OVERLAY_SCALE:
-         return "  Scale";
+         return "  Scaling Factor";
       case MENU_LABEL_VALUE_OVERLAY_PRESET:
          return "Overlay Preset";
       case MENU_LABEL_OVERLAY_PRESET:
@@ -251,7 +251,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_VALUE_AUDIO_DEVICE:
          return "Audio Device";
       case MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET:
-         return "Keyboard Overlay";
+         return "Onscreen Keyboard";
       case MENU_LABEL_OVERLAY_OPACITY:
          return "input_overlay_opacity";
       case MENU_LABEL_VALUE_OVERLAY_OPACITY:

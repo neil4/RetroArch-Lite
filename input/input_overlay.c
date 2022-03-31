@@ -2191,8 +2191,8 @@ void input_overlay_poll(input_overlay_t *overlay_device)
 
    /* haptic feedback on button presses or direction changes */
    if ( driver->input->overlay_haptic_feedback
-        && input_count >= old_input_count
         && state->buttons != old_state->buttons
+        && input_count >= old_input_count
         && !overlay_device->blocked )
    {
       driver->input->overlay_haptic_feedback();

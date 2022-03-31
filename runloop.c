@@ -370,11 +370,11 @@ static int do_pre_state_checks(event_cmd_state_t *cmd)
    if (cmd->grab_mouse_pressed)
       event_command(EVENT_CMD_GRAB_MOUSE_TOGGLE);
 
-   if (cmd->menu_pressed || (global->libretro_dummy))
-      do_state_check_menu_toggle();
-   
    if (cmd->kbd_focus_toggle_pressed)
       event_command(EVENT_CMD_KEYBOARD_FOCUS_TOGGLE);
+
+   if (cmd->menu_pressed || (global->libretro_dummy))
+      do_state_check_menu_toggle();
 
    return 0;
 }

@@ -98,7 +98,7 @@ extern "C" {
 #define MENU_LABEL_OVERLAY_SCALE                                               0x2dce2a3dU
 #define MENU_LABEL_VALUE_OVERLAY_SCALE                                         0x4237794fU
 #define MENU_LABEL_KEYBOARD_OVERLAY_PRESET                                     0x11f1c582U
-#define MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET                               0x7bc03f8bU
+#define MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET                               0x93ac8293U
 #define MENU_LABEL_OVERLAY_PRESET                                              0x24e24796U
 #define MENU_LABEL_VALUE_OVERLAY_PRESET                                        0x8338e89aU
 #define MENU_LABEL_OVERLAY_OPACITY                                             0xc466fbaeU

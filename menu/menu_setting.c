@@ -6674,9 +6674,7 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
-   menu_settings_list_current_add_cmd(
-         list,
-         list_info,
+   menu_settings_list_current_add_cmd(list, list_info,
          EVENT_CMD_OVERLAY_UPDATE_EIGHTWAY_DIAG_SENS);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    
@@ -6710,13 +6708,13 @@ static bool setting_append_list_overlay_options(
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
-   START_SUB_GROUP(list, list_info, "Onscreen Keyboard Overlay",
+   START_SUB_GROUP(list, list_info, "Onscreen Keyboard",
          group_info.name, subgroup_info, parent_group);
 
    CONFIG_BOOL(
          settings->input.osk_enable,
          "input_osk_overlay_enable",
-         "Enable Keyboard Overlay",
+         "Enable Onscreen Keyboard",
          input_osk_overlay_enable,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
