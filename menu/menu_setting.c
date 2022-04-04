@@ -707,15 +707,34 @@ static int setting_action_start_savestates(void *data)
    return 0;
 }
 
+/* Returns 0 if @index's libretro device is a keyboard, otherwise @index
+ */
+static unsigned setting_joypad_index_map(unsigned index)
+{
+   settings_t *settings = config_get_ptr();
+
+   if ((RETRO_DEVICE_MASK & settings->input.libretro_device[index])
+             == RETRO_DEVICE_KEYBOARD)
+      return 0;
+   return index;
+}
+
+static unsigned* setting_joypad_map(unsigned index)
+{
+   settings_t *settings = config_get_ptr();
+   return &settings->input.joypad_map[setting_joypad_index_map(index)];
+}
+
 static int setting_action_start_bind_device(void *data)
 {
    rarch_setting_t *setting  = (rarch_setting_t*)data;
-   settings_t      *settings = config_get_ptr();
+   unsigned         port;
 
    if (!setting)
       return -1;
 
-   settings->input.joypad_map[setting->index_offset] = setting->index_offset;
+   port                      = setting->index_offset;
+   *setting_joypad_map(port) = setting_joypad_index_map(port);
    return 0;
 }
 
@@ -1001,7 +1020,7 @@ static int setting_action_left_bind_device(void *data, bool wraparound)
    if (!setting)
       return -1;
 
-   p = &settings->input.joypad_map[setting->index_offset];
+   p = setting_joypad_map(setting->index_offset);
    
    while ((*p) > 0 && !*settings->input.device_names[*p])
       (*p)--;
@@ -1035,7 +1054,7 @@ static int setting_action_right_bind_device(void *data, bool wraparound)
    if (!setting)
       return -1;
 
-   p = &settings->input.joypad_map[setting->index_offset];
+   p = setting_joypad_map(setting->index_offset);
 
    if (*p < MAX_USERS && *settings->input.device_names[*p])
       (*p)++;
@@ -3490,7 +3509,7 @@ static void get_string_representation_bind_device(void * data, char *s,
    if (!setting)
       return;
 
-   map = settings->input.joypad_map[setting->index_offset];
+   map = *setting_joypad_map(setting->index_offset);
    const char *device_name = settings->input.device_names[map];
 
    if (*device_name)
