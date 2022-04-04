@@ -174,6 +174,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Input Settings";
       case MENU_LABEL_VIDEO_SETTINGS:
          return "Video Settings";
+      case MENU_LABEL_VALUE_OVERLAY_MOUSE_SETTINGS:
+         return "Overlay Mouse Settings";
       case MENU_LABEL_QUIT_RETROARCH:
          return "quit_retroarch";
       case MENU_LABEL_VALUE_QUIT_RETROARCH:
@@ -230,6 +232,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Driver Settings";
       case MENU_LABEL_OVERLAY_SETTINGS:
          return "Onscreen Overlay Settings";
+      case MENU_LABEL_OVERLAY_MOUSE_SETTINGS:
+         return "overlay_mouse_settings";
       case MENU_LABEL_VALUE_UNABLE_TO_READ_COMPRESSED_FILE:
          return "Unable to read compressed file.";
       case MENU_LABEL_OVERLAY_SCALE:

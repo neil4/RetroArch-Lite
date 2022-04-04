@@ -666,8 +666,29 @@ static int action_ok_libretro_device_type(const char *path,
    info.type  = MENU_SETTING_GROUP;
    strlcpy(info.label,
          menu_hash_to_str(MENU_LABEL_INPUT_SETTINGS), sizeof(info.label));
+   info.directory_ptr = idx;
 
-   menu_list_push(menu_list->menu_stack, "", info.label, info.type, 0, 0);
+   menu_list_push(menu_list->menu_stack, "", info.label, info.type, idx, 0);
+   menu_navigation_clear(nav, true);
+   return menu_displaylist_push_list(&info, DISPLAYLIST_SETTINGS);
+}
+
+static int action_ok_mouse_overlay_settings(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   menu_displaylist_info_t info = {0};
+   menu_list_t       *menu_list = menu_list_get_ptr();
+   menu_navigation_t *nav       = menu_navigation_get_ptr();
+   if (!menu_list)
+      return -1;
+
+   info.list  = menu_list->selection_buf;
+   info.flags = SL_FLAG_OVERLAY_MOUSE_OPTIONS;
+   info.type  = MENU_SETTING_GROUP;
+   strlcpy(info.label, label, sizeof(info.label));
+   info.directory_ptr = idx;
+
+   menu_list_push(menu_list->menu_stack, "", label, info.type, idx, 0);
    menu_navigation_clear(nav, true);
    return menu_displaylist_push_list(&info, DISPLAYLIST_SETTINGS);
 }
@@ -1226,6 +1247,8 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_DISK_IMAGE_APPEND:
          cbs->action_ok = action_ok_disk_image_append_list;
          break;
+      case MENU_LABEL_OVERLAY_MOUSE_SETTINGS:
+         cbs->action_ok = action_ok_mouse_overlay_settings;
       default:
          return -1;
    }

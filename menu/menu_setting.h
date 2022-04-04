@@ -93,7 +93,9 @@ enum setting_list_flags
    SL_FLAG_CORE_UPDATER_OPTIONS  =  (1 << 22),
    SL_FLAG_FONT_OPTIONS          =  (1 << 23),
    SL_FLAG_ALL                   =  (1 << 24),
-   SL_FLAG_ALLOW_EMPTY_LIST      =  (1 << 25)
+   SL_FLAG_ALLOW_EMPTY_LIST      =  (1 << 25),
+   /* Submenus */
+   SL_FLAG_OVERLAY_MOUSE_OPTIONS =  (1 << 26)
 };
 
 #define SL_FLAG_ALL_SETTINGS (SL_FLAG_ALL - SL_FLAG_MAIN_MENU)

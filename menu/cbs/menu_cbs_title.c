@@ -497,6 +497,7 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_SHADER_OPTIONS:
       case MENU_LABEL_CORE_CHEAT_OPTIONS:
       case MENU_LABEL_INPUT_REMAPPING:
+      case MENU_LABEL_OVERLAY_MOUSE_SETTINGS:
          cbs->action_get_title = action_get_title_action_generic;
          break;
       case MENU_LABEL_CORE_OPTION_CATEGORY:

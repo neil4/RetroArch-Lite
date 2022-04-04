@@ -203,6 +203,7 @@ extern "C" {
 #define MENU_VALUE_MAIN_MENU                                                   0x1625971fU   
 #define MENU_LABEL_SETTINGS                                                    0x1304dc16U
 #define MENU_LABEL_VALUE_SETTINGS                                              0x8aca3ff6U
+#define MENU_LABEL_VALUE_OVERLAY_MOUSE_SETTINGS                                0x5a16d0e1U
 #define MENU_VALUE_RECORDING_SETTINGS                                          0x1a80b313U
 #define MENU_VALUE_INPUT_SETTINGS                                              0xddd30846U
 #define MENU_VALUE_ON                                                          0x005974c2U
@@ -337,6 +338,7 @@ extern "C" {
 #define MENU_LABEL_INPUT_SETTINGS                                              0xddd30846U
 #define MENU_LABEL_INPUT_HOTKEY_SETTINGS                                       0x1cb39c19U
 #define MENU_LABEL_OVERLAY_SETTINGS                                            0x997b2fd5U
+#define MENU_LABEL_OVERLAY_MOUSE_SETTINGS                                      0x7915c6ffU
 #define MENU_LABEL_ONSCREEN_KEYBOARD_OVERLAY_SETTINGS                          0xa6de9ba6U
 #define MENU_LABEL_MENU_SETTINGS                                               0x61e4544bU
 #define MENU_LABEL_UI_SETTINGS                                                 0xf8da6ef4U

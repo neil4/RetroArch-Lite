@@ -844,7 +844,8 @@ static int menu_displaylist_parse_settings(menu_handle_t *menu,
          continue;
 
       menu_list_push(info->list, setting->short_description,
-            setting->name, menu_setting_set_flags(setting), 0, 0);
+            setting->name, menu_setting_set_flags(setting),
+            info->directory_ptr, 0);
    }
 
    return 0;

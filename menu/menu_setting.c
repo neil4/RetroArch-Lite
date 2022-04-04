@@ -6766,75 +6766,17 @@ static bool setting_append_list_overlay_options(
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
-   START_SUB_GROUP(list, list_info, "Overlay Mouse Settings", group_info.name,
-         subgroup_info, parent_group);
-
-   CONFIG_BOOL(
-         settings->input.overlay_mouse_hold_to_drag,
-         "input_overlay_mouse_hold_to_drag",
-         "Mouse Long Press to Drag",
-         overlay_mouse_hold_to_drag,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   if (!show_mouse_settings)
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_UINT(
-         settings->input.overlay_mouse_hold_to_drag_scope,
-         "input_overlay_mouse_hold_to_drag_scope",
-         "  Scope",
-         GLOBAL,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(
-         list, list_info, 0, global->max_scope, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index;
-   if (!show_mouse_settings)
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_UINT(
-         settings->input.overlay_mouse_hold_ms,
-         "input_overlay_mouse_hold_ms",
-         "Mouse Long Press Threshold",
-         overlay_mouse_hold_ms,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 100, 1000, 10, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_millisec;
-   if (!show_mouse_settings)
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_UINT(
-         settings->input.overlay_mouse_hold_zone,
-         "input_overlay_mouse_hold_zone",
-         "Mouse Swipe Threshold",
-         overlay_mouse_hold_zone,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 5000, 50, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_overlay_mouse_hold_zone;
-   if (!show_mouse_settings)
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
+
+   if (show_mouse_settings || settings->menu.show_advanced_settings)
+   {
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_SETTINGS),
+            menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_MOUSE_SETTINGS),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+   }
 
    CONFIG_FLOAT(
          settings->input.overlay_opacity,
@@ -6883,6 +6825,86 @@ static bool setting_append_list_overlay_options(
       (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_overlay_haptic_feedback;
    }
+
+   END_SUB_GROUP(list, list_info, parent_group);
+   END_GROUP(list, list_info, parent_group);
+#endif
+
+   return true;
+}
+
+static bool setting_append_list_overlay_mouse_options(
+      rarch_setting_t **list,
+      rarch_setting_info_t *list_info,
+      const char *parent_group)
+{
+#ifdef HAVE_OVERLAY
+   rarch_setting_group_info_t group_info    = {0};
+   rarch_setting_group_info_t subgroup_info = {0};
+   settings_t *settings = config_get_ptr();
+   global_t   *global   = global_get_ptr();
+
+   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_SETTINGS), parent_group);
+
+   parent_group = menu_hash_to_str(MENU_LABEL_OVERLAY_SETTINGS);
+
+   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
+
+   CONFIG_BOOL(
+         settings->input.overlay_mouse_hold_to_drag,
+         "input_overlay_mouse_hold_to_drag",
+         "Mouse Long Press to Drag",
+         overlay_mouse_hold_to_drag,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+
+   CONFIG_UINT(
+         settings->input.overlay_mouse_hold_to_drag_scope,
+         "input_overlay_mouse_hold_to_drag_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+
+   CONFIG_UINT(
+         settings->input.overlay_mouse_hold_ms,
+         "input_overlay_mouse_hold_ms",
+         "Mouse Long Press Threshold",
+         overlay_mouse_hold_ms,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 100, 1000, 10, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_millisec;
+
+   CONFIG_UINT(
+         settings->input.overlay_mouse_hold_zone,
+         "input_overlay_mouse_hold_zone",
+         "Mouse Swipe Threshold",
+         overlay_mouse_hold_zone,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 5000, 50, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_overlay_mouse_hold_zone;
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -8584,6 +8606,12 @@ rarch_setting_t *menu_setting_new(unsigned mask)
    if (mask & SL_FLAG_DIRECTORY_OPTIONS)
    {
       if (!setting_append_list_directory_options(&list, list_info, root))
+         goto error;
+   }
+
+   if (mask & SL_FLAG_OVERLAY_MOUSE_OPTIONS)
+   {
+      if (!setting_append_list_overlay_mouse_options(&list, list_info, root))
          goto error;
    }
 
