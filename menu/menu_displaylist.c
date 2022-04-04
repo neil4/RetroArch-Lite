@@ -928,7 +928,7 @@ static INLINE bool menu_displaylist_push_turbo_input(
    char desc_label[64];
    const char *description;
 
-   snprintf(desc_label, sizeof(desc_label), "User %u Turbo Bind: ", user);
+   snprintf(desc_label, sizeof(desc_label), "Port %u Turbo Bind: ", user);
    menu_list_push(info->list, desc_label,
          menu_hash_to_str(MENU_LABEL_INPUT_TURBO_ID), p, 0, 0);
 
@@ -942,7 +942,7 @@ static INLINE bool menu_displaylist_push_turbo_input(
          return false;
 
       snprintf(desc_label, sizeof(desc_label),
-            "User %u Turbo %s: ", user, description);
+            "Port %u Turbo %s: ", user, description);
       menu_list_push(info->list, desc_label, "TS",
             MENU_SETTINGS_INPUT_DESC_BEGIN +
             (p * (RARCH_FIRST_CUSTOM_BIND + 4)) + id, 0, 0);
@@ -969,7 +969,7 @@ static INLINE void menu_displaylist_push_remap(menu_displaylist_info_t *info,
       return;
 
    snprintf(desc_label, sizeof(desc_label),
-         "User %u %s: ", user, description);
+         "Port %u %s: ", user, description);
    menu_list_push(info->list, desc_label, "",
          MENU_SETTINGS_INPUT_DESC_BEGIN +
          (p * (RARCH_FIRST_CUSTOM_BIND + 4)) +  retro_id, 0, 0);
@@ -1020,7 +1020,7 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
 
    for (p = 0; p < settings->input.max_users; p++)
    {
-      snprintf(buf, sizeof(buf), "User %u Virtual Device", p+1);
+      snprintf(buf, sizeof(buf), "Port %u Virtual Device", p+1);
       menu_list_push(info->list, buf, "",
          MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN + p, 0, 0);
    }

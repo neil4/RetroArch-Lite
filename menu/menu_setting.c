@@ -3516,7 +3516,7 @@ static void get_string_representation_bind_device(void * data, char *s,
       strlcpy(s, device_name, len);
    else
       snprintf(s, len,
-            "N/A (port #%u)", setting->index_offset);
+            "N/A (port #%u)", setting->index_offset + 1);
 }
 
 
@@ -6179,11 +6179,11 @@ static bool setting_append_list_input_options(
                "input_player%u_bind_all", user + 1);
 
       snprintf(label[user], sizeof(label[user]),
-               "User %u Host Device", user + 1);
+               "Port %u Host Device", user + 1);
       snprintf(label_type[user], sizeof(label_type[user]),
-               "User %u Virtual Device", user + 1);
+               "Port %u Virtual Device", user + 1);
       snprintf(label_bind_all[user], sizeof(label_bind_all[user]),
-               "User %u Bind All", user + 1);
+               "Port %u Bind All", user + 1);
 
       CONFIG_UINT(
             settings->input.libretro_device[user],
