@@ -818,6 +818,7 @@ static int menu_input_mouse_frame(
       menu_file_list_cbs_t *cbs, menu_entry_t *entry,
       uint64_t input_mouse)
 {
+   global_t *global           = global_get_ptr();
    menu_input_t *menu_input   = menu_input_get_ptr();
    menu_list_t *menu_list     = menu_list_get_ptr();
    menu_navigation_t *nav     = menu_navigation_get_ptr();
@@ -835,9 +836,12 @@ static int menu_input_mouse_frame(
       if (menu_input->mouse.y < disp->header_height)
       {
          menu_input->last_action = MENU_ACTION_CANCEL;
+         global->menu.block_push = false;
          menu_list_pop_stack(menu_list);
          return 0;
       }
+      else if (global->menu.block_push)
+         return 0;
 
       if (BIT64_GET(input_mouse, MOUSE_ACTION_BUTTON_L_TOGGLE))
       {
@@ -857,8 +861,11 @@ static int menu_input_mouse_frame(
    if (BIT64_GET(input_mouse, MOUSE_ACTION_BUTTON_R))
    {
       menu_input->last_action = MENU_ACTION_CANCEL;
+      global->menu.block_push = false;
       menu_list_pop_stack(menu_list);
    }
+   else if (global->menu.block_push)
+      return 0;
 
    if (BIT64_GET(input_mouse, MOUSE_ACTION_BUTTON_M))
       return menu_entry_action(entry, nav->selection_ptr, MENU_ACTION_START);
@@ -982,8 +989,9 @@ static int menu_input_mouse_post_iterate(uint64_t *input_mouse,
 
 static int pointer_tap(menu_file_list_cbs_t *cbs, menu_entry_t *entry)
 {
+   global_t *global           = global_get_ptr();
    menu_input_t *menu_input   = menu_input_get_ptr();
-   menu_list_t   *menu_list   = menu_list_get_ptr();
+   menu_list_t *menu_list     = menu_list_get_ptr();
    menu_navigation_t *nav     = menu_navigation_get_ptr();
    menu_display_t *disp       = menu_display_get_ptr();
    rarch_setting_t *setting   =
@@ -1000,9 +1008,12 @@ static int pointer_tap(menu_file_list_cbs_t *cbs, menu_entry_t *entry)
    if (menu_input->pointer.start_y < disp->header_height)
    {
       menu_input->last_action = MENU_ACTION_CANCEL;
+      global->menu.block_push = false;
       menu_list_pop_stack(menu_list);
       return 0;
    }
+   else if (global->menu.block_push)
+      return 0;
    else if (menu_input->pointer.start_y > disp->frame_buf.height - disp->header_height)
       return menu_entry_action(entry, nav->selection_ptr, MENU_ACTION_START);
    else if (menu_input->pointer.ptr > menu_list_get_size(menu_list)-1)
