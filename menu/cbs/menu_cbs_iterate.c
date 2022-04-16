@@ -228,10 +228,6 @@ static int action_iterate_info(char *s, size_t len, const char *label)
 
    if (current_setting)
       strlcpy(needle, current_setting->name, sizeof(needle));
-   else if ((current_setting = menu_setting_find(list->list[selection].label)))
-   {
-      strlcpy(needle, current_setting->name, sizeof(needle));
-   }
    else
    {
       const char *lbl = NULL;
