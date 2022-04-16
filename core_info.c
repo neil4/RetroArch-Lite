@@ -373,7 +373,8 @@ bool core_info_list_get_core_name(core_info_list_t *core_info_list,
 bool core_info_list_get_description(core_info_list_t *core_info_list,
       const char *path, char *buf, size_t size, bool as_messagebox)
 {
-   size_t i;
+   global_t *global = global_get_ptr();
+   size_t i, len;
 
    if (!core_info_list)
       return false;
@@ -386,10 +387,9 @@ bool core_info_list_get_description(core_info_list_t *core_info_list,
          if (!info->description)
             return false;
 
+         len = strlcpy(buf, info->description, size);
          if (as_messagebox)
-            menu_driver_wrap_text(buf, info->description, NULL, size);
-         else
-            strlcpy(buf, info->description, size);
+            menu_driver_wrap_text(buf, len, global->menu.msg_box_width);
 
          return true;
       }

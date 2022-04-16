@@ -358,74 +358,87 @@ void menu_driver_free(menu_handle_t *menu)
 
 /**
  * menu_driver_wrap_text:
- * @param buf           : Output buffer
- * @param text          : Input
- * @param title         : Title; can be NULL
- * @param buf_len       : Output buffer array length
- *
- * Wraps @text for a messagebox, replacing existing newlines with bullet chars.
- * Not for text already formatted for a messagebox.
+ * @param buf           : Text buffer to be modified
+ * @param msg_len       : Text length before null terminator
+ * @param line_width    : Max number of chars per line
  **/
-void menu_driver_wrap_text(char *buf, const char *text,
-      const char *title, const unsigned buf_len)
+void menu_driver_wrap_text(char *buf, const unsigned msg_len,
+      const unsigned line_width)
 {
-   const unsigned max_line_len = 48; /* todo: driver dependent */
-   const unsigned search_len   = 16;
+   const unsigned search_len = line_width * 0.67;
 
-   unsigned msg_size, line_start, i;
+   unsigned line_start = 0;
+   unsigned cutoff, i;
 
-   if (title)
+   /* Replace space with newline near each line_width interval */
+   for (i = line_width; i < msg_len; i = line_start + line_width)
    {
-      strlcpy(buf, title, buf_len);
-      line_start = strlcat(buf, "\n", buf_len);
-      msg_size   = strlcat(buf, text, buf_len) + 1;
-   }
-   else
-   {
-      msg_size   = strlcpy(buf, text, buf_len) + 1;
-      line_start = 0;
-   }
-
-   msg_size = min(msg_size, buf_len);
-
-   /* Remove any existing newlines */
-   for (i = line_start; i < msg_size; i++)
-   {
-      if (buf[i] == '\n')
-         buf[i] = (char)149;
-   }
-
-   /* Replace space with newline near each max_line_len interval */
-   for (i = line_start + max_line_len; i < msg_size - 1;
-        i = line_start + max_line_len)
-   {
-      while (!isspace(buf[i]) && i > line_start + (max_line_len - search_len))
+      cutoff = line_start + (line_width - search_len);
+      while (buf[i] != ' ' && i > cutoff)
          i--;
 
-      if (isspace(buf[i]))
+      if (buf[i] == ' ')
          buf[i] = '\n';
       else
       {
-         /* Can't find a space; split last word. */
-         msg_size = min(msg_size + 2, buf_len); /* +2 to insert -\n */
-         i = line_start + max_line_len;
+         i = line_start + line_width;
+         while (i < msg_len && buf[i] != ' ')
+            i++;
 
-         /* Shift text right and insert -\n */
-         memmove(buf + (i+1), buf + (i-1), msg_size - (i+1));
-         buf[i-1] = '-';
-         buf[i]   = '\n';
+         if (buf[i] == ' ')
+            buf[i] = '\n';
       }
 
       line_start = i + 1;
    }
+}
 
-   /* Check for truncation */
-   if (buf[msg_size-1])
+/**
+ * menu_driver_sublabel_to_messagebox:
+ * @param buf           : Output buffer
+ * @param text          : Input
+ * @param title         : Title; can be NULL
+ * @param buf_size      : Output buffer array size
+ *
+ * Wraps @text for a messagebox, removing indents and replacing newlines
+ * with bullet chars
+ **/
+void menu_driver_sublabel_to_messagebox(char *buf, const char *text,
+      const char *title, const unsigned buf_size)
+{
+   global_t *global  = global_get_ptr();
+   int last_nonspace = 0;
+   int j = 0;
+   int msg_start, i;
+
+   if (title)
    {
-      buf[msg_size-3] = '.';
-      buf[msg_size-2] = '.';
-      buf[msg_size-1] = '\0';
+      strlcpy(buf, title, buf_size);
+      msg_start = strlcat(buf, "\n", buf_size);
    }
+   else
+      msg_start = 0;
+
+   for (i = msg_start; text[j] && i < buf_size - 1; i++, j++)
+   {
+      buf[i] = text[j];
+
+      /* Replace [spaces +] newline with space + bullet */
+      if (buf[i] == '\n')
+      {
+         buf[last_nonspace + 1] = ' ';
+         buf[last_nonspace + 2] = (char)149;
+         i = last_nonspace + 2;
+      }
+
+      if (buf[i] != ' ')
+         last_nonspace = i;
+   }
+
+   buf[i] = '\0';
+
+   menu_driver_wrap_text(buf + msg_start, i - msg_start,
+         global->menu.msg_box_width);
 }
 
 void menu_driver_render_messagebox(const char *msg)

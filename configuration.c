@@ -601,6 +601,8 @@ static void config_set_defaults(void)
    settings->menu.show_recording_menu          = show_recording_menu;
    settings->menu.show_core_updater_menu       = show_core_updater_menu;
 
+   global->menu.msg_box_width                  = 48;  /* RGUI 4:3 */
+
    settings->ui.companion_start_on_boot             = true;
    settings->ui.menubar_enable                      = true;
    settings->ui.suspend_screensaver_enable          = true;
@@ -1481,6 +1483,8 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_STRING_BASE(conf, settings, menu.driver, "menu_driver");
    CONFIG_GET_STRING_BASE(conf, settings, video.context_driver, "video_context_driver");
    CONFIG_GET_STRING_BASE(conf, settings, audio.driver, "audio_driver");
+
+   global->menu.have_sublabels = strcmp(settings->menu.driver, "rgui");
 
    CONFIG_GET_PATH_BASE(conf, settings, video.softfilter_plugin, "video_filter");
    CONFIG_GET_PATH_BASE(conf, settings, video.shader_path, "video_shader");

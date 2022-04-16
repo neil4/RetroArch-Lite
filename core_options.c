@@ -111,18 +111,21 @@ void core_option_get(core_option_manager_t *opt_mgr, struct retro_variable *var)
    var->value = NULL;
 }
 
-static void core_option_wrap_info_to_messagebox(struct core_option *option,
+static void core_option_write_info(struct core_option *option,
       const char *desc, const char *info)
 {
-   char title[NAME_MAX_LENGTH];
-   unsigned len;
+   global_t *global = global_get_ptr();
 
-   strlcpy(title, desc, NAME_MAX_LENGTH);
-   len = strlcat(title, ":", NAME_MAX_LENGTH);
-   len += strlen(info) + 7; /* add room for "-\n" insertions */
+   if (!global->menu.have_sublabels)
+   {
+      /* Add room for text insertions */
+      unsigned len = strlen(info) + strlen(option->desc) + 16;
+      option->info = malloc(len * sizeof(char));
 
-   option->info = malloc(len * sizeof(char));
-   menu_driver_wrap_text(option->info, info, title, len);
+      menu_driver_sublabel_to_messagebox(option->info, info, desc, len);
+   }
+   else
+      option->info = strdup(info);
 }
 
 /* From RA v1.8.5 core_option_manager_parse_option.
@@ -225,7 +228,7 @@ static bool parse_v2_option(
       info                 = option_def->info;
 
    if (!string_is_empty(info))
-      core_option_wrap_info_to_messagebox(option, option->desc, info);
+      core_option_write_info(option, option->desc, info);
 
    return parse_option_vals(option, opt_mgr->conf,
          option_def->values, option_def->default_value);
@@ -247,7 +250,7 @@ static void parse_v2_category(
       info      = NULL;
 
    if (!string_is_empty(info))
-      core_option_wrap_info_to_messagebox(option, option->desc, info);
+      core_option_write_info(option, option->desc, info);
 }
 
 static bool parse_v1_option(
@@ -263,8 +266,7 @@ static bool parse_v1_option(
       option->desc = strdup(option_def->desc);
 
    if (!string_is_empty(option->desc) && !string_is_empty(option_def->info))
-      core_option_wrap_info_to_messagebox(
-            option, option->desc, option_def->info);
+      core_option_write_info(option, option->desc, option_def->info);
 
    return parse_option_vals(option, opt_mgr->conf,
          option_def->values, option_def->default_value);

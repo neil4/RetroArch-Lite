@@ -1201,6 +1201,9 @@ static void *rgui_init(void)
                                     "cb_menu_wallpaper", 0, 1,true);
 
    menu_update_ticker_speed();
+
+   global->menu.msg_box_width = RGUI_TERM_WIDTH;
+
    return menu;
 
 error:
