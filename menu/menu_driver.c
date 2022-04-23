@@ -406,7 +406,6 @@ void menu_driver_wrap_text(char *buf, const unsigned msg_len,
 void menu_driver_sublabel_to_messagebox(char *buf, const char *text,
       const char *title, const unsigned buf_size)
 {
-   global_t *global  = global_get_ptr();
    int last_nonspace = 0;
    int j = 0;
    int msg_start, i;
@@ -437,8 +436,7 @@ void menu_driver_sublabel_to_messagebox(char *buf, const char *text,
 
    buf[i] = '\0';
 
-   menu_driver_wrap_text(buf + msg_start, i - msg_start,
-         global->menu.msg_box_width);
+   menu_driver_wrap_text(buf + msg_start, i - msg_start, 48);
 }
 
 void menu_driver_render_messagebox(const char *msg)

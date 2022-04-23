@@ -39,10 +39,10 @@
 #include "shared.h"
 #include "rgui.h"
 
-#define RGUI_TERM_START_X        (frame_buf->width / 21)
+#define RGUI_TERM_START_X        (frame_buf->width / 20)
 #define RGUI_TERM_START_Y        (frame_buf->height / 9)
-#define RGUI_TERM_WIDTH          (((frame_buf->width - RGUI_TERM_START_X - RGUI_TERM_START_X) / (FONT_WIDTH_STRIDE)))
-#define RGUI_TERM_HEIGHT         (((frame_buf->height - RGUI_TERM_START_Y - RGUI_TERM_START_X) / (FONT_HEIGHT_STRIDE)) - 1)
+#define RGUI_TERM_WIDTH          ((frame_buf->width - RGUI_TERM_START_X - RGUI_TERM_START_X) / (FONT_WIDTH_STRIDE))
+#define RGUI_TERM_HEIGHT         ((frame_buf->height - RGUI_TERM_START_Y - RGUI_TERM_START_Y) / (FONT_HEIGHT_STRIDE))
 
 #define NUM_PARTICLES 256
 
@@ -945,8 +945,8 @@ static void rgui_blit_cursor(menu_handle_t *menu)
    int16_t x = menu_input->mouse.x;
    int16_t y = menu_input->mouse.y;
 
-   color_rect(menu, x, y - 5, 1, 11, 0xFFFF);
-   color_rect(menu, x - 5, y, 11, 1, 0xFFFF);
+   color_rect(menu, x, y - 5, 1, 11, rgui_normal_16b);
+   color_rect(menu, x - 5, y, 11, 1, rgui_normal_16b);
 }
 
 static void rgui_render(void)
@@ -955,12 +955,12 @@ static void rgui_render(void)
    size_t i, end;
    int bottom;
    int title_w;
+   size_t len = 0;
    uint16_t color;
    float offset;
    char title[NAME_MAX_LENGTH];
    char title_buf[NAME_MAX_LENGTH];
-   char title_msg[64];
-   char timedate[NAME_MAX_LENGTH];
+   char timedate[32];
    menu_handle_t *menu            = menu_driver_get_ptr();
    menu_input_t *menu_input       = menu_input_get_ptr();
    menu_display_t *disp           = menu_display_get_ptr();
@@ -974,7 +974,6 @@ static void rgui_render(void)
 
    title[0]     = '\0';
    title_buf[0] = '\0';
-   title_msg[0] = '\0';
    timedate[0]  = '\0';
 
    (void)driver;
@@ -1035,30 +1034,35 @@ static void rgui_render(void)
          frame_count, title, true);
 
    if (menu_entries_show_back())
-      blit_line("BACK", 4, RGUI_TERM_START_X, RGUI_TERM_START_X,
+      blit_line("BACK", 4, RGUI_TERM_START_X,
+            RGUI_TERM_START_Y - FONT_HEIGHT_STRIDE,
             0, rgui_title_16b);
 
    blit_line(title_buf, title_w,
          RGUI_TERM_START_X + (RGUI_TERM_WIDTH - strlen(title_buf)) * FONT_WIDTH_STRIDE / 2,
-         RGUI_TERM_START_X,
+         RGUI_TERM_START_Y - FONT_HEIGHT_STRIDE,
          FONT_WIDTH_STRIDE * offset, rgui_title_16b);
 
-   if (settings->menu.core_enable)
+   if (settings->menu.timedate_enable)
    {
-      menu_entries_get_core_title(title_msg, sizeof(title_msg));
-      blit_line(title_msg, 42,
-            RGUI_TERM_START_X,
+      len = menu_display_timedate(timedate, sizeof(timedate), 3);
+      blit_line(timedate, len,
+            RGUI_WIDTH - RGUI_TERM_START_X - len * FONT_WIDTH_STRIDE,
             (RGUI_TERM_HEIGHT * FONT_HEIGHT_STRIDE) + RGUI_TERM_START_Y + 2,
             0, rgui_hover_16b);
    }
 
-   if (settings->menu.timedate_enable)
+   if (settings->menu.core_enable)
    {
-      menu_display_timedate(timedate, sizeof(timedate), 3);
-      blit_line(timedate, 5,
-            RGUI_TERM_WIDTH * FONT_WIDTH_STRIDE - RGUI_TERM_START_X,
+      menu_entries_get_core_title(title, sizeof(title));
+      title_w = RGUI_TERM_WIDTH - len - 2;
+      offset = menu_animation_ticker_line(title_buf,
+            title_w, frame_count, title, true);
+
+      blit_line(title_buf, title_w,
+            RGUI_TERM_START_X,
             (RGUI_TERM_HEIGHT * FONT_HEIGHT_STRIDE) + RGUI_TERM_START_Y + 2,
-            0, rgui_hover_16b);
+            FONT_WIDTH_STRIDE * offset, rgui_hover_16b);
    }
 
    title_x = RGUI_TERM_START_X + FONT_WIDTH_STRIDE * 2;
@@ -1169,7 +1173,7 @@ static void *rgui_init(void)
 
    frame_buf->width                   = RGUI_WIDTH;
    frame_buf->height                  = RGUI_HEIGHT;
-   menu->display.header_height        = FONT_HEIGHT_STRIDE * 2;
+   menu->display.header_height        = FONT_HEIGHT_STRIDE * 2 + 1;
    frame_buf->pitch                   = frame_buf->width * sizeof(uint16_t);
 
    menu_entries_set_start(0);

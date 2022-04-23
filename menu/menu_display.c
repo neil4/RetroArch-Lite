@@ -297,7 +297,7 @@ void menu_display_unset_viewport(void)
          height, false, true);
 }
 
-void menu_display_timedate(char *s, size_t len, unsigned time_mode)
+size_t menu_display_timedate(char *s, size_t len, unsigned time_mode)
 {
    time_t time_;
    time(&time_);
@@ -305,16 +305,16 @@ void menu_display_timedate(char *s, size_t len, unsigned time_mode)
    switch (time_mode)
    {
       case 0: /* Date and time */
-         strftime(s, len, "%Y-%m-%d %H:%M:%S", localtime(&time_));
-         break;
+         return strftime(s, len, "%Y-%m-%d %H:%M:%S", localtime(&time_));
       case 1: /* Date */
-         strftime(s, len, "%Y-%m-%d", localtime(&time_));
-         break;
+         return strftime(s, len, "%Y-%m-%d", localtime(&time_));
       case 2: /* Time */
-         strftime(s, len, "%H:%M:%S", localtime(&time_));
-         break;
+         return strftime(s, len, "%H:%M:%S", localtime(&time_));
       case 3: /* Time (hours-minutes) */
-         strftime(s, len, "%H:%M", localtime(&time_));
+         return strftime(s, len, "%H:%M", localtime(&time_));
+      default:
          break;
    }
+
+   return 0;
 }

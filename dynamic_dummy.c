@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include "menu/drivers/rgui.h"
 
 static uint16_t *frame_buf;
 
@@ -63,11 +64,11 @@ void libretro_dummy_retro_get_system_av_info(
    info->timing.fps = 60.0;
    info->timing.sample_rate = 30000.0;
 
-   info->geometry.base_width  = 320;
-   info->geometry.base_height = 240;
-   info->geometry.max_width   = 320;
-   info->geometry.max_height  = 240;
-   info->geometry.aspect_ratio = 4.0 / 3.0;
+   info->geometry.base_width  = RGUI_WIDTH;
+   info->geometry.base_height = RGUI_HEIGHT;
+   info->geometry.max_width   = RGUI_WIDTH;
+   info->geometry.max_height  = RGUI_HEIGHT;
+   info->geometry.aspect_ratio = RGUI_WIDTH / (float)RGUI_HEIGHT;
 }
 
 static retro_video_refresh_t dummy_video_cb;

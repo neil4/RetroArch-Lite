@@ -175,12 +175,6 @@ extern "C" {
 #define MENU_LABEL_AUDIO_RESAMPLER_DRIVER_CC                                   0x0059732bU
 #define MENU_LABEL_AUDIO_RESAMPLER_DRIVER_NEAREST                              0x09fa48d7U
 
-#define MENU_LABEL_SAVEFILE_DIRECTORY                                          0x92773488U
-#define MENU_LABEL_SAVESTATE_DIRECTORY                                         0x90551289U
-#define MENU_LABEL_ASSETS_DIRECTORY                                            0xde1ae8ecU
-#define MENU_LABEL_DYNAMIC_WALLPAPERS_DIRECTORY                                0x62f975b8U
-#define MENU_LABEL_BOXARTS_DIRECTORY                                           0x9e2bdbddU
-
 #define MENU_LABEL_SLOWMOTION_RATIO                                            0x626b3ffeU
 #define MENU_LABEL_INPUT_AXIS_THRESHOLD                                        0xe95c2095U
 #define MENU_LABEL_INPUT_AUTODETECT_ENABLE                                     0xb1e07facU
@@ -308,14 +302,16 @@ extern "C" {
 #define MENU_LABEL_RGUI_BROWSER_DIRECTORY                                      0xa86cba73U
 #define MENU_LABEL_CORE_ASSETS_DIRECTORY                                       0x8ba5ee54U
 #define MENU_LABEL_CONTENT_DIRECTORY                                           0x7738dc14U
+#define MENU_LABEL_CORE_CONTENT_DIRECTORY                                      0xd6c1ceefU
+#define MENU_LABEL_CORE_CONTENT_DIRECTORY_QUICKSET                             0x10bf7ab6U
 #define MENU_LABEL_SCREENSHOT_DIRECTORY                                        0x552612d7U
 #define MENU_LABEL_INPUT_REMAPPING_DIRECTORY                                   0x5233c20bU
 #define MENU_LABEL_VIDEO_SHADER_DIR                                            0x30f53b10U
 #define MENU_LABEL_VIDEO_FILTER_DIR                                            0x67603f1fU
 #define MENU_LABEL_AUDIO_FILTER_DIR                                            0x4bd96ebaU
 #define MENU_LABEL_SAVESTATE_DIRECTORY                                         0x90551289U
-#define MENU_LABEL_LIBRETRO_DIR_PATH                                           0x1af1eb72U
 #define MENU_LABEL_LIBRETRO_INFO_PATH                                          0xe552b25fU
+#define MENU_LABEL_MENU_THEME_DIRECTORY                                        0x416e1fe0U
 #define MENU_LABEL_RGUI_CONFIG_DIRECTORY                                       0x0cb3e005U
 #define MENU_LABEL_SAVEFILE_DIRECTORY                                          0x92773488U
 #define MENU_LABEL_OVERLAY_DIRECTORY                                           0xc4ed3d1bU
@@ -323,6 +319,7 @@ extern "C" {
 #define MENU_LABEL_ASSETS_DIRECTORY                                            0xde1ae8ecU
 #define MENU_LABEL_EXTRACTION_DIRECTORY                                        0x33b55ffaU
 #define MENU_LABEL_JOYPAD_AUTOCONFIG_DIR                                       0x2f4822d8U
+#define MENU_LABEL_DYNAMIC_WALLPAPERS_DIRECTORY                                0x62f975b8U
 #define MENU_LABEL_DRIVER_SETTINGS                                             0x81cd2d62U
 #define MENU_LABEL_CORE_SETTINGS                                               0x06795dffU
 #define MENU_LABEL_CONFIGURATION_SETTINGS                                      0x5a1558ceU

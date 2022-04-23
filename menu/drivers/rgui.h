@@ -15,7 +15,7 @@
 #ifndef RGUI_H
 #define RGUI_H
 
-#define RGUI_WIDTH 320
+#define RGUI_WIDTH 384
 #define RGUI_HEIGHT 240
 
 enum rgui_particle_animation_effect

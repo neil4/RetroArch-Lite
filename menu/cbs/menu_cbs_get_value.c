@@ -831,6 +831,22 @@ static void menu_action_setting_disp_set_label_menu_file_cheat(
          path, "(CHEAT)", s2, len2);
 }
 
+static void menu_action_setting_disp_set_label_directory_setting(file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   *s = '\0';
+   *w = 24;
+
+   setting_get_label(list, s, len, w, type, label, entry_label, i);
+
+   strlcpy(s2, path, len2);
+}
+
 static void menu_action_setting_disp_set_label(file_list_t* list,
       unsigned *w, unsigned type, unsigned i,
       const char *label,
@@ -983,12 +999,42 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
          cbs->action_get_value =
             menu_action_setting_disp_set_label_joykbd_input_desc;
          break;
+      case MENU_LABEL_OSK_OVERLAY_DIRECTORY:
+      case MENU_LABEL_RECORDING_OUTPUT_DIRECTORY:
+      case MENU_LABEL_RECORDING_CONFIG_DIRECTORY:
+      case MENU_LABEL_RGUI_BROWSER_DIRECTORY:
+      case MENU_LABEL_CORE_ASSETS_DIRECTORY:
+      case MENU_LABEL_CONTENT_DIRECTORY:
+      case MENU_LABEL_CORE_CONTENT_DIRECTORY:
+      case MENU_LABEL_CORE_CONTENT_DIRECTORY_QUICKSET:
+      case MENU_LABEL_SCREENSHOT_DIRECTORY:
+      case MENU_LABEL_INPUT_REMAPPING_DIRECTORY:
+      case MENU_LABEL_SAVESTATE_DIRECTORY:
+      case MENU_LABEL_RGUI_CONFIG_DIRECTORY:
+      case MENU_LABEL_SAVEFILE_DIRECTORY:
+      case MENU_LABEL_OVERLAY_DIRECTORY:
+      case MENU_LABEL_SYSTEM_DIRECTORY:
+      case MENU_LABEL_ASSETS_DIRECTORY:
+      case MENU_LABEL_EXTRACTION_DIRECTORY:
+      case MENU_LABEL_DYNAMIC_WALLPAPERS_DIRECTORY:
+      case MENU_LABEL_JOYPAD_AUTOCONFIG_DIR:
+      case MENU_LABEL_LIBRETRO_DIR_PATH:
+      case MENU_LABEL_AUDIO_FILTER_DIR:
+      case MENU_LABEL_VIDEO_FILTER_DIR:
+      case MENU_LABEL_VIDEO_SHADER_DIR:
+      case MENU_LABEL_LIBRETRO_INFO_PATH:
+      case MENU_LABEL_MENU_THEME_DIRECTORY:
+      case MENU_LABEL_CHEAT_DATABASE_PATH:
+         cbs->action_get_value =
+            menu_action_setting_disp_set_label_directory_setting;
+         break;
       case MENU_LABEL_INPUT_REMAPPING:
       case MENU_LABEL_DISK_CONTROL:
       case MENU_LABEL_VIDEO_SHADER_PARAMETERS:
       case MENU_LABEL_OPTIONS_FILE_LOAD:
       case MENU_LABEL_REMAP_FILE_LOAD:
       case MENU_LABEL_CORE_OPTION_CATEGORY:
+      case MENU_LABEL_CORE_CHEAT_OPTIONS:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_menu_more;
          break;

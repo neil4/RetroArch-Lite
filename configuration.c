@@ -601,7 +601,7 @@ static void config_set_defaults(void)
    settings->menu.show_recording_menu          = show_recording_menu;
    settings->menu.show_core_updater_menu       = show_core_updater_menu;
 
-   global->menu.msg_box_width                  = 48;  /* RGUI 4:3 */
+   global->menu.msg_box_width                  = 57;  /* RGUI 16:10 */
 
    settings->ui.companion_start_on_boot             = true;
    settings->ui.menubar_enable                      = true;

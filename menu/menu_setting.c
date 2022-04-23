@@ -8002,7 +8002,7 @@ static bool setting_append_list_directory_options(
    {
       CONFIG_DIR(
             settings->core_content_directory,
-            "core_broswer_dir",
+            "core_browser_dir",
             "Core ROM Directory",
             "",
             "<default>",
