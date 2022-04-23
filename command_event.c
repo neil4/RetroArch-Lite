@@ -814,7 +814,11 @@ bool event_command(enum event_command cmd)
          rarch_update_configs();
 
          if (!*global->fullpath)
+         {
             core_config_file_load_auto();
+            if (menu_driver_alive())
+               menu_display_unset_viewport();
+         }
          global->max_scope = THIS_CORE;
 
          event_command(EVENT_CMD_LOAD_CORE_PERSIST);
