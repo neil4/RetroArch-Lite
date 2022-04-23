@@ -654,7 +654,7 @@ void menu_animation_update_time(menu_animation_t *anim)
       anim->delta_time = IDEAL_DT / 4;
    anim->old_time      = anim->cur_time;
 
-   if (anim->cur_time - last_clock_update > 1000000 && settings->menu.timedate_enable)
+   if (anim->cur_time - last_clock_update > 1000000 && settings->menu.timedate_mode)
    {
       anim->label.is_updated = true;
       last_clock_update = anim->cur_time;

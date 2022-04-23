@@ -29,6 +29,9 @@
 extern "C" {
 #endif
 
+#define NUM_TIMEDATE_MODES 8
+extern const char* menu_timedate_modes[NUM_TIMEDATE_MODES];
+
 typedef struct menu_framebuf
 {
    uint16_t *data;

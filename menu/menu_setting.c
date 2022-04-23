@@ -22,6 +22,7 @@
 #include "menu_input.h"
 #include "menu_setting.h"
 #include "menu_hash.h"
+#include "menu_display.h"
 
 #include "../configuration.h"
 #include "../general.h"
@@ -1965,6 +1966,15 @@ static void setting_get_string_representation_uint_libretro_log_level(void *data
 
    if (setting)
       strlcpy(s, modes[*setting->value.unsigned_integer],
+            len);
+}
+
+static void setting_get_string_timedate_mode(void *data, char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+
+   if (setting)
+      strlcpy(s, menu_timedate_modes[*setting->value.unsigned_integer],
             len);
 }
 
@@ -7507,19 +7517,20 @@ CONFIG_BOOL(
          general_read_handler);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
-   CONFIG_BOOL(
-         settings->menu.timedate_enable,
-         "menu_timedate_enable",
+   CONFIG_UINT(
+         settings->menu.timedate_mode,
+         "menu_timedate_mode",
          "Display time / date",
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
+         1,
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   menu_settings_list_current_add_range(list, list_info, 0,
+         NUM_TIMEDATE_MODES - 1, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_timedate_mode;
 
    CONFIG_BOOL(
          settings->menu.core_enable,

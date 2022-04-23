@@ -14,6 +14,7 @@
  */
 
 #include <time.h>
+#include <locale.h>
 
 #include "menu.h"
 #include "menu_display.h"
@@ -160,6 +161,8 @@ bool menu_display_init(void *data)
    if (!menu->display.animation)
       return false;
 
+   setlocale(LC_TIME, "");
+
    return true;
 }
 
@@ -297,6 +300,17 @@ void menu_display_unset_viewport(void)
          height, false, true);
 }
 
+const char* menu_timedate_modes[NUM_TIMEDATE_MODES] = {
+   "OFF",
+   "HH:MM",
+   "MM/DD HH:MM",
+   "Date HH:MM",
+   "Day MM/DD HH:MM",
+   "Day Date HH:MM",
+   "Time (locale)",
+   "DateTime (locale)"
+};
+
 size_t menu_display_timedate(char *s, size_t len, unsigned time_mode)
 {
    time_t time_;
@@ -304,14 +318,20 @@ size_t menu_display_timedate(char *s, size_t len, unsigned time_mode)
 
    switch (time_mode)
    {
-      case 0: /* Date and time */
-         return strftime(s, len, "%Y-%m-%d %H:%M:%S", localtime(&time_));
-      case 1: /* Date */
-         return strftime(s, len, "%Y-%m-%d", localtime(&time_));
-      case 2: /* Time */
-         return strftime(s, len, "%H:%M:%S", localtime(&time_));
-      case 3: /* Time (hours-minutes) */
+      case 1: /* HH:MM */
          return strftime(s, len, "%H:%M", localtime(&time_));
+      case 2: /* MM/DD HH:MM */
+         return strftime(s, len, "%m/%d %H:%M", localtime(&time_));
+      case 3: /* Date  HH:MM */
+         return strftime(s, len, "%b %d  %H:%M", localtime(&time_));
+      case 4: /* Day MM/DD HH:MM */
+         return strftime(s, len, "%a %m/%d %H:%M", localtime(&time_));
+      case 5: /* Day Date  HH:MM */
+         return strftime(s, len, "%a %b %d  %H:%M", localtime(&time_));
+      case 6: /* Time (locale) */
+         return strftime(s, len, "%X", localtime(&time_));
+      case 7: /* DateTime (local) */
+         return strftime(s, len, "%c", localtime(&time_));
       default:
          break;
    }

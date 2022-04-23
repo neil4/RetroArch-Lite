@@ -559,7 +559,7 @@ static void config_set_defaults(void)
    settings->menu.pause_libretro               = true;
    settings->menu.mouse.enable                 = menu_mouse_support;
    settings->menu.pointer.enable               = pointer_enable;
-   settings->menu.timedate_enable              = true;
+   settings->menu.timedate_mode                = 1;
    settings->menu.core_enable                  = true;
    settings->menu.dynamic_wallpaper_enable     = false;
    settings->menu.boxart_enable                = false;
@@ -1261,7 +1261,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, menu.pause_libretro, "menu_pause_libretro");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.mouse.enable,   "menu_mouse_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.pointer.enable, "menu_pointer_enable");
-   CONFIG_GET_BOOL_BASE(conf, settings, menu.timedate_enable,   "menu_timedate_enable");
+   CONFIG_GET_INT_BASE(conf, settings, menu.timedate_mode,   "menu_timedate_mode");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.core_enable,   "menu_core_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.dynamic_wallpaper_enable,   "menu_dynamic_wallpaper_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, menu.boxart_enable,   "menu_boxart_enable");
@@ -2135,7 +2135,7 @@ bool main_config_file_save(const char *path)
    config_set_bool(conf,"menu_pause_libretro", settings->menu.pause_libretro);
    config_set_bool(conf,"menu_mouse_enable", settings->menu.mouse.enable);
    config_set_bool(conf,"menu_pointer_enable", settings->menu.pointer.enable);
-   config_set_bool(conf,"menu_timedate_enable", settings->menu.timedate_enable);
+   config_set_int (conf,"menu_timedate_mode", settings->menu.timedate_mode);
    config_set_bool(conf,"menu_core_enable", settings->menu.core_enable);
    config_set_bool(conf,"menu_dynamic_wallpaper_enable", settings->menu.dynamic_wallpaper_enable);
    config_set_bool(conf,"menu_boxart_enable", settings->menu.boxart_enable);

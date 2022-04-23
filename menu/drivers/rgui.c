@@ -1043,9 +1043,10 @@ static void rgui_render(void)
          RGUI_TERM_START_Y - FONT_HEIGHT_STRIDE,
          FONT_WIDTH_STRIDE * offset, rgui_title_16b);
 
-   if (settings->menu.timedate_enable)
+   if (settings->menu.timedate_mode)
    {
-      len = menu_display_timedate(timedate, sizeof(timedate), 3);
+      len = menu_display_timedate(timedate, sizeof(timedate),
+                  settings->menu.timedate_mode);
       blit_line(timedate, len,
             RGUI_WIDTH - RGUI_TERM_START_X - len * FONT_WIDTH_STRIDE,
             (RGUI_TERM_HEIGHT * FONT_HEIGHT_STRIDE) + RGUI_TERM_START_Y + 2,

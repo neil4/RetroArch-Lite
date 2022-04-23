@@ -139,7 +139,7 @@ typedef struct settings
    {
       char driver[32];
       bool pause_libretro;
-      bool timedate_enable;
+      unsigned timedate_mode;
       bool core_enable;
       bool dynamic_wallpaper_enable;
       bool boxart_enable;
