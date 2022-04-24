@@ -274,6 +274,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
    menu_navigation_t *nav           = menu_navigation_get_ptr();
    menu_list_t *menu_list           = menu_list_get_ptr();
    settings_t *settings             = config_get_ptr();
+   global_t *global                 = global_get_ptr();
    struct retro_system_av_info *av_info = video_viewport_get_system_av_info();
 
    static video_viewport_t start_vp;
@@ -357,7 +358,10 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
             menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
          }
          else
+         {
+            global->menu.block_push = false;
             start_vp.width = 0;
+         }
          break;
 
       case MENU_ACTION_OK:
@@ -375,7 +379,10 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
             menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
          }
          else
+         {
+            global->menu.block_push = false;
             start_vp.width = 0;
+         }
          break;
 
       case MENU_ACTION_START:  /* reset to default aspect */
@@ -684,7 +691,6 @@ static int action_iterate_main(const char *label, unsigned action)
    size_t selected, *pop_selected = false;
    bool do_messagebox        = false;
    bool do_pop_stack         = false;
-   bool do_post_iterate      = false;
    bool do_render            = false;
    int ret                   = 0;
    global_t *global          = global_get_ptr();
@@ -705,13 +711,13 @@ static int action_iterate_main(const char *label, unsigned action)
          pop_selected    = NULL;
          do_messagebox   = true;
          do_pop_stack    = true;
-         do_post_iterate = true;
          break;
       case ITERATE_TYPE_BIND:
          if (menu_input_bind_iterate(hash))
             menu_list_pop_stack(menu_list);
          break;
       case ITERATE_TYPE_VIEWPORT:
+         global->menu.block_push = true;
          ret = action_iterate_menu_viewport(msg, sizeof(msg), label, action, hash);
          break;
       case ITERATE_TYPE_INFO:
@@ -719,7 +725,6 @@ static int action_iterate_main(const char *label, unsigned action)
          pop_selected    = &nav->selection_ptr;
          do_messagebox   = true;
          do_pop_stack    = true;
-         do_post_iterate = true;
          break;
       case ITERATE_TYPE_ZIP:
          ret = action_iterate_load_open_zip(label, msg, sizeof(msg), action);
@@ -753,7 +758,6 @@ static int action_iterate_main(const char *label, unsigned action)
          if (ret)
             return ret;
 
-         do_post_iterate = true;
          do_render       = true;
 
          /* Have to defer it so we let settings refresh. */
@@ -783,9 +787,6 @@ static int action_iterate_main(const char *label, unsigned action)
    if (do_pop_stack && (action == MENU_ACTION_OK
                         || action == MENU_ACTION_CANCEL))
       menu_list_pop(menu_list->menu_stack, pop_selected);
-   
-   if (do_post_iterate)
-      menu_input_post_iterate(&ret, action);
 
    if (do_render)
       menu_driver_render();

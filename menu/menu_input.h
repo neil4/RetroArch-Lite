@@ -143,7 +143,6 @@ typedef struct menu_input
       bool    hwheeldown;
       bool    show;
       unsigned ptr;
-      uint64_t state;
    } mouse;
 
    struct
@@ -156,8 +155,8 @@ typedef struct menu_input
       int16_t old_y;
       int16_t start_x;
       int16_t start_y;
-      bool pressed[2];
-      bool oldpressed[2];
+      bool pressed;
+      bool oldpressed;
       bool dragging;
       unsigned ptr;
    } pointer;
@@ -197,8 +196,6 @@ void menu_input_st_cheat_callback(void *userdata, const char *str);
 int menu_input_bind_iterate(uint32_t label_hash);
 
 unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_state);
-
-void menu_input_post_iterate(int *ret, unsigned action);
 
 void menu_input_search_start(void);
 
