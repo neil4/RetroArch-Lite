@@ -673,7 +673,7 @@ static int action_ok_libretro_device_type(const char *path,
    return menu_displaylist_push_list(&info, DISPLAYLIST_SETTINGS);
 }
 
-static int action_ok_mouse_overlay_settings(const char *path,
+static int action_ok_overlay_mouse_settings(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    menu_displaylist_info_t info = {0};
@@ -1248,7 +1248,7 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          cbs->action_ok = action_ok_disk_image_append_list;
          break;
       case MENU_LABEL_OVERLAY_MOUSE_SETTINGS:
-         cbs->action_ok = action_ok_mouse_overlay_settings;
+         cbs->action_ok = action_ok_overlay_mouse_settings;
       default:
          return -1;
    }
