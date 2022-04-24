@@ -831,22 +831,22 @@ static int zlib_get_file_list_cb(const char *path, const char *valid_exts,
       last_char = path[strlen(path)-1];
 
       if (last_char == '/' || last_char == '\\' ) /* Skip if directory. */
-         goto error;
+         goto end;
 
       file_ext = path_get_extension(path);
 
       if (!file_ext || 
             !string_list_find_elem_prefix(ext_list, ".", file_ext))
-         goto error;
+         goto end;
 
       attr.i = RARCH_COMPRESSED_FILE_IN_ARCHIVE;
       string_list_free(ext_list);
    }
 
    return string_list_append(list, path, attr);
-error:
+end:
    string_list_free(ext_list);
-   return 0;
+   return 1;
 }
 
 /**
