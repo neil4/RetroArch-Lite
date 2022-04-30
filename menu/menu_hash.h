@@ -101,6 +101,12 @@ extern "C" {
 #define MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET                               0x93ac8293U
 #define MENU_LABEL_OVERLAY_PRESET                                              0x24e24796U
 #define MENU_LABEL_VALUE_OVERLAY_PRESET                                        0x8338e89aU
+#define MENU_LABEL_OVERLAY_ASPECT_RATIO_INDEX                                  0x8fda534aU
+#define MENU_LABEL_OVERLAY_DPAD_EIGHTWAY_METHOD                                0x6fbc2cceU
+#define MENU_LABEL_OVERLAY_ABXY_EIGHTWAY_METHOD                                0x7fa6bac9U
+#define MENU_LABEL_OVERLAY_DPAD_DIAGONAL_SENS                                  0x1de994f6U
+#define MENU_LABEL_OVERLAY_ABXY_DIAGONAL_SENS                                  0x2dcf7e31U
+#define MENU_LABEL_OVERLAY_EIGHTWAY_TOUCH_MAGNIFY                              0x82fc628eU
 #define MENU_LABEL_OVERLAY_OPACITY                                             0xc466fbaeU
 #define MENU_LABEL_VALUE_OVERLAY_OPACITY                                       0x98605740U
 
@@ -143,10 +149,12 @@ extern "C" {
 #define MENU_LABEL_REWIND_ENABLE                                               0x9761e074U
 #define MENU_LABEL_VALUE_REWIND_ENABLE                                         0xce8cc18eU
 #define MENU_LABEL_ENABLE_HOTKEY                                               0xc04037bfU
+#define MENU_LABEL_KEYBOARD_FOCUS_HOTKEY                                       0x423d38f6U
 #define MENU_LABEL_DISK_EJECT_TOGGLE                                           0x49633fbbU
 #define MENU_LABEL_DISK_NEXT                                                   0xeeaf6c6eU
 #define MENU_LABEL_GRAB_MOUSE_TOGGLE                                           0xb2869aaaU
 #define MENU_LABEL_MENU_TOGGLE                                                 0xfb22e3dbU
+#define MENU_LABEL_MENU_TOGGLE_BTN_COMBO                                       0x8f14b89cU
 #define MENU_LABEL_STATE_SLOT_DECREASE                                         0xe48b8082U
 #define MENU_LABEL_STATE_SLOT_INCREASE                                         0x36a0cbb0U
 
@@ -178,6 +186,23 @@ extern "C" {
 #define MENU_LABEL_SLOWMOTION_RATIO                                            0x626b3ffeU
 #define MENU_LABEL_INPUT_AXIS_THRESHOLD                                        0xe95c2095U
 #define MENU_LABEL_INPUT_AUTODETECT_ENABLE                                     0xb1e07facU
+#define MENU_LABEL_INPUT_HOST_DEVICE_1                                         0xfad6ab2fU
+#define MENU_LABEL_INPUT_HOST_DEVICE_2                                         0x3616e4d0U
+#define MENU_LABEL_INPUT_HOST_DEVICE_3                                         0x71571e71U
+#define MENU_LABEL_INPUT_HOST_DEVICE_4                                         0xac975812U
+#define MENU_LABEL_INPUT_LIBRETRO_DEVICE_1                                     0x4d049cc6U
+#define MENU_LABEL_INPUT_LIBRETRO_DEVICE_2                                     0x4d049cc7U
+#define MENU_LABEL_INPUT_LIBRETRO_DEVICE_3                                     0x4d049cc8U
+#define MENU_LABEL_INPUT_LIBRETRO_DEVICE_4                                     0x4d049cc9U
+#define MENU_LABEL_INPUT_BIND_ALL_PORT_1                                       0xa1013646U
+#define MENU_LABEL_INPUT_BIND_ALL_PORT_1                                       0xa1013646U
+#define MENU_LABEL_INPUT_BIND_ALL_PORT_2                                       0xa50bc767U
+#define MENU_LABEL_INPUT_BIND_ALL_PORT_3                                       0xa9165888U
+#define MENU_LABEL_INPUT_BIND_ALL_PORT_4                                       0xad20e9a9U
+#define MENU_LABEL_INPUT_TURBO_BIND_ENABLE                                     0x024920d5U
+#define MENU_LABEL_INPUT_ANALOG_DPAD_MODE                                      0xc39b1842U
+#define MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS                             0x95ed878eU
+#define MENU_LABEL_INPUT_BIND_MODE                                             0x90281b55U
 
 #define MENU_LABEL_CAMERA_ALLOW                                                0xc14d302cU
 #define MENU_LABEL_LOCATION_ALLOW                                              0xf089275cU
@@ -390,7 +415,7 @@ extern "C" {
 #define MENU_LABEL_EXIT_EMULATOR                                               0x86d5d467U
 #define MENU_LABEL_SHARED_CONTEXT                                              0x7d7dad16U
 #define MENU_LABEL_DUMMY_ON_CORE_SHUTDOWN                                      0x78579f70U
-#define MENU_LABEL_LIBRETRO_DEVICE_SCOPE                                       0x5c263a70U
+#define MENU_LABEL_LIBRETRO_DEVICE_SCOPE                                       0xb4cf4a7fU
 #define MENU_LABEL_INPUT_TURBO_ID                                              0xc8fd7d5dU
 
 #define MENU_VALUE_SECONDS                                                     0x8b0028d4U

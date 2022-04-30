@@ -1016,13 +1016,15 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
    unsigned p, retro_id;
    settings_t *settings   = config_get_ptr();
    bool        kbd_shown  = false;
-   char buf[32];
+   char buf1[32];
+   char buf2[32];
 
    for (p = 0; p < settings->input.max_users; p++)
    {
-      snprintf(buf, sizeof(buf), "Port %u Virtual Device", p+1);
-      menu_list_push(info->list, buf, "",
-         MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN + p, 0, 0);
+      snprintf(buf1, sizeof(buf1), "Port %u Virtual Device", p+1);
+      snprintf(buf2, sizeof(buf2), "input_libretro_device_p%u", p+1);
+      menu_list_push(info->list, buf1, buf2,
+            MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN + p, 0, 0);
    }
 
    menu_list_push(info->list, settings->input.max_users > 1 ?

@@ -2879,12 +2879,17 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                " -- Toggles menu.");
          break;
+      case MENU_LABEL_MENU_TOGGLE_BTN_COMBO:
+         snprintf(s, len,
+               " -- Toggles menu with a\n"
+               "RetroPad button combination.\n");
+         break;
       case MENU_LABEL_GRAB_MOUSE_TOGGLE:
          snprintf(s, len,
                " -- Toggles mouse grab.\n"
                " \n"
                "When mouse is grabbed, RetroArch hides the \n"
-               "mouse, and keeps the mouse pointer inside \n"
+               "mouse and keeps the mouse pointer inside \n"
                "the window to allow relative mouse input to \n"
                "work better.");
          break;
@@ -2933,9 +2938,21 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_DISK_EJECT_TOGGLE:
          snprintf(s, len,
-               " -- Toggles eject for disks.\n"
+               " -- Toggles eject for discs.\n"
                " \n"
-               "Used for multiple-disk content.");
+               "Used for multiple-disc content.");
+         break;
+      case MENU_LABEL_KEYBOARD_FOCUS_HOTKEY:
+         snprintf(s, len,
+               " -- Disables keyboard RetroPad binds and\n"
+               "keyboard hotkey binds when not in menu.\n"
+               " \n"
+               "Usually necessary for cores that need\n"
+               "keyboard input.\n"
+               " \n"
+               "Does not affect other input devices or\n"
+               "the Keyboard Focus hotkey itself.\n"
+               );
          break;
       case MENU_LABEL_ENABLE_HOTKEY:
          snprintf(s, len,
@@ -2944,12 +2961,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " If this hotkey is bound to either keyboard, \n"
                "joybutton or joyaxis, all other hotkeys will \n"
                "be disabled unless this hotkey is also held \n"
-               "at the same time. \n"
-               " \n"
-               "This is useful for RETRO_KEYBOARD centric \n"
-               "implementations which query a large area of \n"
-               "the keyboard, where it is not desirable that \n"
-               "hotkeys get in the way.");
+               "at the same time. \n");
          break;
       case MENU_LABEL_REWIND_ENABLE:
          snprintf(s, len,
@@ -3018,13 +3030,116 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_CORE_THROTTLE_ENABLE:
          snprintf(s, len,
-               " -- Explicitly throttles core speed.\n"
-               "RetroArch will sleep between frames to ensure\n"
-               "the specified framerate is not exceeded.\n"
-               " \n"
-               "Note: Separate from video & audio sync,\n"
-               "which also limit core speed.\n"
+               " -- Throttles core speed separately from\n"
+               "video & audio sync. RetroArch will sleep\n"
+               "between frames to ensure the specified\n"
+               "framerate is not exceeded.\n"
                );
+         break;
+      case MENU_LABEL_INPUT_BIND_MODE:
+         snprintf(s, len,
+               " -- Selects hardware device type to\n"
+               "be mapped by 'Bind All'.\n");
+         break;
+      case MENU_LABEL_INPUT_HOST_DEVICE_1:
+      case MENU_LABEL_INPUT_HOST_DEVICE_2:
+      case MENU_LABEL_INPUT_HOST_DEVICE_3:
+      case MENU_LABEL_INPUT_HOST_DEVICE_4:
+         snprintf(s, len,
+               " -- Physical joypad device\n"
+               "assigned to this port.\n");
+         break;
+      case MENU_LABEL_INPUT_LIBRETRO_DEVICE_1:
+      case MENU_LABEL_INPUT_LIBRETRO_DEVICE_2:
+      case MENU_LABEL_INPUT_LIBRETRO_DEVICE_3:
+      case MENU_LABEL_INPUT_LIBRETRO_DEVICE_4:
+         snprintf(s, len,
+               " -- Core-provided input device type.\n"
+               " \n"
+               "Defaults to RetroPad.\n");
+         break;
+      case MENU_LABEL_INPUT_BIND_ALL_PORT_1:
+      case MENU_LABEL_INPUT_BIND_ALL_PORT_2:
+      case MENU_LABEL_INPUT_BIND_ALL_PORT_3:
+      case MENU_LABEL_INPUT_BIND_ALL_PORT_4:
+         snprintf(s, len,
+               " -- Maps joypad (host device) or keyboard keys\n"
+               "to the generic RetroPad for menu and core input.\n"
+               " \n"
+               "RetroPad 'Start' reapplies default binds.\n"
+               " \n"
+               "When a core is running, use Input Remapping\n"
+               "to map from RetroPad to a virtual device.\n");
+         break;
+      case MENU_LABEL_INPUT_TURBO_BIND_ENABLE:
+         snprintf(s, len,
+               " -- Adds a turbo bind to each port\n"
+               "in Input Remapping.\n");
+         break;
+      case MENU_LABEL_INPUT_TURBO_ID:
+         snprintf(s, len,
+               " -- Selects the virtual device button to\n"
+               "have a turbo bind.\n"
+               " \n"
+               "Choosing 'All' applies turbo to the set\n"
+               "{A,B,X,Y,L,R,L2,R2} (before remapping).\n");
+         break;
+      case MENU_LABEL_INPUT_ANALOG_DPAD_MODE:
+         snprintf(s, len,
+               " -- Creates D-Pad input from either\n"
+               "analog stick.\n"
+               " \n"
+               "Does not disable existing analog input.\n");
+         break;
+      case MENU_LABEL_OVERLAY_DPAD_EIGHTWAY_METHOD:
+      case MENU_LABEL_OVERLAY_ABXY_EIGHTWAY_METHOD:
+         snprintf(s, len,
+               " -- Input method for this eight-way area type.\n"
+               " \n"
+               "'Vector' uses direction from area center.\n"
+               " \n"
+               "'Contact Area' uses touch area at the\n"
+               "point of contact (if provided by API)\n"
+               "to determine buttons pressed. Accuracy\n"
+               "varies by device.\n"
+               " \n"
+               "Note: Diagonal Sensitivity is N/A for\n"
+               "'Contact Area'.\n");
+         break;
+      case MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS:
+      case MENU_LABEL_OVERLAY_DPAD_DIAGONAL_SENS:
+         snprintf(s, len,
+               " -- Adjusts diagonal areas.\n"
+               " \n"
+               "Set to 100%% for eight-way symmetry.\n"
+               "Set to 0%% for no diagonals.\n");
+         break;
+      case MENU_LABEL_OVERLAY_ABXY_DIAGONAL_SENS:
+         snprintf(s, len,
+               " -- Adjusts button overlap areas.\n"
+               " \n"
+               "Set to 100%% for eight-way symmetry.\n"
+               "Set to 0%% for no button overlap.\n");
+         break;
+      case MENU_LABEL_OVERLAY_EIGHTWAY_TOUCH_MAGNIFY:
+         snprintf(s, len,
+               " -- Magnifies or shrinks the touch contact\n"
+               "size for D-Pad and ABXY areas.\n"
+               " \n"
+               "Only applies to 'Contact Area' and\n"
+               "'Vector + Area' methods.\n");
+         break;
+      case MENU_LABEL_OVERLAY_ASPECT_RATIO_INDEX:
+         snprintf(s, len,
+               " -- Sets the aspect ratio of the\n"
+               "active overlay.\n"
+               " \n"
+               "'Auto (Free)' finds the aspect ratio\n"
+               "that best preserves the image aspect\n"
+               "ratios.\n"
+               " \n"
+               "'Auto (Index)' is similar but chooses\n"
+               "from a set of typical aspect ratios.\n");
          break;
       case MENU_LABEL_VIDEO_MONITOR_INDEX:
          snprintf(s, len,
@@ -3250,7 +3365,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " -- VSync Swap Interval.\n"
                " \n"
                "Custom swap interval for VSync. Set this \n"
-               "to 2 to effectively halve the monitor \n"
+               "to effectively divide the monitor \n"
                "refresh rate.");
          break;
       case MENU_LABEL_VIDEO_FAKE_SWAP_INTERVAL:
@@ -6166,11 +6281,11 @@ static bool setting_append_list_input_options(
 
    CONFIG_BOOL(
          global->menu.bind_mode_keyboard,
-         "input_bind_mode",
+         menu_hash_to_str(MENU_LABEL_INPUT_BIND_MODE),
          "Bind Mode",
          false,
-         "RetroPad",
-         "RetroKeyboard",
+         "Joypad",
+         "Keyboard",
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -6254,7 +6369,7 @@ static bool setting_append_list_input_options(
 
    CONFIG_UINT(
          settings->input.libretro_device_scope,
-         "input_libretro_device_scope",
+         menu_hash_to_str(MENU_LABEL_LIBRETRO_DEVICE_SCOPE),
          settings->input.max_users > 1 ?
          "Virtual Devices Scope" : "Virtual Device Scope",
          (core_loaded ? THIS_CORE : GLOBAL),
@@ -6285,7 +6400,7 @@ static bool setting_append_list_input_options(
 
    CONFIG_BOOL(
          settings->input.turbo_binds_enable,
-         "input_turbo_binds_enable",
+         menu_hash_to_str(MENU_LABEL_INPUT_TURBO_BIND_ENABLE),
          "Enable Turbo Bind",
          false,
          menu_hash_to_str(MENU_VALUE_OFF),
@@ -6333,7 +6448,7 @@ static bool setting_append_list_input_options(
 
    CONFIG_UINT(
          settings->input.analog_dpad_mode,
-         "input_analog_dpad_mode",
+         menu_hash_to_str(MENU_LABEL_INPUT_ANALOG_DPAD_MODE),
          "Analog To D-Pad Mode",
          ANALOG_DPAD_NONE,
          group_info.name,
@@ -6348,7 +6463,7 @@ static bool setting_append_list_input_options(
 
    CONFIG_FLOAT(
          settings->input.analog_diagonal_sensitivity,
-         "input_analog_diagonal_sensitivity",
+         menu_hash_to_str(MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS),
          "  Diagonal Sensitivity",
          analog_diagonal_sensitivity,
          "%.0f%%",
@@ -6544,7 +6659,7 @@ static bool setting_append_list_overlay_options(
 
    CONFIG_UINT(
          settings->input.overlay_aspect_ratio_index,
-         "input_overlay_aspect_ratio_index",
+         menu_hash_to_str(MENU_LABEL_OVERLAY_ASPECT_RATIO_INDEX),
          "  Assumed Overlay Aspect",
          OVERLAY_ASPECT_RATIO_AUTO_INDEX,
          group_info.name,
@@ -6658,7 +6773,7 @@ static bool setting_append_list_overlay_options(
 
    CONFIG_UINT(
          settings->input.overlay_dpad_method,
-         "input_overlay_dpad_method",
+         menu_hash_to_str(MENU_LABEL_OVERLAY_DPAD_EIGHTWAY_METHOD),
          "D-Pad Input Method",
          VECTOR,
          group_info.name,
@@ -6675,7 +6790,7 @@ static bool setting_append_list_overlay_options(
    
    CONFIG_FLOAT(
          settings->input.overlay_dpad_diag_sens,
-         "input_overlay_dpad_diagonal_sensitivity",
+         menu_hash_to_str(MENU_LABEL_OVERLAY_DPAD_DIAGONAL_SENS),
          settings->menu.show_advanced_settings ?
             "  Diagonal Sensitivity" :
             "D-Pad Diagonal Sensitivity",
@@ -6693,7 +6808,7 @@ static bool setting_append_list_overlay_options(
    
    CONFIG_UINT(
          settings->input.overlay_abxy_method,
-         "input_overlay_abxy_method",
+         menu_hash_to_str(MENU_LABEL_OVERLAY_ABXY_EIGHTWAY_METHOD),
          "ABXY Input Method",
          VECTOR_AND_AREA,
          group_info.name,
@@ -6710,7 +6825,7 @@ static bool setting_append_list_overlay_options(
    
    CONFIG_FLOAT(
          settings->input.overlay_abxy_diag_sens,
-         "input_overlay_abxy_diagonal_sensitivity",
+         menu_hash_to_str(MENU_LABEL_OVERLAY_ABXY_DIAGONAL_SENS),
          settings->menu.show_advanced_settings ?
             "  Diagonal Sensitivity" :
             "ABXY Diagonal Sensitivity",

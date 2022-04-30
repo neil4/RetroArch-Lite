@@ -280,6 +280,26 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "input_remapping";
       case MENU_LABEL_VALUE_INPUT_REMAPPING:
          return "Input Remapping";
+      case MENU_LABEL_INPUT_TURBO_BIND_ENABLE:
+         return "input_turbo_binds_enable";
+      case MENU_LABEL_OVERLAY_ASPECT_RATIO_INDEX:
+         return "input_overlay_aspect_ratio_index";
+      case MENU_LABEL_INPUT_ANALOG_DPAD_MODE:
+         return "input_analog_dpad_mode";
+      case MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS:
+         return "input_analog_diagonal_sensitivity";
+      case MENU_LABEL_INPUT_BIND_MODE:
+         return "input_bind_mode";
+      case MENU_LABEL_OVERLAY_DPAD_EIGHTWAY_METHOD:
+         return "input_overlay_dpad_method";
+      case MENU_LABEL_OVERLAY_ABXY_EIGHTWAY_METHOD:
+         return "input_overlay_abxy_method";
+      case MENU_LABEL_OVERLAY_DPAD_DIAGONAL_SENS:
+         return "input_overlay_dpad_diagonal_sensitivity";
+      case MENU_LABEL_OVERLAY_ABXY_DIAGONAL_SENS:
+         return "input_overlay_abxy_diagonal_sensitivity";
+      case MENU_LABEL_OVERLAY_EIGHTWAY_TOUCH_MAGNIFY:
+         return "input_touch_ellipse_magnify";
       case MENU_LABEL_VALUE_VIDEO_OPTIONS:
          return "Video Options";
       case MENU_LABEL_VALUE_SHADER_OPTIONS:
@@ -319,7 +339,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_CORE_OPTION_CATEGORIES:
          return "core_option_categories";
       case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
-         return "libretro_device_scope";
+         return "input_libretro_device_scope";
       case MENU_LABEL_INPUT_TURBO_ID:
          return "turbo_id";
       case MENU_LABEL_JOYPAD_TO_KEYBOARD_BIND:
