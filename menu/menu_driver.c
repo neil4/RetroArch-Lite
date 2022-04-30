@@ -397,30 +397,20 @@ void menu_driver_wrap_text(char *buf, const unsigned msg_len,
  * menu_driver_sublabel_to_messagebox:
  * @param buf           : Output buffer
  * @param text          : Input
- * @param title         : Title; can be NULL
  * @param buf_size      : Output buffer array size
  *
  * Wraps @text for a messagebox, removing indents and replacing newlines
  * with bullet chars
  **/
 void menu_driver_sublabel_to_messagebox(char *buf, const char *text,
-      const char *title, const unsigned buf_size)
+      const unsigned buf_size)
 {
    int last_nonspace = 0;
-   int j = 0;
-   int msg_start, i;
+   int i, j = 0;
 
-   if (title)
+   for (i = 0; text[j] && i < buf_size - 1; i++)
    {
-      strlcpy(buf, title, buf_size);
-      msg_start = strlcat(buf, "\n", buf_size);
-   }
-   else
-      msg_start = 0;
-
-   for (i = msg_start; text[j] && i < buf_size - 1; i++, j++)
-   {
-      buf[i] = text[j];
+      buf[i] = text[j++];
 
       /* Replace [spaces +] newline with space + bullet */
       if (buf[i] == '\n')
@@ -428,6 +418,9 @@ void menu_driver_sublabel_to_messagebox(char *buf, const char *text,
          buf[last_nonspace + 1] = ' ';
          buf[last_nonspace + 2] = (char)149;
          i = last_nonspace + 2;
+
+         /* Remove indent */
+         while (text[j] == ' ') j++;
       }
 
       if (buf[i] != ' ')
@@ -436,7 +429,7 @@ void menu_driver_sublabel_to_messagebox(char *buf, const char *text,
 
    buf[i] = '\0';
 
-   menu_driver_wrap_text(buf + msg_start, i - msg_start, 48);
+   menu_driver_wrap_text(buf, i, 48);
 }
 
 void menu_driver_render_messagebox(const char *msg)

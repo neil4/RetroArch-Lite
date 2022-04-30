@@ -180,7 +180,7 @@ void menu_driver_wrap_text(char *buf, const unsigned msg_len,
       const unsigned line_width);
 
 void menu_driver_sublabel_to_messagebox(char *buf, const char *text,
-      const char *title, const unsigned buf_len);
+      const unsigned buf_len);
 
 void menu_driver_populate_entries(const char *path, const char *label,
          unsigned k);
