@@ -1368,17 +1368,23 @@ static int setting_action_audio_dsp_filter(void *data)
 
 static int setting_action_ok_bind_all(void *data, bool wraparound)
 {
-   global_t      *global     = global_get_ptr();
+   global_t        *global   = global_get_ptr();
+   rarch_setting_t *setting  = (rarch_setting_t*)data;
+   unsigned         port     = setting ? setting->index_offset : 0;
 
    (void)wraparound;
+
+   /* check for retropad-to-keyboard device type (always joypad 1) */
+   if (port > 0 && setting_joypad_index_map(port) == 0)
+      setting = menu_setting_find("input_player1_bind_all");
 
    if (!global)
       return -1;
 
    if (global->menu.bind_mode_keyboard)
-      menu_input_set_keyboard_bind_mode(data, MENU_INPUT_BIND_ALL);
+      menu_input_set_keyboard_bind_mode(setting, MENU_INPUT_BIND_ALL);
    else
-      menu_input_set_input_device_bind_mode(data, MENU_INPUT_BIND_ALL);
+      menu_input_set_input_device_bind_mode(setting, MENU_INPUT_BIND_ALL);
 
    return 0;
 }
@@ -1389,11 +1395,16 @@ static int setting_action_ok_bind_defaults(void *data)
    struct retro_keybind *target = NULL;
    const struct retro_keybind *def_binds = NULL;
    rarch_setting_t *setting  = (rarch_setting_t*)data;
+   unsigned port             = setting ? setting->index_offset : 0;
    menu_input_t *menu_input  = menu_input_get_ptr();
    settings_t    *settings   = config_get_ptr();
    global_t      *global     = global_get_ptr();
    driver_t      *driver     = driver_get_ptr();
    char buf[64];
+
+   /* check for retropad-to-keyboard device type (always joypad 1) */
+   if (port > 0 && setting_joypad_index_map(port) == 0)
+      setting = menu_setting_find("input_player1_bind_all");
 
    if (!menu_input)
       return -1;
@@ -1423,7 +1434,7 @@ static int setting_action_ok_bind_defaults(void *data)
       }
    }
 
-   snprintf(buf, sizeof(buf), "Default binds applied for User %u.",
+   snprintf(buf, sizeof(buf), "Default binds applied for Port %u.",
             setting->index_offset + 1);
    rarch_main_msg_queue_push(buf, 1, 100, true);
 
