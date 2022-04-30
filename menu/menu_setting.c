@@ -8554,6 +8554,12 @@ rarch_setting_t *menu_setting_new(unsigned mask)
          goto error;
    }
 
+   if (mask & SL_FLAG_INPUT_HOTKEY_OPTIONS)
+   {
+      if (!setting_append_list_input_hotkey_options(&list, list_info, root))
+         goto error;
+   }
+
    if (mask & SL_FLAG_CORE_OPTIONS)
    {
       if (!setting_append_list_core_options(&list, list_info, root))
@@ -8563,12 +8569,6 @@ rarch_setting_t *menu_setting_new(unsigned mask)
    if (mask & SL_FLAG_MENU_OPTIONS)
    {
       if (!setting_append_list_menu_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_INPUT_HOTKEY_OPTIONS)
-   {
-      if (!setting_append_list_input_hotkey_options(&list, list_info, root))
          goto error;
    }
 
