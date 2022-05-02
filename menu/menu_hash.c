@@ -284,6 +284,18 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "input_turbo_binds_enable";
       case MENU_LABEL_OVERLAY_ASPECT_RATIO_INDEX:
          return "input_overlay_aspect_ratio_index";
+      case MENU_LABEL_OVERLAY_SHIFT_Y:
+         return "input_overlay_adjust_vertical";
+      case MENU_LABEL_OVERLAY_SHIFT_Y_LOCK_EDGES:
+         return "input_overlay_adjust_vertical_lock_edges";
+      case MENU_LABEL_OVERLAY_BISECT_TO_ASPECT:
+         return "input_overlay_bisect_aspect_ratio";
+      case MENU_LABEL_OVERLAY_MOUSE_HOLD_TO_DRAG:
+         return "input_overlay_mouse_hold_to_drag";
+      case MENU_LABEL_OVERLAY_MOUSE_HOLD_MS:
+         return "input_overlay_mouse_hold_ms";
+      case MENU_LABEL_OVERLAY_MOUSE_HOLD_ZONE:
+         return "input_overlay_mouse_hold_zone";
       case MENU_LABEL_INPUT_ANALOG_DPAD_MODE:
          return "input_analog_dpad_mode";
       case MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS:

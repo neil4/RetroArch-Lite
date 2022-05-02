@@ -97,6 +97,12 @@ extern "C" {
 #define MENU_LABEL_PERFCNT_ENABLE                                              0x6823dbddU
 #define MENU_LABEL_OVERLAY_SCALE                                               0x2dce2a3dU
 #define MENU_LABEL_VALUE_OVERLAY_SCALE                                         0x4237794fU
+#define MENU_LABEL_OVERLAY_BISECT_TO_ASPECT                                    0x0c535c4cU
+#define MENU_LABEL_OVERLAY_SHIFT_Y                                             0x38b82639U
+#define MENU_LABEL_OVERLAY_SHIFT_Y_LOCK_EDGES                                  0x7e98bce8U
+#define MENU_LABEL_OVERLAY_MOUSE_HOLD_TO_DRAG                                  0x043156a3U
+#define MENU_LABEL_OVERLAY_MOUSE_HOLD_MS                                       0x3b937a63U
+#define MENU_LABEL_OVERLAY_MOUSE_HOLD_ZONE                                     0x6e62bd9fU
 #define MENU_LABEL_KEYBOARD_OVERLAY_PRESET                                     0x11f1c582U
 #define MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET                               0x93ac8293U
 #define MENU_LABEL_OVERLAY_PRESET                                              0x24e24796U

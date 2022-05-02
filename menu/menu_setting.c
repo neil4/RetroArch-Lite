@@ -2698,29 +2698,6 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                break;
          }
          break;
-      case MENU_LABEL_VIDEO_SHADER_PRESET:
-         snprintf(s, len,
-               " -- Load Shader Preset. \n"
-               " \n"
-               " Load and run a "
-#ifdef HAVE_CG
-               "Cg"
-#endif
-#ifdef HAVE_GLSL
-#ifdef HAVE_CG
-               "/"
-#endif
-               "GLSL"
-#endif
-#ifdef HAVE_HLSL
-#if defined(HAVE_CG) || defined(HAVE_HLSL)
-               "/"
-#endif
-               "HLSL"
-#endif
-               " preset."
-               );
-         break;
       case MENU_LABEL_VIDEO_SHADER_SCALE_PASS:
          snprintf(s, len,
                " -- Scale for this pass. \n"
@@ -2753,18 +2730,14 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "'Save Preset', you use a 'blank' shader. \n"
                " \n"
                "The Default Filter option will affect the \n"
-               "stretching filter.");
+               "stretching filter. \n"
+               " \n"
+               "Changes are not applied until saved. \n");
          break;
       case MENU_LABEL_VIDEO_SHADER_PARAMETERS:
          snprintf(s, len,
-               "-- Shader Parameters. \n"
-               " \n"
-               "Modifies current shader without saving changes. \n"
-               "Use 'Save Preset' or 'Save Preset As' to save \n"
-               "changes to a Shader Preset file. \n"
-               " \n"
-               "Note: Parameter list is updated only after \n"
-               "a preset is loaded or saved. ");
+               "-- Modifies current shader(s)\n"
+               "without saving changes.\n");
          break;
       case MENU_LABEL_VIDEO_SHADER_PASS:
          snprintf(s, len,
@@ -2773,10 +2746,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "All shaders must be of the same \n"
                "type (i.e. CG, GLSL or HLSL). \n"
                " \n"
-               "Set Shader Directory to set where \n"
-               "the browser starts to look for \n"
-               "shaders."
-               );
+               "Changes are not applied until saved.\n");
          break;
       case MENU_LABEL_CONFIG_SAVE_ON_EXIT:
          snprintf(s, len,
@@ -2857,14 +2827,14 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_SHADER_APPLY_CHANGES:
          snprintf(s, len,
-               " -- Save Preset. \n"
+               " -- Saves current preset. \n"
                " \n"
                "After changing shader settings, use this to \n"
                "save changes to the current Shader Preset. \n"
                " \n"
-               "If no Shader Preset is loaded, a placeholder \n"
-               "(temporary.cgp or temporary.glslp) is created. \n"
-               "The file persists after RetroArch exits."
+               "If no preset is loaded, a placeholder \n"
+               "(temporary.glslp) is created. The file\n"
+               "persists after RetroArch exits."
                );
          break;
       case MENU_LABEL_INPUT_BIND_DEVICE_ID:
@@ -2881,8 +2851,8 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_MENU_TOGGLE_BTN_COMBO:
          snprintf(s, len,
-               " -- Toggles menu with a\n"
-               "RetroPad button combination.\n");
+               " -- Toggles menu with a joypad\n"
+               "button combination.\n");
          break;
       case MENU_LABEL_GRAB_MOUSE_TOGGLE:
          snprintf(s, len,
@@ -2903,13 +2873,24 @@ static int setting_get_description_compare_label(uint32_t label_hash,
       case MENU_LABEL_VIDEO_FILTER:
 #ifdef HAVE_FILTERS_BUILTIN
          snprintf(s, len,
-               " -- CPU-based video filter.");
+               " -- Applies a CPU-powered video filter.\n");
 #else
          snprintf(s, len,
-               " -- CPU-based video filter.\n"
+               " -- Applies a CPU-powered video filter.\n"
                " \n"
                "Path to a dynamic library.");
 #endif
+         break;
+      case MENU_LABEL_VIDEO_SHADER_PRESET:
+         snprintf(s, len,
+               " -- Alters the image using GPU shaders.\n"
+               " \n"
+               "Path to shader preset.");
+         break;
+      case MENU_LABEL_SHADER_OPTIONS:
+         snprintf(s, len,
+               " -- Adjust parameters for the current \n"
+               "shader preset, or set up a new preset.\n");
          break;
       case MENU_LABEL_AUDIO_DEVICE:
          snprintf(s, len,
@@ -2944,14 +2925,13 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_KEYBOARD_FOCUS_HOTKEY:
          snprintf(s, len,
-               " -- Disables keyboard RetroPad binds and\n"
-               "keyboard hotkey binds when not in menu.\n"
+               " -- Disables the keyboard's RetroPad\n"
+               "and hotkey binds when not in menu.\n"
                " \n"
-               "Usually necessary for cores that need\n"
-               "keyboard input.\n"
+               "Useful for keyboard centric cores.\n"
                " \n"
-               "Does not affect other input devices or\n"
-               "the Keyboard Focus hotkey itself.\n"
+               "Does not affect other input devices\n"
+               "or the Keyboard Focus hotkey itself.\n"
                );
          break;
       case MENU_LABEL_ENABLE_HOTKEY:
@@ -3030,15 +3010,17 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_CORE_THROTTLE_ENABLE:
          snprintf(s, len,
-               " -- Throttles core speed separately from\n"
-               "video & audio sync. RetroArch will sleep\n"
-               "between frames to ensure the specified\n"
-               "framerate is not exceeded.\n"
+               " -- Throttles core speed separately\n"
+               "from video & audio sync.\n"
+               " \n"
+               "RetroArch will sleep between frames\n"
+               "to ensure the specified framerate\n"
+               "is not exceeded.\n"
                );
          break;
       case MENU_LABEL_INPUT_BIND_MODE:
          snprintf(s, len,
-               " -- Selects hardware device type to\n"
+               " -- Hardware device type to\n"
                "be mapped by 'Bind All'.\n");
          break;
       case MENU_LABEL_INPUT_HOST_DEVICE_1:
@@ -3054,7 +3036,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
       case MENU_LABEL_INPUT_LIBRETRO_DEVICE_3:
       case MENU_LABEL_INPUT_LIBRETRO_DEVICE_4:
          snprintf(s, len,
-               " -- Core-provided input device type.\n"
+               " -- Core specific input device type.\n"
                " \n"
                "Defaults to RetroPad.\n");
          break;
@@ -3063,13 +3045,10 @@ static int setting_get_description_compare_label(uint32_t label_hash,
       case MENU_LABEL_INPUT_BIND_ALL_PORT_3:
       case MENU_LABEL_INPUT_BIND_ALL_PORT_4:
          snprintf(s, len,
-               " -- Maps joypad (host device) or keyboard keys\n"
-               "to the generic RetroPad for menu and core input.\n"
+               " -- Binds joypad or keyboard keys to the\n"
+               "RetroPad for menu and core input.\n"
                " \n"
-               "RetroPad 'Start' reapplies default binds.\n"
-               " \n"
-               "When a core is running, use Input Remapping\n"
-               "to map from RetroPad to a virtual device.\n");
+               "RetroPad Start applies default binds.\n");
          break;
       case MENU_LABEL_INPUT_TURBO_BIND_ENABLE:
          snprintf(s, len,
@@ -3081,8 +3060,8 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " -- Selects the virtual device button to\n"
                "have a turbo bind.\n"
                " \n"
-               "Choosing 'All' applies turbo to the set\n"
-               "{A,B,X,Y,L,R,L2,R2} (before remapping).\n");
+               "'All' applies turbo to every selectable\n"
+               "button without creating separate binds.\n");
          break;
       case MENU_LABEL_INPUT_ANALOG_DPAD_MODE:
          snprintf(s, len,
@@ -3103,7 +3082,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "to determine buttons pressed. Accuracy\n"
                "varies by device.\n"
                " \n"
-               "Note: Diagonal Sensitivity is N/A for\n"
+               "Diagonal Sensitivity is N/A to\n"
                "'Contact Area'.\n");
          break;
       case MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS:
@@ -3140,6 +3119,39 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " \n"
                "'Auto (Index)' is similar but chooses\n"
                "from a set of typical aspect ratios.\n");
+         break;
+      case MENU_LABEL_OVERLAY_BISECT_TO_ASPECT:
+         snprintf(s, len,
+               " -- Shifts left and right halves of the\n"
+               "overlay to fit a wider display.\n");
+         break;
+      case MENU_LABEL_OVERLAY_SHIFT_Y:
+         snprintf(s, len,
+               " -- Shifts overlay buttons up or down.\n"
+               " \n"
+               "Will not push buttons off screen.\n");
+         break;
+      case MENU_LABEL_OVERLAY_SHIFT_Y_LOCK_EDGES:
+         snprintf(s, len,
+               " -- Locks any buttons at the top or\n"
+               "bottom edge of the overlay to that\n"
+               "edge of the screen.\n");
+         break;
+      case MENU_LABEL_OVERLAY_MOUSE_HOLD_TO_DRAG:
+         snprintf(s, len,
+               " -- Long press the screen to\n"
+               "begin holding a mouse button.\n"
+               " \n"
+               "Use 1/2/3 fingers for L/R/M.\n");
+         break;
+      case MENU_LABEL_OVERLAY_MOUSE_HOLD_MS:
+         snprintf(s, len,
+               " -- Hold time required for a long press.\n");
+         break;
+      case MENU_LABEL_OVERLAY_MOUSE_HOLD_ZONE:
+         snprintf(s, len,
+               " -- Allowable travel distance when\n"
+               "detecting a long press.\n");
          break;
       case MENU_LABEL_VIDEO_MONITOR_INDEX:
          snprintf(s, len,
@@ -5578,7 +5590,7 @@ static bool setting_append_list_video_options(
 #if defined(HAVE_DYLIB) || defined(HAVE_FILTERS_BUILTIN)
    CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_VIDEO_FILTER),
-            "SW Filter",
+            "SW Video Filter",
             group_info.name,
             subgroup_info.name,
             parent_group);
@@ -6401,7 +6413,7 @@ static bool setting_append_list_input_options(
    CONFIG_BOOL(
          settings->input.turbo_binds_enable,
          menu_hash_to_str(MENU_LABEL_INPUT_TURBO_BIND_ENABLE),
-         "Enable Turbo Bind",
+         "Enable Turbo Bind", /* todo: better term than "bind"? */
          false,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -6682,7 +6694,7 @@ static bool setting_append_list_overlay_options(
 
    CONFIG_FLOAT(
          settings->input.overlay_bisect_aspect_ratio,
-         "input_overlay_bisect_aspect_ratio",
+         menu_hash_to_str(MENU_LABEL_OVERLAY_BISECT_TO_ASPECT),
          settings->menu.show_advanced_settings ?
          "  Bisect to Aspect" : "Bisect to Aspect Ratio",
          overlay_bisect_aspect_ratio,
@@ -6712,7 +6724,7 @@ static bool setting_append_list_overlay_options(
 
    CONFIG_FLOAT(
          settings->input.overlay_shift_y,
-         "input_overlay_adjust_vertical",
+         menu_hash_to_str(MENU_LABEL_OVERLAY_SHIFT_Y),
          "Shift Y",
          0.0f,
          "%.2f",
@@ -6727,7 +6739,7 @@ static bool setting_append_list_overlay_options(
 
    CONFIG_BOOL(
          settings->input.overlay_shift_y_lock_edges,
-         "input_overlay_adjust_vertical_lock_edges",
+         menu_hash_to_str(MENU_LABEL_OVERLAY_SHIFT_Y_LOCK_EDGES),
          "  Lock Edge Buttons",
          overlay_shift_y_lock_edges,
          menu_hash_to_str(MENU_VALUE_OFF),
@@ -7007,8 +7019,8 @@ static bool setting_append_list_overlay_mouse_options(
 
    CONFIG_BOOL(
          settings->input.overlay_mouse_hold_to_drag,
-         "input_overlay_mouse_hold_to_drag",
-         "Mouse Long Press to Drag",
+         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_HOLD_TO_DRAG),
+         "Long Press to Drag",
          overlay_mouse_hold_to_drag,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -7035,8 +7047,8 @@ static bool setting_append_list_overlay_mouse_options(
 
    CONFIG_UINT(
          settings->input.overlay_mouse_hold_ms,
-         "input_overlay_mouse_hold_ms",
-         "Mouse Long Press Threshold",
+         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_HOLD_MS),
+         "Long Press Threshold",
          overlay_mouse_hold_ms,
          group_info.name,
          subgroup_info.name,
@@ -7049,8 +7061,8 @@ static bool setting_append_list_overlay_mouse_options(
 
    CONFIG_UINT(
          settings->input.overlay_mouse_hold_zone,
-         "input_overlay_mouse_hold_zone",
-         "Mouse Swipe Threshold",
+         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_HOLD_ZONE),
+         "Swipe Threshold",
          overlay_mouse_hold_zone,
          group_info.name,
          subgroup_info.name,
@@ -7241,7 +7253,7 @@ static bool setting_append_list_menu_options(
 
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-   
+
 #ifdef HAVE_OVERLAY
    CONFIG_BOOL(
          settings->menu.show_overlay_menu,
