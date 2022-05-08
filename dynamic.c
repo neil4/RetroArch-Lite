@@ -105,6 +105,8 @@ size_t (*pretro_get_memory_size)(unsigned);
 
 static bool ignore_environment_cb;
 
+static void dummy_set_led(int led, int value) {}
+
 #ifdef HAVE_DYNAMIC
 static bool *load_no_content_hook;
 
@@ -1184,6 +1186,18 @@ bool rarch_environment_cb(unsigned cmd, void *data)
       {
          core_set_shared_context = true;
          break;
+      }
+
+      case RETRO_ENVIRONMENT_GET_LED_INTERFACE:
+      {
+         struct retro_led_interface *iface =
+            (struct retro_led_interface *)data;
+
+         if (iface)
+            iface->set_led_state = dummy_set_led;
+
+         RARCH_LOG("Environ GET_LED_INTERFACE.\n");
+         return false;
       }
       
       case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE:
