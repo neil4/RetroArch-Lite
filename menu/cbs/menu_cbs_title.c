@@ -390,7 +390,7 @@ static int action_get_title_extraction_directory(const char *path, const char *l
 static int action_get_title_menu(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
-   snprintf(s, len, "MENU %s", path);
+   snprintf(s, len, "MAIN MENU");
    return 0;
 }
 
