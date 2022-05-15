@@ -15,6 +15,7 @@
 
 #include <compat/strl.h>
 #include <string/string_list.h>
+#include <string/stdstring.h>
 
 #include "menu.h"
 #include "menu_hash.h"
@@ -49,8 +50,8 @@ void menu_cbs_init(void *data,
       const char *path, const char *label,
       unsigned type, size_t idx)
 {
-   char elem0[PATH_MAX_LENGTH];
-   char elem1[PATH_MAX_LENGTH];
+   char *elem0                  = string_alloc(PATH_MAX_LENGTH);
+   char *elem1                  = string_alloc(PATH_MAX_LENGTH);
    struct string_list *str_list = NULL;
    const char *menu_label       = NULL;
    menu_file_list_cbs_t *cbs    = NULL;
@@ -60,15 +61,12 @@ void menu_cbs_init(void *data,
    file_list_t *list            = (file_list_t*)data;
    menu_list_t *menu_list       = menu_list_get_ptr();
    if (!menu_list || !list)
-      return;
+      goto end;
 
    cbs = (menu_file_list_cbs_t*)menu_list_get_actiondata_at_offset(list, idx);
 
    if (!cbs)
-      return;
-
-   elem0[0] = '\0';
-   elem1[0] = '\0';
+      goto end;
 
    menu_list_get_last_stack(menu_list, NULL, &menu_label, NULL, NULL);
 
@@ -76,11 +74,9 @@ void menu_cbs_init(void *data,
       str_list = string_split(label, "|");
 
    if (str_list && str_list->size > 0)
-      strlcpy(elem0, str_list->elems[0].data, sizeof(elem0));
-   else elem0[0]='\0';
+      strlcpy(elem0, str_list->elems[0].data, PATH_MAX_LENGTH);
    if (str_list && str_list->size > 1)
-      strlcpy(elem1, str_list->elems[1].data, sizeof(elem1));
-   else elem1[0]='\0';
+      strlcpy(elem1, str_list->elems[1].data, PATH_MAX_LENGTH);
 
    if (str_list)
    {
@@ -152,4 +148,8 @@ void menu_cbs_init(void *data,
    menu_cbs_init_log(ret, "TITLE", label, elem0, elem1, type);
 
    ret = menu_driver_bind_init(cbs, path, label, type, idx, elem0, elem1, label_hash, menu_label_hash);
+
+end:
+   free(elem0);
+   free(elem1);
 }

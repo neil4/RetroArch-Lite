@@ -18,6 +18,7 @@
 
 #include <file/file_path.h>
 #include <retro_inline.h>
+#include <string/stdstring.h>
 
 #include <rhash.h>
 
@@ -149,7 +150,7 @@ static void check_fast_forward_button(bool fastforward_pressed,
  **/
 static void check_stateslots(bool pressed_increase, bool pressed_decrease)
 {
-   char msg[32] = {0};
+   char msg[32];
    settings_t *settings      = config_get_ptr();
 
    /* Save state slots */
@@ -278,7 +279,7 @@ static void check_slowmotion(bool slowmotion_pressed)
 static void check_shader_dir(bool pressed_next, bool pressed_prev)
 {
    uint32_t ext_hash;
-   char msg[PATH_MAX_LENGTH]   = {0};
+   char *msg                   = NULL;
    const char *shader          = NULL;
    const char *ext             = NULL;
    enum rarch_shader_type type = RARCH_SHADER_NONE;
@@ -320,13 +321,16 @@ static void check_shader_dir(bool pressed_next, bool pressed_prev)
          return;
    }
 
-   snprintf(msg, sizeof(msg), "Shader #%u: \"%s\"",
+   msg = string_alloc(PATH_MAX_LENGTH);
+   snprintf(msg, PATH_MAX_LENGTH, "Shader #%u: \"%s\"",
          (unsigned)global->shader_dir.ptr, path_basename(shader));
    rarch_main_msg_queue_push(msg, 1, 120, true);
    RARCH_LOG("Applying shader \"%s\".\n", shader);
 
    if (!video_driver_set_shader(type, shader))
       RARCH_WARN("Failed to apply shader.\n");
+
+   free(msg);
 }
 
 static void do_state_check_menu_toggle(void)

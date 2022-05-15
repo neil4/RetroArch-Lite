@@ -137,13 +137,14 @@ static void print_features(void)
 
 static void print_version(void)
 {
-   char str[PATH_MAX_LENGTH] = {0};
+   char str[PATH_MAX_LENGTH];
 
 #ifdef HAVE_GIT_VERSION
    printf(RETRO_FRONTEND ": Frontend for libretro -- v" PACKAGE_VERSION " -- %s --\n", rarch_git_version);
 #else
    puts(RETRO_FRONTEND ": Frontend for libretro -- v" PACKAGE_VERSION " --");
 #endif
+   str[0] = '\0';
    rarch_info_get_capabilities(RARCH_CAPABILITIES_COMPILER, str, sizeof(str));
    fprintf(stdout, "%s", str);
    fprintf(stdout, "Built: %s\n", __DATE__);
@@ -888,7 +889,7 @@ static void rarch_init_savefile_paths(void)
          for (j = 0; j < info->roms[i].num_memory; j++)
          {
             union string_list_elem_attr attr;
-            char path[PATH_MAX_LENGTH] = {0};
+            char path[PATH_MAX_LENGTH];
             char ext[32] = {0};
             const struct retro_subsystem_memory_info *mem =
                (const struct retro_subsystem_memory_info*)
@@ -930,7 +931,7 @@ static void rarch_init_savefile_paths(void)
    else
    {
       union string_list_elem_attr attr;
-      char savefile_name_rtc[PATH_MAX_LENGTH] = {0};
+      char savefile_name_rtc[PATH_MAX_LENGTH];
 
       attr.i = RETRO_MEMORY_SAVE_RAM;
       string_list_append(global->savefiles, global->savefile_name, attr);
@@ -1171,9 +1172,10 @@ int rarch_main_init(int argc, char *argv[])
 
    if (global->verbosity)
    {
-      char str[PATH_MAX_LENGTH] = {0};
+      char str[PATH_MAX_LENGTH];
 
       RARCH_LOG_OUTPUT("=== Build =======================================");
+      str[0] = '\0';
       rarch_info_get_capabilities(RARCH_CAPABILITIES_CPU, str, sizeof(str));
       fprintf(stderr, "%s", str);
       fprintf(stderr, "Built: %s\n", __DATE__);
@@ -1436,12 +1438,14 @@ int rarch_defer_core(core_info_list_t *core_info, const char *dir,
       const char *path, const char *menu_label,
       char *s, size_t len)
 {
-   char new_core_path[PATH_MAX_LENGTH] = {0};
+   char new_core_path[PATH_MAX_LENGTH];
    const core_info_t *info             = NULL;
    size_t supported                    = 0;
    settings_t *settings                = config_get_ptr();
    global_t   *global                  = global_get_ptr();
    uint32_t menu_label_hash            = djb2_calculate(menu_label);
+
+   new_core_path[0] = '\0';
 
    fill_pathname_join(s, dir, path, len);
 

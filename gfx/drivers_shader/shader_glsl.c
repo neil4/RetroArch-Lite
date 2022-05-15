@@ -254,7 +254,7 @@ static GLint get_attrib(glsl_shader_data_t *glsl,
 {
    unsigned i;
    GLint loc;
-   char buf[64] = {0};
+   char buf[64];
 
    snprintf(buf, sizeof(buf), "%s%s", glsl->glsl_shader->prefix, base);
    loc = glGetUniformLocation(prog, buf);
@@ -583,10 +583,10 @@ static void find_uniforms_frame(glsl_shader_data_t *glsl,
       GLuint prog,
       struct shader_uniforms_frame *frame, const char *base)
 {
-   char texture[64]      = {0};
-   char texture_size[64] = {0};
-   char input_size[64]   = {0};
-   char tex_coord[64]    = {0};
+   char texture[64];
+   char texture_size[64];
+   char input_size[64];
+   char tex_coord[64];
 
    snprintf(texture, sizeof(texture), "%s%s", base, "Texture");
    snprintf(texture_size, sizeof(texture_size), "%s%s", base, "TextureSize");
@@ -608,7 +608,7 @@ static void find_uniforms(glsl_shader_data_t *glsl,
       struct shader_uniforms *uni)
 {
    unsigned i;
-   char frame_base[64] = {0};
+   char frame_base[64];
 
    glUseProgram(prog);
 
@@ -868,7 +868,7 @@ static bool gl_glsl_init(void *data, const char *path)
    {
       if (*glsl->glsl_shader->pass[i].alias)
       {
-         char define[128] = {0};
+         char define[128];
 
          snprintf(define, sizeof(define), "#define %s_ALIAS\n",
                glsl->glsl_shader->pass[i].alias);

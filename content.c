@@ -27,6 +27,7 @@
 #include "compat/strl.h"
 #include <rhash.h>
 #include <file/file_extract.h>
+#include <string/stdstring.h>
 
 #ifdef _WIN32
 #ifdef _XBOX
@@ -94,8 +95,8 @@ static void dump_to_file_desperate(const void *data,
       size_t size, unsigned type)
 {
    time_t time_;
-   char path[PATH_MAX_LENGTH]    = {0};
-   char timebuf[NAME_MAX_LENGTH] = {0};
+   char path[PATH_MAX_LENGTH];
+   char timebuf[NAME_MAX_LENGTH];
 #if defined(_WIN32) && !defined(_XBOX)
    const char *base = getenv("APPDATA");
 #elif defined(__CELLOS_LV2__) || defined(_XBOX)
@@ -377,11 +378,11 @@ static bool load_content_need_fullpath(
 #ifdef HAVE_COMPRESSION
    ssize_t len;
    union string_list_elem_attr attributes;
-   char new_path[PATH_MAX_LENGTH]    = {0};
-   char new_basedir[PATH_MAX_LENGTH] = {0};
-   bool ret                          = false;
-   settings_t *settings              = config_get_ptr();
-   global_t   *global                = global_get_ptr();
+   char new_path[PATH_MAX_LENGTH];
+   char *new_basedir    = NULL;
+   bool ret             = false;
+   settings_t *settings = config_get_ptr();
+   global_t   *global   = global_get_ptr();
 
    if (global->system.info.block_extract)
       return true;
@@ -395,8 +396,8 @@ static bool load_content_need_fullpath(
    RARCH_LOG("Compressed file in case of need_fullpath."
          "Now extracting to temporary directory.\n");
 
-   strlcpy(new_basedir, settings->extraction_directory,
-         sizeof(new_basedir));
+   new_basedir = string_alloc(PATH_MAX_LENGTH);
+   strlcpy(new_basedir, settings->extraction_directory, PATH_MAX_LENGTH);
 
    if ((!strcmp(new_basedir, "")) ||
          !path_is_directory(new_basedir))
@@ -405,15 +406,15 @@ static bool load_content_need_fullpath(
             "extraction directory was not set or found. "
             "Setting extraction directory to directory "
             "derived by basename...\n");
-      fill_pathname_basedir(new_basedir, path,
-            sizeof(new_basedir));
+      fill_pathname_basedir(new_basedir, path, PATH_MAX_LENGTH);
    }
 
    attributes.i = 0;
    fill_pathname_join(new_path, new_basedir,
          path_basename(path), sizeof(new_path));
+   free(new_basedir);
 
-   ret = read_compressed_file(path,NULL,new_path, &len);
+   ret = read_compressed_file(path, NULL, new_path, &len);
 
    if (!ret || len < 0)
    {
@@ -421,7 +422,7 @@ static bool load_content_need_fullpath(
       return false;
    }
 
-   string_list_append(additional_path_allocs,new_path, attributes);
+   string_list_append(additional_path_allocs, new_path, attributes);
    info[i].path =
       additional_path_allocs->elems
       [additional_path_allocs->size -1 ].data;
@@ -620,7 +621,7 @@ bool init_content_file(void)
 
       if (ext && !strcasecmp(ext, "zip"))
       {
-         char temporary_content[PATH_MAX_LENGTH] = {0};
+         char temporary_content[PATH_MAX_LENGTH];
 
          strlcpy(temporary_content, content->elems[i].data,
                sizeof(temporary_content));

@@ -47,7 +47,7 @@ static int action_select_default(const char *path, const char *label, unsigned t
        ret = menu_entry_action(&entry, idx, action);
 
    rarch_main_data_iterate();
-    
+
    return ret;
 }
 

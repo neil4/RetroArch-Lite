@@ -17,6 +17,7 @@
 #include <net/net_http.h>
 #include <queues/message_queue.h>
 #include <string/string_list.h>
+#include <string/stdstring.h>
 #include <compat/strl.h>
 #include <file/file_path.h>
 #include <rhash.h>
@@ -50,7 +51,7 @@ static int zlib_extract_core_callback(const char *name, const char *valid_exts,
       const uint8_t *cdata, unsigned cmode, uint32_t csize, uint32_t size,
       uint32_t crc32, void *userdata)
 {
-   char path[PATH_MAX_LENGTH] = {0};
+   char path[PATH_MAX_LENGTH];
 
    /* Make directory */
    fill_pathname_join(path, (const char*)userdata, name, sizeof(path));
@@ -91,22 +92,22 @@ error:
 
 static int cb_core_updater_download(void *data, size_t len)
 {
-   char output_path[PATH_MAX_LENGTH] = {0};
-   char buf[PATH_MAX_LENGTH]         = {0};
-   global_t *global                  = global_get_ptr();
-   settings_t              *settings = config_get_ptr();
-   data_runloop_t           *runloop = rarch_main_data_get_ptr();
+   char *output_path        = string_alloc(PATH_MAX_LENGTH);
+   char *buf                = string_alloc(PATH_MAX_LENGTH);
+   global_t       *global   = global_get_ptr();
+   settings_t     *settings = config_get_ptr();
+   data_runloop_t *runloop  = rarch_main_data_get_ptr();
 
    if (!data)
-      return -1;
+      goto error;
 
    fill_pathname_join(output_path, settings->libretro_directory,
-         runloop->http.msg_filename, sizeof(output_path));
+         runloop->http.msg_filename, PATH_MAX_LENGTH);
 
    if (!write_file(output_path, data, len))
-      return -1;
+      goto error;
    
-   snprintf(buf, sizeof(buf), "Download complete: %s.",
+   snprintf(buf, PATH_MAX_LENGTH, "Download complete: %s.",
          runloop->http.msg_filename);
 
    rarch_main_msg_queue_push(buf, 1, 90, true);
@@ -131,14 +132,21 @@ static int cb_core_updater_download(void *data, size_t len)
    /* Refresh core updater (or core list) menu */
    event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
 
+   free(output_path);
+   free(buf);
    return 0;
+
+error:
+   free(output_path);
+   free(buf);
+   return -1;
 }
 
 static int cb_core_info_download(void *data, size_t len)
 {
    const char *file_ext              = NULL;
-   char output_path[PATH_MAX_LENGTH] = {0};
-   char buf[NAME_MAX_LENGTH]         = {0};
+   char output_path[PATH_MAX_LENGTH];
+   char buf[NAME_MAX_LENGTH];
    settings_t *settings              = config_get_ptr();
    global_t *global                  = global_get_ptr();
    data_runloop_t *runloop           = rarch_main_data_get_ptr();
@@ -191,9 +199,9 @@ end:
 void core_info_queue_download()
 {
 #ifdef HAVE_NETWORKING
-   char info_path[PATH_MAX_LENGTH] = {0};
-   settings_t *settings            = config_get_ptr();
-   data_runloop_t *runloop         = rarch_main_data_get_ptr();
+   char *info_path         = string_alloc(PATH_MAX_LENGTH);
+   settings_t *settings    = config_get_ptr();
+   data_runloop_t *runloop = rarch_main_data_get_ptr();
 
    fill_pathname_join(info_path, settings->network.buildbot_assets_url,
          "frontend/info.zip", PATH_MAX_LENGTH);
@@ -201,6 +209,7 @@ void core_info_queue_download()
 
    rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, info_path,
          "cb_core_info_download", 0, 1, false);
+   free(info_path);
 #endif
 }
 
@@ -322,7 +331,7 @@ static int cb_http_conn_default(void *data_, size_t len)
  **/
 static int rarch_main_data_http_iterate_poll(http_handle_t *http)
 {
-   char elem0[PATH_MAX_LENGTH]  = {0};
+   static char elem0[PATH_MAX_LENGTH];
    struct string_list *str_list = NULL;
    const char *url              = msg_queue_pull(http->msg_queue);
 
@@ -338,6 +347,7 @@ static int rarch_main_data_http_iterate_poll(http_handle_t *http)
    if (!str_list)
       return -1;
 
+   elem0[0] = '\0';
    if (str_list->size > 0)
       strlcpy(elem0, str_list->elems[0].data, sizeof(elem0));
 

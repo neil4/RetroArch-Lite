@@ -21,6 +21,7 @@
 #include <ctype.h>
 #include "config.def.h"
 #include <file/file_path.h>
+#include <string/stdstring.h>
 #include "input/input_common.h"
 #include "input/input_keymaps.h"
 #include "input/input_remapping.h"
@@ -882,18 +883,20 @@ static void config_set_defaults(void)
  **/
 static config_file_t *open_default_config_file(void)
 {
-   char conf_path[PATH_MAX_LENGTH] = {0};
-   char app_path[PATH_MAX_LENGTH]  = {0};
+   char conf_path[PATH_MAX_LENGTH];
+   char buf[PATH_MAX_LENGTH];
+   char *app_path                  = buf;
    config_file_t *conf             = NULL;
    bool saved                      = false;
    global_t *global                = global_get_ptr();
 
-   (void)conf_path;
    (void)app_path;
    (void)saved;
+   conf_path[0] = '\0';
+   buf[0] = '\0';
 
 #if defined(_WIN32) && !defined(_XBOX)
-   fill_pathname_application_path(app_path, sizeof(app_path));
+   fill_pathname_application_path(app_path, sizeof(buf));
    fill_pathname_resolve_relative(conf_path, app_path,
          "retroarch.cfg", sizeof(conf_path));
 
@@ -1009,7 +1012,7 @@ static config_file_t *open_default_config_file(void)
    {
       if (home || xdg)
       {
-         char basedir[PATH_MAX_LENGTH] = {0};
+         char *basedir = buf;
 
          /* Try to create a new config file. */
 
@@ -1026,14 +1029,14 @@ static config_file_t *open_default_config_file(void)
                ".config/retroarch/retroarch.cfg", sizeof(conf_path));
 #endif
 
-         fill_pathname_basedir(basedir, conf_path, sizeof(basedir));
+         fill_pathname_basedir(basedir, conf_path, sizeof(buf));
 
          if (path_mkdir(basedir))
          {
-            char skeleton_conf[PATH_MAX_LENGTH] = {0};
+            char *skeleton_conf = buf;
 
             fill_pathname_join(skeleton_conf, GLOBAL_CONFIG_DIR,
-                  "retroarch.cfg", sizeof(skeleton_conf));
+                  "retroarch.cfg", sizeof(buf));
             conf = config_file_new(skeleton_conf);
             if (conf)
                RARCH_WARN("Using skeleton config \"%s\" as base for a new config file.\n", skeleton_conf);
@@ -1183,17 +1186,16 @@ static void config_file_dump_all(config_file_t *conf)
 static bool config_load_file(const char *path, bool set_defaults)
 {
    unsigned i;
-   char *save                            = NULL;
-   const char *extra_path                = NULL;
-   char tmp_str[PATH_MAX_LENGTH]         = {0};
-   char tmp_append_path[PATH_MAX_LENGTH] = {0}; /* Don't destroy append_config_path. */
+   bool ret                    = false;
+   char *save                  = NULL;
+   const char *extra_path      = NULL;
+   char *tmp_str               = NULL;
    int vp_width = 0, vp_height = 0, vp_x = 0, vp_y = 0; 
-   unsigned msg_color                    = 0;
-   config_file_t *conf                   = NULL;
-   settings_t *settings                  = config_get_ptr();
-   global_t   *global                    = global_get_ptr();
-   video_viewport_t *custom_vp           = (video_viewport_t*)
-      video_viewport_get_custom();
+   unsigned msg_color          = 0;
+   config_file_t *conf         = NULL;
+   settings_t *settings        = config_get_ptr();
+   global_t   *global          = global_get_ptr();
+   video_viewport_t *custom_vp = (video_viewport_t*)video_viewport_get_custom();
 
    if (scoped_conf[GLOBAL])
    {
@@ -1205,29 +1207,35 @@ static bool config_load_file(const char *path, bool set_defaults)
    {
       conf = config_file_new(path);
       if (!conf)
-         return false;
+         goto end;
    }
    else
       conf = open_default_config_file();
 
    if (!conf)
-      return true;
+   {
+      ret = true;
+      goto end;
+   }
 
    if (set_defaults)
       config_set_defaults();
 
-   strlcpy(tmp_append_path, global->append_config_path,
-         sizeof(tmp_append_path));
-   extra_path = strtok_r(tmp_append_path, "|", &save);
-
-   while (extra_path)
+   if (*global->append_config_path)
    {
-      bool ret = false;
-      RARCH_LOG("Appending config \"%s\"\n", extra_path);
-      ret = config_append_file(conf, extra_path);
-      if (!ret)
-         RARCH_ERR("Failed to append config \"%s\"\n", extra_path);
-      extra_path = strtok_r(NULL, "|", &save);
+      char tmp_append_path[PATH_MAX_LENGTH]; /* Don't destroy append_config_path. */
+      strlcpy(tmp_append_path, global->append_config_path, PATH_MAX_LENGTH);
+      extra_path = strtok_r(tmp_append_path, "|", &save);
+
+      while (extra_path)
+      {
+         bool ret = false;
+         RARCH_LOG("Appending config \"%s\"\n", extra_path);
+         ret = config_append_file(conf, extra_path);
+         if (!ret)
+            RARCH_ERR("Failed to append config \"%s\"\n", extra_path);
+         extra_path = strtok_r(NULL, "|", &save);
+      }
    }
 #if 0
    if (global->verbosity)
@@ -1237,6 +1245,8 @@ static bool config_load_file(const char *path, bool set_defaults)
       RARCH_LOG_OUTPUT("=== Config end ===\n");
    }
 #endif
+
+   tmp_str = string_alloc(PATH_MAX_LENGTH);
 
    CONFIG_GET_FLOAT_BASE(conf, settings, video.scale, "video_scale");
    CONFIG_GET_INT_BASE  (conf, settings, video.fullscreen_x, "video_fullscreen_x");
@@ -1433,7 +1443,7 @@ static bool config_load_file(const char *path, bool set_defaults)
 
    for (i = 0; i < settings->input.max_users; i++)
    {
-      char buf[64] = {0};
+      char buf[64];
       snprintf(buf, sizeof(buf), "input_player%u_joypad_index", i + 1);
       CONFIG_GET_INT_BASE(conf, settings, input.joypad_map[i], buf);
 
@@ -1693,7 +1703,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_BOOL_BASE(conf, settings, config_save_on_exit, "config_save_on_exit");
 
    if (!global->has_set_save_path &&
-         config_get_path(conf, "savefile_directory", tmp_str, sizeof(tmp_str)))
+         config_get_path(conf, "savefile_directory", tmp_str, PATH_MAX_LENGTH))
    {
       if (!strcmp(tmp_str, "default"))
          strlcpy(global->savefile_dir, g_defaults.sram_dir,
@@ -1712,7 +1722,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    }
 
    if (!global->has_set_state_path &&
-         config_get_path(conf, "savestate_directory", tmp_str, sizeof(tmp_str)))
+         config_get_path(conf, "savestate_directory", tmp_str, PATH_MAX_LENGTH))
    {
       if (!strcmp(tmp_str, "default"))
          strlcpy(global->savestate_dir, g_defaults.savestate_dir,
@@ -1763,7 +1773,11 @@ static bool config_load_file(const char *path, bool set_defaults)
    CONFIG_GET_INT_BASE(conf, settings, menu_scroll_up_btn,   "menu_scroll_up_btn");
 
    scoped_conf[GLOBAL] = conf;
-   return true;
+   ret                 = true;
+
+end:
+   free(tmp_str);
+   return ret;
 }
 
 static void parse_config_file(void)
@@ -2526,20 +2540,20 @@ bool get_scoped_config_filename(char* buf, const unsigned scope,
 
 static void scoped_config_file_save(unsigned scope)
 {
-   char directory[PATH_MAX_LENGTH]  = {0};
-   char buf[NAME_MAX_LENGTH]        = {0};
-   char fullpath[PATH_MAX_LENGTH]   = {0};
-   global_t *global                 = global_get_ptr();
-   settings_t *settings             = config_get_ptr();
-   config_file_t* conf              = scoped_conf[scope];
+   char *directory      = string_alloc(PATH_MAX_LENGTH);
+   char *buf            = string_alloc(PATH_MAX_LENGTH);
+   char *fullpath       = string_alloc(PATH_MAX_LENGTH);
+   global_t *global     = global_get_ptr();
+   settings_t *settings = config_get_ptr();
+   config_file_t* conf  = scoped_conf[scope];
    unsigned i;
    
    if (!global || !settings)
-      return;
+      goto end;
    
    /* Set scoped cfg path */
    if (!get_scoped_config_filename(buf, scope, "cfg"))
-      return;
+      goto end;
    
    fill_pathname_join(directory, settings->menu_config_directory,
                       global->libretro_name, PATH_MAX_LENGTH);
@@ -2553,7 +2567,7 @@ static void scoped_config_file_save(unsigned scope)
       {
          conf = config_file_new(NULL);
          if (!conf)
-            return;
+            goto end;
       }
    }
 
@@ -2796,7 +2810,7 @@ static void scoped_config_file_save(unsigned scope)
    {
       for (i = 0; i < settings->input.max_users; i++)
       {
-         snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
+         snprintf(buf, NAME_MAX_LENGTH, "input_libretro_device_p%u", i + 1);
          config_set_int(conf, buf, settings->input.libretro_device[i]);
       }
    }
@@ -2804,7 +2818,7 @@ static void scoped_config_file_save(unsigned scope)
    {
       for (i = 0; i < MAX_USERS; i++)
       {
-         snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
+         snprintf(buf, NAME_MAX_LENGTH, "input_libretro_device_p%u", i + 1);
          config_remove_entry(conf, buf);
       }
    }
@@ -2879,6 +2893,11 @@ static void scoped_config_file_save(unsigned scope)
    /* Cleanup */
    config_file_free(conf);
    scoped_conf[scope] = NULL;
+
+end:
+   free(directory);
+   free(buf);
+   free(fullpath);
 }
 
 void scoped_config_files_save()
@@ -3335,12 +3354,12 @@ void config_unmask_globals()
 
 static void scoped_config_file_load(unsigned scope)
 {
-   char directory[PATH_MAX_LENGTH]  = {0};
-   char buf[PATH_MAX_LENGTH]        = {0};
-   char fullpath[PATH_MAX_LENGTH]   = {0};
-   global_t *global                 = global_get_ptr();
-   settings_t *settings             = config_get_ptr();
-   config_file_t* conf              = scoped_conf[scope];
+   char fullpath[PATH_MAX_LENGTH];
+   char buf[PATH_MAX_LENGTH];
+   char *directory      = NULL;
+   global_t *global     = global_get_ptr();
+   settings_t *settings = config_get_ptr();
+   config_file_t* conf  = scoped_conf[scope];
    unsigned i;
    
    if (!global || !settings)
@@ -3350,9 +3369,12 @@ static void scoped_config_file_load(unsigned scope)
    if (!get_scoped_config_filename(buf, scope, "cfg"))
       return;
 
+   directory = string_alloc(PATH_MAX_LENGTH);
    fill_pathname_join(directory, settings->menu_config_directory,
                       global->libretro_name, PATH_MAX_LENGTH);
    fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
+   free(directory);
+   directory = NULL;
    
    if (conf)
       config_file_free(conf);
@@ -3479,7 +3501,7 @@ static void scoped_config_file_load(unsigned scope)
       settings->input.max_users_scope = scope;
    for (i = 0; i < settings->input.max_users; i++)
    {
-      snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
+      snprintf(buf, NAME_MAX_LENGTH, "input_libretro_device_p%u", i + 1);
       if (!config_get_uint(conf, buf, &settings->input.libretro_device[i]))
          break;
    }

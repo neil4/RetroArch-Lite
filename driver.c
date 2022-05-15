@@ -152,9 +152,10 @@ static const void *find_driver_nonempty(const char *label, int i,
 int find_driver_index(const char * label, const char *drv)
 {
    unsigned i;
-   char str[NAME_MAX_LENGTH] = {0};
-   const void           *obj = NULL;
+   char str[NAME_MAX_LENGTH];
+   const void *obj = NULL;
 
+   str[0] = '\0';
    for (i = 0; (obj = (const void*)
             find_driver_nonempty(label, i, str, sizeof(str))) != NULL; i++)
    {

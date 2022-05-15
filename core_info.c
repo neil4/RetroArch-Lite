@@ -210,10 +210,11 @@ core_info_list_t *core_info_list_new(enum info_list_target target)
 
    for (i = 0; i < contents->size; i++)
    {
-      char info_path_base[NAME_MAX_LENGTH] = {0};
-      char info_path[PATH_MAX_LENGTH]      = {0};
+      char info_path_base[NAME_MAX_LENGTH];
+      char info_path[PATH_MAX_LENGTH];
 
       /* get platform-free name */
+      info_path_base[0] = '\0';
       path_libretro_name(info_path_base, contents->elems[i].data);
       
       /* set path (search key) */
@@ -553,8 +554,8 @@ void core_info_list_update_missing_firmware(core_info_list_t *core_info_list,
       const char *core, const char *systemdir)
 {
    size_t i;
-   char path[PATH_MAX_LENGTH] = {0};
-   core_info_t          *info = NULL;
+   char path[PATH_MAX_LENGTH];
+   core_info_t *info = NULL;
 
    if (!core_info_list || !core)
       return;
@@ -578,7 +579,7 @@ void core_info_list_get_missing_firmware(core_info_list_t *core_info_list,
       const core_info_firmware_t **firmware, size_t *num_firmware)
 {
    size_t i;
-   char path[PATH_MAX_LENGTH] = {0};
+   char path[PATH_MAX_LENGTH];
    core_info_t          *info = NULL;
 
    if (!core_info_list || !core)

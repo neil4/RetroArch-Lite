@@ -18,6 +18,7 @@
 
 #include <compat/strl.h>
 #include <file/file_path.h>
+#include <string/stdstring.h>
 
 #include "menu.h"
 #include "menu_hash.h"
@@ -182,7 +183,9 @@ void menu_shader_manager_save_preset(
       const char *basename, bool apply)
 {
 #ifdef HAVE_SHADER_MANAGER
-   char buffer[PATH_MAX_LENGTH], config_directory[PATH_MAX_LENGTH], preset_path[PATH_MAX_LENGTH];
+   char *buffer                = string_alloc(PATH_MAX_LENGTH);
+   char *config_directory      = string_alloc(PATH_MAX_LENGTH);
+   char *preset_path           = string_alloc(PATH_MAX_LENGTH);
    unsigned d, type            = RARCH_SHADER_NONE;
    config_file_t *conf         = NULL;
    bool ret                    = false;
@@ -193,13 +196,13 @@ void menu_shader_manager_save_preset(
    if (!menu)
    {
       RARCH_ERR("Cannot save shader preset, menu handle is not initialized.\n");
-      return;
+      goto end;
    }
 
    type = menu_shader_manager_get_type(menu->shader);
 
    if (type == RARCH_SHADER_NONE)
-      return;
+      goto end;
 
    menu_shader_manager_update_preset_params();
 
@@ -207,7 +210,7 @@ void menu_shader_manager_save_preset(
 
    if (basename)
    {
-      strlcpy(buffer, basename, sizeof(buffer));
+      strlcpy(buffer, basename, PATH_MAX_LENGTH);
 
       /* Append extension automatically as appropriate. */
       if (!strstr(basename, ".cgp") && !strstr(basename, ".glslp"))
@@ -215,10 +218,10 @@ void menu_shader_manager_save_preset(
          switch (type)
          {
             case RARCH_SHADER_GLSL:
-               strlcat(buffer, ".glslp", sizeof(buffer));
+               strlcat(buffer, ".glslp", PATH_MAX_LENGTH);
                break;
             case RARCH_SHADER_CG:
-               strlcat(buffer, ".cgp", sizeof(buffer));
+               strlcat(buffer, ".cgp", PATH_MAX_LENGTH);
                break;
          }
       }
@@ -227,12 +230,12 @@ void menu_shader_manager_save_preset(
    {
       const char *conf_path = (type == RARCH_SHADER_GLSL) ?
          menu->default_glslp : menu->default_cgp;
-      strlcpy(buffer, conf_path, sizeof(buffer));
+      strlcpy(buffer, conf_path, PATH_MAX_LENGTH);
    }
 
    if (*global->config_path)
       fill_pathname_basedir(config_directory,
-            global->config_path, sizeof(config_directory));
+            global->config_path, PATH_MAX_LENGTH);
 
    const char *dirs[] = {
       settings->video.shader_dir,
@@ -249,7 +252,7 @@ void menu_shader_manager_save_preset(
       if (!*dirs[d])
          continue;
 
-      fill_pathname_join(preset_path, dirs[d], buffer, sizeof(preset_path));
+      fill_pathname_join(preset_path, dirs[d], buffer, PATH_MAX_LENGTH);
       if (config_file_write(conf, preset_path))
       {
          RARCH_LOG("Saved shader preset to %s.\n", preset_path);
@@ -265,6 +268,11 @@ void menu_shader_manager_save_preset(
    config_file_free(conf);
    if (!ret)
       RARCH_ERR("Failed to save shader preset. Make sure config directory and/or shader dir are writable.\n");
+
+end:
+   free(buffer);
+   free(config_directory);
+   free(preset_path);
 #endif
 }
 

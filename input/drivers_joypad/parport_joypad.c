@@ -235,11 +235,9 @@ static bool parport_joypad_init(void *data)
 
    (void)data;
 
-   memset(buf, 0, PARPORT_NUM_BUTTONS * 3 + 1);
-
    for (i = 0; i < MAX_USERS; i++)
    {
-      char path[PATH_MAX_LENGTH] = {0};
+      char path[PATH_MAX_LENGTH];
       struct parport_joypad *pad = &parport_pads[i];
 
       pad->fd    = -1;

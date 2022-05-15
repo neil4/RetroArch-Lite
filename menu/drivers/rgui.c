@@ -951,6 +951,7 @@ static void rgui_blit_cursor(menu_handle_t *menu)
 
 static void rgui_render(void)
 {
+   static menu_entry_t entry;
    unsigned title_x, y;
    size_t i, end;
    int bottom;
@@ -1075,7 +1076,6 @@ static void rgui_render(void)
       char message[NAME_MAX_LENGTH];
       char entry_title_buf[NAME_MAX_LENGTH];
       char type_str_buf[NAME_MAX_LENGTH];
-      menu_entry_t entry = {{0}};
       unsigned entry_spacing;
       bool entry_selected;
 
@@ -1138,8 +1138,8 @@ static void rgui_render(void)
 
    if (menu_input->keyboard.display)
    {
-      char msg[PATH_MAX_LENGTH] = {0};
-      const char           *str = *menu_input->keyboard.buffer;
+      char msg[PATH_MAX_LENGTH];
+      const char *str = *menu_input->keyboard.buffer;
 
       if (!str)
          str = "";

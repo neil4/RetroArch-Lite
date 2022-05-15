@@ -24,6 +24,7 @@
 #include "general.h"
 #include "intl/intl.h"
 #include <file/file_path.h>
+#include <string/stdstring.h>
 #include "gfx/scaler/scaler.h"
 #include "retroarch.h"
 #include "runloop.h"
@@ -177,7 +178,7 @@ end:
 
 static bool take_screenshot_viewport(void)
 {
-   char screenshot_path[PATH_MAX_LENGTH] = {0};
+   char screenshot_path[PATH_MAX_LENGTH];
    const char *screenshot_dir            = NULL;
    uint8_t *buffer                       = NULL;
    bool retval                           = false;
@@ -222,7 +223,7 @@ static bool take_screenshot_raw(void)
 {
    unsigned width, height;
    size_t pitch;
-   char screenshot_path[PATH_MAX_LENGTH] = {0};
+   char screenshot_path[PATH_MAX_LENGTH];
    const void *data                      = NULL;
    const char *screenshot_dir            = NULL;
    global_t *global                      = global_get_ptr();
@@ -343,21 +344,21 @@ bool take_screenshot(void)
 bool screenshot_dump(const char *folder, const void *frame,
       unsigned width, unsigned height, int pitch, bool bgr24)
 {
-   char filename[PATH_MAX_LENGTH] = {0};
-   char shotname[PATH_MAX_LENGTH] = {0};
-   struct scaler_ctx scaler       = {0};
-   FILE *file                     = NULL;
-   uint8_t *out_buffer            = NULL;
-   bool ret                       = false;
-   driver_t *driver               = driver_get_ptr();
+   char *filename           = string_alloc(PATH_MAX_LENGTH);
+   char *shotname           = string_alloc(PATH_MAX_LENGTH);
+   struct scaler_ctx scaler = {0};
+   FILE *file               = NULL;
+   uint8_t *out_buffer      = NULL;
+   bool ret                 = false;
+   driver_t *driver         = driver_get_ptr();
 
    (void)file;
    (void)out_buffer;
    (void)scaler;
    (void)driver;
 
-   fill_dated_filename(shotname, IMG_EXT, sizeof(shotname));
-   fill_pathname_join(filename, folder, shotname, sizeof(filename));
+   fill_dated_filename(shotname, IMG_EXT, PATH_MAX_LENGTH);
+   fill_pathname_join(filename, folder, shotname, PATH_MAX_LENGTH);
 
 #ifdef _XBOX1
    d3d_video_t *d3d = (d3d_video_t*)driver->video_data;
@@ -372,6 +373,9 @@ bool screenshot_dump(const char *folder, const void *frame,
    {
       RARCH_LOG("Screenshot saved: %s.\n", filename);
       rarch_main_msg_queue_push("Screenshot saved.", 1, 30, false);
+      ret = true;
+      free(filename);
+      free(shotname);
       return true;
    }
 
@@ -379,7 +383,7 @@ bool screenshot_dump(const char *folder, const void *frame,
 #elif defined(HAVE_ZLIB_DEFLATE) && defined(HAVE_RPNG)
    out_buffer = (uint8_t*)malloc(width * height * 3);
    if (!out_buffer)
-      return false;
+      goto error;
 
    scaler.in_width   = width;
    scaler.in_height  = height;
@@ -413,7 +417,7 @@ bool screenshot_dump(const char *folder, const void *frame,
    if (!file)
    {
       RARCH_ERR("Failed to open file \"%s\" for screenshot.\n", filename);
-      return false;
+      goto error;
    }
 
    ret = write_header_bmp(file, width, height);
@@ -426,6 +430,13 @@ bool screenshot_dump(const char *folder, const void *frame,
    fclose(file);
 #endif
 
+   free(filename);
+   free(shotname);
    return ret;
+
+error:
+   free(filename);
+   free(shotname);
+   return false;
 }
 

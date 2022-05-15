@@ -141,7 +141,7 @@ enum menu_entry_type menu_entry_get_type(uint32_t i)
 
 void menu_entry_get_path(uint32_t i, char *s, size_t len)
 {
-   menu_entry_t entry = {{0}};
+   menu_entry_t entry;
    menu_entry_get(&entry, i, NULL, true);
 
    strlcpy(s, entry.path, len);
@@ -149,7 +149,7 @@ void menu_entry_get_path(uint32_t i, char *s, size_t len)
 
 void menu_entry_get_label(uint32_t i, char *s, size_t len)
 {
-   menu_entry_t entry = {{0}};
+   menu_entry_t entry;
    menu_entry_get(&entry, i, NULL, true);
 
    strlcpy(s, entry.label, len);
@@ -157,7 +157,7 @@ void menu_entry_get_label(uint32_t i, char *s, size_t len)
 
 unsigned menu_entry_get_spacing(uint32_t i)
 {
-   menu_entry_t entry = {{0}};
+   menu_entry_t entry;
    menu_entry_get(&entry, i, NULL, true);
 
    return entry.spacing;
@@ -165,7 +165,7 @@ unsigned menu_entry_get_spacing(uint32_t i)
 
 unsigned menu_entry_get_type_new(uint32_t i)
 {
-   menu_entry_t entry = {{0}};
+   menu_entry_t entry;
    menu_entry_get(&entry, i, NULL, true);
 
    return entry.type;
@@ -244,7 +244,7 @@ uint32_t menu_entry_pathdir_for_directory(uint32_t i)
 
 void menu_entry_pathdir_get_value(uint32_t i, char *s, size_t len)
 {
-   menu_entry_t entry = {{0}};
+   menu_entry_t entry;
    menu_entry_get(&entry, i, NULL, true);
    strlcpy(s, entry.value, len);
 }
@@ -287,7 +287,7 @@ void menu_entry_pathdir_extensions(uint32_t i, char *s, size_t len)
 
 void menu_entry_reset(uint32_t i)
 {
-   menu_entry_t entry = {{0}};
+   menu_entry_t entry;
    menu_entry_get(&entry, i, NULL, true);
 
    menu_entry_action(&entry, i, MENU_ACTION_START);
@@ -295,7 +295,7 @@ void menu_entry_reset(uint32_t i)
 
 void menu_entry_get_value(uint32_t i, char *s, size_t len)
 {
-   menu_entry_t entry = {{0}};
+   menu_entry_t entry;
    menu_entry_get(&entry, i, NULL, true);
    strlcpy(s, entry.value, len);
 }
@@ -324,6 +324,17 @@ float menu_entry_num_max(uint32_t i)
    return setting->max;
 }
 
+static inline void menu_entry_clear(menu_entry_t *entry)
+{
+   entry->path[0] = '\0';
+   entry->label[0] = '\0';
+   entry->value[0] = '\0';
+   entry->entry_idx = 0;
+   entry->idx = 0;
+   entry->type = 0;
+   entry->spacing = 0;
+}
+
 void menu_entry_get(menu_entry_t *entry, size_t i,
       void *userdata, bool use_representation)
 {
@@ -333,6 +344,8 @@ void menu_entry_get(menu_entry_t *entry, size_t i,
    menu_file_list_cbs_t *cbs = NULL;
    file_list_t *list         = NULL;
    menu_list_t *menu_list    = menu_list_get_ptr();
+
+   menu_entry_clear(entry);
 
    if (!menu_list)
       return;
@@ -380,12 +393,12 @@ int menu_entry_get_current_id(bool use_representation)
 
    for (i = 0; i < end; i++)
    {
-      menu_entry_t entry = {{0}};
+      menu_entry_t entry;
       menu_entry_get(&entry, i, NULL, use_representation);
 
       if (menu_entry_is_currently_selected(entry.idx))
          return i;
-   }
+    }
 
    return -1;
 }
@@ -399,7 +412,7 @@ int menu_entry_get_current_id(bool use_representation)
  * currently displayed menu. */
 int menu_entry_select(uint32_t i)
 {
-   menu_entry_t     entry = {{0}};
+   menu_entry_t entry;
    menu_navigation_t *nav = menu_navigation_get_ptr();
     
    nav->selection_ptr = i;

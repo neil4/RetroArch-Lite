@@ -233,10 +233,12 @@ int read_7zip_file(
       for (i = 0; i < db.db.NumFiles; i++)
       {
          size_t len;
-         char infile[PATH_MAX_LENGTH] = {0};
+         char infile[PATH_MAX_LENGTH];
          size_t offset           = 0;
          size_t outSizeProcessed = 0;
          const CSzFileItem    *f = db.db.Files + i;
+
+         infile[0] = '\0';
 
          if (f->IsDir)
          {
@@ -388,7 +390,7 @@ struct string_list *compressed_7zip_file_list_new(const char *path,
       {
          union string_list_elem_attr attr;
          const char *file_ext         = NULL;
-         char infile[PATH_MAX_LENGTH] = {0};
+         char infile[PATH_MAX_LENGTH];
          size_t offset                = 0;
          size_t outSizeProcessed      = 0;
          size_t                   len = 0;
@@ -397,6 +399,8 @@ struct string_list *compressed_7zip_file_list_new(const char *path,
 
          (void)offset;
          (void)outSizeProcessed;
+
+         infile[0] = '\0';
 
          if (f->IsDir)
          {

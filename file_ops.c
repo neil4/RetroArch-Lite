@@ -163,7 +163,7 @@ int read_compressed_file(const char * path, void **buf,
 {
    const char* file_ext               = NULL;
    char *archive_found                = NULL;
-   char archive_path[PATH_MAX_LENGTH] = {0};
+   char archive_path[PATH_MAX_LENGTH];
 
    if (optional_filename)
    {

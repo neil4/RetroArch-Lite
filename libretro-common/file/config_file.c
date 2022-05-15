@@ -189,12 +189,14 @@ static void add_include_list(config_file_t *conf, const char *path)
 
 static void add_sub_conf(config_file_t *conf, char *line)
 {
-   char real_path[PATH_MAX_LENGTH] = {0};
+   char real_path[PATH_MAX_LENGTH];
    config_file_t         *sub_conf = NULL;
    char                      *path = extract_value(line, false);
 
    if (!path)
       return;
+
+   real_path[0] = '\0';
 
    add_include_list(conf, path);
 
@@ -743,7 +745,8 @@ void config_set_path(config_file_t *conf, const char *entry, const char *val)
 #if defined(RARCH_CONSOLE)
    config_set_string(conf, entry, val);
 #else
-   char buf[PATH_MAX_LENGTH] = {0};
+   char buf[PATH_MAX_LENGTH];
+   buf[0] = '\0';
    fill_pathname_abbreviate_special(buf, val, sizeof(buf));
    config_set_string(conf, entry, buf);
 #endif
@@ -751,7 +754,7 @@ void config_set_path(config_file_t *conf, const char *entry, const char *val)
 
 void config_set_double(config_file_t *conf, const char *key, double val)
 {
-   char buf[128] = {0};
+   char buf[128];
 #ifdef __cplusplus
    snprintf(buf, sizeof(buf), "%f", (float)val);
 #else
@@ -762,28 +765,28 @@ void config_set_double(config_file_t *conf, const char *key, double val)
 
 void config_set_float(config_file_t *conf, const char *key, float val)
 {
-   char buf[128] = {0};
+   char buf[128];
    snprintf(buf, sizeof(buf), "%f", val);
    config_set_string(conf, key, buf);
 }
 
 void config_set_int(config_file_t *conf, const char *key, int val)
 {
-   char buf[128] = {0};
+   char buf[128];
    snprintf(buf, sizeof(buf), "%d", val);
    config_set_string(conf, key, buf);
 }
 
 void config_set_hex(config_file_t *conf, const char *key, unsigned val)
 {
-   char buf[128] = {0};
+   char buf[128];
    snprintf(buf, sizeof(buf), "%x", val);
    config_set_string(conf, key, buf);
 }
 
 void config_set_uint64(config_file_t *conf, const char *key, uint64_t val)
 {
-   char buf[128] = {0};
+   char buf[128];
 #ifdef _WIN32
    snprintf(buf, sizeof(buf), "%I64u", val);
 #else
@@ -794,7 +797,7 @@ void config_set_uint64(config_file_t *conf, const char *key, uint64_t val)
 
 void config_set_char(config_file_t *conf, const char *key, char val)
 {
-   char buf[2] = {0};
+   char buf[2];
    snprintf(buf, sizeof(buf), "%c", val);
    config_set_string(conf, key, buf);
 }

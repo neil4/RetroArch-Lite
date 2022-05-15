@@ -18,6 +18,7 @@
 #include <rhash.h>
 #include <file/config_file.h>
 #include <file/file_path.h>
+#include <string/stdstring.h>
 
 #include "../general.h"
 #include "../dynamic.h"
@@ -75,7 +76,7 @@ bool input_remapping_load_file(const char *path)
 
    for (i = 0; i < MAX_USERS; i++)
    {
-      char key_ident[32] = {0};
+      char key_ident[32];
       char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = { "b", "y", "select", "start",
          "up", "down", "left", "right", "a", "x", "l", "r", "l2", "r2", "l3", "r3", "l_x", "l_y", "r_x", "r_y" };
       int turbo_count    = 0;
@@ -121,7 +122,7 @@ bool input_remapping_load_file(const char *path)
    /* RetroPad to Keyboard binds */
    for (j = 0; j < JOYKBD_LIST_LEN; j++)
    {
-      char rk_buf[32]   = {0};
+      char rk_buf[32];
       enum retro_key rk = joykbd_bind_list[j].rk;
       int joy_id        = NO_BTN;
 
@@ -143,8 +144,8 @@ bool input_remapping_load_file(const char *path)
 int remap_file_load_auto()
 {
   /* Look for ROM, Directory, then Core specific remap */
-   char path[PATH_MAX_LENGTH] = {0};
-   settings_t *settings       = config_get_ptr();
+   char *path           = string_alloc(PATH_MAX_LENGTH);
+   settings_t *settings = config_get_ptr();
    
    if (!settings)
       return 0;
@@ -180,6 +181,7 @@ load_remap:
    }
 
    input_remapping_touched = false;
+   free(path);
    return 0;
 }
 
@@ -211,7 +213,7 @@ static bool input_remapping_save_file(const char *path)
 
    for (i = 0; i < input->max_users; i++)
    {
-      char key_ident[32] = {0};
+      char key_ident[32];
       char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = { "b", "y", "select", "start",
          "up", "down", "left", "right", "a", "x", "l", "r", "l2", "r2", "l3", "r3", "l_x", "l_y", "r_x", "r_y" };
 
@@ -246,7 +248,7 @@ static bool input_remapping_save_file(const char *path)
    /* RetroPad to Keyboard binds */
    for (j = 0; j < JOYKBD_LIST_LEN; j++)
    {
-      char rk_buf[32]   = {0};
+      char rk_buf[32];
       enum retro_key rk = joykbd_bind_list[j].rk;
       uint16_t btn      = joykbd_bind_list[j].btn;
 
@@ -270,7 +272,7 @@ static bool input_remapping_save_file(const char *path)
 
 static void input_remapping_delete_unscoped()
 {
-   char path[PATH_MAX_LENGTH] = {0};
+   char *path = string_alloc(PATH_MAX_LENGTH);
 
    if (input_remapping_scope < THIS_CONTENT_ONLY)
    {
@@ -283,6 +285,8 @@ static void input_remapping_delete_unscoped()
       input_remapping_get_path(path, THIS_CONTENT_DIR);
       remove(path);
    }
+
+   free(path);
 }
 
 /**
@@ -295,16 +299,18 @@ static void input_remapping_delete_unscoped()
  **/
 bool input_remapping_save()
 {
-   char path[PATH_MAX_LENGTH] = {0};
+   char *path = string_alloc(PATH_MAX_LENGTH);
 
    input_remapping_get_path(path, input_remapping_scope);
    if (input_remapping_save_file(path))
    {
       input_remapping_delete_unscoped();
       input_remapping_touched = false;
+      free(path);
       return true;
    }
 
+   free(path);
    return false;
 }
 

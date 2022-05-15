@@ -19,6 +19,7 @@
 #include <file/file_path.h>
 #include <file/file_extract.h>
 #include <file/dir_list.h>
+#include <string/stdstring.h>
 
 #include "menu.h"
 #include "menu_hash.h"
@@ -169,7 +170,7 @@ static void menu_displaylist_get_downloadable_core_info(file_list_t* list)
 static int menu_displaylist_parse_core_info(menu_displaylist_info_t *info)
 {
    unsigned i;
-   char tmp[PATH_MAX_LENGTH] = {0};
+   char tmp[PATH_MAX_LENGTH];
    settings_t *settings      = config_get_ptr();
    global_t *global          = global_get_ptr();
    core_info_t *core_info    = global ? (core_info_t*)global->core_info_current : NULL;
@@ -337,64 +338,65 @@ static int menu_displaylist_parse_core_info(menu_displaylist_info_t *info)
 
 static int menu_displaylist_parse_system_info(menu_displaylist_info_t *info)
 {
-   char feat_str[PATH_MAX_LENGTH]        = {0};
-   char tmp[PATH_MAX_LENGTH]             = {0};
-   char tmp2[PATH_MAX_LENGTH]            = {0};
+   char *feat_str                        = string_alloc(PATH_MAX_LENGTH);
+   char *tmp                             = string_alloc(PATH_MAX_LENGTH);
+   char *tmp2                            = string_alloc(PATH_MAX_LENGTH);
    const char *tmp_string                = NULL;
    const frontend_ctx_driver_t *frontend = frontend_get_ptr();
 
-   snprintf(tmp, sizeof(tmp), "%s: %s", "Build date", __DATE__);
+   snprintf(tmp, PATH_MAX_LENGTH, "%s: %s", "Build date", __DATE__);
    menu_list_push(info->list, tmp, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
    (void)tmp_string;
 
 #ifdef HAVE_GIT_VERSION
-   strlcpy(tmp, "Git version", sizeof(tmp));
-   strlcat(tmp, ": ", sizeof(tmp));
-   strlcat(tmp, rarch_git_version, sizeof(tmp));
+   strlcpy(tmp, "Git version", PATH_MAX_LENGTH);
+   strlcat(tmp, ": ", PATH_MAX_LENGTH);
+   strlcat(tmp, rarch_git_version, PATH_MAX_LENGTH);
    menu_list_push(info->list, tmp, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 #endif
 
-   rarch_info_get_capabilities(RARCH_CAPABILITIES_COMPILER, tmp, sizeof(tmp));
+   rarch_info_get_capabilities(RARCH_CAPABILITIES_COMPILER, tmp, PATH_MAX_LENGTH);
    menu_list_push(info->list, tmp, "info", MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
    {
-      char cpu_str[PATH_MAX_LENGTH] = {0};
+      char *cpu_str = string_alloc(PATH_MAX_LENGTH);
 
-      strlcpy(cpu_str, "CPU Features", sizeof(cpu_str));
-      strlcat(cpu_str, ": ", sizeof(cpu_str));
+      strlcpy(cpu_str, "CPU Features", PATH_MAX_LENGTH);
+      strlcat(cpu_str, ": ", PATH_MAX_LENGTH);
 
-      rarch_info_get_capabilities(RARCH_CAPABILITIES_CPU, cpu_str, sizeof(cpu_str));
+      rarch_info_get_capabilities(RARCH_CAPABILITIES_CPU, cpu_str, PATH_MAX_LENGTH);
       menu_list_push(info->list, cpu_str, "info",
             MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
+      free(cpu_str);
    }
 
    if (frontend)
    {
       int major = 0, minor = 0;
 
-      strlcpy(tmp, "Frontend identifier", sizeof(tmp));
-      strlcat(tmp, ": ", sizeof(tmp));
-      strlcat(tmp, frontend->ident, sizeof(tmp));
+      strlcpy(tmp, "Frontend identifier", PATH_MAX_LENGTH);
+      strlcat(tmp, ": ", PATH_MAX_LENGTH);
+      strlcat(tmp, frontend->ident, PATH_MAX_LENGTH);
       menu_list_push(info->list, tmp, "info",
             MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
       if (frontend->get_name)
       {
-         frontend->get_name(tmp2, sizeof(tmp2));
-         strlcpy(tmp, "Frontend name", sizeof(tmp));
-         strlcat(tmp, ": ", sizeof(tmp));
-         strlcat(tmp, frontend->get_name ? tmp2 : "N/A", sizeof(tmp));
+         frontend->get_name(tmp2, PATH_MAX_LENGTH);
+         strlcpy(tmp, "Frontend name", PATH_MAX_LENGTH);
+         strlcat(tmp, ": ", PATH_MAX_LENGTH);
+         strlcat(tmp, frontend->get_name ? tmp2 : "N/A", PATH_MAX_LENGTH);
          menu_list_push(info->list, tmp, "info",
                MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
       }
 
       if (frontend->get_os)
       {
-         frontend->get_os(tmp2, sizeof(tmp2), &major, &minor);
-         snprintf(tmp, sizeof(tmp), "%s: %s (v%d.%d)",
+         frontend->get_os(tmp2, PATH_MAX_LENGTH, &major, &minor);
+         snprintf(tmp, PATH_MAX_LENGTH, "%s: %s (v%d.%d)",
                "Frontend OS",
                frontend->get_os ? tmp2 : "N/A", major, minor);
          menu_list_push(info->list, tmp, "info",
@@ -408,14 +410,14 @@ static int menu_displaylist_parse_system_info(menu_displaylist_info_t *info)
 
          if (memory_used != 0 && memory_total != 0)
          {
-            snprintf(tmp, sizeof(tmp), "%s: %u/%u MB",
+            snprintf(tmp, PATH_MAX_LENGTH, "%s: %u/%u MB",
                "Memory Use", memory_used, memory_total);
             menu_list_push(info->list, tmp, "info",
                MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
          }
       }
 
-      snprintf(tmp, sizeof(tmp), "%s: %d",
+      snprintf(tmp, PATH_MAX_LENGTH, "%s: %d",
             "RetroRating level",
             frontend->get_rating ? frontend->get_rating() : -1);
       menu_list_push(info->list, tmp, "info",
@@ -429,30 +431,30 @@ static int menu_displaylist_parse_system_info(menu_displaylist_info_t *info)
          tmp2[0] = '\0';
 
          if (percent != 0)
-            snprintf(tmp2, sizeof(tmp2), "%d%%", percent);
+            snprintf(tmp2, PATH_MAX_LENGTH, "%d%%", percent);
 
          switch (state)
          {
             case FRONTEND_POWERSTATE_NONE:
-               strlcat(tmp2, " N/A", sizeof(tmp));
+               strlcat(tmp2, " N/A", PATH_MAX_LENGTH);
                break;
             case FRONTEND_POWERSTATE_NO_SOURCE:
-               strlcat(tmp2, " (No source)", sizeof(tmp));
+               strlcat(tmp2, " (No source)", PATH_MAX_LENGTH);
                break;
             case FRONTEND_POWERSTATE_CHARGING:
-               strlcat(tmp2, " (Charging)", sizeof(tmp));
+               strlcat(tmp2, " (Charging)", PATH_MAX_LENGTH);
                break;
             case FRONTEND_POWERSTATE_CHARGED:
-               strlcat(tmp2, " (Charged)", sizeof(tmp));
+               strlcat(tmp2, " (Charged)", PATH_MAX_LENGTH);
                break;
             case FRONTEND_POWERSTATE_ON_POWER_SOURCE:
-               strlcat(tmp2, " (Discharging)", sizeof(tmp));
+               strlcat(tmp2, " (Discharging)", PATH_MAX_LENGTH);
                break;
          }
 
-         strlcpy(tmp, "Power source", sizeof(tmp));
-         strlcat(tmp, ": ", sizeof(tmp));
-         strlcat(tmp, tmp2, sizeof(tmp));
+         strlcpy(tmp, "Power source", PATH_MAX_LENGTH);
+         strlcat(tmp, ": ", PATH_MAX_LENGTH);
+         strlcat(tmp, tmp2, PATH_MAX_LENGTH);
          menu_list_push(info->list, tmp, "info",
                MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
       }
@@ -461,9 +463,9 @@ static int menu_displaylist_parse_system_info(menu_displaylist_info_t *info)
 #if defined(HAVE_OPENGL) || defined(HAVE_GLES)
    tmp_string = gfx_ctx_get_ident();
 
-   strlcpy(tmp, "Video context driver", sizeof(tmp));
-   strlcat(tmp, ": ", sizeof(tmp));
-   strlcat(tmp, tmp_string ? tmp_string : "N/A", sizeof(tmp));
+   strlcpy(tmp, "Video context driver", PATH_MAX_LENGTH);
+   strlcat(tmp, ": ", PATH_MAX_LENGTH);
+   strlcat(tmp, tmp_string ? tmp_string : "N/A", PATH_MAX_LENGTH);
    menu_list_push(info->list, tmp, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
@@ -471,7 +473,7 @@ static int menu_displaylist_parse_system_info(menu_displaylist_info_t *info)
       float val = 0.0f;
       if (gfx_ctx_get_metrics(DISPLAY_METRIC_MM_WIDTH, &val))
       {
-         snprintf(tmp, sizeof(tmp), "%s: %.2f",
+         snprintf(tmp, PATH_MAX_LENGTH, "%s: %.2f",
                "Display metric width (mm)", val);
          menu_list_push(info->list, tmp, "info",
                MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
@@ -479,7 +481,7 @@ static int menu_displaylist_parse_system_info(menu_displaylist_info_t *info)
 
       if (gfx_ctx_get_metrics(DISPLAY_METRIC_MM_HEIGHT, &val))
       {
-         snprintf(tmp, sizeof(tmp), "Display metric height (mm): %.2f",
+         snprintf(tmp, PATH_MAX_LENGTH, "Display metric height (mm): %.2f",
                val);
          menu_list_push(info->list, tmp, "info",
                MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
@@ -487,7 +489,7 @@ static int menu_displaylist_parse_system_info(menu_displaylist_info_t *info)
 
       if (gfx_ctx_get_metrics(DISPLAY_METRIC_DPI, &val))
       {
-         snprintf(tmp, sizeof(tmp), "Display metric DPI: %.2f",
+         snprintf(tmp, PATH_MAX_LENGTH, "Display metric DPI: %.2f",
                val);
          menu_list_push(info->list, tmp, "info",
                MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
@@ -495,231 +497,235 @@ static int menu_displaylist_parse_system_info(menu_displaylist_info_t *info)
    }
 #endif
 
-   strlcpy(feat_str, "LibretroDB support", sizeof(feat_str));
-   strlcat(feat_str, ": ", sizeof(feat_str));
-   strlcat(feat_str, "false", sizeof(feat_str));
+   strlcpy(feat_str, "LibretroDB support", PATH_MAX_LENGTH);
+   strlcat(feat_str, ": ", PATH_MAX_LENGTH);
+   strlcat(feat_str, "false", PATH_MAX_LENGTH);
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   strlcpy(feat_str, "Overlay support", sizeof(feat_str));
-   strlcat(feat_str, ": ", sizeof(feat_str));
-   strlcat(feat_str, _overlay_supp ? "true" : "false", sizeof(feat_str));
+   strlcpy(feat_str, "Overlay support", PATH_MAX_LENGTH);
+   strlcat(feat_str, ": ", PATH_MAX_LENGTH);
+   strlcat(feat_str, _overlay_supp ? "true" : "false", PATH_MAX_LENGTH);
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   strlcpy(feat_str, "Command interface support", sizeof(feat_str));
-   strlcat(feat_str, ": ", sizeof(feat_str));
-   strlcat(feat_str, _command_supp ? "true" : "false", sizeof(feat_str));
+   strlcpy(feat_str, "Command interface support", PATH_MAX_LENGTH);
+   strlcat(feat_str, ": ", PATH_MAX_LENGTH);
+   strlcat(feat_str, _command_supp ? "true" : "false", PATH_MAX_LENGTH);
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "%s: %s",
          "Network Command interface support",
          _network_command_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "Cocoa support: %s", _cocoa_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "PNG support (RPNG): %s", _rpng_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "SDL1.2 support: %s", _sdl_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "SDL2 support: %s", _sdl2_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "OpenGL support: %s", _opengl_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "OpenGL ES support: %s", _opengles_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "Threading support: %s", _thread_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "KMS/EGL support: %s", _kms_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "Udev support: %s", _udev_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "OpenVG support: %s", _vg_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "EGL support: %s", _egl_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "X11 support: %s", _x11_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "Wayland support: %s", _wayland_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "XVideo support: %s", _xvideo_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "ALSA support: %s", _alsa_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "OSS support: %s", _oss_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "OpenAL support: %s", _al_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "OpenSL support: %s", _sl_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "RSound support: %s", _rsound_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "RoarAudio support: %s", _roar_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "JACK support: %s", _jack_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "PulseAudio support: %s", _pulse_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "DirectSound support: %s", _dsound_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "XAudio2 support: %s", _xaudio_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "Zlib support: %s", _zlib_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "7zip support: %s", _7zip_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "Dynamic library support: %s", _dylib_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "Cg support: %s", _cg_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "GLSL support: %s", _glsl_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "HLSL support: %s", _hlsl_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "libxml2 XML parsing support: %s", _libxml2_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "SDL image support: %s", _sdl_image_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "OpenGL/Direct3D render-to-texture (multi-pass shaders) support: %s", _fbo_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "FFmpeg support: %s", _ffmpeg_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "CoreText support: %s", _coretext_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "FreeType support: %s", _freetype_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "Netplay (peer-to-peer) support: %s", _netplay_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "Python support (in shaders): %s", _python_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "Video4Linux2 support: %s", _v4l2_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-   snprintf(feat_str, sizeof(feat_str),
+   snprintf(feat_str, PATH_MAX_LENGTH,
          "Libusb support: %s", _libusb_supp ? "true" : "false");
    menu_list_push(info->list, feat_str, "info",
          MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
+
+   free(feat_str);
+   free(tmp);
+   free(tmp2);
 
    return 0;
 }
@@ -885,7 +891,7 @@ static int menu_displaylist_parse_options_cheats(menu_displaylist_info_t *info)
 
    for (i = 0; i < cheat->size; i++)
    {
-      char cheat_label[64] = {0};
+      char cheat_label[64];
 
       snprintf(cheat_label, sizeof(cheat_label), "Cheat #%u: ", i);
       if (cheat->cheats[i].desc)
@@ -1150,7 +1156,6 @@ static int menu_displaylist_parse_generic(menu_displaylist_info_t *info, bool *n
    {
       bool is_dir;
       const char *path            = NULL;
-      char label[PATH_MAX_LENGTH] = {0};
       menu_file_type_t file_type  = MENU_FILE_NONE;
 
       switch (str_list->elems[i].attr.i)
@@ -1211,7 +1216,7 @@ static int menu_displaylist_parse_generic(menu_displaylist_info_t *info, bool *n
             break;
       }
 
-      menu_list_push(info->list, path, label,
+      menu_list_push(info->list, path, "",
             file_type, 0, 0);
    }
 
@@ -1221,6 +1226,7 @@ static int menu_displaylist_parse_generic(menu_displaylist_info_t *info, bool *n
    {
       case MENU_LABEL_CORE_LIST:
          {
+            char *core_path = string_alloc(PATH_MAX_LENGTH);
             const char *dir = NULL;
 
             menu_list_get_last_stack(menu_list, &dir, NULL, NULL, NULL);
@@ -1229,23 +1235,24 @@ static int menu_displaylist_parse_generic(menu_displaylist_info_t *info, bool *n
 
             for (i = 0; i < list_size; i++)
             {
+               char display_name[NAME_MAX_LENGTH];
                unsigned type = 0;
-               char core_path[PATH_MAX_LENGTH]    = {0};
-               char display_name[PATH_MAX_LENGTH] = {0};
-               const char *path                   = NULL;
+               const char *path = NULL;
 
                menu_list_get_at_offset(info->list, i, &path, NULL, &type, NULL);
 
                if (type != MENU_FILE_CORE)
                   continue;
 
-               fill_pathname_join(core_path, dir, path, sizeof(core_path));
+               fill_pathname_join(core_path, dir, path, PATH_MAX_LENGTH);
 
+               display_name[0] = '\0';
                if (global->core_info &&
                      core_info_list_get_display_name(global->core_info,
-                        core_path, display_name, sizeof(display_name)))
+                        core_path, display_name, NAME_MAX_LENGTH))
                   menu_list_set_alt_at_offset(info->list, i, display_name);
             }
+            free(core_path);
             *need_sort = true;
          }
          break;
@@ -1648,11 +1655,13 @@ int menu_displaylist_push(file_list_t *list, file_list_t *menu_list)
    const char *label            = NULL;
    uint32_t          hash_label = 0;
    unsigned type                = 0;
-   menu_displaylist_info_t info = {0};
    menu_entries_t *entries      = menu_entries_get_ptr();
+
+   static menu_displaylist_info_t info;
 
    menu_list_get_last_stack(entries->menu_list, &path, &label, &type, NULL);
 
+   menu_displaylist_info_clear(&info);
    info.list      = list;
    info.menu_list = menu_list;
    info.type      = type;
@@ -1691,19 +1700,49 @@ bool menu_displaylist_init()
 {
    menu_list_t       *menu_list = menu_list_get_ptr();
    menu_navigation_t       *nav = menu_navigation_get_ptr();
-   menu_displaylist_info_t info = {0};
+   menu_displaylist_info_t *info;
+
    if (!menu_list)
       return false;
 
-   info.list  = menu_list->selection_buf;
-   info.type  = MENU_SETTINGS;
-   info.flags = SL_FLAG_MAIN_MENU | SL_FLAG_MAIN_MENU_SETTINGS;
-   strlcpy(info.label, menu_hash_to_str(MENU_VALUE_MAIN_MENU), sizeof(info.label));
+   info = menu_displaylist_info_new();
+
+   info->list  = menu_list->selection_buf;
+   info->type  = MENU_SETTINGS;
+   info->flags = SL_FLAG_MAIN_MENU | SL_FLAG_MAIN_MENU_SETTINGS;
+   strlcpy(info->label, menu_hash_to_str(MENU_VALUE_MAIN_MENU), sizeof(info->label));
 
    menu_list_push(menu_list->menu_stack,
-         info.path, info.label, info.type, info.flags, 0);
-   menu_displaylist_push_list(&info, DISPLAYLIST_MAIN_MENU);
+         info->path, info->label, info->type, info->flags, 0);
+   menu_displaylist_push_list(info, DISPLAYLIST_MAIN_MENU);
    menu_navigation_clear(nav, true);
 
+   free(info);
    return true;
+}
+
+void menu_displaylist_info_clear(menu_displaylist_info_t *info)
+{
+   info->list = NULL;
+   info->menu_list = NULL;
+   info->path[0] = '\0';
+   info->path_b[0] = '\0';
+   info->path_c[0] = '\0';
+   info->label[0] = '\0';
+   info->exts[0] = '\0';
+   info->type = 0;
+   info->type_default = 0;
+   info->directory_ptr = 0;
+   info->flags = 0;
+   info->setting = NULL;
+}
+
+menu_displaylist_info_t *menu_displaylist_info_new()
+{
+   menu_displaylist_info_t *info = malloc(sizeof(menu_displaylist_info_t));
+   rarch_assert(info != NULL);  /* for simplicity */
+
+   menu_displaylist_info_clear(info);
+
+   return info;
 }

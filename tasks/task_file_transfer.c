@@ -408,7 +408,7 @@ static int cb_nbio_image_menu_boxart(void *data, size_t len)
 
 static int rarch_main_data_nbio_iterate_poll(nbio_handle_t *nbio)
 {
-   char elem0[PATH_MAX_LENGTH]  = {0};
+   static char elem0[PATH_MAX_LENGTH];
    uint32_t cb_type_hash        = 0;
    struct nbio_t* handle        = NULL;
    struct string_list *str_list = NULL;
@@ -431,6 +431,7 @@ static int rarch_main_data_nbio_iterate_poll(nbio_handle_t *nbio)
    if (!str_list)
       goto error;
 
+   elem0[0] = '\0';
    if (str_list->size > 0)
       strlcpy(elem0, str_list->elems[0].data, sizeof(elem0));
    if (str_list->size > 1)

@@ -95,6 +95,10 @@ int menu_displaylist_push(file_list_t *list, file_list_t *menu_list);
  **/
 bool menu_displaylist_init();
 
+void menu_displaylist_info_clear(menu_displaylist_info_t *info);
+
+menu_displaylist_info_t *menu_displaylist_info_new();
+
 #ifdef __cplusplus
 }
 #endif

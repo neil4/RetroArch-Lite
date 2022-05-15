@@ -39,6 +39,8 @@ char *string_to_upper(char *s);
 char *string_replace_substring(const char *in, const char *pattern,
       const char *by);
 
+char *string_alloc(size_t num_chars);
+
 #ifdef __cplusplus
 }
 #endif

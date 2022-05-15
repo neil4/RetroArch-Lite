@@ -23,6 +23,7 @@
 
 #include <retro_miscellaneous.h>
 #include <file/file_path.h>
+#include <string/stdstring.h>
 
 #include "zip_support.h"
 
@@ -71,8 +72,10 @@ int read_zip_file(const char *archive_path,
    {
       /* Get info about current file. */
       unz_file_info file_info;
-      char filename[PATH_MAX_LENGTH] = {0};
+      char filename[PATH_MAX_LENGTH];
       char last_char = ' ';
+
+      filename[0] = '\0';
 
       if (unzGetCurrentFileInfo(
             zipfile,
@@ -123,7 +126,7 @@ int read_zip_file(const char *archive_path,
          }
          else
          {
-            char read_buffer[RARCH_ZIP_SUPPORT_BUFFER_SIZE_MAX] = {0};
+            char* read_buffer = NULL;
             FILE* outsink = fopen(optional_outfile,"wb");
 
             if (outsink == NULL)
@@ -132,7 +135,8 @@ int read_zip_file(const char *archive_path,
                goto close;
             }
 
-            bytes_read = 0;
+            read_buffer = string_alloc(RARCH_ZIP_SUPPORT_BUFFER_SIZE_MAX);
+            bytes_read  = 0;
 
             do
             {
@@ -148,10 +152,12 @@ int read_zip_file(const char *archive_path,
                /* couldn't write all bytes */
                RARCH_ERR("Error writing to %s.\n",optional_outfile);
                fclose(outsink);
+               free(read_buffer);
                goto close;
             } while(bytes_read > 0);
 
             fclose(outsink);
+            free(read_buffer);
          }
          finished_reading = true;
       }

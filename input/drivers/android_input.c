@@ -714,8 +714,8 @@ static int android_input_get_id_index_from_name(android_input_t *android,
 static void handle_hotplug(android_input_t *android,
       struct android_app *android_app, unsigned *port, unsigned id)
 {
-   char device_name[256]        = {0};
-   char name_buf[256]           = {0};
+   char device_name[256];
+   char name_buf[256];
    autoconfig_params_t params   = {{0}};
    name_buf[0] = device_name[0] = 0;
    int vendorId = 0, productId  = 0;

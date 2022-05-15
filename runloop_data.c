@@ -26,6 +26,8 @@
 #include "menu/menu_entries.h"
 #include "menu/menu_input.h"
 
+#include <string/stdstring.h>
+
 static struct data_runloop *g_data_runloop;
 
 data_runloop_t *rarch_main_data_get_ptr(void)
@@ -172,9 +174,9 @@ void rarch_main_data_msg_queue_push(unsigned type,
       const char *msg, const char *msg2,
       unsigned prio, unsigned duration, bool flush)
 {
-   char new_msg[PATH_MAX_LENGTH] = {0};
-   msg_queue_t *queue            = NULL;
-   data_runloop_t *runloop       = rarch_main_data_get_ptr();
+   char *new_msg           = string_alloc(PATH_MAX_LENGTH);
+   msg_queue_t *queue      = NULL;
+   data_runloop_t *runloop = rarch_main_data_get_ptr();
 
    switch(type)
    {
@@ -182,30 +184,33 @@ void rarch_main_data_msg_queue_push(unsigned type,
          break;
       case DATA_TYPE_FILE:
          queue = runloop->nbio.msg_queue;
-         snprintf(new_msg, sizeof(new_msg), "%s|%s", msg, msg2);
+         snprintf(new_msg, PATH_MAX_LENGTH, "%s|%s", msg, msg2);
          break;
       case DATA_TYPE_IMAGE:
          queue = runloop->nbio.image.msg_queue;
-         snprintf(new_msg, sizeof(new_msg), "%s|%s", msg, msg2);
+         snprintf(new_msg, PATH_MAX_LENGTH, "%s|%s", msg, msg2);
          break;
 #ifdef HAVE_NETWORKING
       case DATA_TYPE_HTTP:
          queue = runloop->http.msg_queue;
-         snprintf(new_msg, sizeof(new_msg), "%s|%s|%s", msg, msg2,
+         snprintf(new_msg, PATH_MAX_LENGTH, "%s|%s|%s", msg, msg2,
                   runloop->http.msg_filename);
          break;
 #endif
 #ifdef HAVE_OVERLAY
       case DATA_TYPE_OVERLAY:
-         snprintf(new_msg, sizeof(new_msg), "%s|%s", msg, msg2);
+         snprintf(new_msg, PATH_MAX_LENGTH, "%s|%s", msg, msg2);
          break;
 #endif
    }
 
    if (!queue)
-      return;
+      goto end;
 
    if (flush)
       msg_queue_clear(queue);
    msg_queue_push(queue, new_msg, prio, duration);
+
+end:
+   free(new_msg);
 }

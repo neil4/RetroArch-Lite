@@ -22,6 +22,7 @@
 #include <file/file_path.h>
 #include <compat/strl.h>
 #include <compat/posix_string.h>
+#include <string/stdstring.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -59,15 +60,15 @@ bool cheat_manager_save(cheat_manager_t *handle, const char *path)
 {
    bool ret;
    unsigned i;
-   config_file_t *conf               = NULL;
-   char buf[PATH_MAX_LENGTH]         = {0};
-   char cheats_file[PATH_MAX_LENGTH] = {0};
-   settings_t              *settings = config_get_ptr();
+   config_file_t *conf  = NULL;
+   char *cheats_file    = string_alloc(PATH_MAX_LENGTH);
+   char *buf            = string_alloc(PATH_MAX_LENGTH);
+   settings_t *settings = config_get_ptr();
 
    fill_pathname_join(buf, settings->cheat_database,
-         path, sizeof(buf));
+         path, PATH_MAX_LENGTH);
 
-   fill_pathname_noext(cheats_file, buf, ".cht", sizeof(cheats_file));
+   fill_pathname_noext(cheats_file, buf, ".cht", PATH_MAX_LENGTH);
    
    conf = config_file_new(cheats_file);
 
@@ -75,22 +76,22 @@ bool cheat_manager_save(cheat_manager_t *handle, const char *path)
       conf = config_file_new(NULL);
 
    if (!conf)
-      return false;
+      goto error;
 
    if (!handle)
    {
       config_file_free(conf);
-      return false;
+      goto error;
    }
 
    config_set_int(conf, "cheats", handle->size);
 
    for (i = 0; i < handle->size; i++)
    {
-      char key[64]         = {0};
-      char desc_key[256]   = {0};
-      char code_key[256]   = {0};
-      char enable_key[256] = {0};
+      char key[64];
+      char desc_key[256];
+      char code_key[256];
+      char enable_key[256];
 
       snprintf(key, sizeof(key), "cheat%u", i);
       snprintf(desc_key, sizeof(desc_key), "cheat%u_desc", i);
@@ -108,7 +109,14 @@ bool cheat_manager_save(cheat_manager_t *handle, const char *path)
    ret = config_file_write(conf, cheats_file);
    config_file_free(conf);
 
+   free(buf);
+   free(cheats_file);
    return ret;
+
+error:
+   free(buf);
+   free(cheats_file);
+   return false;
 }
 
 cheat_manager_t *cheat_manager_load(const char *path)
@@ -132,10 +140,10 @@ cheat_manager_t *cheat_manager_load(const char *path)
 
    for (i = 0; i < cheats; i++)
    {
-      char key[64]         = {0};
-      char desc_key[256]   = {0};
-      char code_key[256]   = {0};
-      char enable_key[256] = {0};
+      char key[64];
+      char desc_key[256];
+      char code_key[256];
+      char enable_key[256];
       char *tmp            = NULL;
       bool tmp_bool        = false;
 
@@ -255,7 +263,7 @@ void cheat_manager_free(cheat_manager_t *handle)
 
 void cheat_manager_update(cheat_manager_t *handle, unsigned handle_idx)
 {
-   char msg[256] = {0};
+   char msg[256];
 
    if (!handle)
       return;

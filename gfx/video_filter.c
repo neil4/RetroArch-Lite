@@ -374,7 +374,7 @@ rarch_softfilter_t *rarch_softfilter_new(const char *filter_config,
       unsigned max_width, unsigned max_height)
 {
    softfilter_simd_mask_t cpu_features = rarch_get_cpu_features();
-   char basedir[PATH_MAX_LENGTH] = {0};
+   char basedir[PATH_MAX_LENGTH];
    struct string_list *plugs     = NULL;
    rarch_softfilter_t *filt      = NULL;
 

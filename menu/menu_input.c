@@ -423,12 +423,12 @@ static bool menu_input_retropad_bind_keyboard_cb(void *data, unsigned code)
 static int menu_input_set_bind_mode_common(rarch_setting_t  *setting,
       enum menu_input_bind_mode type)
 {
-   menu_displaylist_info_t info  = {0};
    struct retro_keybind *keybind = NULL;
    settings_t     *settings      = config_get_ptr();
    menu_list_t        *menu_list = menu_list_get_ptr();
    menu_input_t      *menu_input = menu_input_get_ptr();
    menu_navigation_t       *nav  = menu_navigation_get_ptr();
+   menu_displaylist_info_t *info;
 
    if (!setting)
       return -1;
@@ -443,33 +443,39 @@ static int menu_input_set_bind_mode_common(rarch_setting_t  *setting,
          if (!keybind)
             return -1;
 
+         info = menu_displaylist_info_new();
+
          menu_input->binds.begin  = setting->bind_type;
          menu_input->binds.last   = setting->bind_type;
          menu_input->binds.target = keybind;
          menu_input->binds.user   = setting->index_offset;
 
-         info.list          = menu_list->menu_stack;
-         info.type          = MENU_SETTINGS_CUSTOM_BIND_KEYBOARD;
-         info.directory_ptr = nav->selection_ptr;
-         strlcpy(info.label,
-               menu_hash_to_str(MENU_LABEL_CUSTOM_BIND), sizeof(info.label));
+         info->list          = menu_list->menu_stack;
+         info->type          = MENU_SETTINGS_CUSTOM_BIND_KEYBOARD;
+         info->directory_ptr = nav->selection_ptr;
+         strlcpy(info->label,
+               menu_hash_to_str(MENU_LABEL_CUSTOM_BIND), sizeof(info->label));
 
-         menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
+         menu_displaylist_push_list(info, DISPLAYLIST_INFO);
+         free(info);
          break;
       case MENU_INPUT_BIND_ALL:
+         info = menu_displaylist_info_new();
+
          menu_input->binds.target = &settings->input.binds
             [setting->index_offset][0];
          menu_input->binds.begin  = MENU_SETTINGS_BIND_BEGIN;
          menu_input->binds.last   = MENU_SETTINGS_BIND_LAST;
 
-         info.list          = menu_list->menu_stack;
-         info.type          = MENU_SETTINGS_CUSTOM_BIND_KEYBOARD;
-         info.directory_ptr = nav->selection_ptr;
-         strlcpy(info.label,
+         info->list          = menu_list->menu_stack;
+         info->type          = MENU_SETTINGS_CUSTOM_BIND_KEYBOARD;
+         info->directory_ptr = nav->selection_ptr;
+         strlcpy(info->label,
                menu_hash_to_str(MENU_LABEL_CUSTOM_BIND_ALL),
-               sizeof(info.label));
+               sizeof(info->label));
 
-         menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
+         menu_displaylist_push_list(info, DISPLAYLIST_INFO);
+         free(info);
          break;
    }
    return 0;
@@ -548,8 +554,8 @@ int menu_input_bind_iterate(uint32_t label_hash)
 {
    int64_t current;
    struct menu_bind_state binds;
-   char msg[PATH_MAX_LENGTH]    = {0};
-   char fmt[64]                 = {0};
+   char msg[PATH_MAX_LENGTH];
+   char fmt[64];
    int timeout                  = 0;
    menu_input_t *menu_input     = menu_input_get_ptr();
    driver_t *driver             = driver_get_ptr();
@@ -800,7 +806,7 @@ static bool menu_input_value_can_step(size_t selected)
    }
    else
    {
-      menu_entry_t entry = {{0}};
+      menu_entry_t entry;
       menu_entry_get(&entry, selected, NULL, false);
 
       if ( (entry.type >= MENU_SETTINGS_CORE_OPTION_START)

@@ -31,7 +31,7 @@ static INLINE void replace_chars(char *str, char c1, char c2)
 
 static INLINE void sanitize_to_string(char *s, const char *label, size_t len)
 {
-   char new_label[NAME_MAX_LENGTH] = {0};
+   char new_label[NAME_MAX_LENGTH];
 
    strlcpy(new_label, label, sizeof(new_label));
    strlcpy(s, string_to_upper(new_label), len);
@@ -194,17 +194,17 @@ static int action_get_title_default(const char *path, const char *label,
 static int action_get_title_group_settings(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
-   char elem0[PATH_MAX_LENGTH]    = {0};
-   char elem1[PATH_MAX_LENGTH]    = {0};
    struct string_list *list_label = string_split(label, "|");
+   char *elem0                    = string_alloc(PATH_MAX_LENGTH);
+   char *elem1                    = string_alloc(PATH_MAX_LENGTH);
 
    if (list_label)
    {
       if (list_label->size > 0)
       {
-         strlcpy(elem0, list_label->elems[0].data, sizeof(elem0));
+         strlcpy(elem0, list_label->elems[0].data, PATH_MAX_LENGTH);
          if (list_label->size > 1)
-            strlcpy(elem1, list_label->elems[1].data, sizeof(elem1));
+            strlcpy(elem1, list_label->elems[1].data, PATH_MAX_LENGTH);
       }
       string_list_free(list_label);
    }
@@ -217,6 +217,8 @@ static int action_get_title_group_settings(const char *path, const char *label,
       strlcat(s, string_to_upper(elem1), len);
    }
 
+   free(elem0);
+   free(elem1);
    return 0;
 }
 

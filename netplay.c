@@ -347,7 +347,7 @@ static bool hold_back_to_cancel_iterate(const unsigned hold_limit)
    settings_t *settings       = config_get_ptr();
    driver_t *driver           = driver_get_ptr();
    netplay_t *netplay         = (netplay_t*)driver->netplay_data;
-   char msg[64]               = {0};
+   char msg[64];
    static unsigned hold_count;
 
 #ifdef HAVE_OVERLAY

@@ -542,7 +542,9 @@ int zlib_parse_file_iterate_step(zlib_transfer_t *state,
    uint32_t csize       = 0;
    unsigned cmode       = 0;
    unsigned payload     = 0;
-   char filename[PATH_MAX_LENGTH] = {0};
+   char filename[PATH_MAX_LENGTH];
+
+   filename[0] = '\0';
    int ret = zlib_parse_file_iterate_step_internal(state, filename, &cdata, &cmode, &size, &csize,
          &checksum, &payload);
 
@@ -702,7 +704,8 @@ static int zip_extract_cb(const char *name, const char *valid_exts,
 
    if (ext && string_list_find_elem(data->ext, ext))
    {
-      char new_path[PATH_MAX_LENGTH] = {0};
+      char new_path[PATH_MAX_LENGTH];
+      new_path[0] = '\0';
 
       if (data->extraction_directory)
          fill_pathname_join(new_path, data->extraction_directory,

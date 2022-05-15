@@ -21,22 +21,26 @@
 
 static int action_info_default(unsigned type, const char *label)
 {
-   menu_displaylist_info_t info = {0};
-   menu_navigation_t *nav       = menu_navigation_get_ptr();
-   menu_list_t *menu_list       = menu_list_get_ptr();
-   global_t       *global       = global_get_ptr();
+   menu_navigation_t *nav = menu_navigation_get_ptr();
+   menu_list_t *menu_list = menu_list_get_ptr();
+   global_t       *global = global_get_ptr();
+   menu_displaylist_info_t *info;
 
    if (!menu_list)
       return 0;
 
-   info.list          = menu_list->menu_stack;
-   info.directory_ptr = nav->selection_ptr;
-   strlcpy(info.label,
-         menu_hash_to_str(MENU_LABEL_INFO_SCREEN),
-        sizeof(info.label));
+   info = menu_displaylist_info_new();
 
-   menu_displaylist_push_list(&info, DISPLAYLIST_HELP);
+   info->list          = menu_list->menu_stack;
+   info->directory_ptr = nav->selection_ptr;
+   strlcpy(info->label,
+         menu_hash_to_str(MENU_LABEL_INFO_SCREEN),
+         sizeof(info->label));
+
+   menu_displaylist_push_list(info, DISPLAYLIST_HELP);
    global->menu.block_push = true;
+
+   free(info);
    return 0;
 }
 

@@ -287,7 +287,7 @@ bool recording_deinit(void)
  **/
 bool recording_init(void)
 {
-   char recording_file[PATH_MAX_LENGTH] = {0};
+   char recording_file[PATH_MAX_LENGTH];
    struct ffemu_params params           = {0};
    global_t *global                     = global_get_ptr();
    driver_t *driver                     = driver_get_ptr();

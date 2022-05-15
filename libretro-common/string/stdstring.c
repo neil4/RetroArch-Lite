@@ -20,6 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <retro_miscellaneous.h>
 #include <string/stdstring.h>
 #include <ctype.h>
 
@@ -91,4 +92,13 @@ char *string_replace_substring(const char *in, const char *pattern, const char *
    }
 
    return newstr;
+}
+
+char *string_alloc(size_t num_chars)
+{
+   char *s = (char*)malloc(num_chars * sizeof(char));
+   rarch_assert(s != NULL);  /* for simplicity */
+
+   s[0] = '\0';
+   return s;
 }

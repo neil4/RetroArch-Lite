@@ -263,8 +263,7 @@ static int setting_handler(rarch_setting_t *setting, unsigned action)
 int menu_action_handle_setting(rarch_setting_t *setting,
       unsigned type, unsigned action, bool wraparound)
 {
-   menu_displaylist_info_t  info = {0};
-   menu_navigation_t        *nav = menu_navigation_get_ptr();
+   menu_navigation_t *nav = menu_navigation_get_ptr();
 
    if (!setting)
       return -1;
@@ -282,15 +281,17 @@ int menu_action_handle_setting(rarch_setting_t *setting,
       case ST_PATH:
          if (action == MENU_ACTION_OK)
          {
-            menu_list_t   *menu_list = menu_list_get_ptr();
+            menu_list_t *menu_list        = menu_list_get_ptr();
+            menu_displaylist_info_t *info = menu_displaylist_info_new();
 
-            info.list           = menu_list->menu_stack;
-            info.type           = type;
-            info.directory_ptr  = nav->selection_ptr;
-            strlcpy(info.path, setting->default_value.string, sizeof(info.path));
-            strlcpy(info.label, setting->name, sizeof(info.label));
+            info->list           = menu_list->menu_stack;
+            info->type           = type;
+            info->directory_ptr  = nav->selection_ptr;
+            strlcpy(info->path, setting->default_value.string, sizeof(info->path));
+            strlcpy(info->label, setting->name, sizeof(info->label));
 
-            menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
+            menu_displaylist_push_list(info, DISPLAYLIST_GENERIC);
+            free(info);
          }
          /* fall-through. */
       case ST_BOOL:
@@ -1249,25 +1250,27 @@ static int setting_action_right_video_refresh_rate(void *data)
 
 static int setting_action_ok_custom_viewport(void *data, bool wraparound)
 {
-   menu_displaylist_info_t info = {0};
    int ret                  = 0;
    video_viewport_t *custom = video_viewport_get_custom();
    settings_t *settings     = config_get_ptr();
    menu_list_t   *menu_list = menu_list_get_ptr();
    menu_navigation_t *nav   = menu_navigation_get_ptr();
+   menu_displaylist_info_t *info;
    
    (void)data;
    (void)wraparound;
 
    if (!menu_list)
       return -1;
-   
-   info.list          = menu_list->menu_stack;
-   info.type          = MENU_SETTINGS_CUSTOM_VIEWPORT;
-   info.directory_ptr = nav->selection_ptr;
-   strlcpy(info.label, "custom_viewport_1", sizeof(info.label));
 
-   ret = menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
+   info = menu_displaylist_info_new();
+
+   info->list          = menu_list->menu_stack;
+   info->type          = MENU_SETTINGS_CUSTOM_VIEWPORT;
+   info->directory_ptr = nav->selection_ptr;
+   strlcpy(info->label, "custom_viewport_1", sizeof(info->label));
+
+   ret = menu_displaylist_push_list(info, DISPLAYLIST_INFO);
 
    video_driver_viewport_info(custom);
 
@@ -1277,6 +1280,7 @@ static int setting_action_ok_custom_viewport(void *data, bool wraparound)
    settings->video.aspect_ratio_idx = ASPECT_RATIO_CUSTOM;
 
    event_command(EVENT_CMD_VIDEO_SET_ASPECT_RATIO);
+   free(info);
    return ret;
 }
 
@@ -1297,23 +1301,27 @@ static int setting_action_ok_quickset_core_content_directory(void *data, bool wr
 
 static int setting_action_ok_video_filter(void *data, bool wraparound)
 {
-   menu_displaylist_info_t info = {0};
    settings_t *settings         = config_get_ptr();
    menu_list_t *menu_list       = menu_list_get_ptr();
    menu_navigation_t *nav       = menu_navigation_get_ptr();
+   menu_displaylist_info_t *info;
+   int ret;
 
    if (!menu_list)
       return -1;
 
+   info = menu_displaylist_info_new();
 
-   info.list          = menu_list->menu_stack;
-   info.type          = MENU_FILE_VIDEOFILTER;
-   info.directory_ptr = nav->selection_ptr;
-   strlcpy(info.path, settings->video.filter_dir, sizeof(info.path));
-   strlcpy(info.label,
-         menu_hash_to_str(MENU_LABEL_DEFERRED_VIDEO_FILTER), sizeof(info.label));
+   info->list          = menu_list->menu_stack;
+   info->type          = MENU_FILE_VIDEOFILTER;
+   info->directory_ptr = nav->selection_ptr;
+   strlcpy(info->path, settings->video.filter_dir, sizeof(info->path));
+   strlcpy(info->label,
+         menu_hash_to_str(MENU_LABEL_DEFERRED_VIDEO_FILTER), sizeof(info->label));
 
-   return menu_displaylist_push_list(&info, DISPLAYLIST_GENERIC);
+   ret = menu_displaylist_push_list(info, DISPLAYLIST_GENERIC);
+   free(info);
+   return ret;
 }
 
 static int setting_action_start_video_filter(void *data)

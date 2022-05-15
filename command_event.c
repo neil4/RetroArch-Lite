@@ -38,6 +38,8 @@
 #include "menu/menu_shader.h"
 #include "menu/menu_input.h"
 
+#include <string/stdstring.h>
+
 #ifdef HAVE_NETPLAY
 #include "netplay.h"
 #endif
@@ -167,7 +169,7 @@ static void event_save_files(void)
  **/
 static void event_disk_control_set_eject(bool new_state, bool print_log)
 {
-   char msg[NAME_MAX_LENGTH] = {0};
+   char msg[NAME_MAX_LENGTH];
    global_t *global          = global_get_ptr();
    bool error                = false;
    const struct retro_disk_control_callback *control = 
@@ -210,7 +212,7 @@ static void event_disk_control_set_eject(bool new_state, bool print_log)
 void event_disk_control_append_image(const char *path)
 {
    unsigned new_idx;
-   char msg[PATH_MAX_LENGTH]   = {0};
+   char msg[PATH_MAX_LENGTH];
    struct retro_game_info info = {0};
    global_t *global = global_get_ptr();
    const struct retro_disk_control_callback *control = 
@@ -272,7 +274,7 @@ static void event_check_disk_eject(
 static void event_disk_control_set_index(unsigned idx)
 {
    unsigned num_disks;
-   char msg[NAME_MAX_LENGTH] = {0};
+   char msg[NAME_MAX_LENGTH];
    global_t *global          = global_get_ptr();
    const struct retro_disk_control_callback *control = 
       (const struct retro_disk_control_callback*)&global->system.disk_control;
@@ -370,7 +372,7 @@ static void event_check_disk_next(
  **/
 static void event_set_volume(float gain)
 {
-   char msg[NAME_MAX_LENGTH] = {0};
+   char msg[NAME_MAX_LENGTH];
    settings_t *settings      = config_get_ptr();
 
    settings->audio.volume += gain;
@@ -473,47 +475,56 @@ static bool event_load_save_files(void)
 static void event_load_auto_state(void)
 {
    bool ret;
-   char msg[PATH_MAX_LENGTH]                 = {0};
-   char savestate_name_auto[PATH_MAX_LENGTH] = {0};
+   char *savestate_name_auto = string_alloc(PATH_MAX_LENGTH);
+   char *msg                 = string_alloc(PATH_MAX_LENGTH);
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
 
 #ifdef HAVE_NETPLAY
    if (global->netplay_enable)
-      return;
+      goto end;
 #endif
 
    if (!settings->savestate_auto_load)
-      return;
+      goto end;
 
    fill_pathname_noext(savestate_name_auto, global->savestate_name,
-         ".auto", sizeof(savestate_name_auto));
+         ".auto", PATH_MAX_LENGTH);
 
    if (!path_file_exists(savestate_name_auto))
-      return;
+      goto end;
 
    ret = load_state(savestate_name_auto);
 
    RARCH_LOG("Found auto savestate in: %s\n", savestate_name_auto);
 
-   snprintf(msg, sizeof(msg), "Auto-loading savestate from \"%s\" %s.",
+   snprintf(msg, PATH_MAX_LENGTH, "Auto-loading savestate from \"%s\" %s.",
          savestate_name_auto, ret ? "succeeded" : "failed");
    rarch_main_msg_queue_push(msg, 1, 180, false);
    RARCH_LOG("%s\n", msg);
+
+end:
+   free(savestate_name_auto);
+   free(msg);
 }
 
 static void event_set_savestate_auto_index(void)
 {
    size_t i;
-   char state_dir[PATH_MAX_LENGTH]  = {0};
-   char state_base[PATH_MAX_LENGTH] = {0};
-   struct string_list *dir_list     = NULL;
-   unsigned max_idx                 = 0;
-   settings_t *settings             = config_get_ptr();
-   global_t   *global               = global_get_ptr();
+   char *state_dir              = NULL;
+   char *state_base             = NULL;
+   char *elem_base              = NULL;
+   struct string_list *dir_list = NULL;
+   unsigned max_idx             = 0;
+   settings_t *settings         = config_get_ptr();
+   global_t   *global           = global_get_ptr();
 
    if (!settings->savestate_auto_index)
-      return;
+      goto end;
+
+   state_dir  = string_alloc(PATH_MAX_LENGTH);
+   state_base = string_alloc(PATH_MAX_LENGTH);
+   elem_base  = string_alloc(PATH_MAX_LENGTH);
 
    /* Find the file in the same directory as global->savestate_name
     * with the largest numeral suffix.
@@ -522,20 +533,17 @@ static void event_set_savestate_auto_index(void)
     * /foo/path/content.state%d, where %d is the largest number available.
     */
 
-   fill_pathname_basedir(state_dir, global->savestate_name,
-         sizeof(state_dir));
-   fill_pathname_base(state_base, global->savestate_name,
-         sizeof(state_base));
+   fill_pathname_basedir(state_dir, global->savestate_name, PATH_MAX_LENGTH);
+   fill_pathname_base(state_base, global->savestate_name, PATH_MAX_LENGTH);
 
    if (!(dir_list = dir_list_new_special(state_dir, DIR_LIST_PLAIN)))
-      return;
+      goto end;
 
    for (i = 0; i < dir_list->size; i++)
    {
       unsigned idx;
-      char elem_base[PATH_MAX_LENGTH] = {0};
-      const char *end                 = NULL;
-      const char *dir_elem            = dir_list->elems[i].data;
+      const char *end      = NULL;
+      const char *dir_elem = dir_list->elems[i].data;
 
       fill_pathname_base(elem_base, dir_elem, sizeof(elem_base));
 
@@ -555,6 +563,11 @@ static void event_set_savestate_auto_index(void)
 
    settings->state_slot = max_idx;
    RARCH_LOG("Found last state slot: #%d\n", settings->state_slot);
+
+end:
+   free(state_dir);
+   free(state_base);
+   free(elem_base);
 }
 
 static bool event_init_content(void)
@@ -622,7 +635,7 @@ static bool event_init_core(void)
 static bool event_save_auto_state(void)
 {
    bool ret;
-   char savestate_name_auto[PATH_MAX_LENGTH] = {0};
+   char savestate_name_auto[PATH_MAX_LENGTH];
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
 
@@ -692,32 +705,35 @@ static void event_load_state(const char *path, char *s, size_t len)
 
 static void event_main_state(unsigned cmd)
 {
-   char path[PATH_MAX_LENGTH] = {0};
-   char msg[PATH_MAX_LENGTH]  = {0};
-   global_t *global           = global_get_ptr();
-   settings_t *settings       = config_get_ptr();
+   char *path = string_alloc(PATH_MAX_LENGTH);
+   char *msg  = string_alloc(PATH_MAX_LENGTH);
+   global_t   *global   = global_get_ptr();
+   settings_t *settings = config_get_ptr();
 
    if (settings->state_slot > 0)
-      snprintf(path, sizeof(path), "%s%d",
+      snprintf(path, PATH_MAX_LENGTH, "%s%d",
             global->savestate_name, settings->state_slot);
    else if (settings->state_slot < 0)
-      snprintf(path, sizeof(path), "%s.auto",
+      snprintf(path, PATH_MAX_LENGTH, "%s.auto",
             global->savestate_name);
    else
-      strlcpy(path, global->savestate_name, sizeof(path));
+      strlcpy(path, global->savestate_name, PATH_MAX_LENGTH);
 
    if (pretro_serialize_size())
    {
       if (cmd == EVENT_CMD_SAVE_STATE)
-         event_save_state(path, msg, sizeof(msg));
+         event_save_state(path, msg, PATH_MAX_LENGTH);
       else if (cmd == EVENT_CMD_LOAD_STATE)
-         event_load_state(path, msg, sizeof(msg));
+         event_load_state(path, msg, PATH_MAX_LENGTH);
    }
    else
-      strlcpy(msg, "Core does not support save states.", sizeof(msg));
+      strlcpy(msg, "Core does not support save states.", PATH_MAX_LENGTH);
 
    rarch_main_msg_queue_push(msg, 2, 180, true);
    RARCH_LOG("%s\n", msg);
+
+   free(path);
+   free(msg);
 }
 
 static bool event_update_system_info(struct retro_system_info *_info,

@@ -124,20 +124,22 @@ static int action_start_shader_preset(unsigned type, const char *label)
 
 static int action_start_shader_preset_delete(unsigned type, const char *label)
 {
-   menu_displaylist_info_t info = {0};
    int ret                  = 0;
    menu_list_t   *menu_list = menu_list_get_ptr();
    menu_navigation_t *nav   = menu_navigation_get_ptr();
+   menu_displaylist_info_t *info;
 
    if (!menu_list)
       return -1;
-   
-   info.list          = menu_list->menu_stack;
-   info.directory_ptr = nav->selection_ptr;
-   strlcpy(info.label, "confirm_shader_preset_deletion", sizeof(info.label));
 
-   ret = menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
+   info = menu_displaylist_info_new();
 
+   info->list          = menu_list->menu_stack;
+   info->directory_ptr = nav->selection_ptr;
+   strlcpy(info->label, "confirm_shader_preset_deletion", sizeof(info->label));
+
+   ret = menu_displaylist_push_list(info, DISPLAYLIST_INFO);
+   free(info);
    return ret;
 }
 
@@ -358,20 +360,22 @@ static int action_start_core_setting(unsigned type,
 
 static int action_start_core_delete(unsigned type, const char *label)
 {
-   menu_displaylist_info_t info = {0};
    int ret                  = 0;
    menu_list_t   *menu_list = menu_list_get_ptr();
    menu_navigation_t *nav   = menu_navigation_get_ptr();
+   menu_displaylist_info_t *info;
 
    if (!menu_list)
       return -1;
-   
-   info.list          = menu_list->menu_stack;
-   info.directory_ptr = nav->selection_ptr;
-   strlcpy(info.label, "confirm_core_deletion", sizeof(info.label));
 
-   ret = menu_displaylist_push_list(&info, DISPLAYLIST_INFO);
+   info = menu_displaylist_info_new();
 
+   info->list          = menu_list->menu_stack;
+   info->directory_ptr = nav->selection_ptr;
+   strlcpy(info->label, "confirm_core_deletion", sizeof(info->label));
+
+   ret = menu_displaylist_push_list(info, DISPLAYLIST_INFO);
+   free(info);
    return ret;
 }
 
