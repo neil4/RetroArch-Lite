@@ -1102,6 +1102,9 @@ bool event_command(enum event_command cmd)
             enable = settings->input.overlay_enable;
          }
 
+         if (!enable)
+            break;
+
          /* Load from cache if possible. */
          if (driver->overlay_cache
                && driver->overlay_cache->state == OVERLAY_STATUS_ALIVE
@@ -1113,7 +1116,7 @@ bool event_command(enum event_command cmd)
          else
             event_command(EVENT_CMD_OVERLAY_UNLOAD);
 
-         driver->overlay = input_overlay_new(path, enable);
+         driver->overlay = input_overlay_new(path, true);
 
          if (!driver->overlay)
             RARCH_ERR("Failed to load overlay.\n");
