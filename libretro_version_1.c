@@ -40,6 +40,7 @@
 #include "intl/intl.h"
 #include "input/input_common.h"
 #include "preempt.h"
+#include "gfx/video_monitor.h"
 
 #ifdef HAVE_NETPLAY
 #include "netplay.h"
@@ -97,9 +98,13 @@ static void video_frame(const void *data, unsigned width,
 
    if (video_frame_scale(data, width, height, pitch))
    {
-      data                        = driver->scaler_out;
-      pitch                       = driver->scaler.out_stride;
+      data  = driver->scaler_out;
+      pitch = driver->scaler.out_stride;
    }
+
+   if (!video_state_increment_frame()
+            && driver->nonblock_state && !menu_driver_alive())
+      return; /* Drop frames exceeding refresh rate if nonblocking */
 
    /* Slightly messy code,
     * but we really need to do processing before blocking on VSync
@@ -111,7 +116,7 @@ static void video_frame(const void *data, unsigned width,
       )
       recording_dump_frame(data, width, height, pitch);
 
-   msg                = rarch_main_msg_queue_pull();
+   msg = rarch_main_msg_queue_pull();
 
    *driver->current_msg = 0;
 

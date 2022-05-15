@@ -32,8 +32,12 @@
 typedef struct video_driver_state
 {
    retro_time_t frame_time_samples[MEASURE_FRAME_TIME_SAMPLES_COUNT];
-   struct retro_hw_render_callback hw_render_callback;
+   uint64_t frame_count;
    uint64_t frame_time_samples_count;
+   retro_time_t frame_time_target;
+   float fps;
+
+   struct retro_hw_render_callback hw_render_callback;
    enum retro_pixel_format pix_fmt;
 
    unsigned video_width;
@@ -313,6 +317,11 @@ uint64_t video_driver_get_frame_count(void)
       return 0;
    }
    return poke->get_frame_count(driver->video_data);
+}
+
+uint64_t video_state_get_frame_count(void)
+{
+   return video_state.frame_count;
 }
 
 retro_proc_address_t video_driver_get_proc_address(const char *sym)
@@ -1004,6 +1013,7 @@ void video_monitor_set_refresh_rate(float hz)
    RARCH_LOG("%s\n", msg);
 
    settings->video.refresh_rate = hz;
+   video_state.frame_time_target = 1000000.0f / hz;
 }
 
 /**
@@ -1119,62 +1129,88 @@ bool video_monitor_fps_statistics(double *refresh_rate,
 #define U64_SIGN "%llu"
 #endif
 
+bool video_state_increment_frame()
+{
+   static retro_time_t prev_frame_us;
+   static retro_time_t fps_start_us;
+   static retro_time_t frame_time_accum;
+
+   retro_time_t now_us = rarch_get_time_usec();
+
+   if (video_state.frame_count++)
+   {
+      retro_time_t frame_time = now_us - prev_frame_us;
+      unsigned write_index    = video_state.frame_time_samples_count++ &
+            (MEASURE_FRAME_TIME_SAMPLES_COUNT - 1);
+
+      if ((video_state.frame_count % FPS_UPDATE_INTERVAL) == 0)
+      {
+         video_state.fps = TIME_TO_FPS(
+               fps_start_us, now_us, FPS_UPDATE_INTERVAL);
+         fps_start_us = now_us;
+      }
+
+      video_state.frame_time_samples[write_index] = frame_time;
+
+      if (driver_get_ptr()->nonblock_state)
+      {
+         frame_time_accum += frame_time;
+
+         /* Return true if frame should be shown */
+         if (frame_time_accum >= video_state.frame_time_target)
+         {
+            frame_time_accum -= video_state.frame_time_target;
+            if (frame_time_accum > video_state.frame_time_target)
+               frame_time_accum = 0;
+            prev_frame_us = now_us;
+            return true;
+         }
+      }
+
+      prev_frame_us = now_us;
+      return false;
+   }
+
+   prev_frame_us = fps_start_us = now_us;
+   return true;
+}
+
 bool video_monitor_get_fps(char *buf, size_t size,
       char *buf_fps, size_t size_fps)
 {
-   static float last_fps;
-   retro_time_t        new_time;
-   static retro_time_t curr_time;
-   static retro_time_t fps_time;
-   uint64_t frame_count = video_driver_get_frame_count();
    global_t  *global    = global_get_ptr();
    settings_t *settings = config_get_ptr();
+   bool ret             = false;
+
    *buf = '\0';
 
-   new_time = rarch_get_time_usec();
-
-   if (frame_count)
+   if ((video_state.frame_count % FPS_UPDATE_INTERVAL) == 0)
    {
-      bool ret = false;
-      unsigned write_index = video_state.frame_time_samples_count++ &
-         (MEASURE_FRAME_TIME_SAMPLES_COUNT - 1);
-
-      video_state.frame_time_samples[write_index] = new_time - fps_time;
-      fps_time = new_time;
-
-      if ((frame_count % FPS_UPDATE_INTERVAL) == 0)
-      {
-         last_fps = TIME_TO_FPS(curr_time, new_time, FPS_UPDATE_INTERVAL);
-         curr_time = new_time;
-
-         snprintf(buf, size, "%s || FPS: %6.1f || Frames: " U64_SIGN,
-               global->title_buf, last_fps, (unsigned long long)frame_count);
-         ret = true;
-      }
-
-      if (buf_fps)
-      {
-         if (settings->video.fullscreen)
-            snprintf(buf_fps, size_fps, "FPS: %.1f\nFrames: " U64_SIGN,
-               last_fps, (unsigned long long)frame_count);
-         else
-            snprintf(buf_fps, size_fps, "FPS: %.1f", last_fps);
-      }
-
-      return ret;
+      snprintf(buf, size, "%s || FPS: %6.1f || Frames: " U64_SIGN,
+            global->title_buf, video_state.fps,
+            (unsigned long long)video_state.frame_count);
+      ret = true;
    }
 
-   curr_time = fps_time = new_time;
-   strlcpy(buf, global->title_buf, size);
    if (buf_fps)
-      strlcpy(buf_fps, "N/A", size_fps);
+   {
+      if (settings->video.fullscreen)
+         snprintf(buf_fps, size_fps, "FPS: %.1f\nFrames: " U64_SIGN,
+               video_state.fps, (unsigned long long)video_state.frame_count);
+      else
+         snprintf(buf_fps, size_fps, "FPS: %.1f", video_state.fps);
+   }
 
-   return true;
+   return ret;
 }
 
 void video_monitor_reset(void)
 {
+   settings_t *settings = config_get_ptr();
+
    video_state.frame_time_samples_count = 0;
+   video_state.frame_count = 0;
+   video_state.frame_time_target = 1000000.0f / settings->video.refresh_rate;
 }
 
 float video_driver_get_aspect_ratio(void)

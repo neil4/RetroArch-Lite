@@ -335,7 +335,7 @@ static void input_joykbd_print_binds(char *out, size_t size,
  */
 void input_joykbd_get_info(char *s, size_t size)
 {
-   uint64_t frame_count = video_driver_get_frame_count();
+   uint64_t frame_count = video_state_get_frame_count();
    char bind_buf[13];
 
    strlcpy(s, "RetroPad to Keyboard Binds\n \n", size);

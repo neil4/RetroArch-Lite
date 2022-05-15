@@ -346,7 +346,11 @@ void video_driver_set_size_width(unsigned width);
 
 void video_driver_set_size_height(unsigned width);
 
+/* driver-rendered frames */
 uint64_t video_driver_get_frame_count(void);
+
+/* executed frames, including dropped */
+uint64_t video_state_get_frame_count(void);
 
 float video_driver_get_aspect_ratio(void);
 

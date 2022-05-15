@@ -80,7 +80,7 @@ static bool check_pause(bool pause_pressed, bool frameadvance_pressed)
       if (frameadvance_pressed)
       {
          pause_pressed |= !old_is_paused;
-         frame_count = video_driver_get_frame_count() + (pause_pressed ? 1:0);
+         frame_count = video_state_get_frame_count() + (pause_pressed ? 1:0);
          snprintf(msg, sizeof(msg), "Frame %lu", frame_count);
          rarch_main_msg_queue_push(msg, 1, 0, true);
       }
@@ -532,7 +532,7 @@ static INLINE int time_to_exit(event_cmd_state_t *cmd)
    bool shutdown_pressed         = global->system.shutdown;
    bool video_alive              = video_driver_is_alive();
    bool frame_count_end          = (runloop->frames.video.max && 
-         video_driver_get_frame_count() >= runloop->frames.video.max);
+         video_state_get_frame_count() >= runloop->frames.video.max);
    bool quit_key_confirmed       = false;
    const char *msg;
 

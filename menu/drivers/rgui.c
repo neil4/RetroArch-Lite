@@ -971,7 +971,7 @@ static void rgui_render(void)
    driver_t *driver               = driver_get_ptr();
    settings_t *settings           = config_get_ptr();
    menu_animation_t *anim         = menu_animation_get_ptr();
-   uint64_t frame_count           = video_driver_get_frame_count();
+   uint64_t frame_count           = video_state_get_frame_count();
 
    title[0]     = '\0';
    title_buf[0] = '\0';

@@ -60,6 +60,16 @@ bool video_monitor_fps_statistics(double *refresh_rate,
       double *deviation, unsigned *sample_points);
 
 /**
+ * video_state_increment_frame
+ *
+ * Updates @video_state for the next frame (frame count, time samples, fps).
+ * 
+ * Returns: true if frame should be shown in fast-forward mode, or false
+ * if it should be dropped.
+ */
+bool video_state_increment_frame();
+
+/**
  * video_monitor_get_fps:
  * @buf           : string suitable for Window title
  * @size          : size of buffer.
