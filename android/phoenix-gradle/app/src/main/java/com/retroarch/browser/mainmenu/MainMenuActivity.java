@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -79,6 +80,9 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
       checkRuntimePermissions(this);
+
+      // Clear extraction directory in case app closed prematurely
+      clearTemporaryStorage(getApplicationContext());
    }
 
    public static void checkRuntimePermissions(Activity act)
@@ -376,6 +380,17 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       }
 
       return version;
+   }
+
+   public static void clearTemporaryStorage(Context ctx)
+   {
+      File tmpDir = new File(ctx.getApplicationInfo().dataDir, "tmp");
+      if (tmpDir.isDirectory())
+      {
+         String[] names = tmpDir.list();
+         for (String name : names)
+            NativeInterface.DeleteDirTree(new File(tmpDir, name));
+      }
    }
 
    @Override
