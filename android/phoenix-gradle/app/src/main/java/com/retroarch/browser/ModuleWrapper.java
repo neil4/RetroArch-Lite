@@ -118,6 +118,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
             this.supportedExtensions = new ArrayList<String>();
             this.supportedExtensions.add(supportedExts);
          }
+         this.supportedExtensions.add("zip");
 
          final String emuAuthors = infoFile.getString("authors");
          if (emuAuthors != null && emuAuthors.contains("|"))
