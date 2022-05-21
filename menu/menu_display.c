@@ -330,7 +330,7 @@ size_t menu_display_timedate(char *s, size_t len, unsigned time_mode)
          return strftime(s, len, "%a %b %d  %H:%M", localtime(&time_));
       case 6: /* Time (locale) */
          return strftime(s, len, "%X", localtime(&time_));
-      case 7: /* DateTime (local) */
+      case 7: /* DateTime (locale) */
          return strftime(s, len, "%c", localtime(&time_));
       default:
          break;

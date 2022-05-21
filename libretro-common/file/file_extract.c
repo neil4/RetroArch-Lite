@@ -521,6 +521,7 @@ int zlib_parse_file_iterate_step_internal(
       return -1;
 
    memcpy(filename, state->directory + 46, namelength);
+   filename[namelength] = '\0';
 
    offset        = read_le(state->directory + 42, 4);
    offsetNL      = read_le(state->data + offset + 26, 2);

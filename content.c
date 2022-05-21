@@ -534,7 +534,6 @@ bool init_content_file(void)
    bool ret                                   = false;
    struct string_list *content                = NULL;
    const struct retro_subsystem_info *special = NULL;
-   settings_t *settings                       = config_get_ptr();
    global_t   *global                         = global_get_ptr();
 
    global->temporary_content                  = string_list_new();
@@ -621,23 +620,27 @@ bool init_content_file(void)
 
       if (ext && !strcasecmp(ext, "zip"))
       {
-         char temporary_content[PATH_MAX_LENGTH];
+         struct string_list *list = NULL;
+         size_t new_size;
 
-         strlcpy(temporary_content, content->elems[i].data,
-               sizeof(temporary_content));
-
-         if (!zlib_extract_first_content_file(temporary_content,
-                  sizeof(temporary_content), valid_ext,
-                  *settings->extraction_directory ?
-                  settings->extraction_directory : NULL))
+         /* Get first valid content file in archive */
+         list = zlib_get_file_list(content->elems[i].data, valid_ext);
+         if (!list || list->elems == 0)
          {
-            RARCH_ERR("Failed to extract content from zipped file: %s.\n",
-                  temporary_content);
+            RARCH_ERR("No valid content found in file: %s.\n",
+                  content->elems[i].data);
+            string_list_free(list);
             goto error;
          }
-         string_list_set(content, i, temporary_content);
-         string_list_append(global->temporary_content,
-               temporary_content, attr);
+
+         new_size = strlen(content->elems[i].data) + sizeof('#') +
+               strlen(list->elems[0].data) + sizeof('\0');
+         content->elems[i].data = realloc(content->elems[i].data, new_size);
+
+         strlcat(content->elems[i].data, "#", new_size);
+         strlcat(content->elems[i].data, list->elems[0].data, new_size);
+
+         string_list_free(list);
       }
    }
 #endif

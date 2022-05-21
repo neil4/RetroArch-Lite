@@ -1465,7 +1465,7 @@ int rarch_defer_core(core_info_list_t *core_info, const char *dir,
 
    if (menu_label_hash == MENU_LABEL_LOAD_CONTENT)
    {
-      info = (const core_info_t*)&global->core_info_current;
+      info = (const core_info_t*)global->core_info_current;
 
       if (info)
       {
