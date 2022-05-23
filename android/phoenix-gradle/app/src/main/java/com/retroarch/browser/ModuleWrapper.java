@@ -118,7 +118,6 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
             this.supportedExtensions = new ArrayList<String>();
             this.supportedExtensions.add(supportedExts);
          }
-         this.supportedExtensions.add("zip");
 
          final String emuAuthors = infoFile.getString("authors");
          if (emuAuthors != null && emuAuthors.contains("|"))
@@ -316,16 +315,6 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    public String getCoreNotes()
    {
       return notes;
-   }
-   
-   /**
-    * Gets supported file extensions for this core.
-    * 
-    * @return supported file extensions for this core
-    */
-   public List<String> getCoreSupportedExtensions()
-   {
-      return supportedExtensions;
    }
 
    /**

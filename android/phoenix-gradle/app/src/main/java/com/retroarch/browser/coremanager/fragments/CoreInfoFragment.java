@@ -63,7 +63,7 @@ public final class CoreInfoFragment extends DialogFragment
       adapter.add(new CoreInfoItem(getString(R.string.core_info_description),       core.getDescription()));
       adapter.add(new CoreInfoItem(getString(R.string.core_info_systemNameTitle),   core.getEmulatedSystemName()));
       adapter.add(new CoreInfoItem(getString(R.string.core_info_manufacturer),      core.getManufacturer()));
-      adapter.add(new CoreInfoItem(getString(R.string.core_info_extensions),        core.getCoreSupportedExtensions()));
+      adapter.add(new CoreInfoItem(getString(R.string.core_info_extensions),        core.getSupportedExtensions()));
       if (core.getCoreRequiredHwApi() != null)
          adapter.add(new CoreInfoItem(getString(R.string.core_info_required_hw_api),core.getCoreRequiredHwApi()));
       adapter.add(new CoreInfoItem(getString(R.string.core_info_firmwares),         core.getCoreFirmwares()));

@@ -263,6 +263,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
             return;
          }
 
+         contentBrowser.addAllowedExts("zip");
          contentBrowser.setShowMameTitles(prefs.getBoolean("mame_titles", false));
          contentBrowser.setOnDirectoryFragmentClosedListener(this);
 
