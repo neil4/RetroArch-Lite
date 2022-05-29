@@ -489,10 +489,7 @@ static int action_right_turbo_id(unsigned type, const char *label,
 
    /* Treat NO_BTN as leftmost value */
    if (*turbo_id > TURBO_ID_ALL)
-   {
-      *turbo_id = 0;
-      return 0;
-   }
+      *turbo_id = (unsigned)-1;
 
    /* Find mappable id */
    while (++(*turbo_id) < TURBO_ID_ALL)
