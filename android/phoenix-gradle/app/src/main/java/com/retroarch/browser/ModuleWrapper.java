@@ -161,16 +161,15 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
 
                key = "firmware" + i + "_path";
                String relPath = ((infoFile.keyExists(key)) ? infoFile.getString(key) : "?");
-               sb.append("\n    path:  system/").append(relPath);
+               final boolean present = new File(sysDir + '/' + relPath).exists();
 
                key = "firmware" + i + "_opt";
-               sb.append( "\n    status:  ")
-                 .append(new File(sysDir + "/" + relPath).exists() ?
-                             "present" : "missing")
-                 .append(", ")
-                 .append(((infoFile.keyExists(key)) ?
-                             (infoFile.getBoolean(key) ? "required" : "optional")
-                              : "unknown if required"))
+               final boolean optional = infoFile.keyExists(key) && infoFile.getBoolean(key);
+
+               sb.append( "\n\t")
+                 .append(present  ? '+' : (optional ? '~' : '!'))
+                 .append(present  ? " present" : " missing")
+                 .append(optional ? ", optional" : ", required")
                  .append('\n');
             }
             this.firmwares = sb.toString();

@@ -300,13 +300,17 @@ static int menu_displaylist_parse_core_info(menu_displaylist_info_t *info)
       {
          if (core_info->firmware[i].desc)
          {
-            snprintf(tmp, sizeof(tmp), "	name: %s",
+            const char bullet = core_info->firmware[i].missing ?
+                  (core_info->firmware[i].optional ? '~' : '!') : '+';
+
+            snprintf(tmp, sizeof(tmp), "	%s",
                   core_info->firmware[i].desc ?
                   core_info->firmware[i].desc : "");
             menu_list_push(info->list, tmp, "info",
                   MENU_SETTINGS_CORE_INFO_NONE, 0, 0);
 
-            snprintf(tmp, sizeof(tmp), "	status: %s, %s",
+            snprintf(tmp, sizeof(tmp), "		%c %s, %s",
+                  bullet,
                   core_info->firmware[i].missing ?
                   "missing" : "present",
                   core_info->firmware[i].optional ?
