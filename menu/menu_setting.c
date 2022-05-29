@@ -3060,16 +3060,16 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_INPUT_TURBO_BIND_ENABLE:
          snprintf(s, len,
-               " -- Adds a turbo bind to each port\n"
-               "in Input Remapping.\n");
+               " -- Adds a selectable turbo ID to each\n"
+               "port in Input Remapping.\n");
          break;
       case MENU_LABEL_INPUT_TURBO_ID:
          snprintf(s, len,
                " -- Selects the virtual device button to\n"
-               "have a turbo bind.\n"
+               "have a separate turbo mapping.\n"
                " \n"
                "'All' applies turbo to every selectable\n"
-               "button without creating separate binds.\n");
+               "button without separate mappings.\n");
          break;
       case MENU_LABEL_INPUT_ANALOG_DPAD_MODE:
          snprintf(s, len,
@@ -6421,7 +6421,7 @@ static bool setting_append_list_input_options(
    CONFIG_BOOL(
          settings->input.turbo_binds_enable,
          menu_hash_to_str(MENU_LABEL_INPUT_TURBO_BIND_ENABLE),
-         "Enable Turbo Bind", /* todo: better term than "bind"? */
+         "Add Turbo ID to Remapping",
          false,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),

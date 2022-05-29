@@ -159,7 +159,7 @@ static int16_t input_joypad_turbo_state(unsigned port, unsigned *id)
       return 0;
 
    if (*id == input->turbo_id[port])
-      mapped_id = input->turbo_remap_id[port];  /* Apply to turbo bind only */
+      mapped_id = input->turbo_remap_id[port];  /* Apply to turbo id only */
    else if (input->turbo_id[port] == TURBO_ID_ALL)
       mapped_id = input->remap_ids[port][*id];  /* Apply to TURBO_ID_MASK */
    else

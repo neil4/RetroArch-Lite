@@ -934,7 +934,7 @@ static INLINE bool menu_displaylist_push_turbo_input(
    char desc_label[64];
    const char *description;
 
-   snprintf(desc_label, sizeof(desc_label), "Port %u Turbo Bind: ", user);
+   snprintf(desc_label, sizeof(desc_label), "Port %u Turbo ID: ", user);
    menu_list_push(info->list, desc_label,
          menu_hash_to_str(MENU_LABEL_INPUT_TURBO_ID), p, 0, 0);
 
