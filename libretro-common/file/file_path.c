@@ -469,24 +469,21 @@ void path_parent_dir(char *path)
 bool path_parent_dir_name(char *buf, const char* file_path)
 {
    const char slash_char = path_default_slash()[0];
-   char *slash = strchr(file_path, slash_char);
-   char *start = slash + 1;
-   char *end;
-   
-   if (!slash || !(slash = strchr(start, slash_char)))
-   {
-      *buf = '\0';
-      return false;
-   }
-   
-   end = slash;
+   char *slash = strrchr(file_path, slash_char);
+   const char *end = slash;
+   const char *start;
 
-   while ( (slash = strchr(slash+1, slash_char)) )
-   {
-      start = end + 1;
-      end = slash;
-   }
-   
+   if (!slash)
+      return false;
+
+   while (slash != file_path)
+      if (*(--slash) == slash_char)
+         break;
+
+   if (slash == file_path)
+      return false;
+
+   start = slash + 1;
    strncpy(buf, start, (end-start)*sizeof(char));
    buf[end-start] = '\0';
    return true;
