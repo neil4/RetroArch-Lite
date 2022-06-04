@@ -1103,7 +1103,10 @@ bool event_command(enum event_command cmd)
          }
 
          if (!enable)
+         {
+            event_command(EVENT_CMD_OVERLAY_UNLOAD);
             break;
+         }
 
          /* Load from cache if possible. */
          if (driver->overlay_cache
