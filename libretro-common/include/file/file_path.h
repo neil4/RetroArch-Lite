@@ -95,6 +95,16 @@ bool path_is_directory(const char *path);
 bool path_file_exists(const char *path);
 
 /**
+ * path_exists:
+ * @path      : path
+ *
+ * Checks if a file or directory already exists at the specified path (@path).
+ *
+ * Returns: true (1) if path already exists, otherwise false (0).
+ */
+bool path_exists(const char *path);
+
+/**
  * path_get_extension:
  * @path               : path
  *

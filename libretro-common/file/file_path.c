@@ -201,6 +201,28 @@ bool path_file_exists(const char *path)
 }
 
 /**
+ * path_exists:
+ * @path      : path
+ *
+ * Checks if a file or directory already exists at the specified path (@path).
+ *
+ * Returns: true (1) if path already exists, otherwise false (0).
+ */
+bool path_exists(const char *path)
+{
+#ifdef _WIN32
+   DWORD ret = GetFileAttributes(path);
+   return (ret != INVALID_FILE_ATTRIBUTES);
+#else
+   struct stat buf;
+   if (stat(path, &buf) < 0)
+      return false;
+
+   return true;
+#endif
+}
+
+/**
  * fill_pathname:
  * @out_path           : output path
  * @in_path            : input  path

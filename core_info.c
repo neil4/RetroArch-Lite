@@ -570,7 +570,7 @@ void core_info_list_update_missing_firmware(core_info_list_t *core_info_list,
 
       fill_pathname_join(path, systemdir,
             info->firmware[i].path, sizeof(path));
-      info->firmware[i].missing = !path_file_exists(path);
+      info->firmware[i].missing = !path_exists(path);
    }
 }
 
@@ -596,7 +596,7 @@ void core_info_list_get_missing_firmware(core_info_list_t *core_info_list,
    for (i = 1; i < info->firmware_count; i++)
    {
       fill_pathname_join(path, systemdir, info->firmware[i].path, sizeof(path));
-      info->firmware[i].missing = !path_file_exists(path);
+      info->firmware[i].missing = !path_exists(path);
       *num_firmware += info->firmware[i].missing;
    }
 
