@@ -301,7 +301,7 @@ static int menu_displaylist_parse_core_info(menu_displaylist_info_t *info)
          if (core_info->firmware[i].desc)
          {
             const char bullet = core_info->firmware[i].missing ?
-                  (core_info->firmware[i].optional ? '~' : '!') : '+';
+                  (core_info->firmware[i].optional ? '-' : '!') : '+';
 
             snprintf(tmp, sizeof(tmp), "	%s",
                   core_info->firmware[i].desc ?

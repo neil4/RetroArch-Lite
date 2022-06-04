@@ -167,7 +167,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
                final boolean optional = infoFile.keyExists(key) && infoFile.getBoolean(key);
 
                sb.append( "\n\t")
-                 .append(present  ? '+' : (optional ? '~' : '!'))
+                 .append(present  ? '+' : (optional ? '-' : '!'))
                  .append(present  ? " present" : " missing")
                  .append(optional ? ", optional" : ", required")
                  .append('\n');
