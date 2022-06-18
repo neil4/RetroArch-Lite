@@ -584,6 +584,9 @@ static void frontend_android_get_environment_settings(int *argc,
       if (*path)
       {
          RARCH_LOG("Data path: [%s].\n", path);
+         strlcpy(g_android->app_data_dir, path,
+               sizeof(g_android->app_data_dir));
+
          if (args && *path)
          {
             fill_pathname_join(g_defaults.assets_dir, path,
@@ -794,6 +797,22 @@ static enum frontend_architecture frontend_android_get_architecture(void)
    return FRONTEND_ARCH_NONE;
 }
 
+static int frontend_android_parse_drive_list(void *data)
+{
+   file_list_t *list = (file_list_t*)data;
+
+   menu_list_push(list, "/storage/emulated/0",
+         "", MENU_FILE_DIRECTORY, 0, 0);
+   menu_list_push(list, "/storage",
+         "", MENU_FILE_DIRECTORY, 0, 0);
+
+   if (*g_android->app_data_dir)
+      menu_list_push(list, g_android->app_data_dir,
+            "", MENU_FILE_DIRECTORY, 0, 0);
+
+   return 0;
+}
+
 const frontend_ctx_driver_t frontend_ctx_android = {
    frontend_android_get_environment_settings,
    frontend_android_init,
@@ -809,7 +828,7 @@ const frontend_ctx_driver_t frontend_ctx_android = {
    NULL,                         /* load_content */
    frontend_android_get_architecture,
    NULL,                         /* get_powerstate */
-   NULL,                         /* parse_drive_list */
+   frontend_android_parse_drive_list,
    NULL,                         /* attach_console */
    NULL,                         /* detach_console */
    "android",

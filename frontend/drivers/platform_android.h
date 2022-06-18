@@ -48,6 +48,7 @@ struct android_app
    uint64_t sensor_state_mask;
    sthread_t *thread;
    char current_ime[NAME_MAX_LENGTH];
+   char app_data_dir[NAME_MAX_LENGTH];
    jmethodID getIntent;
    jmethodID onRetroArchExit;
    jmethodID hapticFeedback;
