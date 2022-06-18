@@ -780,10 +780,12 @@ static int action_ok_overlay_mouse_settings(const char *path,
    info->list  = menu_list->selection_buf;
    info->flags = SL_FLAG_OVERLAY_MOUSE_OPTIONS;
    info->type  = MENU_SETTING_GROUP;
-   strlcpy(info->label, label, sizeof(info->label));
+   strlcpy(info->label,
+         menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_MOUSE_SETTINGS),
+         sizeof(info->label));
    info->directory_ptr = idx;
 
-   menu_list_push(menu_list->menu_stack, "", label, info->type, idx, 0);
+   menu_list_push(menu_list->menu_stack, "", info->label, info->type, idx, 0);
    menu_navigation_clear(nav, true);
 
    ret = menu_displaylist_push_list(info, DISPLAYLIST_SETTINGS);

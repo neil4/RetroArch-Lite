@@ -7019,7 +7019,7 @@ static bool setting_append_list_overlay_mouse_options(
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
 
-   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_SETTINGS), parent_group);
+   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_MOUSE_SETTINGS), parent_group);
 
    parent_group = menu_hash_to_str(MENU_LABEL_OVERLAY_SETTINGS);
 
