@@ -1260,6 +1260,10 @@ static int menu_displaylist_parse_generic(menu_displaylist_info_t *info, bool *n
             *need_sort = true;
          }
          break;
+      case MENU_LABEL_DETECT_CORE_LIST:
+      case MENU_LABEL_LOAD_CONTENT:
+         *need_sort = true;
+         break;
    }
 
    return 0;
@@ -1567,7 +1571,6 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          need_push = true;
          break;
       case DISPLAYLIST_DEFAULT:
-         need_sort = true; /* fall-through */
       case DISPLAYLIST_CORES:
       case DISPLAYLIST_CORES_DETECTED:
       case DISPLAYLIST_SHADER_PASS:
