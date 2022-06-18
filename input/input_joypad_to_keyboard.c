@@ -338,7 +338,7 @@ void input_joykbd_get_info(char *s, size_t size)
    uint64_t frame_count = video_state_get_frame_count();
    char bind_buf[13];
 
-   strlcpy(s, "RetroPad to Keyboard Binds\n \n", size);
+   strlcpy(s, "RetroPad to Keyboard Mapping\n \n", size);
 
    strlcat(s, "  L3:      ", size);
    input_joykbd_print_binds(bind_buf, sizeof(bind_buf),
