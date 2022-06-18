@@ -117,6 +117,8 @@ int action_right_input_desc(unsigned type, const char *label,
    {
       if (*mapped_id < 4 - 1)
          (*mapped_id)++;
+      else if (*mapped_id > 4 - 1)
+         *mapped_id = 0;
    }
 
    input_remapping_touched = true;

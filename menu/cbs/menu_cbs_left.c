@@ -114,12 +114,7 @@ static int action_left_input_desc(unsigned type, const char *label,
 
    /* Treat NO_BTN as leftmost value */
    if (*mapped_id > RARCH_FIRST_CUSTOM_BIND + 3)
-   {
-      if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
-         *mapped_id = NO_BTN;
-      else
-         *mapped_id = 0;
-   }
+      *mapped_id = NO_BTN;
 
    input_remapping_touched = true;
    return 0;
@@ -139,10 +134,7 @@ static int action_l_input_desc(unsigned type, const char *label)
       mapped_id = &settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset];
 
    /* Treat NO_BTN as leftmost value */
-   if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
-      *mapped_id = NO_BTN;
-   else
-      *mapped_id = 0;
+   *mapped_id = NO_BTN;
 
    input_remapping_touched = true;
    return 0;

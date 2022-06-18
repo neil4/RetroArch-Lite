@@ -351,7 +351,7 @@ void input_remapping_state(unsigned port,
 
             new_id = settings->input.remap_ids[port][new_id];
             *idx   = (new_id & 2) >> 1;
-            *id    = new_id & 1;
+            *id    = new_id & ~2;
          }
          break;
    }
