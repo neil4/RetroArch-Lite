@@ -92,11 +92,13 @@ enum setting_list_flags
    SL_FLAG_LOGGING_OPTIONS       =  (1 << 21),
    SL_FLAG_CORE_UPDATER_OPTIONS  =  (1 << 22),
    SL_FLAG_FONT_OPTIONS          =  (1 << 23),
-   SL_FLAG_OVERLAY_MOUSE_OPTIONS =  (1 << 24),
-   SL_FLAG_ALL                   =  (1 << 25),
-   SL_FLAG_ALLOW_EMPTY_LIST      =  (1 << 26)
+   SL_FLAG_ALL_TOP               =  (1 << 24),
+   SL_FLAG_OVERLAY_MOUSE_OPTIONS =  (1 << 25),
+   SL_FLAG_ALL                   =  (1 << 26),
+   SL_FLAG_ALLOW_EMPTY_LIST      =  (1 << 27)
 };
 
+#define SL_FLAG_TOP_SETTINGS (SL_FLAG_ALL_TOP - SL_FLAG_MAIN_MENU)
 #define SL_FLAG_ALL_SETTINGS (SL_FLAG_ALL - SL_FLAG_MAIN_MENU)
 
 typedef void (*change_handler_t               )(void *data);

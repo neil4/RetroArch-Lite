@@ -1440,7 +1440,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          break;
       case DISPLAYLIST_SETTINGS_ALL:
          menu_list_clear(info->list);
-         menu_displaylist_realloc_settings(&menu->entries, SL_FLAG_ALL_SETTINGS);
+         menu_displaylist_realloc_settings(&menu->entries, SL_FLAG_TOP_SETTINGS);
 
 #ifdef HAVE_OVERLAY
          if (settings->menu.show_overlay_menu)
