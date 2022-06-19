@@ -1144,12 +1144,9 @@ static int menu_displaylist_parse_generic(menu_displaylist_info_t *info, bool *n
 
    if (list_size <= 0)
    {
-      if (!(info->flags & SL_FLAG_ALLOW_EMPTY_LIST))
-      {
-         menu_list_push(info->list,
-               menu_hash_to_str(MENU_LABEL_VALUE_NO_ITEMS),
-               "", 0, 0, 0);
-      }
+      menu_list_push(info->list,
+            menu_hash_to_str(MENU_LABEL_VALUE_NO_ITEMS),
+            "", 0, 0, 0);
 
       string_list_free(str_list);
 
