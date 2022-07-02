@@ -864,6 +864,13 @@ static int setting_bind_action_start(void *data)
  ******* ACTION TOGGLE CALLBACK FUNCTIONS *******
 **/
 
+static void input_max_users_change_handler(void *data)
+{
+   /* todo: Defer to menu toggle */
+   event_command(EVENT_CMD_CONTROLLERS_INIT);
+   event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
+}
+
 int setting_action_left_libretro_device_type(
       void *data, bool wraparound)
 {
@@ -6238,8 +6245,7 @@ static bool setting_append_list_input_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 1, MAX_USERS, 1, true, true);
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
-   menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+   (*list)[list_info->index - 1].change_handler = input_max_users_change_handler;
    
    CONFIG_UINT(
          settings->input.max_users_scope,
