@@ -902,7 +902,10 @@ void config_remove_entry(config_file_t *conf, const char *entry)
             prev->next = list->next;
          else
             conf->entries = list->next;
-         
+
+         if (conf->tail == list)
+            conf->tail = (prev ? prev : conf->entries);
+
          free(list->key);
          free(list->value);
          free(list);
