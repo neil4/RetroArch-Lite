@@ -1037,12 +1037,8 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
             MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN + p, 0, 0);
    }
 
-   menu_list_push(info->list, settings->input.max_users > 1 ?
-         "Virtual Devices Scope" : "Virtual Device Scope",
-         menu_hash_to_str(MENU_LABEL_LIBRETRO_DEVICE_SCOPE), 0, 0, 0);
-
    menu_list_push(info->list,
-         "Remapping Scope",
+         "Device & Remapping Scope",
          menu_hash_to_str(MENU_LABEL_REMAPPING_SCOPE),
          MENU_SETTING_ACTION, 0, 0);
    menu_list_push(info->list,

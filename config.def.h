@@ -522,8 +522,6 @@ static bool show_core_updater = true;
 #endif
 static bool show_rewind_menu = false;
 
-static bool default_auto_remaps_enable = true;
-
 static bool default_sort_savefiles_enable = true;
 static bool default_sort_savestates_enable = true;
 

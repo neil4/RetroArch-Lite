@@ -78,6 +78,8 @@ struct enum_lut scope_lut[NUM_SETTING_SCOPES] = {
    { "This ROM only", THIS_CONTENT_ONLY }
 };
 
+extern unsigned input_remapping_scope;
+
 bool settings_touched = false;
 bool scoped_settings_touched = false;
 
@@ -738,7 +740,6 @@ static void config_set_defaults(void)
    *settings->menu_content_directory = '\0';
    *settings->core_content_directory = '\0';
    *settings->menu_config_directory = '\0';
-   settings->auto_remaps_enable = default_auto_remaps_enable;
 
    settings->sort_savefiles_enable = default_sort_savefiles_enable;
    settings->sort_savestates_enable = default_sort_savestates_enable;
@@ -1755,8 +1756,6 @@ static bool config_load_file(const char *path, bool set_defaults)
 
    config_read_keybinds_conf(conf);
 
-   CONFIG_GET_BOOL_BASE(conf, settings, auto_remaps_enable, "auto_remaps_enable");
-
    CONFIG_GET_BOOL_BASE(conf, settings, sort_savefiles_enable, "sort_savefiles_enable");
    CONFIG_GET_BOOL_BASE(conf, settings, sort_savestates_enable, "sort_savestates_enable");
 
@@ -2271,7 +2270,7 @@ bool main_config_file_save(const char *path)
       snprintf(cfg, sizeof(cfg), "input_player%u_joypad_index", i + 1);
       config_set_int(conf, cfg, settings->input.joypad_map[i]);
 
-      if (settings->input.libretro_device_scope == GLOBAL)
+      if (input_remapping_scope == GLOBAL)
       {
          snprintf(cfg, sizeof(cfg), "input_libretro_device_p%u", i + 1);
          config_set_int(conf, cfg, settings->input.libretro_device[i]);
@@ -2292,8 +2291,6 @@ bool main_config_file_save(const char *path)
    config_set_int(conf, "input_menu_toggle_btn_combo",
          settings->input.menu_toggle_btn_combo);
 
-   config_set_bool(conf, "auto_remaps_enable",
-         settings->auto_remaps_enable);
    config_set_path(conf, "input_remapping_directory",
          settings->input_remapping_directory);
    config_set_bool(conf, "input_autodetect_enable",
@@ -2546,7 +2543,6 @@ static void scoped_config_file_save(unsigned scope)
    global_t *global     = global_get_ptr();
    settings_t *settings = config_get_ptr();
    config_file_t* conf  = scoped_conf[scope];
-   unsigned i;
    
    if (!global || !settings)
       goto end;
@@ -2805,23 +2801,6 @@ static void scoped_config_file_save(unsigned scope)
       config_set_int(conf, "input_max_users", settings->input.max_users);
    else if (settings->input.max_users_scope < scope)
       config_remove_entry(conf, "input_max_users");
-
-   if (settings->input.libretro_device_scope == scope)
-   {
-      for (i = 0; i < settings->input.max_users; i++)
-      {
-         snprintf(buf, NAME_MAX_LENGTH, "input_libretro_device_p%u", i + 1);
-         config_set_int(conf, buf, settings->input.libretro_device[i]);
-      }
-   }
-   else if (settings->input.libretro_device_scope < scope)
-   {
-      for (i = 0; i < MAX_USERS; i++)
-      {
-         snprintf(buf, NAME_MAX_LENGTH, "input_libretro_device_p%u", i + 1);
-         config_remove_entry(conf, buf);
-      }
-   }
 
    if (settings->input.analog_dpad_scope == scope)
    {
@@ -3188,23 +3167,13 @@ void config_unmask_globals()
    {  /* back up */
       config_set_int(conf, "input_max_users", settings->input.max_users);
    }
-   
-   if (settings->input.libretro_device_scope != GLOBAL)
-   {  /* restore */
-      settings->input.libretro_device_scope = GLOBAL;
-      for (i = 0; i < MAX_USERS; i++)
-      {
-         snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
-         config_get_uint(conf, buf, &settings->input.libretro_device[i]);
-      }
-   }
-   else
-   {  /* back up */
-      for (i = 0; i < MAX_USERS; i++)
-      {
-         snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
-         config_set_int(conf, buf, settings->input.libretro_device[i]);
-      }
+
+   /* libretro devices: restore only */
+   input_remapping_scope = GLOBAL;
+   for (i = 0; i < MAX_USERS; i++)
+   {
+      snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
+      config_get_uint(conf, buf, &settings->input.libretro_device[i]);
    }
 
    if (settings->input.analog_dpad_scope != GLOBAL)
@@ -3343,7 +3312,6 @@ void config_unmask_globals()
    /* Force THIS_CORE or narrower scope for certain settings */
    if (*settings->libretro)
    {
-      settings->input.libretro_device_scope = THIS_CORE;
       settings->video.filter_shader_scope = THIS_CORE;
       settings->preempt_frames_scope = THIS_CORE;
       settings->video.frame_delay_scope = THIS_CORE;
@@ -3499,14 +3467,14 @@ static void scoped_config_file_load(unsigned scope)
       settings->video.frame_delay_scope = scope;
    if (config_get_uint(conf, "input_max_users", &settings->input.max_users))
       settings->input.max_users_scope = scope;
+
+   /* todo: remove */
    for (i = 0; i < settings->input.max_users; i++)
    {
       snprintf(buf, NAME_MAX_LENGTH, "input_libretro_device_p%u", i + 1);
       if (!config_get_uint(conf, buf, &settings->input.libretro_device[i]))
          break;
    }
-   if (i > 0)
-      settings->input.libretro_device_scope = scope;
 
    if (config_get_uint(conf, "input_analog_dpad_mode",
          &settings->input.analog_dpad_mode))

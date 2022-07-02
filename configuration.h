@@ -278,7 +278,6 @@ typedef struct settings
       bool autoconfigured[MAX_USERS];
 
       unsigned libretro_device[MAX_USERS];
-      unsigned libretro_device_scope;
 
       bool remap_binds_enable;
       bool turbo_binds_enable;
@@ -404,8 +403,6 @@ typedef struct settings
    bool menu_show_start_screen;
    bool fps_show;
    bool load_dummy_on_core_shutdown;
-
-   bool auto_remaps_enable;
 
    bool sort_savefiles_enable;
    bool sort_savestates_enable;

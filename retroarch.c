@@ -1552,7 +1552,7 @@ void rarch_update_configs()
          core_option_free(global->system.core_options);
          global->system.core_options = NULL;
       }
-      if (input_remapping_touched && settings->auto_remaps_enable)
+      if (input_remapping_touched)
          input_remapping_save();
    }
 

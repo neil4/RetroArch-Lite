@@ -573,7 +573,6 @@ end:
 static bool event_init_content(void)
 {
    global_t *global = global_get_ptr();
-   settings_t *settings = config_get_ptr();
 
    /* No content to be loaded for dummy core,
     * just successfully exit. */
@@ -581,9 +580,7 @@ static bool event_init_content(void)
       return true;
 
    scoped_config_files_load_auto();
-
-   if (settings->auto_remaps_enable)
-      remap_file_load_auto();
+   remap_file_load_auto();
 
    if (!global->libretro_no_content)
       rarch_fill_pathnames();

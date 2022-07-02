@@ -28,7 +28,7 @@
 
 #define DEFAULT_NUM_REMAPS 20
 
-unsigned input_remapping_scope = THIS_CORE;
+unsigned input_remapping_scope = GLOBAL;
 bool input_remapping_touched;
 
 const struct retro_input_descriptor default_rid[DEFAULT_NUM_REMAPS] = {
@@ -66,6 +66,7 @@ bool input_remapping_load_file(const char *path)
 {
    unsigned i, j;
    config_file_t *conf        = config_file_new(path);
+   global_t      *global      = global_get_ptr();
    struct input_struct *input = &config_get_ptr()->input;
    char buf[32];
 
@@ -74,6 +75,17 @@ bool input_remapping_load_file(const char *path)
 
    strlcpy(input->remapping_path, path, sizeof(input->remapping_path));
 
+   /* Libretro devices */
+   for (i = 0; i < MAX_USERS; i++)
+   {
+      snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
+      config_get_uint(conf, buf, &input->libretro_device[i]);
+
+      if (global->main_is_init && i < input->max_users)
+         pretro_set_controller_port_device(i, input->libretro_device[i]);
+   }
+
+   /* RetroPad remaps */
    for (i = 0; i < MAX_USERS; i++)
    {
       char key_ident[32];
@@ -82,8 +94,6 @@ bool input_remapping_load_file(const char *path)
       int turbo_count    = 0;
 
       snprintf(buf, sizeof(buf), "input_player%u", i + 1);
-
-      /* RetroPad remaps */
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND + 4; j++)
       {
          int key_remap = -1;
@@ -93,7 +103,7 @@ bool input_remapping_load_file(const char *path)
             input->remap_ids[i][j] = key_remap;
       }
 
-      /* RetroPad turbo binds */
+      /* RetroPad turbo mapping */
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND; j++)
       {
          int key_map = -1;
@@ -119,11 +129,11 @@ bool input_remapping_load_file(const char *path)
       }
    }
 
-   /* RetroPad to Keyboard binds */
-   for (j = 0; j < JOYKBD_LIST_LEN; j++)
+   /* RetroPad to Keyboard mapping */
+   for (i = 0; i < JOYKBD_LIST_LEN; i++)
    {
       char rk_buf[32];
-      enum retro_key rk = joykbd_bind_list[j].rk;
+      enum retro_key rk = joykbd_bind_list[i].rk;
       int joy_id        = NO_BTN;
 
       input_keymaps_translate_rk_to_str(rk, rk_buf, sizeof(rk_buf));
@@ -211,6 +221,14 @@ static bool input_remapping_save_file(const char *path)
 	     return false;
    }
 
+   /* Libretro devices */
+   for (i = 0; i < input->max_users; i++)
+   {
+      snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
+      config_set_int(conf, buf, input->libretro_device[i]);
+   }
+
+   /* RetroPad remaps */
    for (i = 0; i < input->max_users; i++)
    {
       char key_ident[32];
@@ -218,8 +236,6 @@ static bool input_remapping_save_file(const char *path)
          "up", "down", "left", "right", "a", "x", "l", "r", "l2", "r2", "l3", "r3", "l_x", "l_y", "r_x", "r_y" };
 
       snprintf(buf, sizeof(buf), "input_player%u", i + 1);
-
-      /* RetroPad remaps */
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND + 4; j++)
       {
          snprintf(key_ident, sizeof(key_ident), "%s_%s", buf, key_strings[j]);
@@ -245,12 +261,12 @@ static bool input_remapping_save_file(const char *path)
       }
    }
 
-   /* RetroPad to Keyboard binds */
-   for (j = 0; j < JOYKBD_LIST_LEN; j++)
+   /* RetroPad to Keyboard mapping */
+   for (i = 0; i < JOYKBD_LIST_LEN; i++)
    {
       char rk_buf[32];
-      enum retro_key rk = joykbd_bind_list[j].rk;
-      uint16_t btn      = joykbd_bind_list[j].btn;
+      enum retro_key rk = joykbd_bind_list[i].rk;
+      uint16_t btn      = joykbd_bind_list[i].btn;
 
       input_keymaps_translate_rk_to_str(rk, rk_buf, sizeof(rk_buf));
       snprintf(buf, sizeof(buf), "input_keyboard_%s", rk_buf);

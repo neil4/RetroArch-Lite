@@ -47,6 +47,7 @@
 
 extern struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS];
 extern struct enum_lut button_combo_lut[NUM_BTN_COMBO_TYPES];
+extern unsigned input_remapping_scope;
 
 static void menu_settings_info_list_free(rarch_setting_info_t *list_info)
 {
@@ -3046,7 +3047,8 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                " -- Core specific input device type.\n"
                " \n"
-               "Defaults to RetroPad.\n");
+               "Defaults to RetroPad when\n"
+               "no core is running.\n");
          break;
       case MENU_LABEL_INPUT_BIND_ALL_PORT_1:
       case MENU_LABEL_INPUT_BIND_ALL_PORT_2:
@@ -3057,6 +3059,12 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "RetroPad for menu and core input.\n"
                " \n"
                "RetroPad Start applies default binds.\n");
+         break;
+      case MENU_LABEL_REMAPPING_SCOPE:
+      case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
+         snprintf(s, len,
+               " -- Applies to Virtual Devices\n"
+               "and Input Remapping.\n");
          break;
       case MENU_LABEL_INPUT_TURBO_BIND_ENABLE:
          snprintf(s, len,
@@ -4526,19 +4534,6 @@ static bool setting_append_list_configuration_options(
          "config_save_on_exit",
          "Save Configuration on Exit",
          config_save_on_exit,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-
-   CONFIG_BOOL(
-         settings->auto_remaps_enable,
-         "auto_remaps_enable",
-         "Auto Load/Save Input Remaps",
-         default_auto_remaps_enable,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,
@@ -6224,7 +6219,7 @@ static bool setting_append_list_input_options(
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
    driver_t   *driver   = driver_get_ptr();
-   bool core_loaded     = *settings->libretro ? true : false;
+   bool  core_running   = global->main_is_init && !global->libretro_dummy;
 	
    START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_INPUT_SETTINGS), parent_group);
 
@@ -6388,19 +6383,20 @@ static bool setting_append_list_input_options(
    }
 
    CONFIG_UINT(
-         settings->input.libretro_device_scope,
+         input_remapping_scope,
          menu_hash_to_str(MENU_LABEL_LIBRETRO_DEVICE_SCOPE),
-         settings->input.max_users > 1 ?
-         "Virtual Devices Scope" : "Virtual Device Scope",
-         (core_loaded ? THIS_CORE : GLOBAL),
+         "Device & Remapping Scope",
+         (core_running ? THIS_CORE : GLOBAL),
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(
-         list, list_info, (core_loaded ? THIS_CORE : GLOBAL),
-         global->max_scope, 1, true, true);
+         list, list_info,
+         (core_running ? THIS_CORE : GLOBAL),
+         (core_running ? global->max_scope : GLOBAL),
+         1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 

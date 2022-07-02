@@ -396,14 +396,6 @@ static int action_start_libretro_device_type(unsigned type, const char *label)
    return setting_action_start_libretro_device_type(&setting);
 }
 
-static int action_start_libretro_device_scope(unsigned type, const char *label)
-{
-   settings_t *settings = config_get_ptr();
-
-   settings->input.libretro_device_scope = THIS_CORE;
-   return 0;
-}
-
 static int action_start_turbo_id(unsigned type, const char *label)
 {
    settings_t *settings = config_get_ptr();
@@ -423,6 +415,7 @@ int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_REMAP_FILE_LOAD:
          cbs->action_start = action_start_remap_file_load;
          break;
+      case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
       case MENU_LABEL_REMAPPING_SCOPE:
          cbs->action_start = action_start_remapping_scope;
          break;
@@ -449,9 +442,6 @@ int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_CHEAT_NUM_PASSES:
          cbs->action_start = action_start_cheat_num_passes;
-         break;
-      case MENU_LABEL_LIBRETRO_DEVICE_SCOPE:
-         cbs->action_start = action_start_libretro_device_scope;
          break;
       case MENU_LABEL_INPUT_TURBO_ID:
          cbs->action_start = action_start_turbo_id;
