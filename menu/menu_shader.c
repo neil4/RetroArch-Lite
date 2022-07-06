@@ -125,6 +125,10 @@ void menu_shader_manager_set_preset(struct video_shader *shader,
    strlcpy(settings->video.shader_path, preset_path ? preset_path : "",
          sizeof(settings->video.shader_path));
 
+   event_command(EVENT_CMD_SHADER_DIR_INIT);
+   scoped_settings_touched = true;
+   settings_touched = true;
+
    if (!preset_path)
       return;
    if (!shader)
@@ -149,10 +153,6 @@ void menu_shader_manager_set_preset(struct video_shader *shader,
    config_file_free(conf);
 
    menu_entries_set_refresh();
-
-   event_command(EVENT_CMD_SHADER_DIR_INIT);
-   scoped_settings_touched = true;
-   settings_touched = true;
 #endif
 }
 
