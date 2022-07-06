@@ -579,7 +579,7 @@ static bool event_init_content(void)
    if (global->libretro_dummy) 
       return true;
 
-   scoped_config_files_load_auto();
+   config_load_scoped_files();
    remap_file_load_auto();
 
    if (!global->libretro_no_content)
@@ -828,7 +828,7 @@ bool event_command(enum event_command cmd)
 
          if (!*global->fullpath)
          {
-            core_config_file_load_auto();
+            config_load_core_file();
             if (menu_driver_alive())
                menu_display_unset_viewport();
          }
@@ -919,8 +919,9 @@ bool event_command(enum event_command cmd)
          }
          break;
       case EVENT_CMD_UNLOAD_CORE:
-         *settings->libretro = '\0';
-         global->max_scope = GLOBAL;
+         *settings->libretro    = '\0';
+         global->libretro_dummy = true;
+         global->max_scope      = GLOBAL;
 
          rarch_update_configs();
 

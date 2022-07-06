@@ -401,8 +401,8 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
       desc->x = lower_bound;
 }
 
-static void input_overlay_get_slope_limits(const float diagonal_sensitivity,
-                                           float* high_slope, float* low_slope)
+static void input_overlay_get_slope_limits(
+      const unsigned diagonal_sensitivity, float* high_slope, float* low_slope)
 {
    /* Update the slope values to be used in eightway_state. */
    

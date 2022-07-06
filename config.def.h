@@ -480,8 +480,8 @@ static bool show_overlay_menu = false;
 static bool input_osk_overlay_enable = false;
 #endif
 static float overlay_opacity = 0.5f;
-static const float overlay_dpad_diag_sens = 80.0f;
-static const float overlay_abxy_diag_sens = 50.0f;
+static const unsigned overlay_dpad_diag_sens = 80;
+static const unsigned overlay_abxy_diag_sens = 50;
 static const float overlay_bisect_aspect_ratio = 2.15f;
 static const bool overlay_shift_y_lock_edges = true;
 static const bool overlay_mouse_hold_to_drag = true;
@@ -710,8 +710,8 @@ static const unsigned libretro_log_level = 3;
 /* KEYBINDS, JOYPAD */
 
 /* Analog to D-Pad params; percentages */
-static const float analog_dpad_deadzone        = 33.0f;
-static const float analog_diagonal_sensitivity = 100.0f;
+static const unsigned analog_dpad_deadzone        = 33;
+static const unsigned analog_diagonal_sensitivity = 100;
 
 /* Axis threshold (between 0.0 and 1.0)
  * How far an axis must be tilted to result in a button press. */

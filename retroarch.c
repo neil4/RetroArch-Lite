@@ -1544,7 +1544,7 @@ void rarch_update_configs()
    if (settings->config_save_on_exit)
    {
       if (scoped_settings_touched)
-         scoped_config_files_save();
+         config_save_scoped_files();
       if (global->system.core_options)
       {
          if (core_options_touched)

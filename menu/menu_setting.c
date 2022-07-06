@@ -1913,6 +1913,13 @@ void setting_get_string_representation_uint_libretro_device(void *data,
    strlcpy(s, name, len);
 }
 
+static void setting_get_string_representation_uint_percentage(
+      void *data, char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   sprintf(s, "%u%%", *setting->value.unsigned_integer);
+}
+
 static void setting_get_string_representation_uint_archive_mode(void *data,
       char *s, size_t len)
 {
@@ -6483,12 +6490,11 @@ static bool setting_append_list_input_options(
    (*list)[list_info->index - 1].get_string_representation =
          &setting_get_string_representation_uint_analog_dpad_mode;
 
-   CONFIG_FLOAT(
+   CONFIG_UINT(
          settings->input.analog_diagonal_sensitivity,
          menu_hash_to_str(MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS),
          "  Diagonal Sensitivity",
          analog_diagonal_sensitivity,
-         "%.0f%%",
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -6497,13 +6503,14 @@ static bool setting_append_list_input_options(
    menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
    menu_settings_list_current_add_cmd(list, list_info,
          EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_percentage;
 
-   CONFIG_FLOAT(
+   CONFIG_UINT(
          settings->input.analog_dpad_deadzone,
          "input_analog_dpad_deadzone",
          "  Deadzone",
          analog_dpad_deadzone,
-         "%.0f%%",
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -6512,6 +6519,8 @@ static bool setting_append_list_input_options(
    menu_settings_list_current_add_range(list, list_info, 1, 100, 1, true, true);
    menu_settings_list_current_add_cmd(list, list_info,
          EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_percentage;
 
    CONFIG_UINT(
          settings->input.analog_dpad_scope,
@@ -6810,14 +6819,13 @@ static bool setting_append_list_overlay_options(
       &setting_get_string_representation_touch_method;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    
-   CONFIG_FLOAT(
+   CONFIG_UINT(
          settings->input.overlay_dpad_diag_sens,
          menu_hash_to_str(MENU_LABEL_OVERLAY_DPAD_DIAGONAL_SENS),
          settings->menu.show_advanced_settings ?
             "  Diagonal Sensitivity" :
             "D-Pad Diagonal Sensitivity",
          overlay_dpad_diag_sens,
-         "%.0f%%",
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -6826,6 +6834,8 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
    menu_settings_list_current_add_cmd(list, list_info,
          EVENT_CMD_OVERLAY_UPDATE_EIGHTWAY_DIAG_SENS);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_percentage;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_IS_DEFERRED);
    
    CONFIG_UINT(
@@ -6845,14 +6855,13 @@ static bool setting_append_list_overlay_options(
          &setting_get_string_representation_touch_method;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    
-   CONFIG_FLOAT(
+   CONFIG_UINT(
          settings->input.overlay_abxy_diag_sens,
          menu_hash_to_str(MENU_LABEL_OVERLAY_ABXY_DIAGONAL_SENS),
          settings->menu.show_advanced_settings ?
             "  Diagonal Sensitivity" :
             "ABXY Diagonal Sensitivity",
          overlay_abxy_diag_sens,
-         "%.0f%%",
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -6861,6 +6870,8 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
    menu_settings_list_current_add_cmd(list, list_info,
          EVENT_CMD_OVERLAY_UPDATE_EIGHTWAY_DIAG_SENS);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_percentage;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    
    CONFIG_UINT(

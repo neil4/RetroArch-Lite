@@ -287,8 +287,8 @@ typedef struct settings
       float axis_threshold;
       unsigned axis_threshold_scope;
       unsigned analog_dpad_mode;
-      float analog_diagonal_sensitivity;
-      float analog_dpad_deadzone;
+      unsigned analog_diagonal_sensitivity;
+      unsigned analog_dpad_deadzone;
       unsigned analog_dpad_scope;
       unsigned joypad_map[MAX_USERS];
       char device_names[MAX_USERS][64];
@@ -314,8 +314,8 @@ typedef struct settings
       uint32_t overlay_mouse_hold_ms;
       uint32_t overlay_mouse_hold_zone;
 
-      float overlay_dpad_diag_sens;  /* diagonal-to-normal ratio (percentage) */
-      float overlay_abxy_diag_sens;  /* diagonal-to-normal ratio (percentage) */
+      unsigned overlay_dpad_diag_sens;  /* diagonal-to-normal ratio (percent) */
+      unsigned overlay_abxy_diag_sens;  /* diagonal-to-normal ratio (percent) */
       unsigned overlay_dpad_method;
       unsigned overlay_abxy_method;
       unsigned overlay_dpad_abxy_config_scope;
@@ -424,6 +424,23 @@ typedef struct settings
    bool config_save_on_exit;
 } settings_t;
 
+enum config_var_type
+{
+   CV_BOOL,
+   CV_INT,
+   CV_UINT,
+   CV_FLOAT,
+   CV_PATH
+};
+
+struct setting_desc
+{
+   const char* key;
+   enum config_var_type type;
+   void* ptr;
+   unsigned* scope_ptr;
+};
+
 /**
  * config_get_default_camera:
  *
@@ -516,25 +533,25 @@ const char *config_get_default_record(void);
 void config_load(void);
 
 /**
- * scoped_config_files_save()
+ * config_save_scoped_files()
  * 
  * Saves settings scoped to the content, content directory, and core
  */
-void scoped_config_files_save();
+void config_save_scoped_files();
 
 /**
- * scoped_config_files_load_auto
+ * config_load_scoped_files
  * 
  * Called while loading content. Loads scoped config files.
  */
-void scoped_config_files_load_auto();
+void config_load_scoped_files();
 
 /**
- * core_config_file_load_auto
+ * config_load_core_file
  * 
  * Called when just loading a core. Loads core's config file
  */
-void core_config_file_load_auto();
+void config_load_core_file();
 
 /**
  * get_scoped_config_filename:
