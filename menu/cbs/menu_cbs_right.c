@@ -439,8 +439,6 @@ static int action_right_libretro_device_type(unsigned type, const char *label,
    setting.index_offset = type - MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN;
 
    menu_entries_set_refresh();
-   scoped_settings_touched = true;
-   settings_touched = true;
 
    return setting_action_right_libretro_device_type(&setting, wraparound);
 }

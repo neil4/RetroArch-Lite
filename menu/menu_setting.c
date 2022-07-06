@@ -48,6 +48,7 @@
 extern struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS];
 extern struct enum_lut button_combo_lut[NUM_BTN_COMBO_TYPES];
 extern unsigned input_remapping_scope;
+extern bool input_remapping_touched;
 
 static void menu_settings_info_list_free(rarch_setting_info_t *list_info)
 {
@@ -795,6 +796,7 @@ int setting_action_start_libretro_device_type(void *data)
       pretro_set_controller_port_device(port, device);
 
    input_joykbd_update_enabled();
+   input_remapping_touched = true;
    return 0;
 }
 
@@ -928,6 +930,7 @@ int setting_action_left_libretro_device_type(
       pretro_set_controller_port_device(port, current_device);
 
    input_joykbd_update_enabled();
+   input_remapping_touched = true;
    return 0;
 }
 
@@ -988,6 +991,7 @@ int setting_action_right_libretro_device_type(
       pretro_set_controller_port_device(port, current_device);
 
    input_joykbd_update_enabled();
+   input_remapping_touched = true;
    return 0;
 }
 
