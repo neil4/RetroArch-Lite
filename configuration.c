@@ -534,15 +534,14 @@ const char *config_get_default_location(void)
    return "null";
 }
 
-void config_check_overlay_preset()
+static void config_check_overlay_preset()
 {
    settings_t* settings = config_get_ptr();
    global_t* global     = global_get_ptr();
 
    if (*settings->input.overlay && !path_file_exists(settings->input.overlay))
       fill_pathname_join(settings->input.overlay,
-                         global->overlay_dir, "DualShock.cfg",
-                         sizeof(settings->input.overlay));
+            global->overlay_dir, "DualShock.cfg", PATH_MAX_LENGTH);
 }
 
 /**
@@ -895,91 +894,86 @@ static void config_set_defaults(void)
 
    if (*g_defaults.extraction_dir)
       strlcpy(settings->extraction_directory,
-            g_defaults.extraction_dir, sizeof(settings->extraction_directory));
+            g_defaults.extraction_dir, PATH_MAX_LENGTH);
    if (*g_defaults.audio_filter_dir)
       strlcpy(settings->audio.filter_dir,
-            g_defaults.audio_filter_dir, sizeof(settings->audio.filter_dir));
+            g_defaults.audio_filter_dir, PATH_MAX_LENGTH);
    if (*g_defaults.video_filter_dir)
       strlcpy(settings->video.filter_dir,
-            g_defaults.video_filter_dir, sizeof(settings->video.filter_dir));
+            g_defaults.video_filter_dir, PATH_MAX_LENGTH);
    if (*g_defaults.assets_dir)
       strlcpy(settings->assets_directory,
-            g_defaults.assets_dir, sizeof(settings->assets_directory));
+            g_defaults.assets_dir, PATH_MAX_LENGTH);
    if (*g_defaults.core_dir)
    {
       fill_pathname_expand_special(settings->libretro_directory,
-            g_defaults.core_dir, sizeof(settings->libretro_directory));
+            g_defaults.core_dir, PATH_MAX_LENGTH);
       global->has_set_libretro_directory = true;
    }
    if (*g_defaults.core_path)
-      strlcpy(settings->libretro, g_defaults.core_path,
-            sizeof(settings->libretro));
+      strlcpy(settings->libretro,
+            g_defaults.core_path, PATH_MAX_LENGTH);
    if (*g_defaults.cheats_dir)
-      strlcpy(settings->cheat_database, g_defaults.cheats_dir,
-            sizeof(settings->cheat_database));
+      strlcpy(settings->cheat_database,
+            g_defaults.cheats_dir, PATH_MAX_LENGTH);
    if (*g_defaults.core_info_dir)
       fill_pathname_expand_special(settings->libretro_info_path,
-            g_defaults.core_info_dir, sizeof(settings->libretro_info_path));
+            g_defaults.core_info_dir, PATH_MAX_LENGTH);
 #ifdef HAVE_OVERLAY
    if (*g_defaults.overlay_dir)
    {
       fill_pathname_expand_special(global->overlay_dir,
-            g_defaults.overlay_dir, sizeof(global->overlay_dir));
+            g_defaults.overlay_dir, PATH_MAX_LENGTH);
 #ifdef RARCH_MOBILE
       if (!*settings->input.overlay)
             fill_pathname_join(settings->input.overlay,
-                  global->overlay_dir,
-                  "DualShock.cfg",
-                  sizeof(settings->input.overlay));
+                  global->overlay_dir, "DualShock.cfg", PATH_MAX_LENGTH);
 #endif
    }
 
    if (*g_defaults.osk_overlay_dir)
    {
       fill_pathname_expand_special(global->osk_overlay_dir,
-            g_defaults.osk_overlay_dir, sizeof(global->osk_overlay_dir));
+            g_defaults.osk_overlay_dir, PATH_MAX_LENGTH);
 #ifdef RARCH_MOBILE
       if (!*settings->input.osk_overlay)
             fill_pathname_join(settings->input.osk_overlay,
                   global->osk_overlay_dir, "/US-101/US-101.cfg",
-                  sizeof(settings->input.osk_overlay));
+                  PATH_MAX_LENGTH);
 #endif
    }
    else
       strlcpy(global->osk_overlay_dir,
-            global->overlay_dir, sizeof(global->osk_overlay_dir));
+            global->overlay_dir, PATH_MAX_LENGTH);
 #endif
    if (*g_defaults.menu_config_dir)
       strlcpy(settings->menu_config_directory,
-            g_defaults.menu_config_dir,
-            sizeof(settings->menu_config_directory));
+            g_defaults.menu_config_dir, PATH_MAX_LENGTH);
    if (*g_defaults.menu_theme_dir)
       strlcpy(settings->menu.theme_dir,
-            g_defaults.menu_theme_dir,
-            sizeof(settings->menu.theme_dir));
+            g_defaults.menu_theme_dir, PATH_MAX_LENGTH);
    if (*g_defaults.shader_dir)
       fill_pathname_expand_special(settings->video.shader_dir,
-            g_defaults.shader_dir, sizeof(settings->video.shader_dir));
+            g_defaults.shader_dir, PATH_MAX_LENGTH);
    if (*g_defaults.autoconfig_dir)
       strlcpy(settings->input.autoconfig_dir,
-            g_defaults.autoconfig_dir,
-            sizeof(settings->input.autoconfig_dir));
+            g_defaults.autoconfig_dir, PATH_MAX_LENGTH);
 
    if (!global->has_set_state_path && *g_defaults.savestate_dir)
       strlcpy(global->savestate_dir,
-            g_defaults.savestate_dir, sizeof(global->savestate_dir));
+            g_defaults.savestate_dir, PATH_MAX_LENGTH);
    if (!global->has_set_save_path && *g_defaults.sram_dir)
       strlcpy(global->savefile_dir,
-            g_defaults.sram_dir, sizeof(global->savefile_dir));
+            g_defaults.sram_dir, PATH_MAX_LENGTH);
    if (*g_defaults.system_dir)
       strlcpy(settings->system_directory,
-            g_defaults.system_dir, sizeof(settings->system_directory));
+            g_defaults.system_dir, PATH_MAX_LENGTH);
    if (*g_defaults.screenshot_dir)
       strlcpy(settings->screenshot_directory,
-            g_defaults.screenshot_dir, sizeof(settings->screenshot_directory));
+            g_defaults.screenshot_dir, PATH_MAX_LENGTH);
    if (*g_defaults.content_dir)
       strlcpy(settings->menu_content_directory,
-              g_defaults.content_dir, sizeof(settings->menu_content_directory));
+            g_defaults.content_dir, PATH_MAX_LENGTH);
 
 #ifdef HAVE_NETPLAY
    global->netplay_sync_frames = netplay_sync_frames;
@@ -988,7 +982,7 @@ static void config_set_defaults(void)
 
    if (*g_defaults.config_path)
       fill_pathname_expand_special(global->config_path,
-            g_defaults.config_path, sizeof(global->config_path));
+            g_defaults.config_path, PATH_MAX_LENGTH);
 
    settings->config_save_on_exit = config_save_on_exit;
 
@@ -1765,7 +1759,7 @@ static bool config_load_file(const char *path, bool set_defaults)
    config_get_path(conf, "audio_dsp_plugin",
          settings->audio.dsp_plugin, PATH_MAX_LENGTH);
    config_get_array(conf, "input_driver",
-         settings->input.driver,sizeof(settings->input.driver));
+         settings->input.driver, sizeof(settings->input.driver));
    config_get_array(conf, "input_joypad_driver",
          settings->input.joypad_driver,
          sizeof(settings->input.joypad_driver));
@@ -2328,11 +2322,8 @@ bool main_config_file_save(const char *path)
    const video_viewport_t *custom_vp = (const video_viewport_t*)
       video_viewport_get_custom();
 
-   if (!conf)
-      conf = config_file_new(path);
-   if (!conf)
-      conf = config_file_new(NULL);
-   if (!conf)
+   if (!conf && !(conf = config_file_new(path))
+             && !(conf = config_file_new(NULL)))
       return false;
 
    RARCH_LOG("Saving config at path: \"%s\"\n", path);
@@ -2431,14 +2422,10 @@ bool main_config_file_save(const char *path)
 
    if (settings->video.aspect_ratio_idx_scope == GLOBAL)
    {
-      config_set_int(conf, "custom_viewport_width",
-            custom_vp->width);
-      config_set_int(conf, "custom_viewport_height",
-            custom_vp->height);
-      config_set_int(conf, "custom_viewport_x",
-            custom_vp->x);
-      config_set_int(conf, "custom_viewport_y",
-            custom_vp->y);
+      config_set_int(conf, "custom_viewport_width",  custom_vp->width);
+      config_set_int(conf, "custom_viewport_height", custom_vp->height);
+      config_set_int(conf, "custom_viewport_x",      custom_vp->x);
+      config_set_int(conf, "custom_viewport_y",      custom_vp->y);
    }
 
 #ifdef GEKKO
@@ -2570,7 +2557,7 @@ bool main_config_file_save(const char *path)
          settings->menu.show_overlay_menu);
 #endif
    config_set_bool(conf, "show_frame_throttle_menu",
-                   settings->menu.show_frame_throttle_menu);
+         settings->menu.show_frame_throttle_menu);
    config_set_bool(conf, "show_netplay_menu",
          settings->menu.show_netplay_menu);
    config_set_bool(conf, "show_saving_menu",
@@ -2633,7 +2620,7 @@ bool main_config_file_save(const char *path)
          settings->audio.rate_control_delta);
    if (settings->audio.max_timing_skew_scope == GLOBAL)
       config_set_float(conf, "audio_max_timing_skew",
-                       settings->audio.max_timing_skew);
+            settings->audio.max_timing_skew);
    if (settings->audio.volume_scope == GLOBAL)
       config_set_float(conf, "audio_volume", settings->audio.volume);
    config_set_bool(conf,  "audio_mute_enable", settings->audio.mute_enable);
@@ -2645,8 +2632,7 @@ bool main_config_file_save(const char *path)
       config_set_path(conf, "audio_dsp_plugin", settings->audio.dsp_plugin);
    config_set_string(conf, "audio_resampler", settings->audio.resampler);
    config_set_path(conf, "audio_filter_dir",
-         *settings->audio.filter_dir ?
-         settings->audio.filter_dir : "default");
+         *settings->audio.filter_dir ? settings->audio.filter_dir : "default");
 
    config_set_bool(conf, "location_allow", settings->location.allow);
 
@@ -2975,16 +2961,9 @@ static void config_save_scoped_file(unsigned scope)
    fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
 
    /* Edit existing config if it exists. Unscoped settings will be removed. */
-   if (!conf)
-   {
-      conf = config_file_new(fullpath);
-      if (!conf)
-      {
-         conf = config_file_new(NULL);
-         if (!conf)
-            goto end;
-      }
-   }
+   if (!conf && !(conf = config_file_new(fullpath))
+             && !(conf = config_file_new(NULL)))
+      goto end;
 
    /* Populate config
     * Higher scopes are more specific and mask lower scopes */
