@@ -536,13 +536,14 @@ static struct config_entry_list *config_get_entry(const config_file_t *conf,
 
    uint32_t hash = djb2_calculate(key);
 
-   if (prev)
-      previous = *prev;
-
    for (entry = conf->entries; entry; entry = entry->next)
    {
       if (hash == entry->key_hash && !strcmp(key, entry->key))
+      {
+         if (prev)
+            *prev = previous;
          return entry;
+      }
 
       previous = entry;
    }
@@ -714,7 +715,7 @@ bool config_get_bool(config_file_t *conf, const char *key, bool *in)
 
 void config_set_string(config_file_t *conf, const char *key, const char *val)
 {
-   struct config_entry_list *last  = conf->entries;
+   struct config_entry_list *last;
    struct config_entry_list *entry = config_get_entry(conf, key, &last);
 
    if (entry && !entry->readonly)
@@ -729,10 +730,9 @@ void config_set_string(config_file_t *conf, const char *key, const char *val)
    if (!entry)
       return;
 
-   entry->key   = strdup(key);
-   entry->value = strdup(val);
-   if (!entry->key_hash)
-      entry->key_hash = djb2_calculate(key);
+   entry->key      = strdup(key);
+   entry->key_hash = djb2_calculate(key);
+   entry->value    = strdup(val);
 
    if (last)
       last->next = entry;
@@ -848,20 +848,6 @@ void config_file_dump(config_file_t *conf, FILE *file)
    }
 }
 
-bool config_entry_exists(config_file_t *conf, const char *entry)
-{
-   struct config_entry_list *list = conf->entries;
-
-   while (list)
-   {
-      if (!strcmp(entry, list->key))
-         return true;
-      list = list->next; 
-   }
-
-   return false;
-}
-
 bool config_get_entry_list_head(config_file_t *conf,
       struct config_file_entry *entry)
 {
@@ -889,32 +875,23 @@ bool config_get_entry_list_next(struct config_file_entry *entry)
    return true;
 }
 
-void config_remove_entry(config_file_t *conf, const char *entry)
+void config_remove_entry(config_file_t *conf, const char *key)
 {
-   struct config_entry_list *list = conf->entries;
-   struct config_entry_list *prev = NULL;
+   struct config_entry_list *prev  = NULL;
+   struct config_entry_list *entry = config_get_entry(conf, key, &prev);
 
-   while (list)
+   if (entry)
    {
-      if (!strcmp(entry, list->key))
-      {
-         if (prev)
-            prev->next = list->next;
-         else
-            conf->entries = list->next;
-
-         if (conf->tail == list)
-            conf->tail = (prev ? prev : conf->entries);
-
-         free(list->key);
-         free(list->value);
-         free(list);
-         break;
-      }
+      if (prev)
+         prev->next = entry->next;
       else
-      {
-         prev = list;
-         list = list->next;
-      }
+         conf->entries = entry->next;
+
+      if (entry == conf->tail)
+         conf->tail = (prev ? prev : conf->entries);
+
+      free(entry->key);
+      free(entry->value);
+      free(entry);
    }
 }

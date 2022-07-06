@@ -90,8 +90,6 @@ bool config_append_file(config_file_t *conf, const char *path);
 /* All extract functions return true when value is valid and exists.
  * Returns false otherwise. */
 
-bool config_entry_exists(config_file_t *conf, const char *entry);
-
 struct config_entry_list;
 struct config_file_entry
 {
@@ -161,7 +159,7 @@ bool config_file_write(config_file_t *conf, const char *path);
  * Does not close the file. */
 void config_file_dump(config_file_t *conf, FILE *file);
 
-void config_remove_entry(config_file_t *conf, const char *entry);
+void config_remove_entry(config_file_t *conf, const char *key);
 
 #ifdef __cplusplus
 }
