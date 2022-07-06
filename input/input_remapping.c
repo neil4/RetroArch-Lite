@@ -75,14 +75,17 @@ bool input_remapping_load_file(const char *path)
 
    strlcpy(input->remapping_path, path, sizeof(input->remapping_path));
 
-   /* Libretro devices */
-   for (i = 0; i < MAX_USERS; i++)
+   /* Libretro devices - load if from same core */
+   if (strstr(path, global->libretro_name) > 0)
    {
-      snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
-      config_get_uint(conf, buf, &input->libretro_device[i]);
+      for (i = 0; i < MAX_USERS; i++)
+      {
+         snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
+         config_get_uint(conf, buf, &input->libretro_device[i]);
 
-      if (global->main_is_init && i < input->max_users)
-         pretro_set_controller_port_device(i, input->libretro_device[i]);
+         if (global->main_is_init && i < input->max_users)
+            pretro_set_controller_port_device(i, input->libretro_device[i]);
+      }
    }
 
    /* RetroPad remaps */
