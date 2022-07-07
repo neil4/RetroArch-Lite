@@ -215,18 +215,15 @@ static bool input_remapping_save_file(const char *path)
    struct input_struct *input = &config_get_ptr()->input;
    bool turbo_all;
 
-   conf = config_file_new(path);
-
-   if (!conf)
-   {
-      conf = config_file_new(NULL);
-	  if (!conf)
-	     return false;
-   }
+   if (!(conf = config_file_new(NULL)))
+      return false;
 
    /* Libretro devices */
    for (i = 0; i < input->max_users; i++)
    {
+      if (input->libretro_device[i] == RETRO_DEVICE_JOYPAD)
+         continue;  /* skip unmodified */
+
       snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
       config_set_int(conf, buf, input->libretro_device[i]);
    }
@@ -241,6 +238,10 @@ static bool input_remapping_save_file(const char *path)
       snprintf(buf, sizeof(buf), "input_player%u", i + 1);
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND + 4; j++)
       {
+         if (input->remap_ids[i][j] == (j < RARCH_FIRST_CUSTOM_BIND ?
+               input->binds[i][j].id : j - RARCH_FIRST_CUSTOM_BIND))
+            continue;  /* skip unmodified */
+
          snprintf(key_ident, sizeof(key_ident), "%s_%s", buf, key_strings[j]);
          config_set_int(conf, key_ident, input->remap_ids[i][j]);
       }
@@ -259,8 +260,6 @@ static bool input_remapping_save_file(const char *path)
             config_set_int(conf, key_ident, input->turbo_remap_id[i]);
          else if (turbo_all && input->remap_ids[i][j] < RARCH_FIRST_CUSTOM_BIND)
             config_set_int(conf, key_ident, input->remap_ids[i][j]);
-         else
-            config_remove_entry(conf, key_ident);
       }
    }
 
@@ -276,8 +275,6 @@ static bool input_remapping_save_file(const char *path)
 
       if (btn < NUM_JOYKBD_BTNS)
          config_set_int(conf, buf, btn);
-      else
-         config_remove_entry(conf, buf);
    }
 
    ret = config_file_write(conf, path);
