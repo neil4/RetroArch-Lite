@@ -40,12 +40,10 @@ bool input_remapping_load_file(const char *path);
 /**
  * remap_file_load_auto
  * 
- * @return 0
- * 
  * Attempt to load ROM-, Directory-, then Core-specific input remap file.
  * If unsuccessful, initialize defaults.
  **/
-int remap_file_load_auto();
+void remap_file_load_auto();
 
 /**
  * input_remapping_save:

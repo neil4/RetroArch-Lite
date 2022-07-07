@@ -92,8 +92,10 @@ bool input_remapping_load_file(const char *path)
    for (i = 0; i < MAX_USERS; i++)
    {
       char key_ident[32];
-      char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = { "b", "y", "select", "start",
-         "up", "down", "left", "right", "a", "x", "l", "r", "l2", "r2", "l3", "r3", "l_x", "l_y", "r_x", "r_y" };
+      char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = {
+         "b", "y", "select", "start", "up", "down", "left", "right", "a", "x",
+         "l", "r", "l2", "r2", "l3", "r3",
+         "l_x", "l_y", "r_x", "r_y" };
       int turbo_count    = 0;
 
       snprintf(buf, sizeof(buf), "input_player%u", i + 1);
@@ -154,48 +156,40 @@ bool input_remapping_load_file(const char *path)
    return true;
 }
 
-int remap_file_load_auto()
+void remap_file_load_auto()
 {
-  /* Look for ROM, Directory, then Core specific remap */
-   char *path           = string_alloc(PATH_MAX_LENGTH);
    settings_t *settings = config_get_ptr();
+   char *path;
    
    if (!settings)
-      return 0;
+      return;
 
+   path = string_alloc(PATH_MAX_LENGTH);
+   input_remapping_set_defaults();
+   settings->input.remapping_path[0] = '\0';
+
+   /* Look for ROM, Directory, then Core specific remap */
    input_remapping_get_path(path, THIS_CONTENT_ONLY);
-   if (path_file_exists(path))
+   if (input_remapping_load_file(path))
    {
       input_remapping_scope = THIS_CONTENT_ONLY;
-      goto load_remap;
+      goto end;
    }
 
    input_remapping_get_path(path, THIS_CONTENT_DIR);
-   if (path_file_exists(path))
+   if (input_remapping_load_file(path))
    {
       input_remapping_scope = THIS_CONTENT_DIR;
-      goto load_remap;
+      goto end;
    }
 
    input_remapping_get_path(path, THIS_CORE);
-   if (path_file_exists(path))
-   {
-      input_remapping_scope = THIS_CORE;
-      goto load_remap;
-   }
+   input_remapping_load_file(path);
+   input_remapping_scope = THIS_CORE;
 
-load_remap:
-   input_remapping_set_defaults();
-
-   if (!path_file_exists(path) || !input_remapping_load_file(path))
-   {
-      settings->input.remapping_path[0] = '\0';
-      input_remapping_scope = THIS_CORE;
-   }
-
+end:
    input_remapping_touched = false;
    free(path);
-   return 0;
 }
 
 /**
@@ -218,6 +212,8 @@ static bool input_remapping_save_file(const char *path)
    if (!(conf = config_file_new(NULL)))
       return false;
 
+   RARCH_LOG("Saving remap at path: \"%s\"\n", path);
+
    /* Libretro devices */
    for (i = 0; i < input->max_users; i++)
    {
@@ -232,8 +228,10 @@ static bool input_remapping_save_file(const char *path)
    for (i = 0; i < input->max_users; i++)
    {
       char key_ident[32];
-      char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = { "b", "y", "select", "start",
-         "up", "down", "left", "right", "a", "x", "l", "r", "l2", "r2", "l3", "r3", "l_x", "l_y", "r_x", "r_y" };
+      char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = {
+         "b", "y", "select", "start", "up", "down", "left", "right", "a", "x",
+         "l", "r", "l2", "r2", "l3", "r3",
+         "l_x", "l_y", "r_x", "r_y" };
 
       snprintf(buf, sizeof(buf), "input_player%u", i + 1);
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND + 4; j++)
@@ -279,7 +277,7 @@ static bool input_remapping_save_file(const char *path)
 
    ret = config_file_write(conf, path);
    config_file_free(conf);
-   
+
    if (ret)
       strlcpy(input->remapping_path, path, PATH_MAX_LENGTH);
 
@@ -293,12 +291,14 @@ static void input_remapping_delete_unscoped()
    if (input_remapping_scope < THIS_CONTENT_ONLY)
    {
       input_remapping_get_path(path, THIS_CONTENT_ONLY);
+      RARCH_LOG("Removing remap at path: \"%s\"\n", path);
       remove(path);
    }
 
    if (input_remapping_scope < THIS_CONTENT_DIR)
    {
       input_remapping_get_path(path, THIS_CONTENT_DIR);
+      RARCH_LOG("Removing remap at path: \"%s\"\n", path);
       remove(path);
    }
 
