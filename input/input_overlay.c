@@ -1594,30 +1594,30 @@ static INLINE uint64_t fourway_direction(const struct overlay_eightway_vals* val
    {
       if (y_offset > 0.0f)
       { /* Q1 */
-         if (abs_slope > 1.0f)
-            return vals->up;
-         else return vals->right;
+         if (abs_slope < 1.0f)
+            return vals->right;
+         else return vals->up;
       }
       else
       { /* Q4 */
-         if (abs_slope > 1.0f)
-            return vals->down;
-         else return vals->right;
+         if (abs_slope < 1.0f)
+            return vals->right;
+         else return vals->down;
       }
    }
    else
    {
       if (y_offset > 0.0f)
       { /* Q2 */
-         if (abs_slope > 1.0f)
-            return vals->up;
-         else return vals->left;
+         if (abs_slope < 1.0f)
+            return vals->left;
+         else return vals->up;
       }
       else
       { /* Q3 */
-         if (abs_slope > 1.0f)
-            return vals->down;
-         else return vals->left;
+         if (abs_slope < 1.0f)
+            return vals->left;
+         else return vals->down;
       }
    }
    

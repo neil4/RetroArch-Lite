@@ -1099,7 +1099,8 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
    unsigned ret                            = 0;
    static bool initial_held                = true;
    static bool restart_timer               = true;
-   static const retro_input_t input_repeat =
+   static retro_input_t repeat_input;
+   static const retro_input_t repeat_mask  =
       (1ULL << RETRO_DEVICE_ID_JOYPAD_UP)
       | (1ULL << RETRO_DEVICE_ID_JOYPAD_DOWN)
       | (1ULL << RETRO_DEVICE_ID_JOYPAD_LEFT)
@@ -1120,11 +1121,14 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
 
    driver->retro_ctx.poll_cb();
 
-   /* don't run anything first frame, only capture held inputs
-    * for old_input_state. */
-
-   if (input & input_repeat)
+   /* Repeat held inputs from repeat_mask */
+   if (input & repeat_mask)
    {
+      if (initial_held)
+         repeat_input = input & repeat_mask;
+      else
+         trigger_input = 0;
+
       if (restart_timer)
       {
          restart_timer = false;
@@ -1135,9 +1139,11 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
       if (menu_input->delay.count >= menu_input->delay.timer)
       {
          restart_timer = true;
-         trigger_input |= input & input_repeat;
+         if (input & repeat_input)
+            trigger_input = repeat_input;
       }
 
+      menu_input->delay.count += disp->animation->delta_time / IDEAL_DT;
       initial_held = false;
    }
    else
@@ -1145,8 +1151,6 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
       restart_timer = true;
       initial_held = true;
    }
-
-   menu_input->delay.count += disp->animation->delta_time / IDEAL_DT;
 
    if (menu_input->keyboard.display)
    {
