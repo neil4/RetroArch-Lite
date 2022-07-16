@@ -268,11 +268,12 @@ static bool input_remapping_save_file(const char *path)
       enum retro_key rk = joykbd_bind_list[i].rk;
       uint16_t btn      = joykbd_bind_list[i].btn;
 
-      input_keymaps_translate_rk_to_str(rk, rk_buf, sizeof(rk_buf));
-      snprintf(buf, sizeof(buf), "input_keyboard_%s", rk_buf);
-
       if (btn < NUM_JOYKBD_BTNS)
+      {
+         input_keymaps_translate_rk_to_str(rk, rk_buf, sizeof(rk_buf));
+         snprintf(buf, sizeof(buf), "input_keyboard_%s", rk_buf);
          config_set_int(conf, buf, btn);
+      }
    }
 
    ret = config_file_write(conf, path);
