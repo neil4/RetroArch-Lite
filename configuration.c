@@ -937,9 +937,9 @@ static void config_set_defaults(void)
             g_defaults.osk_overlay_dir, PATH_MAX_LENGTH);
 #ifdef RARCH_MOBILE
       if (!*settings->input.osk_overlay)
-            fill_pathname_join(settings->input.osk_overlay,
-                  global->osk_overlay_dir, "/US-101/US-101.cfg",
-                  PATH_MAX_LENGTH);
+         fill_pathname_join(settings->input.osk_overlay,
+               global->osk_overlay_dir, "/US-101/US-101.cfg",
+               PATH_MAX_LENGTH);
 #endif
    }
    else
@@ -1674,13 +1674,6 @@ static bool config_load_file(const char *path, bool set_defaults)
       snprintf(buf, sizeof(buf), "input_player%u_joypad_index", i + 1);
       config_get_uint(conf, buf,
          &settings->input.joypad_map[i]);
-
-      if (!global->has_set_libretro_device[i])
-      {
-         snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
-         config_get_uint(conf, buf,
-         &settings->input.libretro_device[i]);
-      }
    }
 
    config_get_uint(conf, "input_menu_toggle_btn_combo",
@@ -2669,12 +2662,6 @@ bool main_config_file_save(const char *path)
       char buf[32] = {0};
       snprintf(buf, sizeof(buf), "input_player%u_joypad_index", i + 1);
       config_set_int(conf, buf, settings->input.joypad_map[i]);
-
-      if (input_remapping_scope == GLOBAL)
-      {
-         snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
-         config_set_int(conf, buf, settings->input.libretro_device[i]);
-      }
    }
 
    for (i = 0; i < settings->input.max_users; i++)
@@ -2899,41 +2886,41 @@ settings_t *config_init(void)
    return g_config;
 }
 
-bool get_scoped_config_filename(char* buf, const unsigned scope,
+bool get_scoped_config_filename(char* out, const unsigned scope,
       const char* ext)
 {
    global_t *global = global_get_ptr();
 
-   if (scope == THIS_CORE)
+   switch (scope)
    {
+   case THIS_CORE:
       if (!*global->libretro_name)
          return false;
+      strlcpy(out, global->libretro_name, NAME_MAX_LENGTH);
+      break;
 
-      strlcpy(buf, global->libretro_name, NAME_MAX_LENGTH);
-   }
-   else if (scope == THIS_CONTENT_DIR)
-   {
+   case THIS_CONTENT_DIR:
       if (!*global->basename)
          return false;
-
       /* Basename is conveniently updated between saving and loading scoped cfgs */
-      if (!path_parent_dir_name(buf, global->basename))
-         strcpy(buf, "root");
-   }
-   else if (scope == THIS_CONTENT_ONLY)
-   {
+      if (!path_parent_dir_name(out, global->basename))
+         strcpy(out, "root");
+      break;
+
+   case THIS_CONTENT_ONLY:
       if (!*global->basename)
          return false;
+      strlcpy(out, path_basename(global->basename), NAME_MAX_LENGTH);
+      break;
 
-      strlcpy(buf, path_basename(global->basename), NAME_MAX_LENGTH);
-   }
-   else
+   default:
       return false;
+   }
 
    if (*ext)
    {
-      strlcat(buf, ".", NAME_MAX_LENGTH);
-      strlcat(buf, ext, NAME_MAX_LENGTH);
+      strlcat(out, ".", NAME_MAX_LENGTH);
+      strlcat(out, ext, NAME_MAX_LENGTH);
    }
 
    return true;
@@ -3006,7 +2993,7 @@ static void config_save_scoped_file(unsigned scope)
       RARCH_LOG("Removing scoped config at path: \"%s\"\n", fullpath);
       remove(fullpath);
    }
-   
+
    /* Cleanup */
    config_file_free(conf);
    scoped_conf[scope] = NULL;
@@ -3032,7 +3019,6 @@ void config_unmask_globals()
    config_file_t *conf  = scoped_conf[GLOBAL];
    bool loading_core, unloading_core;
    struct setting_desc *sd;
-   char buf[32];
    unsigned i;
    char *str;
 
@@ -3104,19 +3090,15 @@ void config_unmask_globals()
    if (settings->audio.volume_scope != GLOBAL)
       audio_driver_set_volume_gain(db_to_gain(settings->audio.volume));
 
-   /* Restore libretro_device[]. Overridden by remaps */
+   /* Reset libretro_device[]. Loaded only from remaps */
    for (i = 0; i < MAX_USERS; i++)
       settings->input.libretro_device[i] = RETRO_DEVICE_JOYPAD;
-   for (i = 0; i < settings->input.max_users; i++)
-   {
-      snprintf(buf, sizeof(buf), "input_libretro_device_p%u", i + 1);
-      config_get_uint(conf, buf, &settings->input.libretro_device[i]);
-   }
 
    /* Reset scopes to GLOBAL */
    for (sd = scoped_setting_list; sd->key != NULL; sd++)
       *sd->scope_ptr = GLOBAL;
-   input_remapping_scope = GLOBAL;
+   if (unloading_core)
+      input_remapping_scope = GLOBAL;
 
    /* Force THIS_CORE or higher for these settings */
    if (*settings->libretro)
@@ -3125,6 +3107,7 @@ void config_unmask_globals()
       settings->preempt_frames_scope = THIS_CORE;
       settings->video.frame_delay_scope = THIS_CORE;
       core_specific_scope = THIS_CORE;
+      input_remapping_scope = THIS_CORE;
    }
 
    prev_libretro = *settings->libretro;

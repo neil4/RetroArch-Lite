@@ -555,13 +555,13 @@ void config_load_core_file();
 
 /**
  * get_scoped_config_filename:
- * @buf                      : NAME_MAX_LENGTH buffer
+ * @out                      : NAME_MAX_LENGTH buffer
  * @scope                    : THIS_CORE, THIS_CONTENT_DIR, or THIS_CONTENT_ONLY
  * @ext                      : file extension to append
  *
  * Returns true if successful
  */
-bool get_scoped_config_filename(char* buf, const unsigned scope,
+bool get_scoped_config_filename(char* out, const unsigned scope,
       const char* ext);
 
 /**

@@ -6237,7 +6237,7 @@ static bool setting_append_list_input_options(
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
    driver_t   *driver   = driver_get_ptr();
-   bool  core_running   = global->main_is_init && !global->libretro_dummy;
+   bool core_loaded     = *settings->libretro ? true : false;
 	
    START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_INPUT_SETTINGS), parent_group);
 
@@ -6403,7 +6403,7 @@ static bool setting_append_list_input_options(
          input_remapping_scope,
          menu_hash_to_str(MENU_LABEL_LIBRETRO_DEVICE_SCOPE),
          "Device & Remapping Scope",
-         (core_running ? THIS_CORE : GLOBAL),
+         (core_loaded ? THIS_CORE : GLOBAL),
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -6411,8 +6411,8 @@ static bool setting_append_list_input_options(
          general_read_handler);
    menu_settings_list_current_add_range(
          list, list_info,
-         (core_running ? THIS_CORE : GLOBAL),
-         (core_running ? global->max_scope : GLOBAL),
+         (core_loaded ? THIS_CORE : GLOBAL),
+         (core_loaded ? global->max_scope : GLOBAL),
          1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
