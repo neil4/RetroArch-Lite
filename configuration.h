@@ -313,6 +313,8 @@ typedef struct settings
       unsigned overlay_mouse_hold_to_drag_scope;
       uint32_t overlay_mouse_hold_ms;
       uint32_t overlay_mouse_hold_zone;
+      uint32_t overlay_mouse_click_dur;
+      unsigned overlay_mouse_click_dur_scope;
 
       unsigned overlay_dpad_diag_sens;  /* diagonal-to-normal ratio (percent) */
       unsigned overlay_abxy_diag_sens;  /* diagonal-to-normal ratio (percent) */

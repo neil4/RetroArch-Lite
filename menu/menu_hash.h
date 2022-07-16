@@ -103,6 +103,7 @@ extern "C" {
 #define MENU_LABEL_OVERLAY_MOUSE_HOLD_TO_DRAG                                  0x043156a3U
 #define MENU_LABEL_OVERLAY_MOUSE_HOLD_MS                                       0x3b937a63U
 #define MENU_LABEL_OVERLAY_MOUSE_HOLD_ZONE                                     0x6e62bd9fU
+#define MENU_LABEL_OVERLAY_MOUSE_CLICK_DUR                                     0x7ab5550dU
 #define MENU_LABEL_KEYBOARD_OVERLAY_PRESET                                     0x11f1c582U
 #define MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET                               0x93ac8293U
 #define MENU_LABEL_OVERLAY_PRESET                                              0x24e24796U

@@ -296,6 +296,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "input_overlay_mouse_hold_ms";
       case MENU_LABEL_OVERLAY_MOUSE_HOLD_ZONE:
          return "input_overlay_mouse_hold_zone";
+      case MENU_LABEL_OVERLAY_MOUSE_CLICK_DUR:
+         return "input_overlay_mouse_click_dur";
       case MENU_LABEL_INPUT_ANALOG_DPAD_MODE:
          return "input_analog_dpad_mode";
       case MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS:

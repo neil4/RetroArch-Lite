@@ -3187,6 +3187,14 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " -- Allowable travel distance when\n"
                "detecting a long press.\n");
          break;
+      case MENU_LABEL_OVERLAY_MOUSE_CLICK_DUR:
+         snprintf(s, len,
+               " -- Number of frames a mouse button\n"
+               "will be held after a screen tap.\n"
+               " \n"
+               "Increase if mouse clicks are\n"
+               "not recognized.");
+         break;
       case MENU_LABEL_VIDEO_MONITOR_INDEX:
          snprintf(s, len,
                " -- Which monitor to prefer.\n"
@@ -7097,6 +7105,33 @@ static bool setting_append_list_overlay_mouse_options(
    menu_settings_list_current_add_range(list, list_info, 0, 5000, 50, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_overlay_mouse_hold_zone;
+
+   CONFIG_UINT(
+         settings->input.overlay_mouse_click_dur,
+         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_CLICK_DUR),
+         "Click Duration (frames)",
+         overlay_mouse_click_dur,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 1, 30, 1, true, true);
+
+   CONFIG_UINT(
+         settings->input.overlay_mouse_click_dur_scope,
+         "input_overlay_mouse_click_dur_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);

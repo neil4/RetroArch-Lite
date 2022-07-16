@@ -52,9 +52,9 @@ bool settings_touched = false;
 bool scoped_settings_touched = false;
 
 #ifdef HAVE_OVERLAY
-#define NUM_SCOPED_SETTINGS 55
+#define NUM_SCOPED_SETTINGS 56
 #else
-#define NUM_SCOPED_SETTINGS 39
+#define NUM_SCOPED_SETTINGS 40
 #endif
 
 static struct setting_desc scoped_setting_list[NUM_SCOPED_SETTINGS + 1];
@@ -183,6 +183,9 @@ static void config_populate_scoped_setting_list()
    SCOPED_LIST_ADD_BOOL("input_overlay_mouse_hold_to_drag",
       settings->input.overlay_mouse_hold_to_drag,
       settings->input.overlay_mouse_hold_to_drag_scope);
+   SCOPED_LIST_ADD_UINT("input_overlay_mouse_click_dur",
+      settings->input.overlay_mouse_click_dur,
+      settings->input.overlay_mouse_click_dur_scope);
 #endif  /* HAVE_OVERLAY */
    SCOPED_LIST_ADD_UINT("input_max_users",
       settings->input.max_users, settings->input.max_users_scope);
@@ -801,6 +804,7 @@ static void config_set_defaults(void)
    settings->input.overlay_mouse_hold_to_drag      = overlay_mouse_hold_to_drag;
    settings->input.overlay_mouse_hold_zone         = overlay_mouse_hold_zone;
    settings->input.overlay_mouse_hold_ms           = overlay_mouse_hold_ms;
+   settings->input.overlay_mouse_click_dur         = overlay_mouse_click_dur;
 #endif
 
    strlcpy(settings->network.buildbot_url, buildbot_server_url,
@@ -1947,6 +1951,8 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->input.overlay_mouse_hold_ms);
    config_get_uint(conf, "input_overlay_mouse_hold_zone",
          &settings->input.overlay_mouse_hold_zone);
+   config_get_uint(conf, "input_overlay_mouse_click_dur",
+         &settings->input.overlay_mouse_click_dur);
 #endif
 
    config_get_bool(conf, "rewind_enable",
@@ -2784,6 +2790,10 @@ bool main_config_file_save(const char *path)
          settings->input.overlay_mouse_hold_ms);
    config_set_int(conf, "input_overlay_mouse_hold_zone",
          settings->input.overlay_mouse_hold_zone);
+
+   if (settings->input.overlay_mouse_click_dur_scope == GLOBAL)
+      config_set_int(conf, "input_overlay_mouse_click_dur",
+         settings->input.overlay_mouse_click_dur);
 
    config_set_int(conf, "input_vibrate_time",
          settings->input.overlay_vibrate_time);

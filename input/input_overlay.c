@@ -64,6 +64,8 @@ typedef struct overlay_mouse_vals
 
    uint8_t click;
    uint8_t hold;
+
+   uint8_t click_frames;
 } overlay_mouse_vals_t;
 
 typedef struct ellipse_px
@@ -1923,8 +1925,11 @@ static INLINE void input_overlay_poll_mouse()
          if (driver->input->overlay_haptic_feedback)
             driver->input->overlay_haptic_feedback();
       }
-      else if (is_brief && !state->ptr_count)
+      else if (is_brief && !state->ptr_count && old_state->ptr_count)
+      {
          ol_mouse.click = (1 << (peak_ptr_count - 1));
+         ol_mouse.click_frames = settings->input.overlay_mouse_click_dur;
+      }
    }
 
    if (!state->ptr_count)
@@ -2226,15 +2231,18 @@ static INLINE int16_t overlay_mouse_state(unsigned id)
          break;
       case RETRO_DEVICE_ID_MOUSE_LEFT:
          res = (ol_mouse.click & 0x1) || (ol_mouse.hold & 0x1);
-         ol_mouse.click &= ~0x1;
+         if (--ol_mouse.click_frames == 0)
+            ol_mouse.click = 0;
          break;
       case RETRO_DEVICE_ID_MOUSE_RIGHT:
          res = (ol_mouse.click & 0x2) || (ol_mouse.hold & 0x2);
-         ol_mouse.click &= ~0x2;
+         if (--ol_mouse.click_frames == 0)
+            ol_mouse.click = 0;
          break;
       case RETRO_DEVICE_ID_MOUSE_MIDDLE:
          res = (ol_mouse.click & 0x4) || (ol_mouse.hold & 0x4);
-         ol_mouse.click &= ~0x4;
+         if (--ol_mouse.click_frames == 0)
+            ol_mouse.click = 0;
          break;
    }
 
