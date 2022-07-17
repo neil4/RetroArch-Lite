@@ -52,13 +52,6 @@ static int action_get_title_disk_image_append(const char *path, const char *labe
    return 0;
 }
 
-static int action_get_title_cheat_file_load(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "CHEAT FILE %s", path);
-   return 0;
-}
-
 static int action_get_title_remap_file_load(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
@@ -73,10 +66,10 @@ static int action_get_title_help(const char *path, const char *label,
    return 0;
 }
 
-static int action_get_title_overlay(const char *path, const char *label, 
+static int action_get_title_osk_load(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
-   snprintf(s, len, "OVERLAY %s", path);
+   snprintf(s, len, "ONSCREEN KEYBOARD %s", path);
    return 0;
 }
 
@@ -97,7 +90,7 @@ static int action_get_title_cheat_directory(const char *path, const char *label,
 static int action_get_title_core_directory(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
-   snprintf(s, len, "CORE DIR %s", path);
+   snprintf(s, len, "CORE LIB DIR %s", path);
    return 0;
 }
 
@@ -119,6 +112,19 @@ static int action_get_title_font_path(const char *path, const char *label,
       unsigned menu_type, char *s, size_t len)
 {
    snprintf(s, len, "FONT %s", path);
+   return 0;
+}
+
+static int action_get_title_path_load_generic(const char *path, 
+      const char *label, unsigned menu_type, char *s, size_t len)
+{
+   char new_label[NAME_MAX_LENGTH];
+
+   strlcpy(new_label, label, NAME_MAX_LENGTH);
+   string_to_upper(new_label);
+   replace_chars(new_label, '_', ' ');
+
+   snprintf(s, len, "%s %s", new_label, path);
    return 0;
 }
 
@@ -247,27 +253,6 @@ static int action_get_title_core_updater(const char *path, const char *label,
    return 0;
 }
 
-static int action_get_title_savestate_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "SAVESTATE DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_dynamic_wallpapers_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "DYNAMIC WALLPAPERS DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_core_assets_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "CORE ASSETS DIR %s", path);
-   return 0;
-}
-
 static int action_get_title_config_directory(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
@@ -275,115 +260,10 @@ static int action_get_title_config_directory(const char *path, const char *label
    return 0;
 }
 
-static int action_get_title_input_remapping_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "INPUT REMAPPING DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_autoconfig_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "AUTOCONFIG DIR %s", path);
-   return 0;
-}
-
 static int action_get_title_browser_directory(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
    snprintf(s, len, "BROWSER DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_content_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "CONTENT DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_screenshot_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "SCREENSHOT DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_onscreen_overlay_keyboard_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "OSK OVERLAY DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_recording_config_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "RECORDING CONFIG DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_recording_output_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "RECORDING OUTPUT DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_video_shader_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "SHADER DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_audio_filter_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "AUDIO FILTER DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_video_filter_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "VIDEO FILTER DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_savefile_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "SAVEFILE DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_overlay_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "OVERLAY DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_system_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "SYSTEM DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_assets_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "ASSETS DIR %s", path);
-   return 0;
-}
-
-static int action_get_title_extraction_directory(const char *path, const char *label, 
-      unsigned menu_type, char *s, size_t len)
-{
-   snprintf(s, len, "EXTRACTION DIR %s", path);
    return 0;
 }
 
@@ -422,65 +302,51 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_DEFERRED_CORE_LIST:
          cbs->action_get_title = action_get_title_deferred_core_list;
          break;
-      case MENU_LABEL_JOYPAD_AUTOCONFIG_DIR:
-         cbs->action_get_title = action_get_title_autoconfig_directory;
-         break;
-      case MENU_LABEL_EXTRACTION_DIRECTORY:
-         cbs->action_get_title = action_get_title_extraction_directory;
-         break;
-      case MENU_LABEL_SYSTEM_DIRECTORY:
-         cbs->action_get_title = action_get_title_system_directory;
-         break;
-      case MENU_LABEL_ASSETS_DIRECTORY:
-         cbs->action_get_title = action_get_title_assets_directory;
-         break;
-      case MENU_LABEL_SAVEFILE_DIRECTORY:
-         cbs->action_get_title = action_get_title_savefile_directory;
-         break;
-      case MENU_LABEL_OVERLAY_DIRECTORY:
-         cbs->action_get_title = action_get_title_overlay_directory;
-         break;
       case MENU_LABEL_RGUI_BROWSER_DIRECTORY:
          cbs->action_get_title = action_get_title_browser_directory;
          break;
-      case MENU_LABEL_CONTENT_DIRECTORY:
-         cbs->action_get_title = action_get_title_content_directory;
+      case MENU_LABEL_REMAP_FILE_LOAD:
+         cbs->action_get_title = action_get_title_remap_file_load;
          break;
-      case MENU_LABEL_SCREENSHOT_DIRECTORY:
-         cbs->action_get_title = action_get_title_screenshot_directory;
+       case MENU_LABEL_OPTIONS_FILE_LOAD:
+         cbs->action_get_title = action_get_title_options_file_load;
          break;
-      case MENU_LABEL_VIDEO_SHADER_DIR:
-         cbs->action_get_title = action_get_title_video_shader_directory;
-         break;
-      case MENU_LABEL_VIDEO_FILTER_DIR:
-         cbs->action_get_title = action_get_title_video_filter_directory;
-         break;
-      case MENU_LABEL_AUDIO_FILTER_DIR:
-         cbs->action_get_title = action_get_title_audio_filter_directory;
-         break;
-      case MENU_LABEL_RECORDING_CONFIG_DIRECTORY:
-         cbs->action_get_title = action_get_title_recording_config_directory;
-         break;
-      case MENU_LABEL_RECORDING_OUTPUT_DIRECTORY:
-         cbs->action_get_title = action_get_title_recording_output_directory;
-         break;
-      case MENU_LABEL_OSK_OVERLAY_DIRECTORY:
-         cbs->action_get_title = action_get_title_onscreen_overlay_keyboard_directory;
-         break;
-      case MENU_LABEL_INPUT_REMAPPING_DIRECTORY:
-         cbs->action_get_title = action_get_title_input_remapping_directory;
-         break;
-      case MENU_LABEL_SAVESTATE_DIRECTORY:
-         cbs->action_get_title = action_get_title_savestate_directory;
-         break;
-      case MENU_LABEL_DYNAMIC_WALLPAPERS_DIRECTORY:
-         cbs->action_get_title = action_get_title_dynamic_wallpapers_directory;
-         break;
-      case MENU_LABEL_CORE_ASSETS_DIRECTORY:
-         cbs->action_get_title = action_get_title_core_assets_directory;
+      case MENU_LABEL_VIDEO_SHADER_PRESET:
+         cbs->action_get_title = action_get_title_video_shader_preset;
          break;
       case MENU_LABEL_RGUI_CONFIG_DIRECTORY:
          cbs->action_get_title = action_get_title_config_directory;
+         break;
+      case MENU_LABEL_KEYBOARD_OVERLAY_PRESET:
+         cbs->action_get_title = action_get_title_osk_load;
+         break;
+      case MENU_LABEL_DISK_IMAGE_APPEND:
+         cbs->action_get_title = action_get_title_disk_image_append;
+         break;
+      case MENU_LABEL_VIDEO_SHADER_DIR:
+      case MENU_LABEL_JOYPAD_AUTOCONFIG_DIR:
+      case MENU_LABEL_EXTRACTION_DIRECTORY:
+      case MENU_LABEL_SYSTEM_DIRECTORY:
+      case MENU_LABEL_ASSETS_DIRECTORY:
+      case MENU_LABEL_SAVEFILE_DIRECTORY:
+      case MENU_LABEL_OVERLAY_DIRECTORY:
+      case MENU_LABEL_CONTENT_DIRECTORY:
+      case MENU_LABEL_SCREENSHOT_DIRECTORY:
+      case MENU_LABEL_VIDEO_FILTER_DIR:
+      case MENU_LABEL_AUDIO_FILTER_DIR:
+      case MENU_LABEL_RECORDING_CONFIG_DIRECTORY:
+      case MENU_LABEL_RECORDING_OUTPUT_DIRECTORY:
+      case MENU_LABEL_OSK_OVERLAY_DIRECTORY:
+      case MENU_LABEL_INPUT_REMAPPING_DIRECTORY:
+      case MENU_LABEL_SAVESTATE_DIRECTORY:
+      case MENU_LABEL_DYNAMIC_WALLPAPERS_DIRECTORY:
+      case MENU_LABEL_CORE_ASSETS_DIRECTORY:
+      case MENU_LABEL_CHEAT_FILE_LOAD:
+      case MENU_LABEL_MENU_THEME:
+      case MENU_LABEL_MENU_THEME_DIRECTORY:
+      case MENU_LABEL_CORE_CONTENT_DIRECTORY:
+      case MENU_LABEL_INPUT_OVERLAY:
+         cbs->action_get_title = action_get_title_path_load_generic;
          break;
       case MENU_LABEL_PERFORMANCE_COUNTERS:
       case MENU_LABEL_CORE_LIST:
@@ -508,29 +374,11 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_DEFERRED_CORE_UPDATER_LIST:
          cbs->action_get_title = action_get_title_core_updater;
          break;
-      case MENU_LABEL_DISK_IMAGE_APPEND:
-         cbs->action_get_title = action_get_title_disk_image_append;
-         break;
-      case MENU_LABEL_VIDEO_SHADER_PRESET:
-         cbs->action_get_title = action_get_title_video_shader_preset;
-         break;
-      case MENU_LABEL_OPTIONS_FILE_LOAD:
-         cbs->action_get_title = action_get_title_options_file_load;
-         break;
-      case MENU_LABEL_CHEAT_FILE_LOAD:
-         cbs->action_get_title = action_get_title_cheat_file_load;
-         break;
-      case MENU_LABEL_REMAP_FILE_LOAD:
-         cbs->action_get_title = action_get_title_remap_file_load;
-         break;
       case MENU_LABEL_CUSTOM_VIEWPORT_2:
          cbs->action_get_title = action_get_title_custom_viewport;
          break;
       case MENU_LABEL_HELP:
          cbs->action_get_title = action_get_title_help;
-         break;
-      case MENU_LABEL_INPUT_OVERLAY:
-         cbs->action_get_title = action_get_title_overlay;
          break;
       case MENU_LABEL_VIDEO_FONT_PATH:
          cbs->action_get_title = action_get_title_font_path;

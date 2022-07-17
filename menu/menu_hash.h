@@ -368,7 +368,6 @@ extern "C" {
 #define MENU_LABEL_INPUT_HOTKEY_SETTINGS                                       0x1cb39c19U
 #define MENU_LABEL_OVERLAY_SETTINGS                                            0x997b2fd5U
 #define MENU_LABEL_OVERLAY_MOUSE_SETTINGS                                      0x7915c6ffU
-#define MENU_LABEL_ONSCREEN_KEYBOARD_OVERLAY_SETTINGS                          0xa6de9ba6U
 #define MENU_LABEL_MENU_SETTINGS                                               0x61e4544bU
 #define MENU_LABEL_UI_SETTINGS                                                 0xf8da6ef4U
 #define MENU_LABEL_PATCH_SETTINGS                                              0xa78b0986U
