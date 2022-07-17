@@ -1376,6 +1376,18 @@ static int setting_action_start_theme(void *data)
    return 0;
 }
 
+static int setting_action_start_path(void *data)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+
+   if (!setting)
+      return -1;
+
+   setting->value.string[0] = '\0';
+
+   return 0;
+}
+
 static int setting_action_audio_dsp_filter(void *data)
 {
    settings_t *settings = config_get_ptr();
@@ -4062,24 +4074,6 @@ static void settings_data_list_current_add_flags(
    setting_add_special_callbacks(list, list_info, values);
 }
 
-#ifdef HAVE_OVERLAY
-static void overlay_enable_toggle_change_handler(void *data)
-{
-   rarch_setting_t *setting = (rarch_setting_t *)data;
-
-   if (!setting)
-      return;
-
-   if (*setting->value.boolean)
-      event_command(EVENT_CMD_OVERLAY_LOAD);
-   else
-   {
-      event_command(EVENT_CMD_OVERLAY_UNLOAD);
-      event_command(EVENT_CMD_OVERLAY_FREE_CACHED);
-   }
-}
-#endif
-
 static void gui_update_change_handler(void *data)
 {
    global_t *global = global_get_ptr();
@@ -6623,23 +6617,6 @@ static bool setting_append_list_overlay_options(
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-   
-   CONFIG_BOOL(
-         settings->input.overlay_enable,
-         "input_overlay_enable",
-         "Enable Overlay",
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   (*list)[list_info->index - 1].change_handler = overlay_enable_toggle_change_handler;
-#ifdef ANDROID
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-#endif
 
    CONFIG_PATH(
          settings->input.overlay,
@@ -6652,6 +6629,7 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_values(list, list_info, "cfg");
+   (*list)[list_info->index - 1].action_start = &setting_action_start_path;
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_LOAD);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
    
@@ -6919,20 +6897,6 @@ static bool setting_append_list_overlay_options(
    START_SUB_GROUP(list, list_info, "Onscreen Keyboard",
          group_info.name, subgroup_info, parent_group);
 
-   CONFIG_BOOL(
-         settings->input.osk_enable,
-         "input_osk_overlay_enable",
-         "Enable Onscreen Keyboard",
-         input_osk_overlay_enable,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
    CONFIG_PATH(
          settings->input.osk_overlay,
          menu_hash_to_str(MENU_LABEL_KEYBOARD_OVERLAY_PRESET),
@@ -6944,6 +6908,7 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_values(list, list_info, "cfg");
+   (*list)[list_info->index - 1].action_start = &setting_action_start_path;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
    if (!show_osk_settings)
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);

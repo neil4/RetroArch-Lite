@@ -172,7 +172,7 @@ static int16_t input_joypad_turbo_state(unsigned port, unsigned *id)
          libretro_input_binds, port, RETRO_DEVICE_JOYPAD, 0, mapped_id);
 
 #ifdef HAVE_OVERLAY
-   if (port == 0 && input->overlay_enable
+   if (port == 0 && *input->overlay
           && (driver_get_ptr()->overlay_state.buttons & (1 << mapped_id)))
       pressed |= 1;
 #endif
@@ -249,7 +249,7 @@ static int16_t input_state(unsigned port, unsigned device,
       res |= input_driver_state(libretro_input_binds, port, device, idx, id);
 
 #ifdef HAVE_OVERLAY
-   if (settings->input.overlay_enable)
+   if (*settings->input.overlay)
       res |= input_overlay_state(port, device, idx, id);
 #endif
 

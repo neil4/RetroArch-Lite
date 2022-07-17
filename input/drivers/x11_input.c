@@ -263,7 +263,7 @@ static int16_t x_input_state(void *data,
 
       case RETRO_DEVICE_LIGHTGUN:
 #ifdef HAVE_OVERLAY
-         if (settings->input.overlay_enable)
+         if (*settings->input.overlay)
             break;
          else
 #endif

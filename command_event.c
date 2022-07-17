@@ -1061,7 +1061,7 @@ bool event_command(enum event_command cmd)
       {
          input_overlay_t *overlay;
          bool enable = driver->osk_enable ?
-               settings->input.osk_enable : settings->input.overlay_enable;
+               *settings->input.osk_overlay : *settings->input.overlay;
 
          input_overlay_enable(driver->overlay, false);
          if (driver->overlay)
@@ -1084,7 +1084,7 @@ bool event_command(enum event_command cmd)
 
          if (driver->osk_enable)
          {
-            if (!settings->input.osk_enable || !*settings->input.osk_overlay)
+            if (!*settings->input.osk_overlay)
             {
                driver->keyboard_linefeed_enable = false;
                break;
@@ -1094,10 +1094,8 @@ bool event_command(enum event_command cmd)
          }
          else
          {
-            if (!*settings->input.overlay)
-               break;
             path   = settings->input.overlay;
-            enable = settings->input.overlay_enable;
+            enable = *settings->input.overlay;
          }
 
          if (!enable)

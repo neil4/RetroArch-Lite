@@ -474,10 +474,8 @@ static float menu_ticker_speed = 2.0f;
 #ifdef HAVE_OVERLAY
 #ifdef ANDROID
 static bool show_overlay_menu = true;
-static bool input_osk_overlay_enable = true;
 #else
 static bool show_overlay_menu = false;
-static bool input_osk_overlay_enable = false;
 #endif
 static float overlay_opacity = 0.5f;
 static const unsigned overlay_dpad_diag_sens = 80;

@@ -647,7 +647,7 @@ static void menu_input_mouse(unsigned *action)
 
 #ifdef HAVE_OVERLAY
    if (driver && driver->overlay
-         && (driver->osk_enable || settings->input.overlay_enable))
+         && (driver->osk_enable || *settings->input.overlay))
    {
       memset(&menu_input->mouse, 0, sizeof(menu_input->mouse));
       return;
@@ -899,7 +899,7 @@ static unsigned menu_input_mouse_action()
 
 #ifdef HAVE_OVERLAY
    if (driver && driver->overlay
-         && (driver->osk_enable || settings->input.overlay_enable))
+         && (driver->osk_enable || *settings->input.overlay))
    {
       menu_input->mouse.wheeldown = false;
       menu_input->mouse.wheelup   = false;
@@ -1044,7 +1044,7 @@ static unsigned menu_input_pointer_action()
 
 #ifdef HAVE_OVERLAY
    if (driver && driver->overlay
-         && (driver->osk_enable || settings->input.overlay_enable))
+         && (driver->osk_enable || *settings->input.overlay))
    {
       menu_input->pointer.oldpressed = 0;
       menu_input->pointer.dragging   = false;

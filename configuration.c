@@ -52,9 +52,9 @@ bool settings_touched = false;
 bool scoped_settings_touched = false;
 
 #ifdef HAVE_OVERLAY
-#define NUM_SCOPED_SETTINGS 56
+#define NUM_SCOPED_SETTINGS 55
 #else
-#define NUM_SCOPED_SETTINGS 40
+#define NUM_SCOPED_SETTINGS 39
 #endif
 
 static struct setting_desc scoped_setting_list[NUM_SCOPED_SETTINGS + 1];
@@ -143,8 +143,6 @@ static void config_populate_scoped_setting_list()
 #ifdef HAVE_OVERLAY
    SCOPED_LIST_ADD_PATH("input_overlay",
       settings->input.overlay, settings->input.overlay_scope);
-   SCOPED_LIST_ADD_BOOL("input_overlay_enable",
-      settings->input.overlay_enable, settings->input.overlay_scope);
    SCOPED_LIST_ADD_FLOAT("input_overlay_scale",
       settings->input.overlay_scale, settings->input.overlay_scope);
    SCOPED_LIST_ADD_UINT("input_dpad_method",
@@ -794,13 +792,11 @@ static void config_set_defaults(void)
    settings->input.overlay_abxy_method             = VECTOR_AND_AREA;
    settings->input.touch_ellipse_magnify           = 1.0f;
    settings->input.overlay_vibrate_time            = OVERLAY_DEFAULT_VIBE;
-   settings->input.overlay_enable                  = true;
    settings->input.overlay_scale                   = 1.0f;
    settings->input.overlay_adjust_aspect           = true;
    settings->input.overlay_aspect_ratio_index      = OVERLAY_ASPECT_RATIO_AUTO_INDEX;
    settings->input.overlay_bisect_aspect_ratio     = overlay_bisect_aspect_ratio;
    settings->input.overlay_shift_y_lock_edges      = overlay_shift_y_lock_edges;
-   settings->input.osk_enable                      = input_osk_overlay_enable;
    settings->input.overlay_mouse_hold_to_drag      = overlay_mouse_hold_to_drag;
    settings->input.overlay_mouse_hold_zone         = overlay_mouse_hold_zone;
    settings->input.overlay_mouse_hold_ms           = overlay_mouse_hold_ms;
@@ -930,8 +926,8 @@ static void config_set_defaults(void)
             g_defaults.overlay_dir, PATH_MAX_LENGTH);
 #ifdef RARCH_MOBILE
       if (!*settings->input.overlay)
-            fill_pathname_join(settings->input.overlay,
-                  global->overlay_dir, "DualShock.cfg", PATH_MAX_LENGTH);
+         fill_pathname_join(settings->input.overlay,
+               global->overlay_dir, "DualShock.cfg", PATH_MAX_LENGTH);
 #endif
    }
 
@@ -1893,16 +1889,15 @@ static bool config_load_file(const char *path, bool set_defaults)
          global->record.config_dir, PATH_MAX_LENGTH);
 
 #ifdef HAVE_OVERLAY
-   config_get_path(conf, "overlay_directory",
-         global->overlay_dir, PATH_MAX_LENGTH);
+   if (config_get_path(conf, "overlay_directory",
+            global->overlay_dir, PATH_MAX_LENGTH))
+      settings->input.overlay[0] = '\0';  /* Allow empty (disabled) overlay */
    if (!strcmp(global->overlay_dir, "default") || !*global->overlay_dir)
       strlcpy(global->overlay_dir, g_defaults.overlay_dir, PATH_MAX_LENGTH);
 
    config_get_path(conf, "input_overlay",
          settings->input.overlay, PATH_MAX_LENGTH);
    config_check_overlay_preset();
-   config_get_bool(conf, "input_overlay_enable",
-         &settings->input.overlay_enable);
    config_get_float(conf, "input_overlay_opacity",
          &settings->input.overlay_opacity);
    config_get_float(conf, "input_overlay_scale",
@@ -1935,15 +1930,14 @@ static bool config_load_file(const char *path, bool set_defaults)
    config_get_int(conf, "input_vibrate_time",
          &settings->input.overlay_vibrate_time);
 
-   config_get_path(conf, "osk_overlay_directory",
-         global->osk_overlay_dir, PATH_MAX_LENGTH);
+   if (config_get_path(conf, "osk_overlay_directory",
+            global->osk_overlay_dir, PATH_MAX_LENGTH))
+         settings->input.osk_overlay[0] = '\0'; /* Allow empty (disabled) OSK */
    if (!strcmp(global->osk_overlay_dir, "default"))
       *global->osk_overlay_dir = '\0';
 
    config_get_path(conf, "input_osk_overlay",
          settings->input.osk_overlay, PATH_MAX_LENGTH);
-   config_get_bool(conf, "input_osk_overlay_enable",
-         &settings->input.osk_enable);
 
    config_get_bool(conf, "input_overlay_mouse_hold_to_drag",
          &settings->input.overlay_mouse_hold_to_drag);
@@ -2729,16 +2723,12 @@ bool main_config_file_save(const char *path)
    {
       config_set_path(conf, "input_overlay",
             settings->input.overlay);
-      config_set_bool(conf, "input_overlay_enable",
-            settings->input.overlay_enable);
       config_set_float(conf, "input_overlay_scale",
             settings->input.overlay_scale);
    }
 
    config_set_path(conf, "osk_overlay_directory",
          *global->osk_overlay_dir ? global->osk_overlay_dir : "default");
-   config_set_bool(conf, "input_osk_overlay_enable",
-         settings->input.osk_enable);
    if (settings->input.osk_scope == GLOBAL)
       config_set_path(conf, "input_osk_overlay",
             settings->input.osk_overlay);

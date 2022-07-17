@@ -295,7 +295,6 @@ typedef struct settings
       bool autodetect_enable;
       bool netplay_client_swap_input;
 
-      bool overlay_enable;
       char overlay[PATH_MAX_LENGTH];
       unsigned overlay_scope;
       float overlay_opacity;
@@ -322,7 +321,6 @@ typedef struct settings
       unsigned overlay_abxy_method;
       unsigned overlay_dpad_abxy_config_scope;
 
-      bool osk_enable;
       char osk_overlay[PATH_MAX_LENGTH];
       unsigned osk_scope;
 

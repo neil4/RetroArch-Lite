@@ -255,7 +255,7 @@ static int16_t sdl_input_state(void *data_, const struct retro_keybind **binds,
          return sdl_keyboard_device_state(data, id);
       case RETRO_DEVICE_LIGHTGUN:
 #ifdef HAVE_OVERLAY
-         if (settings->input.overlay_enable)
+         if (*settings->input.overlay)
             break;
          else
 #endif
