@@ -1127,7 +1127,7 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
       if (initial_held)
          repeat_input = input & repeat_mask;
       else
-         trigger_input = 0;
+         trigger_input &= ~repeat_mask;
 
       if (restart_timer)
       {
