@@ -7115,7 +7115,8 @@ static bool setting_append_list_menu_options(
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
    driver_t   *driver   = driver_get_ptr();
-   bool using_rgui = !strcmp(settings->menu.driver, "rgui");
+   bool using_rgui  = !strcmp(settings->menu.driver, "rgui");
+   bool core_loaded = *settings->libretro ? true : false;
 
    START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_MENU_SETTINGS), parent_group);
 
@@ -7590,8 +7591,39 @@ CONFIG_BOOL(
          general_write_handler,
          general_read_handler);
 
-   END_SUB_GROUP(list, list_info, parent_group);
+   CONFIG_PATH(
+         settings->input.osk_overlay,
+         menu_hash_to_str(MENU_LABEL_KEYBOARD_OVERLAY_PRESET),
+         menu_hash_to_str(MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET),
+         global->osk_overlay_dir,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_values(list, list_info, "cfg");
+   (*list)[list_info->index - 1].action_start = &setting_action_start_path;
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
 
+   if (core_loaded)
+   {
+      CONFIG_UINT(
+            settings->input.osk_scope,
+            "input_osk_overlay_scope",
+            "  Scope",
+            GLOBAL,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(
+            list, list_info, 0, global->max_scope, 1, true, true);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_scope_index;
+   }
+
+   END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Navigation", group_info.name, subgroup_info, parent_group);
    
    CONFIG_BOOL(
