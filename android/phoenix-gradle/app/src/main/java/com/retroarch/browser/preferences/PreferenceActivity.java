@@ -16,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.retroarch.browser.preferences.fragments.AudioVideoPreferenceFragment;
 import com.retroarch.browser.preferences.fragments.GeneralPreferenceFragment;
-import com.retroarch.browser.preferences.fragments.InputPreferenceFragment;
 import com.retroarch.browser.preferences.fragments.PathPreferenceFragment;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
 import com.retroarch.browser.preferences.util.UserPreferences;
@@ -57,7 +56,6 @@ public final class PreferenceActivity extends AppCompatActivity implements TabLi
       actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
       actionBar.addTab(actionBar.newTab().setText(R.string.general_options).setTabListener(this));
       actionBar.addTab(actionBar.newTab().setText(R.string.audio_video_options).setTabListener(this));
-      actionBar.addTab(actionBar.newTab().setText(R.string.input_options).setTabListener(this));
       actionBar.addTab(actionBar.newTab().setText(R.string.path_options).setTabListener(this));
 
       // When swiping between different sections, select the corresponding
@@ -138,9 +136,6 @@ public final class PreferenceActivity extends AppCompatActivity implements TabLi
                return new AudioVideoPreferenceFragment();
 
             case 2:
-               return new InputPreferenceFragment();
-               
-            case 3:
                return new PathPreferenceFragment();
 
             default: // Should never happen
@@ -160,9 +155,6 @@ public final class PreferenceActivity extends AppCompatActivity implements TabLi
                return getString(R.string.audio_video_options);
 
             case 2:
-               return getString(R.string.input_options);
-
-            case 3:
                return getString(R.string.path_options);
 
             default: // Should never happen
@@ -173,7 +165,7 @@ public final class PreferenceActivity extends AppCompatActivity implements TabLi
       @Override
       public int getCount()
       {
-         return 4;
+         return 3;
       }
    }
 }

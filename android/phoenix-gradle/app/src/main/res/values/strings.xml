@@ -84,15 +84,6 @@
     <!-- Refresh Rate Set OS Class -->
     <string name="using_os_reported_refresh_rate">OS-reported refresh rate: %1$f Hz\nRefresh rate set to: %2$f Hz</string>
 
-    <!-- Input Settings -->
-    <string name="input_options">Input</string>
-    <string name="overlay_assets">Overlays</string>
-    <string name="theme_assets">Themes</string>
-    <string name="enable_overlay">Enable Touchscreen Overlays</string>
-    <string name="enable_overlay_desc">Note: Scoped overlay settings override this.</string>
-    <string name="config_autodetect">Configuration Autodetection</string>
-    <string name="config_autodetect_desc">This will attempt to preconfigure various gamepads and/or IME apps that you connect.</string>
-
     <!-- Path Settings -->
     <string name="path_options">Paths</string>
     <string name="rom_paths">Content</string>

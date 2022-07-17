@@ -55,11 +55,6 @@ public final class UserPreferences
       // Audio Settings.
       readbackString(config, edit, "audio_latency");
 
-      // Input Settings
-      readbackString(config, edit, "input_overlay");
-      readbackBool(config, edit, "input_overlay_enable");
-      readbackBool(config, edit, "input_autodetect_enable");
-
       // Video Settings
       readbackString(config, edit, "video_refresh_rate");
       
@@ -122,11 +117,6 @@ public final class UserPreferences
       config.setString("rgui_config_directory", cfgDir);
       config.setString("input_remapping_directory", cfgDir);
       new File(cfgDir).mkdirs();
-      
-      // Input
-      //
-      config.setBoolean("input_overlay_enable", prefs.getBoolean("input_overlay_enable", true));
-      config.setBoolean("input_autodetect_enable", prefs.getBoolean("input_autodetect_enable", true));
       
       // Menu
       config.setBoolean("mame_titles",
