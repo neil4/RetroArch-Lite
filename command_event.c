@@ -1037,8 +1037,6 @@ bool event_command(enum event_command cmd)
 #ifdef HAVE_OVERLAY
          /* Disable and move to cache */
          input_overlay_enable(driver->overlay, false);
-         if (driver->overlay)
-            driver->overlay->iface = NULL;
 
          if (driver->overlay_cache)
             input_overlay_free(driver->overlay_cache);
@@ -1064,8 +1062,6 @@ bool event_command(enum event_command cmd)
                *settings->input.osk_overlay : *settings->input.overlay;
 
          input_overlay_enable(driver->overlay, false);
-         if (driver->overlay)
-            driver->overlay->iface = NULL;
 
          overlay               = driver->overlay_cache;
          driver->overlay_cache = driver->overlay;

@@ -1525,6 +1525,8 @@ void input_overlay_enable(input_overlay_t *ol, bool enable)
       input_overlay_connect_lightgun(ol);
       input_overlay_connect_mouse(ol);
    }
+   else
+      ol->iface = NULL;
 }
 
 /**
