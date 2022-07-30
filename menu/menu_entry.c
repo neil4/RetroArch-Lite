@@ -448,7 +448,6 @@ int menu_entry_action(menu_entry_t *entry, unsigned i, enum menu_action action)
    int ret                   = 0;
    global_t *global          = global_get_ptr();
    menu_input_t *menu_input  = menu_input_get_ptr();
-   menu_navigation_t *nav    = menu_navigation_get_ptr();
    menu_display_t *disp      = menu_display_get_ptr();
    menu_list_t *menu_list    = menu_list_get_ptr();
    menu_file_list_cbs_t *cbs = menu_list_get_actiondata_at_offset(menu_list->selection_buf, i);
@@ -462,12 +461,6 @@ int menu_entry_action(menu_entry_t *entry, unsigned i, enum menu_action action)
       case MENU_ACTION_DOWN:
          if (cbs && cbs->action_down)
             ret = cbs->action_down(entry->type, entry->label);
-         break;
-      case MENU_ACTION_SCROLL_UP:
-         menu_navigation_descend_alphabet(nav, &nav->selection_ptr);
-         break;
-      case MENU_ACTION_SCROLL_DOWN:
-         menu_navigation_ascend_alphabet(nav, &nav->selection_ptr);
          break;
 
       case MENU_ACTION_CANCEL:

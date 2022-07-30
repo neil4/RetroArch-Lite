@@ -415,8 +415,6 @@ typedef struct settings
    unsigned menu_search_btn;
    unsigned menu_default_btn;
    unsigned menu_info_btn;
-   unsigned menu_scroll_down_btn;
-   unsigned menu_scroll_up_btn;
 
    char username[32];
    unsigned int user_language;

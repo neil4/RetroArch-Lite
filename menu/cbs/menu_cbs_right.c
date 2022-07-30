@@ -208,6 +208,47 @@ static int action_r_save_state(unsigned type, const char *label)
    return 0;
 }
 
+/**
+ * action_right_ascend_alphabet:
+ *
+ * Ascends alphabet.
+ * E.g.:
+ * If navigation points to an entry called 'Alpha',
+ * navigation pointer will be set to an entry called 'Beta'.
+ **/
+static int action_right_ascend_alphabet(unsigned type, const char *label,
+      bool wraparound)
+{
+   size_t i = 0;
+   size_t current;
+   size_t *sel_ptr;
+   menu_list_t *menu_list = menu_list_get_ptr();
+   menu_navigation_t *nav = menu_navigation_get_ptr();
+
+   if (!nav || !menu_list)
+      return 0;
+
+   sel_ptr = &nav->selection_ptr;
+   current = *sel_ptr;
+
+   if (!nav->scroll.indices.size)
+      return 0;
+
+   if (current == nav->scroll.indices.list[nav->scroll.indices.size - 1])
+      return 0;
+
+   while (i < nav->scroll.indices.size - 1
+         && nav->scroll.indices.list[i + 1] <= current)
+      i++;
+   *sel_ptr = nav->scroll.indices.list[i + 1];
+
+   if (*sel_ptr >= menu_list_get_size(menu_list))
+      *sel_ptr = menu_list_get_size(menu_list) - 1;
+
+   menu_driver_navigation_ascend_alphabet(sel_ptr);
+   return 0;
+}
+
 static int action_right_scroll(unsigned type, const char *label,
       bool wraparound)
 {
@@ -227,6 +268,7 @@ static int action_right_scroll(unsigned type, const char *label,
    return 0;
 }
 
+#if 0
 static int action_right_mainmenu(unsigned type, const char *label,
       bool wraparound)
 {
@@ -269,6 +311,7 @@ static int action_right_mainmenu(unsigned type, const char *label,
 
    return 0;
 }
+#endif
 
 static int action_right_shader_scale_pass(unsigned type, const char *label,
       bool wraparound)
@@ -595,20 +638,12 @@ static int menu_cbs_init_bind_right_compare_type(menu_file_list_cbs_t *cbs,
          case MENU_FILE_CHEAT:
          case MENU_FILE_CORE_OPTIONS:
          case MENU_FILE_REMAP:
+            cbs->action_right = action_right_ascend_alphabet;
+            break;
          case MENU_SETTING_GROUP:
-            switch (menu_label_hash)
-            {
-               case MENU_VALUE_HORIZONTAL_MENU:
-               case MENU_VALUE_MAIN_MENU:
-                  cbs->action_right = action_right_mainmenu;
-                  break;
-               default:
-                  cbs->action_right = action_right_scroll;
-                  break;
-            }
          case MENU_SETTING_ACTION:
          case MENU_FILE_CONTENTLIST_ENTRY:
-            cbs->action_right = action_right_mainmenu;
+            cbs->action_right = action_right_scroll;
             break;
          default:
             return -1;

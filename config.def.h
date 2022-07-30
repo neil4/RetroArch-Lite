@@ -529,8 +529,6 @@ static unsigned default_menu_btn_cancel      = RETRO_DEVICE_ID_JOYPAD_B;
 static unsigned default_menu_btn_search      = RETRO_DEVICE_ID_JOYPAD_X;
 static unsigned default_menu_btn_default     = RETRO_DEVICE_ID_JOYPAD_START;
 static unsigned default_menu_btn_info        = RETRO_DEVICE_ID_JOYPAD_SELECT;
-static unsigned default_menu_btn_scroll_down = RETRO_DEVICE_ID_JOYPAD_DOWN;
-static unsigned default_menu_btn_scroll_up   = RETRO_DEVICE_ID_JOYPAD_UP;
 
 /* Crop overscanned frames. */
 static const bool crop_overscan = true;

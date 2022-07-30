@@ -25,7 +25,7 @@ typedef struct menu_navigation
 {
    struct
    {
-      /* Quick jumping indices with L/R.
+      /* Quick jumping indices with left/right.
        * Rebuilt when parsing directory. */
       struct
       {
@@ -75,30 +75,6 @@ void menu_navigation_set(menu_navigation_t *nav, size_t i, bool scroll);
  * Sets navigation pointer to last index.
  **/
 void menu_navigation_set_last(menu_navigation_t *nav);
-
-/**
- * menu_navigation_descend_alphabet:
- * @ptr_out               : Amount of indices to 'scroll' to get
- *                          to the next entry.
- *
- * Descends alphabet.
- * E.g.:
- * If navigation points to an entry called 'Beta',
- * navigation pointer will be set to an entry called 'Alpha'.
- **/
-void menu_navigation_descend_alphabet(menu_navigation_t *nav, size_t *ptr_out);
-
-/**
- * menu_navigation_ascends_alphabet:
- * @ptr_out               : Amount of indices to 'scroll' to get
- *                          to the next entry.
- *
- * Ascends alphabet.
- * E.g.:
- * If navigation points to an entry called 'Alpha',
- * navigation pointer will be set to an entry called 'Beta'.
- **/
-void menu_navigation_ascend_alphabet(menu_navigation_t *nav, size_t *ptr_out);
 
 ssize_t menu_navigation_get_current_selection(void);
 

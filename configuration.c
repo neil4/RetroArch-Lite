@@ -880,8 +880,6 @@ static void config_set_defaults(void)
    settings->menu_search_btn      = default_menu_btn_search;
    settings->menu_default_btn     = default_menu_btn_default;
    settings->menu_info_btn        = default_menu_btn_info;
-   settings->menu_scroll_down_btn = default_menu_btn_scroll_down;
-   settings->menu_scroll_up_btn   = default_menu_btn_scroll_up;
 
    settings->user_language = 0;
 
@@ -2100,10 +2098,6 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->menu_default_btn);
    config_get_uint(conf, "menu_cancel_btn",
          &settings->menu_cancel_btn);
-   config_get_uint(conf, "menu_scroll_down_btn",
-         &settings->menu_scroll_down_btn);
-   config_get_uint(conf, "menu_scroll_up_btn",
-         &settings->menu_scroll_up_btn);
 
    scoped_conf[GLOBAL] = conf;
    ret                 = true;
@@ -2672,8 +2666,6 @@ bool main_config_file_save(const char *path)
    config_set_int(conf, "menu_search_btn",      settings->menu_search_btn);
    config_set_int(conf, "menu_info_btn",        settings->menu_info_btn);
    config_set_int(conf, "menu_default_btn",     settings->menu_default_btn);
-   config_set_int(conf, "menu_scroll_down_btn", settings->menu_scroll_down_btn);
-   config_set_int(conf, "menu_scroll_up_btn",   settings->menu_scroll_up_btn);
 
    config_set_int(conf, "input_menu_toggle_btn_combo",
          settings->input.menu_toggle_btn_combo);

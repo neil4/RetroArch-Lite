@@ -198,6 +198,44 @@ static int action_l_save_state(unsigned type, const char *label)
    return 0;
 }
 
+/**
+ * action_left_descend_alphabet:
+ *
+ * Descends alphabet.
+ * E.g.:
+ * If navigation points to an entry called 'Beta',
+ * navigation pointer will be set to an entry called 'Alpha'.
+ **/
+static int action_left_descend_alphabet(unsigned type, const char *label,
+      bool wraparound)
+{
+   size_t i = 0;
+   size_t current;
+   size_t *sel_ptr;
+   menu_navigation_t *nav = menu_navigation_get_ptr();
+
+   if (!nav)
+      return 0;
+
+   sel_ptr = &nav->selection_ptr;
+   current = *sel_ptr;
+
+   if (!nav->scroll.indices.size)
+      return 0;
+
+   if (current == 0)
+      return 0;
+
+   i = nav->scroll.indices.size - 1;
+
+   while (i && nav->scroll.indices.list[i - 1] >= current)
+      i--;
+   *sel_ptr = nav->scroll.indices.list[i - 1];
+
+   menu_driver_navigation_descend_alphabet(sel_ptr);
+   return 0;
+}
+
 static int action_left_scroll(unsigned type, const char *label,
       bool wraparound)
 {
@@ -214,6 +252,7 @@ static int action_left_scroll(unsigned type, const char *label,
    return 0;
 }
 
+#if 0
 static int action_left_mainmenu(unsigned type, const char *label,
       bool wraparound)
 {
@@ -259,6 +298,7 @@ static int action_left_mainmenu(unsigned type, const char *label,
 
    return 0;
 }
+#endif
 
 static int action_left_shader_scale_pass(unsigned type, const char *label,
       bool wraparound)
@@ -552,8 +592,7 @@ static int action_l_turbo_id(unsigned type, const char *label)
 static int bind_left_generic(unsigned type, const char *label,
       bool wraparound)
 {
-   unsigned action = MENU_ACTION_LEFT;
-   return menu_setting_set(type, label, action, wraparound);
+   return menu_setting_set(type, label, MENU_ACTION_LEFT, wraparound);
 }
 
 static int bind_l_generic(unsigned type, const char *label)
@@ -701,21 +740,12 @@ static int menu_cbs_init_bind_left_compare_type(menu_file_list_cbs_t *cbs,
          case MENU_FILE_CHEAT:
          case MENU_FILE_CORE_OPTIONS:
          case MENU_FILE_REMAP:
-         case MENU_SETTING_GROUP:
-            switch (menu_label_hash)
-            {
-               case MENU_VALUE_HORIZONTAL_MENU:
-               case MENU_VALUE_MAIN_MENU:
-                  cbs->action_left = action_left_mainmenu;
-                  break;
-               default:
-                  cbs->action_left = action_left_scroll;
-                  break;
-            }
+            cbs->action_left = action_left_descend_alphabet;
             break;
+         case MENU_SETTING_GROUP:
          case MENU_SETTING_ACTION:
          case MENU_FILE_CONTENTLIST_ENTRY:
-            cbs->action_left = action_left_mainmenu;
+            cbs->action_left = action_left_scroll;
             break;
          default:
             return -1;

@@ -1177,10 +1177,6 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
       ret = MENU_ACTION_R2;
    else if (trigger_input & (1ULL << RETRO_DEVICE_ID_JOYPAD_L2))
       ret = MENU_ACTION_L2;
-   else if (trigger_input & (1ULL << settings->menu_scroll_up_btn))
-      ret = MENU_ACTION_SCROLL_UP;
-   else if (trigger_input & (1ULL << settings->menu_scroll_down_btn))
-      ret = MENU_ACTION_SCROLL_DOWN;
    else if (trigger_input & (1ULL << settings->menu_cancel_btn))
       ret = MENU_ACTION_CANCEL;
    else if (trigger_input & (1ULL << settings->menu_ok_btn))
