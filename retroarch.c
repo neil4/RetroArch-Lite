@@ -1356,6 +1356,8 @@ void rarch_main_set_state(unsigned cmd)
          menu_driver_toggle(false);
          menu_driver_unset_alive();
 
+         driver_set_nonblock_state(driver->nonblock_state);
+
          if (settings && settings->menu.pause_libretro)
             event_command(EVENT_CMD_AUDIO_START);
 
