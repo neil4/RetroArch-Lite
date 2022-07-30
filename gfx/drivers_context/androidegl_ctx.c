@@ -44,10 +44,8 @@ static bool g_es3;
 
 static void android_gfx_ctx_set_swap_interval(void *data, unsigned interval)
 {
-   driver_t *driver = driver_get_ptr();
-   gfx_ctx_android_data_t *android = NULL;
-   
-   android = (gfx_ctx_android_data_t*)driver->video_context_data;
+   gfx_ctx_android_data_t *android =
+         (gfx_ctx_android_data_t*)driver_get_ptr()->video_context_data;
 
    (void)data;
    if (!android)
@@ -90,9 +88,9 @@ static void android_gfx_ctx_destroy_resources(gfx_ctx_android_data_t *android)
 static void android_gfx_ctx_destroy(void *data)
 {
    driver_t *driver = driver_get_ptr();
-   gfx_ctx_android_data_t *android = NULL;
-   
-   android = (gfx_ctx_android_data_t*)driver->video_context_data;
+   gfx_ctx_android_data_t *android =
+         (gfx_ctx_android_data_t*)driver->video_context_data;
+
    (void)data;
 
    if (!android)
@@ -109,11 +107,8 @@ static void android_gfx_ctx_get_video_size(void *data,
       unsigned *width, unsigned *height)
 {
    EGLint gl_width, gl_height;
-   driver_t *driver = driver_get_ptr();
-   gfx_ctx_android_data_t *android = NULL;
-   
-   android = (gfx_ctx_android_data_t*)
-      driver->video_context_data;
+   gfx_ctx_android_data_t *android =
+         (gfx_ctx_android_data_t*)driver_get_ptr()->video_context_data;
 
    *width  = 0;
    *height = 0;
@@ -240,10 +235,8 @@ error:
 
 static void android_gfx_ctx_swap_buffers(void *data)
 {
-   driver_t *driver = driver_get_ptr();
-   gfx_ctx_android_data_t *android = NULL;
-   
-   android = (gfx_ctx_android_data_t*)driver->video_context_data;
+   gfx_ctx_android_data_t *android =
+         (gfx_ctx_android_data_t*)driver_get_ptr()->video_context_data;
 
    (void)data;
 
@@ -289,11 +282,10 @@ static void android_gfx_ctx_update_window_title(void *data)
 {
    char buf[128];
    char buf_fps[32];
-   settings_t *settings = config_get_ptr();
 
    video_monitor_get_fps(buf, sizeof(buf),
          buf_fps, sizeof(buf_fps));
-   if (settings->fps_show)
+   if (config_get_ptr()->fps_show)
       rarch_main_msg_queue_push(buf_fps, 1, 1, false);
 }
 
@@ -365,10 +357,8 @@ static bool android_gfx_ctx_has_windowed(void *data)
 
 static void android_gfx_ctx_bind_hw_render(void *data, bool enable)
 {
-   driver_t *driver = driver_get_ptr();
-   gfx_ctx_android_data_t *android = NULL;
-   
-   android = (gfx_ctx_android_data_t*)driver->video_context_data;
+   gfx_ctx_android_data_t *android =
+         (gfx_ctx_android_data_t*)driver_get_ptr()->video_context_data;
 
    (void)data;
 
@@ -391,9 +381,9 @@ static int system_property_get_density(char *value)
 {
    FILE *pipe;
    int length = 0;
-   char buffer[PATH_MAX_LENGTH] = {0};
-   char cmd[NAME_MAX_LENGTH]    = {0};
-   char *curpos                 = NULL;
+   char buffer[PROP_VALUE_MAX];
+   char cmd[NAME_MAX_LENGTH];
+   char *curpos;
 
    snprintf(cmd, sizeof(cmd), "wm density");
 
@@ -409,7 +399,7 @@ static int system_property_get_density(char *value)
    
    while (!feof(pipe))
    {
-      if (fgets(buffer, 128, pipe) != NULL)
+      if (fgets(buffer, sizeof(buffer), pipe) != NULL)
       {
          int curlen = strlen(buffer);
 
@@ -436,10 +426,10 @@ static void dpi_get_density(char *s, size_t len)
 }
 
 static bool android_gfx_ctx_get_metrics(void *data,
-enum display_metric_types type, float *value)
+      enum display_metric_types type, float *value)
 {
    int dpi;
-   char density[PROP_VALUE_MAX] = {0};
+   char density[PROP_VALUE_MAX];
    dpi_get_density(density, sizeof(density));
 
    switch (type)

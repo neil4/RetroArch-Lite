@@ -305,10 +305,10 @@ void ANativeActivity_onCreate(ANativeActivity* activity,
 int system_property_get(const char *name, char *value)
 {
    FILE *pipe;
-   int length                   = 0;
-   char buffer[PATH_MAX_LENGTH] = {0};
-   char cmd[NAME_MAX_LENGTH]    = {0};
-   char *curpos                 = NULL;
+   int length = 0;
+   char buffer[PROP_VALUE_MAX];
+   char cmd[NAME_MAX_LENGTH];
+   char *curpos;
 
    snprintf(cmd, sizeof(cmd), "getprop %s", name);
 
@@ -324,7 +324,7 @@ int system_property_get(const char *name, char *value)
    
    while (!feof(pipe))
    {
-      if (fgets(buffer, 128, pipe) != NULL)
+      if (fgets(buffer, sizeof(buffer), pipe) != NULL)
       {
          int curlen = strlen(buffer);
 

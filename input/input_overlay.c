@@ -1908,7 +1908,7 @@ static INLINE void input_overlay_poll_mouse()
          peak_ptr_count = max(state->ptr_count, peak_ptr_count);
          start_usec     = now_usec;
       }
-      else if (ol_mouse.hold)
+      else
          ol_mouse.hold = 0x0;
    }
    else if (now_usec - start_usec > 500000)
@@ -1917,7 +1917,7 @@ static INLINE void input_overlay_poll_mouse()
    is_swipe = abs(state->ptr_x - x_start) > hold_zone ||
               abs(state->ptr_y - y_start) > hold_zone;
    is_brief = (now_usec - start_usec) < 200000;
-   is_long  = (now_usec - start_usec) > ((can_drag == true) ? hold_usec : 250000);
+   is_long  = (now_usec - start_usec) > (can_drag ? hold_usec : 250000);
 
    if (!is_swipe && !ignore_new_buttons)
    {
