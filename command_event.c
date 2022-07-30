@@ -924,6 +924,7 @@ bool event_command(enum event_command cmd)
          global->max_scope      = GLOBAL;
 
          rarch_update_configs();
+         *global->basename = '\0';
 
          event_command(EVENT_CMD_PREPARE_DUMMY);
          event_command(EVENT_CMD_LOAD_CORE_DEINIT);
