@@ -1313,6 +1313,12 @@ void rarch_main_set_state(unsigned cmd)
 
             /* Menu should always run with vsync on. */
             event_command(EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
+            /* Undo any fast-fowarding. */
+            if (driver->nonblock_state)
+            {
+               driver->nonblock_state = false;
+               rarch_main_msg_queue_push("", 0, 1, true);
+            }
             /* Stop all rumbling before entering the menu. */
             event_command(EVENT_CMD_RUMBLE_STOP);
 
@@ -1349,8 +1355,6 @@ void rarch_main_set_state(unsigned cmd)
 
          menu_driver_toggle(false);
          menu_driver_unset_alive();
-
-         driver_set_nonblock_state(driver->nonblock_state);
 
          if (settings && settings->menu.pause_libretro)
             event_command(EVENT_CMD_AUDIO_START);
