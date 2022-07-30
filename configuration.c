@@ -2929,7 +2929,7 @@ bool get_scoped_config_filename(char* out, const unsigned scope,
 static void config_save_scoped_file(unsigned scope)
 {
    char *directory      = string_alloc(PATH_MAX_LENGTH);
-   char *buf            = string_alloc(PATH_MAX_LENGTH);
+   char *filename       = string_alloc(PATH_MAX_LENGTH);
    char *fullpath       = string_alloc(PATH_MAX_LENGTH);
    global_t *global     = global_get_ptr();
    settings_t *settings = config_get_ptr();
@@ -2940,12 +2940,12 @@ static void config_save_scoped_file(unsigned scope)
       goto end;
 
    /* Set scoped cfg path */
-   if (!get_scoped_config_filename(buf, scope, "cfg"))
+   if (!get_scoped_config_filename(filename, scope, "cfg"))
       goto end;
 
    fill_pathname_join(directory, settings->menu_config_directory,
          global->libretro_name, PATH_MAX_LENGTH);
-   fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
+   fill_pathname_join(fullpath, directory, filename, PATH_MAX_LENGTH);
 
    /* Edit existing config if it exists. Unscoped settings will be removed. */
    if (!conf && !(conf = config_file_new(fullpath))
@@ -3000,7 +3000,7 @@ static void config_save_scoped_file(unsigned scope)
 
 end:
    free(directory);
-   free(buf);
+   free(filename);
    free(fullpath);
 }
 
@@ -3116,7 +3116,7 @@ void config_unmask_globals()
 static void config_load_scoped_file(unsigned scope)
 {
    char fullpath[PATH_MAX_LENGTH];
-   char buf[NAME_MAX_LENGTH];
+   char filename[NAME_MAX_LENGTH];
    char *directory      = NULL;
    global_t *global     = global_get_ptr();
    settings_t *settings = config_get_ptr();
@@ -3130,13 +3130,13 @@ static void config_load_scoped_file(unsigned scope)
       return;
 
    /* Set scoped cfg path */
-   if (!get_scoped_config_filename(buf, scope, "cfg"))
+   if (!get_scoped_config_filename(filename, scope, "cfg"))
       return;
 
    directory = string_alloc(PATH_MAX_LENGTH);
    fill_pathname_join(directory, settings->menu_config_directory,
          global->libretro_name, PATH_MAX_LENGTH);
-   fill_pathname_join(fullpath, directory, buf, PATH_MAX_LENGTH);
+   fill_pathname_join(fullpath, directory, filename, PATH_MAX_LENGTH);
    free(directory);
    directory = NULL;
 
