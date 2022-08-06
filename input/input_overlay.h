@@ -33,6 +33,7 @@ extern "C" {
 #define OVERLAY_CLEAR_KEY(state, key) (state)->keys[(key) / 32] &= ~(1 << ((key) % 32))
 
 #define OVERLAY_DEFAULT_VIBE -1
+#define LIGHTGUN_TRIG_MAX_DELAY 10
 
 /* Overlay driver acts as a medium between input drivers 
  * and video driver.
@@ -266,6 +267,7 @@ struct input_overlay
 
    bool has_osk_key;
    bool has_mouse;
+   bool has_lightgun;
 
    struct
    {

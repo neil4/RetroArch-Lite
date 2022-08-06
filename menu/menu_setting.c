@@ -3154,6 +3154,11 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "Only applies to 'Contact Area' and\n"
                "'Vector + Area' methods.\n");
          break;
+      case MENU_LABEL_LIGHTGUN_TRIGGER_DELAY:
+         snprintf(s, len,
+                  " -- Delays lightgun trigger input to\n"
+                  "occur after the cursor moves.\n");
+            break;
       case MENU_LABEL_OVERLAY_ASPECT_RATIO_INDEX:
          snprintf(s, len,
                " -- Sets the aspect ratio of the\n"
@@ -6605,9 +6610,12 @@ static bool setting_append_list_overlay_options(
    global_t   *global   = global_get_ptr();
    driver_t   *driver   = driver_get_ptr();
 
-   bool show_osk_settings   = driver->overlay && driver->overlay->has_osk_key;
+   bool show_osk_settings   = driver->overlay &&
+         driver->overlay->has_osk_key;
    bool show_mouse_settings = driver->overlay && 
          (driver->overlay->has_mouse || driver->overlay->has_osk_key);
+   bool show_lightgun_settings = driver->overlay &&
+         driver->overlay->has_lightgun;
 
    if (!settings->menu.show_overlay_menu)
       return true;
@@ -6941,6 +6949,37 @@ static bool setting_append_list_overlay_options(
             group_info.name,
             subgroup_info.name,
             parent_group);
+   }
+
+   if (show_lightgun_settings || settings->menu.show_advanced_settings)
+   {
+      CONFIG_UINT(
+            settings->input.lightgun_trigger_delay,
+            "input_lightgun_trigger_delay",
+            "Lightgun Trigger Delay (frames)",
+            0,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(
+            list, list_info, 0, LIGHTGUN_TRIG_MAX_DELAY, 1, true, true);
+
+      CONFIG_UINT(
+            settings->input.lightgun_trigger_delay_scope,
+            "input_lightgun_trigger_delay_scope",
+            "  Scope",
+            GLOBAL,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(
+            list, list_info, 0, global->max_scope, 1, true, true);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_scope_index;
    }
 
    CONFIG_FLOAT(

@@ -871,10 +871,7 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
 
    /* show keyboard overlay choice in menu */
    if (desc->key_mask & (UINT64_C(1) << RARCH_OSK))
-   {
       ol->has_osk_key = true;
-      menu_entries_set_refresh();
-   }
 
    input_overlay->pos ++;
 
@@ -1150,6 +1147,7 @@ bool input_overlay_load_overlays(input_overlay_t *ol)
             "overlay%u_lightgun", ol->pos);
       overlay->lightgun_overlay = false;
       config_get_bool(ol->conf, overlay_ptr_key, &overlay->lightgun_overlay);
+      ol->has_lightgun |= overlay->lightgun_overlay;
 
       snprintf(overlay_ptr_key, sizeof(overlay_ptr_key),
             "overlay%u_mouse", ol->pos);
@@ -1396,6 +1394,9 @@ bool input_overlay_new_done(input_overlay_t *ol)
    if (ol->conf)
       config_file_free(ol->conf);
    ol->conf = NULL;
+
+   if (ol->has_lightgun || ol->has_mouse || ol->has_osk_key)
+      menu_entries_set_refresh();
 
    return true;
 }
@@ -2251,6 +2252,34 @@ static INLINE int16_t overlay_mouse_state(unsigned id)
    return res;
 }
 
+/**
+ * lightgun_delayed_trigger_state:
+ * @trigger                      : trigger state without delay
+ *
+ * Adds delay to trigger state.
+ * 
+ * @return 1 if trigger should be sent to core, 0 otherwise
+ **/
+static INLINE int16_t lightgun_delayed_trigger_state(bool trigger)
+{
+   static bool buf[LIGHTGUN_TRIG_MAX_DELAY + 1];
+   static int delayed_idx;
+
+   delayed_idx = (delayed_idx + 1) % (LIGHTGUN_TRIG_MAX_DELAY + 1);
+
+   if (trigger)
+      buf[(delayed_idx + config_get_ptr()->input.lightgun_trigger_delay)
+            % (LIGHTGUN_TRIG_MAX_DELAY + 1)] = true;
+
+   if (buf[delayed_idx])
+   {
+      buf[delayed_idx] = false;
+      return 1;
+   }
+
+   return 0;
+}
+
 static INLINE int16_t overlay_lightgun_state(unsigned id)
 {
    global_t *global = global_get_ptr();
@@ -2286,7 +2315,8 @@ static INLINE int16_t overlay_lightgun_state(unsigned id)
          break;
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
          if (global->overlay_lightgun_autotrigger)
-            return driver->overlay_state.ptr_count == 1;
+            return lightgun_delayed_trigger_state(
+                  driver->overlay_state.ptr_count == 1);
          if (driver->overlay_state.buttons
              & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER))
             return 1;

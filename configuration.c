@@ -52,7 +52,7 @@ bool settings_touched = false;
 bool scoped_settings_touched = false;
 
 #ifdef HAVE_OVERLAY
-#define NUM_SCOPED_SETTINGS 55
+#define NUM_SCOPED_SETTINGS 56
 #else
 #define NUM_SCOPED_SETTINGS 39
 #endif
@@ -184,6 +184,9 @@ static void config_populate_scoped_setting_list()
    SCOPED_LIST_ADD_UINT("input_overlay_mouse_click_dur",
       settings->input.overlay_mouse_click_dur,
       settings->input.overlay_mouse_click_dur_scope);
+   SCOPED_LIST_ADD_UINT("input_lightgun_trigger_delay",
+      settings->input.lightgun_trigger_delay,
+      settings->input.lightgun_trigger_delay_scope);
 #endif  /* HAVE_OVERLAY */
    SCOPED_LIST_ADD_UINT("input_max_users",
       settings->input.max_users, settings->input.max_users_scope);
@@ -801,6 +804,7 @@ static void config_set_defaults(void)
    settings->input.overlay_mouse_hold_zone         = overlay_mouse_hold_zone;
    settings->input.overlay_mouse_hold_ms           = overlay_mouse_hold_ms;
    settings->input.overlay_mouse_click_dur         = overlay_mouse_click_dur;
+   settings->input.lightgun_trigger_delay          = 0;
 #endif
 
    strlcpy(settings->network.buildbot_url, buildbot_server_url,
@@ -1945,7 +1949,10 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->input.overlay_mouse_hold_zone);
    config_get_uint(conf, "input_overlay_mouse_click_dur",
          &settings->input.overlay_mouse_click_dur);
-#endif
+
+   config_get_uint(conf, "input_lightgun_trigger_delay",
+         &settings->input.lightgun_trigger_delay);
+#endif  /* HAVE_OVERLAY */
 
    config_get_bool(conf, "rewind_enable",
          &settings->rewind_enable);
@@ -2776,6 +2783,10 @@ bool main_config_file_save(const char *path)
    if (settings->input.overlay_mouse_click_dur_scope == GLOBAL)
       config_set_int(conf, "input_overlay_mouse_click_dur",
          settings->input.overlay_mouse_click_dur);
+
+   if (settings->input.lightgun_trigger_delay_scope == GLOBAL)
+      config_set_int(conf, "input_lightgun_trigger_delay",
+         settings->input.lightgun_trigger_delay);
 
    config_set_int(conf, "input_vibrate_time",
          settings->input.overlay_vibrate_time);

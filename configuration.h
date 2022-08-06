@@ -308,23 +308,25 @@ typedef struct settings
       float overlay_shift_x;
       bool overlay_shift_y_lock_edges;
       unsigned overlay_shift_xy_scope;
+      unsigned overlay_dpad_diag_sens;  /* diagonal-to-normal ratio (percent) */
+      unsigned overlay_abxy_diag_sens;  /* diagonal-to-normal ratio (percent) */
+      unsigned overlay_dpad_method;
+      unsigned overlay_abxy_method;
+      unsigned overlay_dpad_abxy_config_scope;
+      float touch_ellipse_magnify;   /* hack for inaccurate touchscreens */
+
+      char osk_overlay[PATH_MAX_LENGTH];
+      unsigned osk_scope;
+
       bool overlay_mouse_hold_to_drag;
       unsigned overlay_mouse_hold_to_drag_scope;
       uint32_t overlay_mouse_hold_ms;
       uint32_t overlay_mouse_hold_zone;
       uint32_t overlay_mouse_click_dur;
       unsigned overlay_mouse_click_dur_scope;
+      unsigned lightgun_trigger_delay;
+      unsigned lightgun_trigger_delay_scope;
 
-      unsigned overlay_dpad_diag_sens;  /* diagonal-to-normal ratio (percent) */
-      unsigned overlay_abxy_diag_sens;  /* diagonal-to-normal ratio (percent) */
-      unsigned overlay_dpad_method;
-      unsigned overlay_abxy_method;
-      unsigned overlay_dpad_abxy_config_scope;
-
-      char osk_overlay[PATH_MAX_LENGTH];
-      unsigned osk_scope;
-
-      float touch_ellipse_magnify;   /* hack for inaccurate touchscreens */
       int overlay_vibrate_time;
 
       unsigned menu_toggle_btn_combo;

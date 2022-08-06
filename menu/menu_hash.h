@@ -114,6 +114,7 @@ extern "C" {
 #define MENU_LABEL_OVERLAY_DPAD_DIAGONAL_SENS                                  0x1de994f6U
 #define MENU_LABEL_OVERLAY_ABXY_DIAGONAL_SENS                                  0x2dcf7e31U
 #define MENU_LABEL_OVERLAY_EIGHTWAY_TOUCH_MAGNIFY                              0x82fc628eU
+#define MENU_LABEL_LIGHTGUN_TRIGGER_DELAY                                      0x60f3b257U
 #define MENU_LABEL_OVERLAY_OPACITY                                             0xc466fbaeU
 #define MENU_LABEL_VALUE_OVERLAY_OPACITY                                       0x98605740U
 
