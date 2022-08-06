@@ -1832,20 +1832,20 @@ static INLINE bool input_overlay_poll_descs(
          exclusive_desc_hit = true;
          memset(out, 0, sizeof(*out));
          for (j = 0; j < i; j++)
-            descs[j].updated &= ~(1 << ptr_idx);
+            BIT16_CLEAR(descs[j].updated, ptr_idx);
       }
 
-      desc->updated |= (1 << ptr_idx);
+      BIT16_SET(desc->updated, ptr_idx);
 
       if (desc->type == OVERLAY_TYPE_BUTTONS)
       {
          out->buttons |= desc->key_mask;
 
-         if (desc->key_mask & (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA))
+         if (BIT64_GET(desc->key_mask, RARCH_JOYPAD_DPAD_AREA))
             out->buttons |= eightway_state(desc, DPAD_AREA, ptr_idx, x, y);
-         else if (desc->key_mask & (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA))
+         else if (BIT64_GET(desc->key_mask, RARCH_JOYPAD_ABXY_AREA))
             out->buttons |= eightway_state(desc, ABXY_AREA, ptr_idx, x, y);
-         else if (desc->key_mask & (UINT64_C(1) << RARCH_OVERLAY_NEXT))
+         else if (BIT64_GET(desc->key_mask, RARCH_OVERLAY_NEXT))
             ol->next_index = desc->next_index;
       }
       else if (desc->type == OVERLAY_TYPE_KEYBOARD)
@@ -2190,9 +2190,9 @@ void input_overlay_poll(input_overlay_t *overlay_device)
       if (state->analog[j])
          continue;
 
-      if (state->buttons & (UINT64_C(1) << bind_plus))
+      if (BIT64_GET(state->buttons, bind_plus))
          state->analog[j] += 0x7fff;
-      if (state->buttons & (UINT64_C(1) << bind_minus))
+      if (BIT64_GET(state->buttons, bind_minus))
          state->analog[j] -= 0x7fff;
    }
 
@@ -2295,63 +2295,41 @@ static INLINE int16_t overlay_lightgun_state(unsigned id)
          if (abs(driver->overlay_state.ptr_y) >= 0x7d6f)
             return 1; /* else fall through */
       case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
-         if (driver->overlay_state.ptr_count > 1)  /* 2nd pointer reloads */
-            return 1;
-         break;
+         return driver->overlay_state.ptr_count > 1;  /* 2nd pointer reloads */
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A:
-         if (driver->overlay_state.buttons
-             & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_A))
-            return 1;
-         break;
+         return BIT64_GET(driver->overlay_state.buttons,
+                          RARCH_LIGHTGUN_AUX_A);
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_B:
-         if (driver->overlay_state.buttons
-             & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_B))
-            return 1;
-         break;
+         return BIT64_GET(driver->overlay_state.buttons,
+                          RARCH_LIGHTGUN_AUX_B);
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_C:
-         if (driver->overlay_state.buttons
-             & (UINT64_C(1) << RARCH_LIGHTGUN_AUX_C))
-            return 1;
-         break;
+         return BIT64_GET(driver->overlay_state.buttons,
+                          RARCH_LIGHTGUN_AUX_C);
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
          if (global->overlay_lightgun_autotrigger)
             return lightgun_delayed_trigger_state(
                   driver->overlay_state.ptr_count == 1);
-         if (driver->overlay_state.buttons
-             & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER))
-            return 1;
-         break;
+         return BIT64_GET(driver->overlay_state.buttons,
+                          RARCH_LIGHTGUN_TRIGGER);
       case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
-         if (driver->overlay_state.buttons
-             & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_START))
-            return 1;
-         break;
+         return BIT64_GET(driver->overlay_state.buttons,
+                          RETRO_DEVICE_ID_JOYPAD_START);
       case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
-         if (driver->overlay_state.buttons
-             & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_SELECT))
-            return 1;
-         break;
+         return BIT64_GET(driver->overlay_state.buttons,
+                          RETRO_DEVICE_ID_JOYPAD_SELECT);
       case RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP:
-         if (driver->overlay_state.buttons
-             & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_UP))
-            return 1;
-         break;
+         return BIT64_GET(driver->overlay_state.buttons,
+                          RETRO_DEVICE_ID_JOYPAD_UP);
       case RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN:
-         if (driver->overlay_state.buttons
-             & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_DOWN))
-            return 1;
-         break;
+         return BIT64_GET(driver->overlay_state.buttons,
+                          RETRO_DEVICE_ID_JOYPAD_DOWN);
       case RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT:
-         if (driver->overlay_state.buttons
-             & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_LEFT))
-            return 1;
-         break;
+         return BIT64_GET(driver->overlay_state.buttons,
+                          RETRO_DEVICE_ID_JOYPAD_LEFT);
       case RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT:
-         if (driver->overlay_state.buttons
-             & (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_RIGHT))
-            return 1;
-         break;
+         return BIT64_GET(driver->overlay_state.buttons,
+                          RETRO_DEVICE_ID_JOYPAD_RIGHT);
    }
    return 0;
 }
