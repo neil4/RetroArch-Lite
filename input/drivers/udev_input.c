@@ -494,11 +494,11 @@ static int16_t udev_lightgun_state(udev_input_t *udev, unsigned id)
          return udev->mouse_y;
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
          return udev->mouse_l && !udev->mouse_m;
-      case RETRO_DEVICE_ID_LIGHTGUN_AUX_A:
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_A: /* cursor */
          return udev->mouse_r && !udev->mouse_m;
-      case RETRO_DEVICE_ID_LIGHTGUN_AUX_B:
+      case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
          return udev->mouse_b4 || (udev->mouse_r && udev->mouse_m);
-      case RETRO_DEVICE_ID_LIGHTGUN_AUX_C:
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
          return udev->mouse_b5 || (udev->mouse_l && udev->mouse_m);
       case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:

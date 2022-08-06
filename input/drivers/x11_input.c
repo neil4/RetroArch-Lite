@@ -213,9 +213,9 @@ static int16_t x_lightgun_mouse_state(x11_input_t *x11, unsigned id)
          return x11->mouse_l && !x11->mouse_m;
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A: /* cursor */
          return x11->mouse_r && !x11->mouse_m;
-      case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
+      case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
          return x11->mouse_r && x11->mouse_m;
-      case RETRO_DEVICE_ID_LIGHTGUN_AUX_C:
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
          return x11->mouse_l && x11->mouse_m;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
          return abs(x11->lightgun_y) >= 0x7fbb;

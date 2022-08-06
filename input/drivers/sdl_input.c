@@ -218,9 +218,9 @@ static int16_t sdl_lightgun_device_state(sdl_input_t *sdl, unsigned id)
          return sdl->mouse_l && !sdl->mouse_m;
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A: /* cursor */
          return sdl->mouse_r && !sdl->mouse_m;
-      case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
+      case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
          return sdl->mouse_b4 || (sdl->mouse_r && sdl->mouse_m);
-      case RETRO_DEVICE_ID_LIGHTGUN_AUX_C:
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
          return sdl->mouse_b5 || (sdl->mouse_l && sdl->mouse_m);
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
          return abs(sdl->lightgun_y) >= 0x7fbb;

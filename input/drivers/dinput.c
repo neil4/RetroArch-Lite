@@ -297,9 +297,9 @@ static int16_t dinput_lightgun_mouse_state(struct dinput_input *di, unsigned id)
          return di->mouse_l && !di->mouse_m;
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A: /* cursor */
          return di->mouse_r && !di->mouse_m;
-      case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
+      case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
          return di->mouse_b4 || (di->mouse_r && di->mouse_m);
-      case RETRO_DEVICE_ID_LIGHTGUN_AUX_C:
+      case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
          return di->mouse_b5 || (di->mouse_l && di->mouse_m);
       case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
