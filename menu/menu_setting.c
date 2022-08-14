@@ -5022,7 +5022,6 @@ static bool setting_append_list_recording_options(
          general_read_handler);
 
    END_SUB_GROUP(list, list_info, parent_group);
-
    START_SUB_GROUP(list, list_info, "Miscellaneous", group_info.name, subgroup_info, parent_group);
 
    CONFIG_BOOL(
@@ -5475,7 +5474,7 @@ static bool setting_append_list_video_options(
    
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Miscellaneous", group_info.name, subgroup_info, parent_group);
-   
+
    CONFIG_UINT(
          settings->video.rotation,
          "video_rotation",
@@ -6853,121 +6852,6 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.1f, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
-   END_SUB_GROUP(list, list_info, parent_group);
-   START_SUB_GROUP(list, list_info, "Onscreen Keyboard",
-         group_info.name, subgroup_info, parent_group);
-
-   CONFIG_PATH(
-         settings->input.osk_overlay,
-         menu_hash_to_str(MENU_LABEL_KEYBOARD_OVERLAY_PRESET),
-         menu_hash_to_str(MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET),
-         global->osk_overlay_dir,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_values(list, list_info, "cfg");
-   (*list)[list_info->index - 1].action_start = &setting_action_start_path;
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
-   if (!show_osk_settings)
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_UINT(
-         settings->input.osk_scope,
-         "input_osk_overlay_scope",
-         "  Scope",
-         GLOBAL,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(
-         list, list_info, 0, global->max_scope, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index;
-   if (!show_osk_settings)
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_FLOAT(
-         settings->input.osk_opacity,
-         menu_hash_to_str(MENU_LABEL_OSK_OPACITY),
-         menu_hash_to_str(MENU_LABEL_VALUE_OSK_OPACITY),
-         overlay_opacity,
-         "%.2f",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 1, 0.01, true, true);
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_SET_ALPHA);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
-   if (!show_osk_settings)
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_UINT(
-         settings->input.osk_opacity_scope,
-         "input_osk_opacity_scope",
-         "  Scope",
-         GLOBAL,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(
-         list, list_info, 0, global->max_scope, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index;
-   if (!show_osk_settings)
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   END_SUB_GROUP(list, list_info, parent_group);
-   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-
-   if (show_mouse_settings || settings->menu.show_advanced_settings)
-   {
-      CONFIG_ACTION(
-            menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_SETTINGS),
-            menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_MOUSE_SETTINGS),
-            group_info.name,
-            subgroup_info.name,
-            parent_group);
-   }
-
-   if (show_lightgun_settings || settings->menu.show_advanced_settings)
-   {
-      CONFIG_UINT(
-            settings->input.lightgun_trigger_delay,
-            "input_lightgun_trigger_delay",
-            "Lightgun Trigger Delay (frames)",
-            0,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(
-            list, list_info, 0, LIGHTGUN_TRIG_MAX_DELAY, 1, true, true);
-
-      CONFIG_UINT(
-            settings->input.lightgun_trigger_delay_scope,
-            "input_lightgun_trigger_delay_scope",
-            "  Scope",
-            GLOBAL,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(
-            list, list_info, 0, global->max_scope, 1, true, true);
-      (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_uint_scope_index;
-   }
-
    CONFIG_FLOAT(
          settings->input.overlay_opacity,
          menu_hash_to_str(MENU_LABEL_OVERLAY_OPACITY),
@@ -6998,7 +6882,37 @@ static bool setting_append_list_overlay_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
-   if (driver && driver->input && driver->input->overlay_haptic_feedback)
+   if (show_osk_settings || settings->menu.show_advanced_settings)
+   {
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_OVERLAY_KEYBOARD_SETTINGS),
+            menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_KEYBOARD_SETTINGS),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+   }
+
+   if (show_mouse_settings || settings->menu.show_advanced_settings)
+   {
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_SETTINGS),
+            menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_MOUSE_SETTINGS),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+   }
+
+   if (show_lightgun_settings || settings->menu.show_advanced_settings)
+   {
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_OVERLAY_LIGHTGUN_SETTINGS),
+            menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_LIGHTGUN_SETTINGS),
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+   }
+
+   if (driver->input && driver->input->overlay_haptic_feedback)
    {
       CONFIG_INT(
             settings->input.overlay_vibrate_time,
@@ -7130,98 +7044,40 @@ static bool setting_append_list_overlay_mouse_options(
    return true;
 }
 
-static bool setting_append_list_menu_options(
+static bool setting_append_list_overlay_keyboard_options(
       rarch_setting_t **list,
       rarch_setting_info_t *list_info,
       const char *parent_group)
 {
+#ifdef HAVE_OVERLAY
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
-   driver_t   *driver   = driver_get_ptr();
-   bool using_rgui  = !strcmp(settings->menu.driver, "rgui");
-   bool core_loaded = *settings->libretro ? true : false;
 
-   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_MENU_SETTINGS), parent_group);
+   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_KEYBOARD_SETTINGS), parent_group);
 
-   parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
+   parent_group = menu_hash_to_str(MENU_LABEL_OVERLAY_SETTINGS);
 
-   START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
+   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
 
    CONFIG_PATH(
-         settings->menu.theme,
-         menu_hash_to_str(MENU_LABEL_MENU_THEME),
-         menu_hash_to_str(MENU_LABEL_VALUE_MENU_THEME),
-         settings->menu.theme_dir,
+         settings->input.osk_overlay,
+         menu_hash_to_str(MENU_LABEL_KEYBOARD_OVERLAY_PRESET),
+         menu_hash_to_str(MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET),
+         global->osk_overlay_dir,
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_values(list, list_info, "cfg");
+   (*list)[list_info->index - 1].action_start = &setting_action_start_path;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
-   (*list)[list_info->index - 1].action_start = &setting_action_start_theme;
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_st_path_with_default;
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
-
-   if (*global->menu.wallpaper)
-   {
-      CONFIG_FLOAT(
-            settings->menu.wallpaper_opacity,
-            "menu_wallpaper_opacity",
-            "  Wallpaper Opacity",
-            wallpaper_opacity,
-            "%.2f",
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 0, 1, 0.05, true, true);
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-   }
-   
-   if (using_rgui)
-   {
-      CONFIG_UINT(
-            settings->menu.rgui_particle_effect,
-            "rgui_particle_effect",
-            "  Background Effect",
-            RGUI_PARTICLE_EFFECT_NONE,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(
-            list, list_info,
-            RGUI_PARTICLE_EFFECT_NONE,
-            NUM_RGUI_PARTICLE_EFFECTS-1,
-            1, true, true);
-      (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_uint_rgui_particle_effect_index;
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-
-      CONFIG_FLOAT(
-            settings->menu.rgui_particle_effect_speed_factor,
-            "rgui_particle_effect_speed_factor",
-            "  Background Effect Speed",
-            1.0f,
-            "%.1fx",
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 0.1, 10, 0.1, true, true);
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-   }
 
    CONFIG_UINT(
-         settings->menu.theme_scope,
-         "menu_theme_scope",
+         settings->input.osk_scope,
+         "input_osk_overlay_scope",
          "  Scope",
          GLOBAL,
          group_info.name,
@@ -7233,10 +7089,111 @@ static bool setting_append_list_menu_options(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
-   
+
+   CONFIG_FLOAT(
+         settings->input.osk_opacity,
+         menu_hash_to_str(MENU_LABEL_OSK_OPACITY),
+         menu_hash_to_str(MENU_LABEL_VALUE_OSK_OPACITY),
+         overlay_opacity,
+         "%.2f",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 1, 0.01, true, true);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_SET_ALPHA);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+
+   CONFIG_UINT(
+         settings->input.osk_opacity_scope,
+         "input_osk_opacity_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+
    END_SUB_GROUP(list, list_info, parent_group);
+   END_GROUP(list, list_info, parent_group);
+#endif
+
+   return true;
+}
+
+static bool setting_append_list_overlay_lightgun_options(
+      rarch_setting_t **list,
+      rarch_setting_info_t *list_info,
+      const char *parent_group)
+{
+#ifdef HAVE_OVERLAY
+   rarch_setting_group_info_t group_info    = {0};
+   rarch_setting_group_info_t subgroup_info = {0};
+   settings_t *settings = config_get_ptr();
+   global_t   *global   = global_get_ptr();
+
+   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_LIGHTGUN_SETTINGS), parent_group);
+
+   parent_group = menu_hash_to_str(MENU_LABEL_OVERLAY_SETTINGS);
+
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-   
+
+   CONFIG_UINT(
+         settings->input.lightgun_trigger_delay,
+         "input_lightgun_trigger_delay",
+         "Lightgun Trigger Delay (frames)",
+         0,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, LIGHTGUN_TRIG_MAX_DELAY, 1, true, true);
+
+   CONFIG_UINT(
+         settings->input.lightgun_trigger_delay_scope,
+         "input_lightgun_trigger_delay_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+
+   END_SUB_GROUP(list, list_info, parent_group);
+   END_GROUP(list, list_info, parent_group);
+#endif
+
+   return true;
+}
+
+static bool setting_append_list_menu_visibility_options(
+      rarch_setting_t **list,
+      rarch_setting_info_t *list_info,
+      const char *parent_group)
+{
+   rarch_setting_group_info_t group_info    = {0};
+   rarch_setting_group_info_t subgroup_info = {0};
+   settings_t *settings = config_get_ptr();
+
+   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_VALUE_MENU_VISIBILITIES), parent_group);
+
+   parent_group = menu_hash_to_str(MENU_LABEL_MENU_SETTINGS);
+
+   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
+
    CONFIG_BOOL(
          settings->menu.show_advanced_settings,
          "menu_show_advanced_settings",
@@ -7248,62 +7205,8 @@ static bool setting_append_list_menu_options(
          subgroup_info.name,
          parent_group,
          general_write_handler,
-         general_read_handler);  
+         general_read_handler);
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
-   
-   END_SUB_GROUP(list, list_info, parent_group);
-   START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
-
-   if (using_rgui)
-   {
-      CONFIG_BOOL(
-         settings->menu.rgui_thick_bg_checkerboard,
-         "rgui_thick_background_checkerboard",
-         "Thick Background Pattern",
-         false,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-      
-      CONFIG_BOOL(
-         settings->menu.rgui_thick_bd_checkerboard,
-         "rgui_thick_border_checkerboard",
-         "Thick Border Pattern",
-         false,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   }
-
-   CONFIG_PATH(
-         global->menu.wallpaper,
-         menu_hash_to_str(MENU_LABEL_MENU_WALLPAPER),
-         menu_hash_to_str(MENU_LABEL_VALUE_MENU_WALLPAPER),
-         settings->menu.theme_dir,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_values(list, list_info, "png");
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   (*list)[list_info->index - 1].action_start  = &setting_action_start_wallpaper;
-
-   END_SUB_GROUP(list, list_info, parent_group);
-   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
 
 #ifdef HAVE_OVERLAY
    CONFIG_BOOL(
@@ -7571,6 +7474,180 @@ CONFIG_BOOL(
          general_write_handler,
          general_read_handler);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+   END_SUB_GROUP(list, list_info, parent_group);
+   END_GROUP(list, list_info, parent_group);
+
+   return true;
+}
+
+static bool setting_append_list_menu_options(
+      rarch_setting_t **list,
+      rarch_setting_info_t *list_info,
+      const char *parent_group)
+{
+   rarch_setting_group_info_t group_info    = {0};
+   rarch_setting_group_info_t subgroup_info = {0};
+   settings_t *settings = config_get_ptr();
+   global_t   *global   = global_get_ptr();
+   driver_t   *driver   = driver_get_ptr();
+   bool using_rgui  = !strcmp(settings->menu.driver, "rgui");
+   bool core_loaded = *settings->libretro ? true : false;
+
+   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_MENU_SETTINGS), parent_group);
+
+   parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
+
+   START_SUB_GROUP(list, list_info, "Menu Theme", group_info.name, subgroup_info, parent_group);
+
+   CONFIG_PATH(
+         settings->menu.theme,
+         menu_hash_to_str(MENU_LABEL_MENU_THEME),
+         menu_hash_to_str(MENU_LABEL_VALUE_MENU_THEME),
+         settings->menu.theme_dir,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_values(list, list_info, "cfg");
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
+   (*list)[list_info->index - 1].action_start = &setting_action_start_theme;
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_st_path_with_default;
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
+
+   if (*global->menu.wallpaper)
+   {
+      CONFIG_FLOAT(
+            settings->menu.wallpaper_opacity,
+            "menu_wallpaper_opacity",
+            "  Wallpaper Opacity",
+            wallpaper_opacity,
+            "%.2f",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0, 1, 0.05, true, true);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+   }
+
+   if (using_rgui)
+   {
+      CONFIG_UINT(
+            settings->menu.rgui_particle_effect,
+            "rgui_particle_effect",
+            "  Background Effect",
+            RGUI_PARTICLE_EFFECT_NONE,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(
+            list, list_info,
+            RGUI_PARTICLE_EFFECT_NONE,
+            NUM_RGUI_PARTICLE_EFFECTS-1,
+            1, true, true);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_rgui_particle_effect_index;
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+
+      CONFIG_FLOAT(
+            settings->menu.rgui_particle_effect_speed_factor,
+            "rgui_particle_effect_speed_factor",
+            "  Background Effect Speed",
+            1.0f,
+            "%.1fx",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0.1, 10, 0.1, true, true);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+   }
+
+   CONFIG_UINT(
+         settings->menu.theme_scope,
+         "menu_theme_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+
+   END_SUB_GROUP(list, list_info, parent_group);
+   START_SUB_GROUP(list, list_info, "Settings View", group_info.name, subgroup_info, parent_group);
+
+   CONFIG_ACTION(
+         menu_hash_to_str(MENU_LABEL_MENU_VISIBILITIES),
+         menu_hash_to_str(MENU_LABEL_VALUE_MENU_VISIBILITIES),
+         group_info.name,
+         subgroup_info.name,
+         parent_group);
+
+   END_SUB_GROUP(list, list_info, parent_group);
+   START_SUB_GROUP(list, list_info, "Menu Theme", group_info.name, subgroup_info, parent_group);
+
+   if (using_rgui)
+   {
+      CONFIG_BOOL(
+         settings->menu.rgui_thick_bg_checkerboard,
+         "rgui_thick_background_checkerboard",
+         "Thick Background Pattern",
+         false,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+      CONFIG_BOOL(
+         settings->menu.rgui_thick_bd_checkerboard,
+         "rgui_thick_border_checkerboard",
+         "Thick Border Pattern",
+         false,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+      (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   }
+
+   CONFIG_PATH(
+         global->menu.wallpaper,
+         menu_hash_to_str(MENU_LABEL_MENU_WALLPAPER),
+         menu_hash_to_str(MENU_LABEL_VALUE_MENU_WALLPAPER),
+         settings->menu.theme_dir,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_values(list, list_info, "png");
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   (*list)[list_info->index - 1].action_start  = &setting_action_start_wallpaper;
+
+   END_SUB_GROUP(list, list_info, parent_group);
+   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
    
    if (!driver->netplay_data)
    {
@@ -8858,9 +8935,27 @@ rarch_setting_t *menu_setting_new(unsigned mask)
          goto error;
    }
 
+   if (mask & SL_FLAG_OVERLAY_KEYBOARD_OPTIONS)
+   {
+      if (!setting_append_list_overlay_keyboard_options(&list, list_info, root))
+         goto error;
+   }
+
    if (mask & SL_FLAG_OVERLAY_MOUSE_OPTIONS)
    {
       if (!setting_append_list_overlay_mouse_options(&list, list_info, root))
+         goto error;
+   }
+
+   if (mask & SL_FLAG_OVERLAY_LIGHTGUN_OPTIONS)
+   {
+      if (!setting_append_list_overlay_lightgun_options(&list, list_info, root))
+         goto error;
+   }
+
+   if (mask & SL_FLAG_MENU_VISIBILITY_OPTIONS)
+   {
+      if (!setting_append_list_menu_visibility_options(&list, list_info, root))
          goto error;
    }
 

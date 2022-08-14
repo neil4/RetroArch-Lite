@@ -764,6 +764,35 @@ static int action_ok_libretro_device_type(const char *path,
    return ret;
 }
 
+static int action_ok_overlay_keyboard_settings(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   menu_list_t *menu_list = menu_list_get_ptr();
+   menu_navigation_t *nav = menu_navigation_get_ptr();
+   menu_displaylist_info_t *info;
+   int ret;
+
+   if (!menu_list)
+      return -1;
+
+   info = menu_displaylist_info_new();
+
+   info->list  = menu_list->selection_buf;
+   info->flags = SL_FLAG_OVERLAY_KEYBOARD_OPTIONS;
+   info->type  = MENU_SETTING_GROUP;
+   strlcpy(info->label,
+         menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_KEYBOARD_SETTINGS),
+         sizeof(info->label));
+   info->directory_ptr = idx;
+
+   menu_list_push(menu_list->menu_stack, "", info->label, info->type, idx, 0);
+   menu_navigation_clear(nav, true);
+
+   ret = menu_displaylist_push_list(info, DISPLAYLIST_SETTINGS);
+   free(info);
+   return ret;
+}
+
 static int action_ok_overlay_mouse_settings(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -782,6 +811,64 @@ static int action_ok_overlay_mouse_settings(const char *path,
    info->type  = MENU_SETTING_GROUP;
    strlcpy(info->label,
          menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_MOUSE_SETTINGS),
+         sizeof(info->label));
+   info->directory_ptr = idx;
+
+   menu_list_push(menu_list->menu_stack, "", info->label, info->type, idx, 0);
+   menu_navigation_clear(nav, true);
+
+   ret = menu_displaylist_push_list(info, DISPLAYLIST_SETTINGS);
+   free(info);
+   return ret;
+}
+
+static int action_ok_overlay_lightgun_settings(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   menu_list_t *menu_list = menu_list_get_ptr();
+   menu_navigation_t *nav = menu_navigation_get_ptr();
+   menu_displaylist_info_t *info;
+   int ret;
+
+   if (!menu_list)
+      return -1;
+
+   info = menu_displaylist_info_new();
+
+   info->list  = menu_list->selection_buf;
+   info->flags = SL_FLAG_OVERLAY_LIGHTGUN_OPTIONS;
+   info->type  = MENU_SETTING_GROUP;
+   strlcpy(info->label,
+         menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_LIGHTGUN_SETTINGS),
+         sizeof(info->label));
+   info->directory_ptr = idx;
+
+   menu_list_push(menu_list->menu_stack, "", info->label, info->type, idx, 0);
+   menu_navigation_clear(nav, true);
+
+   ret = menu_displaylist_push_list(info, DISPLAYLIST_SETTINGS);
+   free(info);
+   return ret;
+}
+
+static int action_ok_menu_visibilities(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   menu_list_t *menu_list = menu_list_get_ptr();
+   menu_navigation_t *nav = menu_navigation_get_ptr();
+   menu_displaylist_info_t *info;
+   int ret;
+
+   if (!menu_list)
+      return -1;
+
+   info = menu_displaylist_info_new();
+
+   info->list  = menu_list->selection_buf;
+   info->flags = SL_FLAG_MENU_VISIBILITY_OPTIONS;
+   info->type  = MENU_SETTING_GROUP;
+   strlcpy(info->label,
+         menu_hash_to_str(MENU_LABEL_VALUE_MENU_VISIBILITIES),
          sizeof(info->label));
    info->directory_ptr = idx;
 
@@ -1368,8 +1455,18 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_DISK_IMAGE_APPEND:
          cbs->action_ok = action_ok_disk_image_append_list;
          break;
+      case MENU_LABEL_OVERLAY_KEYBOARD_SETTINGS:
+         cbs->action_ok = action_ok_overlay_keyboard_settings;
+         break;
       case MENU_LABEL_OVERLAY_MOUSE_SETTINGS:
          cbs->action_ok = action_ok_overlay_mouse_settings;
+         break;
+      case MENU_LABEL_OVERLAY_LIGHTGUN_SETTINGS:
+         cbs->action_ok = action_ok_overlay_lightgun_settings;
+         break;
+      case MENU_LABEL_MENU_VISIBILITIES:
+         cbs->action_ok = action_ok_menu_visibilities;
+         break;
       default:
          return -1;
    }
