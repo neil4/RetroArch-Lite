@@ -789,7 +789,6 @@ static void handle_hotplug(android_input_t *android,
       input_config_autoconfigure_joypad(&params);
    }
 
-   *port = android->pads_connected;
    android->pad_states[android->pads_connected].id = id;
    android->pad_states[android->pads_connected].port = *port;
    strlcpy(android->pad_states[*port].name, name_buf,

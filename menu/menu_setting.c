@@ -2967,8 +2967,6 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " -- Disables the keyboard's RetroPad\n"
                "and hotkey binds when not in menu.\n"
                " \n"
-               "Useful for keyboard centric cores.\n"
-               " \n"
                "Does not affect other input devices\n"
                "or the Keyboard Focus hotkey itself.\n"
                );
@@ -3075,10 +3073,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
       case MENU_LABEL_INPUT_LIBRETRO_DEVICE_3:
       case MENU_LABEL_INPUT_LIBRETRO_DEVICE_4:
          snprintf(s, len,
-               " -- Core specific input device type.\n"
-               " \n"
-               "Defaults to RetroPad when\n"
-               "no core is running.\n");
+               " -- Core specific input device type.\n");
          break;
       case MENU_LABEL_INPUT_BIND_ALL_PORT_1:
       case MENU_LABEL_INPUT_BIND_ALL_PORT_2:
@@ -4769,7 +4764,6 @@ static bool setting_append_list_logging_options(
       &setting_get_string_representation_uint_libretro_log_level;
 
    END_SUB_GROUP(list, list_info, parent_group);
-
    START_SUB_GROUP(list, list_info, "Performance Counters", group_info.name, subgroup_info,
          parent_group);
 
@@ -5193,6 +5187,7 @@ static bool setting_append_list_video_options(
 
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Aspect", group_info.name, subgroup_info, parent_group);
+
    CONFIG_BOOL(
          settings->video.force_aspect,
          "video_force_aspect",
@@ -5387,13 +5382,7 @@ static bool setting_append_list_video_options(
 
 #endif
    END_SUB_GROUP(list, list_info, parent_group);
-   START_SUB_GROUP(
-         list,
-         list_info,
-         "Synchronization",
-         group_info.name,
-         subgroup_info,
-         parent_group);
+   START_SUB_GROUP(list, list_info, "Synchronization", group_info.name, subgroup_info, parent_group);
 
    CONFIG_BOOL(
          settings->video.vsync,
@@ -5485,6 +5474,7 @@ static bool setting_append_list_video_options(
 #endif
    
    END_SUB_GROUP(list, list_info, parent_group);
+   START_SUB_GROUP(list, list_info, "Miscellaneous", group_info.name, subgroup_info, parent_group);
    
    CONFIG_UINT(
          settings->video.rotation,
@@ -5530,14 +5520,6 @@ static bool setting_append_list_video_options(
          general_read_handler);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 #endif
-
-   START_SUB_GROUP(
-         list,
-         list_info,
-         "Miscellaneous",
-         group_info.name,
-         subgroup_info,
-         parent_group);
 
    CONFIG_BOOL(
          settings->video.gpu_screenshot,
@@ -5850,16 +5832,7 @@ static bool setting_append_list_audio_options(
 #endif
 
    END_SUB_GROUP(list, list_info, parent_group);
-
-   parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
-
-   START_SUB_GROUP(
-         list,
-         list_info,
-         "Synchronization",
-         group_info.name,
-         subgroup_info,
-         parent_group);
+   START_SUB_GROUP(list, list_info, "Synchronization", group_info.name, subgroup_info, parent_group);
 
    CONFIG_BOOL(
          settings->audio.sync,
@@ -5972,16 +5945,7 @@ static bool setting_append_list_audio_options(
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
-
-   parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
-
-   START_SUB_GROUP(
-         list,
-         list_info,
-         "Miscellaneous",
-         group_info.name,
-         subgroup_info,
-         parent_group);
+   START_SUB_GROUP(list, list_info, "Miscellaneous", group_info.name, subgroup_info, parent_group);
 
    CONFIG_STRING(
          settings->audio.device,
@@ -6309,14 +6273,7 @@ static bool setting_append_list_input_options(
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
-
-   START_SUB_GROUP(
-         list,
-         list_info,
-         "Input Device Mapping",
-         group_info.name,
-         subgroup_info,
-         parent_group);
+   START_SUB_GROUP(list, list_info, "Input Device Mapping", group_info.name, subgroup_info, parent_group);
 
    CONFIG_BOOL(
          global->menu.bind_mode_keyboard,
@@ -6478,13 +6435,8 @@ static bool setting_append_list_input_options(
    (*list)[list_info->index - 1].get_string_representation =
       &setting_get_string_representation_uint_scope_index;
 
-   START_SUB_GROUP(
-         list,
-         list_info,
-         "Deadzone/Rumble",
-         group_info.name,
-         subgroup_info,
-         parent_group);
+   END_SUB_GROUP(list, list_info, parent_group);
+   START_SUB_GROUP(list, list_info, "Deadzone/Rumble", group_info.name, subgroup_info, parent_group);
 
    CONFIG_UINT(
          settings->input.analog_dpad_mode,
@@ -7431,7 +7383,7 @@ static bool setting_append_list_menu_options(
          general_write_handler,
          general_read_handler);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-#endif
+#endif  /* EXTERNAL_LAUNCHER */
    CONFIG_BOOL(
          settings->menu.show_core_info,
          "menu_show_core_info",
