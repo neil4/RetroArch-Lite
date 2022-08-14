@@ -51,16 +51,16 @@ static unsigned core_specific_scope = THIS_CORE;
 bool settings_touched = false;
 bool scoped_settings_touched = false;
 
-#ifdef HAVE_OVERLAY
-#define NUM_SCOPED_SETTINGS 56
-#else
-#define NUM_SCOPED_SETTINGS 39
-#endif
-
-static struct setting_desc scoped_setting_list[NUM_SCOPED_SETTINGS + 1];
+static struct setting_desc *scoped_setting_list;
 
 /* macros for config_populate_scoped_setting_list */
 #define SCOPED_LIST_ADD_VAR(p_key, e_type, p_var, p_scope_var) \
+   if (i >= nvars) \
+   { \
+      nvars = nvars * 2 + 1; \
+      scoped_setting_list = (struct setting_desc*) \
+            realloc(scoped_setting_list, nvars * sizeof(struct setting_desc)); \
+   } \
    scoped_setting_list[i].key  = p_key; \
    scoped_setting_list[i].type = e_type; \
    scoped_setting_list[i].ptr  = p_var; \
@@ -80,9 +80,11 @@ static void config_populate_scoped_setting_list()
 {
    settings_t       *settings  = config_get_ptr();
    video_viewport_t *custom_vp = video_viewport_get_custom();
-   unsigned i = 0;
+   size_t nvars = 64, i = 0;
 
-   memset(scoped_setting_list, 0, sizeof(scoped_setting_list));
+   scoped_setting_list = (struct setting_desc*)
+         realloc(scoped_setting_list, nvars * sizeof(struct setting_desc));
+   rarch_assert(scoped_setting_list != NULL);
 
    SCOPED_LIST_ADD_PATH("rgui_browser_directory",
       settings->core_content_directory, core_specific_scope);
@@ -213,7 +215,11 @@ static void config_populate_scoped_setting_list()
       settings->menu.rgui_particle_effect_speed_factor,
       settings->menu.theme_scope);
 
-   rarch_assert(i == NUM_SCOPED_SETTINGS);
+   /* Mark end of list and trim excess */
+   SCOPED_LIST_ADD_VAR(NULL, 0, NULL, NULL);
+   scoped_setting_list = (struct setting_desc*)
+         realloc(scoped_setting_list, i * sizeof(struct setting_desc));
+   rarch_assert(scoped_setting_list != NULL);
 }
 
 /**
