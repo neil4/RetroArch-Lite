@@ -180,6 +180,8 @@ static void config_populate_scoped_setting_list()
       settings->input.overlay_opacity, settings->input.overlay_opacity_scope);
    SCOPED_LIST_ADD_PATH("input_osk_overlay",
       settings->input.osk_overlay, settings->input.osk_scope);
+   SCOPED_LIST_ADD_FLOAT("input_osk_opacity",
+      settings->input.osk_opacity, settings->input.osk_opacity_scope);
    SCOPED_LIST_ADD_BOOL("input_overlay_mouse_hold_to_drag",
       settings->input.overlay_mouse_hold_to_drag,
       settings->input.overlay_mouse_hold_to_drag_scope);
@@ -795,6 +797,7 @@ static void config_set_defaults(void)
 
 #ifdef HAVE_OVERLAY
    settings->input.overlay_opacity                 = overlay_opacity;
+   settings->input.osk_opacity                     = overlay_opacity;
    settings->input.overlay_dpad_diag_sens          = overlay_dpad_diag_sens;
    settings->input.overlay_abxy_diag_sens          = overlay_abxy_diag_sens;
    settings->input.overlay_dpad_method             = VECTOR;
@@ -1946,6 +1949,8 @@ static bool config_load_file(const char *path, bool set_defaults)
 
    config_get_path(conf, "input_osk_overlay",
          settings->input.osk_overlay, PATH_MAX_LENGTH);
+   config_get_float(conf, "input_osk_opacity",
+         &settings->input.osk_opacity);
 
    config_get_bool(conf, "input_overlay_mouse_hold_to_drag",
          &settings->input.overlay_mouse_hold_to_drag);
@@ -2741,6 +2746,9 @@ bool main_config_file_save(const char *path)
    if (settings->input.overlay_opacity_scope == GLOBAL)
       config_set_float(conf, "input_overlay_opacity",
             settings->input.overlay_opacity);
+   if (settings->input.osk_opacity_scope == GLOBAL)
+      config_set_float(conf, "input_osk_opacity",
+            settings->input.osk_opacity);
 
    if (settings->input.overlay_dpad_abxy_config_scope == GLOBAL)
    {

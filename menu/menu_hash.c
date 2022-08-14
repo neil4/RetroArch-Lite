@@ -260,6 +260,10 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "input_overlay_opacity";
       case MENU_LABEL_VALUE_OVERLAY_OPACITY:
          return "Overlay Opacity";
+      case MENU_LABEL_OSK_OPACITY:
+         return "input_osk_opacity";
+      case MENU_LABEL_VALUE_OSK_OPACITY:
+         return "Keyboard Opacity";
       case MENU_LABEL_MENU_THEME:
          return "menu_theme";
       case MENU_LABEL_VALUE_MENU_THEME:

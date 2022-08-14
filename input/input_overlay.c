@@ -1977,8 +1977,6 @@ static void input_overlay_update_desc_geom(input_overlay_t *ol,
  **/
 static INLINE void input_overlay_post_poll(input_overlay_t *ol)
 {
-   settings_t *settings = config_get_ptr();
-   float opacity        = settings->input.overlay_opacity;
    size_t i;
 
    if (!ol)
@@ -1995,6 +1993,10 @@ static INLINE void input_overlay_post_poll(input_overlay_t *ol)
 
       if (desc->updated)
       {
+         float opacity = driver_get_ptr()->osk_enable ?
+               config_get_ptr()->input.osk_opacity :
+               config_get_ptr()->input.overlay_opacity;
+
          /* If pressed this frame, change the hitbox. */
          desc->range_x_mod = desc->range_x_hitbox * desc->range_mod;
          desc->range_y_mod = desc->range_y_hitbox * desc->range_mod;
@@ -2449,7 +2451,9 @@ void input_overlay_free(input_overlay_t *ol)
  **/
 void input_overlay_set_alpha(input_overlay_t *ol)
 {
-   float opacity = config_get_ptr()->input.overlay_opacity;
+   float opacity = driver_get_ptr()->osk_enable ?
+         config_get_ptr()->input.osk_opacity :
+         config_get_ptr()->input.overlay_opacity;
    unsigned i;
 
    if (!ol)

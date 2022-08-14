@@ -117,6 +117,8 @@ extern "C" {
 #define MENU_LABEL_LIGHTGUN_TRIGGER_DELAY                                      0x60f3b257U
 #define MENU_LABEL_OVERLAY_OPACITY                                             0xc466fbaeU
 #define MENU_LABEL_VALUE_OVERLAY_OPACITY                                       0x98605740U
+#define MENU_LABEL_OSK_OPACITY                                                 0x03a22bb9U
+#define MENU_LABEL_VALUE_OSK_OPACITY                                           0x850837efU
 
 #define MENU_LABEL_MENU_THEME                                                  0x7bf56e4cU
 #define MENU_LABEL_VALUE_MENU_THEME                                            0x656b3a6dU

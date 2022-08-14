@@ -317,6 +317,8 @@ typedef struct settings
 
       char osk_overlay[PATH_MAX_LENGTH];
       unsigned osk_scope;
+      float osk_opacity;
+      unsigned osk_opacity_scope;
 
       bool overlay_mouse_hold_to_drag;
       unsigned overlay_mouse_hold_to_drag_scope;
