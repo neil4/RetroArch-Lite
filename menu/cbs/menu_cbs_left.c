@@ -744,6 +744,7 @@ static int menu_cbs_init_bind_left_compare_type(menu_file_list_cbs_t *cbs,
             break;
          case MENU_SETTING_GROUP:
          case MENU_SETTING_ACTION:
+         case MENU_SETTING_ACTION_CORE_DISK_OPTIONS:
          case MENU_FILE_CONTENTLIST_ENTRY:
             cbs->action_left = action_left_scroll;
             break;
