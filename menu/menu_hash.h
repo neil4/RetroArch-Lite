@@ -213,6 +213,7 @@ extern "C" {
 #define MENU_LABEL_INPUT_ANALOG_DPAD_MODE                                      0xc39b1842U
 #define MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS                             0x95ed878eU
 #define MENU_LABEL_INPUT_BIND_MODE                                             0x90281b55U
+#define MENU_LABEL_INPUT_LIGHTGUN_ALLOW_OOB                                    0xcda84fb3U
 
 #define MENU_LABEL_CAMERA_ALLOW                                                0xc14d302cU
 #define MENU_LABEL_LOCATION_ALLOW                                              0xf089275cU

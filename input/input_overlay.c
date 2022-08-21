@@ -2284,7 +2284,6 @@ static INLINE int16_t lightgun_delayed_trigger_state(bool trigger)
 
 static INLINE int16_t overlay_lightgun_state(unsigned id)
 {
-   global_t *global = global_get_ptr();
    driver_t *driver = driver_get_ptr();
 
    switch(id)
@@ -2294,10 +2293,9 @@ static INLINE int16_t overlay_lightgun_state(unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
          return driver->overlay_state.ptr_y;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
-         if (abs(driver->overlay_state.ptr_y) >= 0x7d6f)
-            return 1; /* else fall through */
-      case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
-         return driver->overlay_state.ptr_count > 1;  /* 2nd pointer reloads */
+         return (config_get_ptr()->input.lightgun_allow_oob
+                 && (abs(driver->overlay_state.ptr_x) >= 0x7fbb ||
+                     abs(driver->overlay_state.ptr_y) >= 0x7fbb));
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A:
          return BIT64_GET(driver->overlay_state.buttons,
                           RARCH_LIGHTGUN_AUX_A);
@@ -2308,7 +2306,7 @@ static INLINE int16_t overlay_lightgun_state(unsigned id)
          return BIT64_GET(driver->overlay_state.buttons,
                           RARCH_LIGHTGUN_AUX_C);
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
-         if (global->overlay_lightgun_autotrigger)
+         if (global_get_ptr()->overlay_lightgun_autotrigger)
             return lightgun_delayed_trigger_state(
                   driver->overlay_state.ptr_count == 1);
          return BIT64_GET(driver->overlay_state.buttons,
@@ -2361,8 +2359,8 @@ int16_t input_overlay_state(unsigned port, unsigned device_base,
       switch (device_base)
       {
          case RETRO_DEVICE_JOYPAD:
-             if (id < RARCH_CUSTOM_BIND_LIST_END &&
-                   (driver->overlay_state.buttons & (UINT64_C(1) << id)))
+            if (id < RARCH_CUSTOM_BIND_LIST_END &&
+                  (driver->overlay_state.buttons & (UINT64_C(1) << id)))
                res = 1;
             break;
          case RETRO_DEVICE_KEYBOARD:

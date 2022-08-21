@@ -721,6 +721,8 @@ static const unsigned turbo_period = 6;
  * gamepads, plug-and-play style. */
 static const bool input_autodetect_enable = true;
 
+static const unsigned lightgun_allow_oob = true;
+
 #if defined(ANDROID)
 #if defined(ANDROID_ARM)
 static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/armeabi-v7a/";

@@ -207,6 +207,9 @@ static void config_populate_scoped_setting_list()
       settings->input.turbo_binds_enable, settings->input.turbo_settings_scope);
    SCOPED_LIST_ADD_UINT("input_turbo_period",
       settings->input.turbo_period, settings->input.turbo_settings_scope);
+   SCOPED_LIST_ADD_BOOL("input_lightgun_allow_oob",
+      settings->input.lightgun_allow_oob,
+      settings->input.lightgun_allow_oob_scope);
    SCOPED_LIST_ADD_PATH("menu_theme",
       settings->menu.theme, settings->menu.theme_scope);
    SCOPED_LIST_ADD_FLOAT("menu_wallpaper_opacity",
@@ -759,6 +762,7 @@ static void config_set_defaults(void)
    settings->input.turbo_period                     = turbo_period;
    settings->input.max_users                        = 2;
    settings->input.rumble_enable                    = false;
+   settings->input.lightgun_allow_oob               = lightgun_allow_oob;
 
    rarch_assert(sizeof(settings->input.binds[0]) >= sizeof(retro_keybinds_1));
    rarch_assert(sizeof(settings->input.binds[1]) >= sizeof(retro_keybinds_rest));
@@ -1658,8 +1662,11 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->input.analog_dpad_deadzone);
    input_joypad_update_analog_dpad_params();
 
+   config_get_bool(conf, "input_lightgun_allow_oob",
+         &settings->input.lightgun_allow_oob);
    config_get_bool(conf, "input_rumble_enable",
          &settings->input.rumble_enable);
+
    config_get_bool(conf, "netplay_client_swap_input",
          &settings->input.netplay_client_swap_input);
    config_get_uint(conf, "input_max_users",
@@ -2711,9 +2718,9 @@ bool main_config_file_save(const char *path)
    if (settings->input.turbo_settings_scope == GLOBAL)
    {
       config_set_bool(conf, "input_turbo_binds_enable",
-         settings->input.turbo_binds_enable);
+            settings->input.turbo_binds_enable);
       config_set_int(conf, "input_turbo_period",
-         settings->input.turbo_period);
+            settings->input.turbo_period);
    }
    if (settings->input.analog_dpad_scope == GLOBAL)
    {
@@ -2724,6 +2731,9 @@ bool main_config_file_save(const char *path)
       config_set_int(conf, "input_analog_dpad_deadzone",
             settings->input.analog_dpad_deadzone);
    }
+   if (settings->input.lightgun_allow_oob_scope == GLOBAL)
+      config_set_bool(conf, "input_lightgun_allow_oob",
+            settings->input.lightgun_allow_oob);
 
 #ifdef HAVE_OVERLAY
    config_set_path(conf, "overlay_directory",
@@ -3159,8 +3169,7 @@ static void config_load_scoped_file(unsigned scope)
 
    if (conf)
       config_file_free(conf);
-   conf = config_file_new(fullpath);
-   if (!conf)
+   if (!(conf = config_file_new(fullpath)))
    {
       scoped_conf[scope] = NULL;
       return;

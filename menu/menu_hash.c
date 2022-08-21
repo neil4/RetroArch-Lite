@@ -332,6 +332,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "input_touch_ellipse_magnify";
       case MENU_LABEL_LIGHTGUN_TRIGGER_DELAY:
          return "input_lightgun_trigger_delay";
+      case MENU_LABEL_INPUT_LIGHTGUN_ALLOW_OOB:
+         return "input_lightgun_allow_oob";
       case MENU_LABEL_VALUE_VIDEO_OPTIONS:
          return "Video Options";
       case MENU_LABEL_VALUE_SHADER_OPTIONS:

@@ -218,9 +218,9 @@ static int16_t x_lightgun_mouse_state(x11_input_t *x11, unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
          return x11->mouse_l && x11->mouse_m;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
-         return abs(x11->lightgun_y) >= 0x7fbb;
-      case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
-         return x11->mouse_l && (abs(x11->lightgun_y) >= 0x7fbb);
+         return (config_get_ptr()->input.lightgun_allow_oob
+                 && (abs(x11->lightgun_x) >= 0x7fbb ||
+                     abs(x11->lightgun_y) >= 0x7fbb));
       case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
          return x11->mouse_m;

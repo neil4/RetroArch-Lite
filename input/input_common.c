@@ -161,12 +161,12 @@ bool input_translate_coord_viewport(int mouse_x, int mouse_y,
    {
       scaled_x = (2 * mouse_x * 0x7fff) / (int)vp.width - 0x7fff;
       scaled_y = (2 * mouse_y * 0x7fff) / (int)vp.height - 0x7fff;
-      if (scaled_x < -0x7fff)
-         scaled_x = -0x7fff;
-      else if (scaled_x > 0x7fff)
-         scaled_x = 0x7fff;
-      if (scaled_y < -0x7fff || scaled_y > 0x7fff)
-         scaled_y = -0x8000; /* OOB */
+
+      if (scaled_x < -0x7fff)     scaled_x = -0x7fff;
+      else if (scaled_x > 0x7fff) scaled_x = 0x7fff;
+
+      if (scaled_y < -0x7fff)     scaled_y = -0x7fff;
+      else if (scaled_y > 0x7fff) scaled_y = 0x7fff;
 
       *res_x = scaled_x;
       *res_y = scaled_y;

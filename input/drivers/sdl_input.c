@@ -223,9 +223,9 @@ static int16_t sdl_lightgun_device_state(sdl_input_t *sdl, unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_B: /* turbo */
          return sdl->mouse_b5 || (sdl->mouse_l && sdl->mouse_m);
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
-         return abs(sdl->lightgun_y) >= 0x7fbb;
-      case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
-         return sdl->mouse_l && (abs(sdl->lightgun_y) >= 0x7fbb);
+         return (config_get_ptr()->input.lightgun_allow_oob
+                 && (abs(sdl->lightgun_x) >= 0x7fbb ||
+                     abs(sdl->lightgun_y) >= 0x7fbb));
       case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
          return sdl->mouse_m;

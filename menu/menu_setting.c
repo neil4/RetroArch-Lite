@@ -3153,7 +3153,14 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                   " -- Delays lightgun trigger input to\n"
                   "occur after the cursor moves.\n");
-            break;
+         break;
+     case MENU_LABEL_INPUT_LIGHTGUN_ALLOW_OOB:
+         snprintf(s, len,
+                  " -- Allow out-of-bounds aiming.\n"
+                  " \n"
+                  "Disable to clamp offscreen aim\n"
+                  "to the in-bounds edge.");
+         break;
       case MENU_LABEL_OVERLAY_ASPECT_RATIO_INDEX:
          snprintf(s, len,
                " -- Sets the aspect ratio of the\n"
@@ -6435,7 +6442,7 @@ static bool setting_append_list_input_options(
       &setting_get_string_representation_uint_scope_index;
 
    END_SUB_GROUP(list, list_info, parent_group);
-   START_SUB_GROUP(list, list_info, "Deadzone/Rumble", group_info.name, subgroup_info, parent_group);
+   START_SUB_GROUP(list, list_info, "Analog", group_info.name, subgroup_info, parent_group);
 
    CONFIG_UINT(
          settings->input.analog_dpad_mode,
@@ -6526,7 +6533,41 @@ static bool setting_append_list_input_options(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation =
       &setting_get_string_representation_uint_scope_index;
-   
+
+   END_SUB_GROUP(list, list_info, parent_group);
+   START_SUB_GROUP(list, list_info, "Lightgun", group_info.name, subgroup_info, parent_group);
+
+   CONFIG_BOOL(
+         settings->input.lightgun_allow_oob,
+         menu_hash_to_str(MENU_LABEL_INPUT_LIGHTGUN_ALLOW_OOB),
+         "Lightgun: Allow Offscreen",
+         lightgun_allow_oob,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+
+   CONFIG_UINT(
+         settings->input.lightgun_allow_oob_scope,
+         "input_lightgun_allow_oob_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+
+   END_SUB_GROUP(list, list_info, parent_group);
+   START_SUB_GROUP(list, list_info, "Rumble", group_info.name, subgroup_info, parent_group);
+
    if (driver && driver->input && driver->input->set_rumble)
    {
       CONFIG_BOOL(
@@ -7160,6 +7201,34 @@ static bool setting_append_list_overlay_lightgun_options(
    CONFIG_UINT(
          settings->input.lightgun_trigger_delay_scope,
          "input_lightgun_trigger_delay_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+
+   CONFIG_BOOL(
+         settings->input.lightgun_allow_oob,
+         menu_hash_to_str(MENU_LABEL_INPUT_LIGHTGUN_ALLOW_OOB),
+         "Allow Offscreen",
+         lightgun_allow_oob,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+
+   CONFIG_UINT(
+         settings->input.lightgun_allow_oob_scope,
+         "input_lightgun_allow_oob_scope",
          "  Scope",
          GLOBAL,
          group_info.name,
