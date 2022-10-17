@@ -2082,14 +2082,13 @@ static INLINE uint64_t menu_analog_dpad_state(const int16_t analog_x,
  **/
 void input_overlay_poll(input_overlay_t *overlay_device)
 {
-   unsigned i, j, device, ptr_device;
+   unsigned i, j, device, ptr_device, input_count;
    uint16_t key_mod                 = 0;
    driver_t *driver                 = driver_get_ptr();
    input_overlay_state_t *state     = &driver->overlay_state;
    input_overlay_state_t *old_state = &driver->old_overlay_state;
-
-   unsigned input_count;
-   static unsigned old_input_count = 0;
+   bool osk_state_changed           = false;
+   static unsigned old_input_count  = 0;
 
    if (overlay_device->state != OVERLAY_STATUS_ALIVE)
       return;
@@ -2172,6 +2171,7 @@ void input_overlay_poll(input_overlay_t *overlay_device)
       {
          uint32_t orig_bits = old_state->keys[i];
          uint32_t new_bits  = state->keys[i];
+         osk_state_changed  = true;
 
          for (j = 0; j < 32; j++)
             if ((orig_bits & (1 << j)) != (new_bits & (1 << j)))
@@ -2209,7 +2209,7 @@ void input_overlay_poll(input_overlay_t *overlay_device)
 
    /* haptic feedback on button presses or direction changes */
    if ( driver->input->overlay_haptic_feedback
-        && state->buttons != old_state->buttons
+        && (state->buttons != old_state->buttons || osk_state_changed)
         && input_count >= old_input_count
         && !overlay_device->blocked )
    {
