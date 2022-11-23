@@ -3277,12 +3277,6 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " Input rate is defined as: \n"
                " input rate * (1.0 +/- (max timing skew))");
          break;
-      case MENU_LABEL_OVERLAY_NEXT:
-         snprintf(s, len,
-               " -- Toggles to next overlay.\n"
-               " \n"
-               "Wraps around.");
-         break;
       case MENU_LABEL_LOG_VERBOSITY:
          snprintf(s, len,
                "-- Enable or disable verbosity level \n"
@@ -6849,8 +6843,8 @@ static bool setting_append_list_overlay_options(
          settings->input.overlay_abxy_diag_sens,
          menu_hash_to_str(MENU_LABEL_OVERLAY_ABXY_DIAGONAL_SENS),
          settings->menu.show_advanced_settings ?
-            "  Diagonal Sensitivity" :
-            "ABXY Diagonal Sensitivity",
+            "  Overlap Sensitivity" :
+            "ABXY Overlap Sensitivity",
          overlay_abxy_diag_sens,
          group_info.name,
          subgroup_info.name,

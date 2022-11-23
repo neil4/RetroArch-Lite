@@ -15,6 +15,7 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _USE_MATH_DEFINES
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
@@ -37,13 +38,14 @@
 
 #define KEY_ANALOG_LEFT  0x56b92e81U
 #define KEY_ANALOG_RIGHT 0x2e4dc654U
+#define KEY_DPAD_AREA    0xea88f076U
+#define KEY_ABXY_AREA    0xbcf1c3b1U
 
 #define MAX_TOUCH 16
 
 static bool overlay_lightgun_active;
 static bool overlay_mouse_active;
 static bool overlay_adjust_needed;
-static float disp_aspect = 1.778f;
 
 typedef struct overlay_aspect_mod_vals
 {
@@ -263,7 +265,7 @@ static float input_overlay_auto_aspect(struct overlay *ol)
 static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
 {
    unsigned disp_width, disp_height;
-   float ol_aspect, bisect_aspect, max_bisect, bisect_w;
+   float disp_aspect, ol_aspect, bisect_aspect, max_bisect, bisect_w;
    settings_t* settings = config_get_ptr();
    
    /* initialize AR mod vals to defaults */
@@ -282,17 +284,17 @@ static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
    else if (settings->input.overlay_aspect_ratio_index ==
             OVERLAY_ASPECT_RATIO_AUTO_INDEX)
       ol_aspect = overlay_aspectratio_lut
-                        [input_overlay_auto_aspect_index(ol)].value;
+            [input_overlay_auto_aspect_index(ol)].value;
    else
       ol_aspect = overlay_aspectratio_lut
-                        [settings->input.overlay_aspect_ratio_index].value;
+            [settings->input.overlay_aspect_ratio_index].value;
    
-   if (disp_aspect > ol_aspect * 1.001)
+   if (disp_aspect > ol_aspect * 1.001f)
    {
       ol_ar_mod.w = ol_aspect / disp_aspect;
       ol_ar_mod.x_center_shift = (1.0f - ol_ar_mod.w) / 2.0f;
    }
-   else if (ol_aspect > disp_aspect * 1.001)
+   else if (ol_aspect > disp_aspect * 1.001f)
    {
       ol_ar_mod.h = disp_aspect / ol_aspect;
       ol_ar_mod.y_center_shift = (1.0f - ol_ar_mod.h) / 2.0f;
@@ -377,7 +379,7 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
    
    /* adjust vertical */
    desc->y -= settings->input.overlay_shift_y;
-   
+
    /* make sure the button isn't pushed off screen */
    if (desc->y + desc->range_y > upper_bound)
       desc->y = upper_bound - desc->range_y;
@@ -385,7 +387,8 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
       desc->y = lower_bound + desc->range_y;
    
    /* optionally clamp to edge */
-   if (settings->input.overlay_shift_y_lock_edges)
+   if (settings->input.overlay_shift_y_lock_edges
+         && desc->type == OVERLAY_TYPE_BUTTONS)
    {
       if (desc->y_orig + desc->range_y_orig > 0.99f)
          desc->y = upper_bound - desc->range_y;
@@ -406,11 +409,8 @@ static void input_overlay_desc_adjust_aspect_and_shift(struct overlay_desc *desc
 static void input_overlay_get_slope_limits(
       const unsigned diagonal_sensitivity, float* high_slope, float* low_slope)
 {
-   /* Update the slope values to be used in eightway_state. */
-   
-   /* Sensitivity is the ratio (as a percentage) of diagonals to normals.
-    * 100% means 8-way symmetry; zero means no diagonals.
-    * Convert to fraction of max diagonal angle, 45deg
+   /* Sensitivity setting is the relative size of diagonal zones to
+    * cardinal zones. Convert to fraction of 45 deg span (max diagonal).
     */
    float fraction = 2.0f * diagonal_sensitivity
                          / (100.0f + diagonal_sensitivity);
@@ -443,77 +443,91 @@ void input_overlay_update_eightway_diag_sens()
                                   &overlay_eightway_abxy_slope_low);
 }
 
-static void input_overlay_desc_populate_eightway_vals(config_file_t *ol_conf,
+static void input_overlay_desc_populate_eightway(config_file_t *ol_conf,
       struct overlay_desc *desc, unsigned ol_idx, unsigned desc_idx)
 {
-   struct overlay_eightway_vals* vals;
+   struct overlay_eightway_vals* eightway;
    char conf_key[64];
    char *str, *tok;
    char *save = NULL;
 
    desc->eightway_vals = calloc(1, sizeof(struct overlay_eightway_vals));
-   vals = desc->eightway_vals;
+   eightway = desc->eightway_vals;
 
-   if (desc->key_mask == (UINT64_C(1) << RARCH_JOYPAD_DPAD_AREA))
+   /* Populate default vals for the eightway type.
+    */
+   switch (desc->type)
    {
-      vals->up = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_UP;
-      vals->down = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_DOWN;
-      vals->left = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_LEFT;
-      vals->right = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_RIGHT;
-      vals->p_slope_high = &overlay_eightway_dpad_slope_high;
-      vals->p_slope_low = &overlay_eightway_dpad_slope_low;
-   }
-   else if (desc->key_mask == (UINT64_C(1) << RARCH_JOYPAD_ABXY_AREA))
-   {
-      vals->up = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_X;
-      vals->down = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_B;
-      vals->left = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_Y;
-      vals->right = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_A;
-      vals->p_slope_high = &overlay_eightway_abxy_slope_high;
-      vals->p_slope_low = &overlay_eightway_abxy_slope_low;
+      case OVERLAY_TYPE_DPAD_AREA:
+         eightway->up           = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_UP;
+         eightway->down         = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_DOWN;
+         eightway->left         = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_LEFT;
+         eightway->right        = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_RIGHT;
+
+         eightway->p_slope_high = &overlay_eightway_dpad_slope_high;
+         eightway->p_slope_low  = &overlay_eightway_dpad_slope_low;
+         break;
+
+      case OVERLAY_TYPE_ABXY_AREA:
+         eightway->up           = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_X;
+         eightway->down         = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_B;
+         eightway->left         = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_Y;
+         eightway->right        = UINT64_C(1)<<RETRO_DEVICE_ID_JOYPAD_A;
+
+         eightway->p_slope_high = &overlay_eightway_abxy_slope_high;
+         eightway->p_slope_low  = &overlay_eightway_abxy_slope_low;
+         break;
+
+      default:
+         free(eightway);
+         desc->eightway_vals = NULL;
+         return;
    }
 
-   /* redefined vals can be specified in config file */
+   /* Redefine eightway vals if specified in conf
+    */
    snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_up", ol_idx, desc_idx);
    if (config_get_string(ol_conf, conf_key, &str))
    {
-      vals->up = 0;
+      eightway->up = 0;
       for (tok = strtok_r(str, "|", &save); tok; tok = strtok_r(NULL, "|", &save))
-         vals->up |= UINT64_C(1) << input_translate_str_to_bind_id(tok);
+         eightway->up |= UINT64_C(1) << input_translate_str_to_bind_id(tok);
       free(str);
    }
    
    snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_down", ol_idx, desc_idx);
    if (config_get_string(ol_conf, conf_key, &str))
    {
-      vals->down = 0;
+      eightway->down = 0;
       for (tok = strtok_r(str, "|", &save); tok; tok = strtok_r(NULL, "|", &save))
-         vals->down |= UINT64_C(1) << input_translate_str_to_bind_id(tok);
+         eightway->down |= UINT64_C(1) << input_translate_str_to_bind_id(tok);
       free(str);
    }
 
    snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_right", ol_idx, desc_idx);
    if (config_get_string(ol_conf, conf_key, &str))
    {
-      vals->right = 0;
+      eightway->right = 0;
       for (tok = strtok_r(str, "|", &save); tok; tok = strtok_r(NULL, "|", &save))
-         vals->right |= UINT64_C(1) << input_translate_str_to_bind_id(tok);
+         eightway->right |= UINT64_C(1) << input_translate_str_to_bind_id(tok);
       free(str);
    }
    
    snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_left", ol_idx, desc_idx);
    if (config_get_string(ol_conf, conf_key, &str))
    {
-      vals->left = 0;
+      eightway->left = 0;
       for (tok = strtok_r(str, "|", &save); tok; tok = strtok_r(NULL, "|", &save))
-         vals->left |= UINT64_C(1) << input_translate_str_to_bind_id(tok);
+         eightway->left |= UINT64_C(1) << input_translate_str_to_bind_id(tok);
       free(str);
    }
 
-   vals->up_left = vals->up | vals->left;
-   vals->up_right = vals->up | vals->right;
-   vals->down_left = vals->down | vals->left;
-   vals->down_right = vals->down | vals->right;
+   /* Prepopulate diagonals
+    */
+   eightway->up_left    = eightway->up   | eightway->left;
+   eightway->up_right   = eightway->up   | eightway->right;
+   eightway->down_left  = eightway->down | eightway->left;
+   eightway->down_right = eightway->down | eightway->right;
 }
 
 static void input_overlay_set_vertex_geom(input_overlay_t *ol)
@@ -731,6 +745,12 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
       case KEY_ANALOG_RIGHT:
          desc->type = OVERLAY_TYPE_ANALOG_RIGHT;
          break;
+      case KEY_DPAD_AREA:
+         desc->type = OVERLAY_TYPE_DPAD_AREA;
+         break;
+      case KEY_ABXY_AREA:
+         desc->type = OVERLAY_TYPE_ABXY_AREA;
+         break;
       default:
          if (strstr(key, "retrok_") == key)
          {
@@ -813,7 +833,7 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
          /* OVERLAY_TYPE_KEYBOARD - unhandled */
          break;
    }
-   
+
    desc->range_x_orig = (float)strtod(list->elems[4].data, NULL) * width_mod;
    desc->range_y_orig = (float)strtod(list->elems[5].data, NULL) * height_mod;
    desc->range_x = desc->range_x_orig;
@@ -821,8 +841,6 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
 
    snprintf(conf_key, sizeof(conf_key),
          "overlay%u_desc%u_exclusive", ol_idx, desc_idx);
-   /* Default meta keys to exclusive */
-   desc->exclusive = (desc->key_mask & META_KEY_MASK);
    config_get_bool(ol->conf, conf_key, &desc->exclusive);
 
    snprintf(conf_key, sizeof(conf_key),
@@ -834,40 +852,68 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
          "overlay%u_desc%u_range_mod", ol_idx, desc_idx);
    desc->range_mod = range_mod;
    config_get_float(ol->conf, conf_key, &desc->range_mod);
-   
+
    snprintf(conf_key, sizeof(conf_key),
          "overlay%u_desc%u_range_mod_exclusive", ol_idx, desc_idx);
    desc->range_mod_exclusive = false;
    config_get_bool(ol->conf, conf_key, &desc->range_mod_exclusive);
-   
-   snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_reach_right", ol_idx, desc_idx);
+
+   snprintf(conf_key, sizeof(conf_key),
+         "overlay%u_desc%u_reach_right", ol_idx, desc_idx);
    desc->reach_right = 1.0f;
    config_get_float(ol->conf, conf_key, &desc->reach_right);
-   
-   snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_reach_left", ol_idx, desc_idx);
+
+   snprintf(conf_key, sizeof(conf_key),
+         "overlay%u_desc%u_reach_left", ol_idx, desc_idx);
    desc->reach_left = 1.0f;
    config_get_float(ol->conf, conf_key, &desc->reach_left);
-   
-   snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_reach_up", ol_idx, desc_idx);
+
+   snprintf(conf_key, sizeof(conf_key),
+         "overlay%u_desc%u_reach_up", ol_idx, desc_idx);
    desc->reach_up = 1.0f;
    config_get_float(ol->conf, conf_key, &desc->reach_up);
-   
-   snprintf(conf_key, sizeof(conf_key), "overlay%u_desc%u_reach_down", ol_idx, desc_idx);
+
+   snprintf(conf_key, sizeof(conf_key),
+         "overlay%u_desc%u_reach_down", ol_idx, desc_idx);
    desc->reach_down = 1.0f;
    config_get_float(ol->conf, conf_key, &desc->reach_down);
 
+   snprintf(conf_key, sizeof(conf_key),
+         "overlay%u_desc%u_reach_x", ol_idx, desc_idx);
+   if (config_get_float(ol->conf, conf_key, &desc->reach_right))
+      desc->reach_left = desc->reach_right;
+
+   snprintf(conf_key, sizeof(conf_key),
+         "overlay%u_desc%u_reach_y", ol_idx, desc_idx);
+   if (config_get_float(ol->conf, conf_key, &desc->reach_up))
+      desc->reach_down = desc->reach_up;
+
+   snprintf(conf_key, sizeof(conf_key),
+         "overlay%u_desc%u_reach", ol_idx, desc_idx);
+   if (config_get_float(ol->conf, conf_key, &desc->reach_up))
+   {
+      desc->reach_down  = desc->reach_up;
+      desc->reach_left  = desc->reach_up;
+      desc->reach_right = desc->reach_up;
+   }
+
+   if ((desc->reach_right == 0.0f && desc->reach_left == 0.0f) ||
+       (desc->reach_up    == 0.0f && desc->reach_down == 0.0f))
+      desc->hitbox = OVERLAY_HITBOX_NONE;
+
    input_overlay_desc_init_imagebox(desc);
    input_overlay_desc_init_hitbox(desc);
-   
+
    snprintf(conf_key, sizeof(conf_key),
          "overlay%u_desc%u_movable", ol_idx, desc_idx);
    desc->movable = false;
    desc->delta_x = 0.0f;
    desc->delta_y = 0.0f;
    config_get_bool(ol->conf, conf_key, &desc->movable);
-   
-   if ((desc->key_mask & MULTIBUTTON_AREA_MASK) != 0)
-      input_overlay_desc_populate_eightway_vals(ol->conf, desc, ol_idx, desc_idx);
+
+   if (desc->type == OVERLAY_TYPE_DPAD_AREA
+         || desc->type == OVERLAY_TYPE_ABXY_AREA)
+      input_overlay_desc_populate_eightway(ol->conf, desc, ol_idx, desc_idx);
 
    /* show keyboard overlay choice in menu */
    if (desc->key_mask & (UINT64_C(1) << RARCH_OSK))
@@ -1271,7 +1317,8 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    bool generic = false;
 
    if (overlay_lightgun_active)
-   {  /* Reconnect previous device */
+   {
+      /* Reconnect previous device */
       if (old_port < global->system.num_ports)
          pretro_set_controller_port_device(
                old_port, settings->input.libretro_device[old_port]);
@@ -1300,7 +1347,8 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
                break;
       }
       else for (port = 0; port < global->system.num_ports; port++)
-      {  /* Otherwise, connect the first lightgun device found in this core. */
+      {
+         /* Otherwise, connect the first lightgun device found in this core. */
          rci = global->system.ports[port];
          for (i = 0; i < rci.num_types; i++)
          {
@@ -1316,7 +1364,8 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
       }
 
       if (!overlay_lightgun_active)
-      {  /* Fall back to generic lightgun */
+      {
+         /* Fall back to generic lightgun */
          port = 0;
          overlay_lightgun_active = true;
          generic = true;
@@ -1348,12 +1397,16 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
 static void input_overlay_update_mouse_scale()
 {
    struct retro_system_av_info* av_info = video_viewport_get_system_av_info();
-   float content_aspect, adj_x, adj_y;
+   unsigned disp_width, disp_height;
+   float disp_aspect, content_aspect, adj_x, adj_y;
 
    if (av_info)
    {
       const struct retro_game_geometry *geom =
          (const struct retro_game_geometry*)&av_info->geometry;
+
+      video_driver_get_size(&disp_width, &disp_height);
+      disp_aspect = (float)disp_width / disp_height;
 
       content_aspect = (float)geom->base_width / geom->base_height;
 
@@ -1531,15 +1584,54 @@ void input_overlay_enable(input_overlay_t *ol, bool enable)
 }
 
 /**
+ * input_overlay_get_analog_state:
+ * @out : Current overlay input state for this pointer.
+ * @desc : Overlay descriptor handle.
+ * @base : Analog index base into @out->analog
+ * @x : X coordinate value.
+ * @y : Y coordinate value.
+ * @scale_w : Overlay width scaling factor (0,1]
+ * @scale_h : Overlay height scaling factor (0,1]
+ * 
+ * Gets the analog area's current input state based on @x and @y.
+ */
+static INLINE void input_overlay_get_analog_state(
+      input_overlay_state_t *out,
+      struct overlay_desc *desc,
+      const unsigned base, const float x, const float y,
+      const float scale_w, const float scale_h)
+{
+   float x_dist    = x - desc->x;
+   float y_dist    = y - desc->y;
+   float x_val     = x_dist / desc->range_x;
+   float y_val     = y_dist / desc->range_y;
+   float x_val_sat = x_val  / desc->analog_saturate_pct;
+   float y_val_sat = y_val  / desc->analog_saturate_pct;
+
+   out->analog[base + 0] =
+         clamp_float(x_val_sat, -1.0f, 1.0f) * 32767.0f;
+   out->analog[base + 1] =
+         clamp_float(y_val_sat, -1.0f, 1.0f) * 32767.0f;
+
+   if (desc->movable)
+   {
+      desc->delta_x = 
+            clamp_float(x_dist, -desc->range_x, desc->range_x) * scale_w;
+      desc->delta_y =
+            clamp_float(y_dist, -desc->range_y, desc->range_y) * scale_h;
+   }
+}
+
+/**
  * eightway_direction
  * @param vals for an eight-way area descriptor
  * @param x_offset relative to 8-way center, normalized as fraction of screen height
  * @param y_offset relative to 8-way center, normalized as fraction of screen height
  * @return input state representing the offset direction as @vals
  */
-static INLINE uint64_t eightway_direction(const struct overlay_eightway_vals* vals,
-                                          float x_offset,
-                                          const float y_offset)
+static INLINE uint64_t eightway_direction(
+      const struct overlay_eightway_vals* vals,
+      float x_offset, const float y_offset)
 {
    if (x_offset == 0.0f)
      x_offset = 0.000001f;
@@ -1705,35 +1797,37 @@ static INLINE uint64_t eightway_ellipse_coverage(const struct overlay_eightway_v
 }
 
 /**
- * eightway_state:
- * @desc_ptr              : Overlay descriptor handle.
- * @type                  : DPAD_AREA or ABXY_AREA
- * @x                     : X coordinate value.
- * @y                     : Y coordinate value.
+ * input_overlay_get_eightway_state:
+ * @out : Current overlay input state for @ptr_idx
+ * @desc : Overlay descriptor handle.
+ * @ptr_idx : Pointer index.
+ * @x : X coordinate value.
+ * @y : Y coordinate value.
  *
- * Returns the low level input state based on @x, @y, and ellipse_px values.
+ * Gets the eightway area's current input state based on @x, @y,
+ * and ellipse_px values.
  **/
-static INLINE uint64_t eightway_state(const struct overlay_desc *desc_ptr,
-                                      unsigned area_type,
-                                      const uint8_t ptr_idx,
-                                      const float x, const float y)
+static INLINE void input_overlay_get_eightway_state(
+      input_overlay_state_t *out,
+      const struct overlay_desc *desc,
+      const uint8_t ptr_idx, const float x, const float y)
 {
    settings_t* settings = config_get_ptr();
-   uint64_t state = 0;
-   const struct overlay_eightway_vals* vals = desc_ptr->eightway_vals;
-   
-   float x_offset = (x - desc_ptr->x) * disp_aspect;
-   float y_offset = (desc_ptr->y - y);
-   unsigned method = area_type < ABXY_AREA ?
-         settings->input.overlay_dpad_method : settings->input.overlay_abxy_method;
+   const struct overlay_eightway_vals* eightway = desc->eightway_vals;
+
+   float x_offset = (x - desc->x) / desc->range_x;
+   float y_offset = (desc->y - y) / desc->range_y;
+
+   unsigned method = desc->type == OVERLAY_TYPE_DPAD_AREA ?
+         settings->input.overlay_dpad_method
+         : settings->input.overlay_abxy_method;
    
    if (method != TOUCH_AREA)
-      state |= eightway_direction(vals, x_offset, y_offset);
+      out->buttons |= eightway_direction(eightway, x_offset, y_offset);
    
    if (method != VECTOR)
-      state |= eightway_ellipse_coverage(vals, ptr_idx, x_offset, y_offset);
-   
-   return state;
+      out->buttons |= eightway_ellipse_coverage(
+            eightway, ptr_idx, x_offset, y_offset);
 }
 
 /**
@@ -1766,6 +1860,9 @@ static bool inside_hitbox(const struct overlay_desc *desc, float x, float y)
       case OVERLAY_HITBOX_RECT:
          return (fabs(x - desc->x_hitbox) <= desc->range_x_mod) &&
             (fabs(y - desc->y_hitbox) <= desc->range_y_mod);
+
+      case OVERLAY_HITBOX_NONE:
+         return false;
    }
 
    return false;
@@ -1793,7 +1890,7 @@ static INLINE bool input_overlay_poll_descs(
    size_t i, j;
    float x, y;
    struct overlay_desc *descs = ol->active->descs;
-   bool exclusive_desc_hit    = false;
+   unsigned int highest_prio  = 0;
    bool any_desc_hit          = false;
 
    memset(out, 0, sizeof(*out));
@@ -1816,64 +1913,60 @@ static INLINE bool input_overlay_poll_descs(
    x /= ol->active->scale_w;
    y /= ol->active->scale_h;
 
-   for (i = 0; i < ol->active->size && !exclusive_desc_hit; i++)
+   for (i = 0; i < ol->active->size; i++)
    {
+      unsigned int base         = 0;
+      unsigned int desc_prio    = 0;
       struct overlay_desc *desc = &descs[i];
 
       if (!inside_hitbox(desc, x, y))
          continue;
 
-      any_desc_hit = true;
+      /* Check for exclusive hitbox, which blocks other input.
+       * range_mod_exclusive has priority over exclusive. */
+      if (desc->range_mod_exclusive
+            && desc->range_x_mod != desc->range_x_hitbox)
+         desc_prio = 2;
+      else if (desc->exclusive)
+         desc_prio = 1;
 
-      if (desc->exclusive
-          || (desc->range_mod_exclusive &&
-              desc->range_x_mod > desc->range_x_hitbox))
+      if (highest_prio > desc_prio)
+         continue;
+
+      if (desc_prio > highest_prio)
       {
-         exclusive_desc_hit = true;
+         highest_prio = desc_prio;
          memset(out, 0, sizeof(*out));
          for (j = 0; j < i; j++)
             BIT16_CLEAR(descs[j].updated, ptr_idx);
       }
 
+      any_desc_hit = true;
       BIT16_SET(desc->updated, ptr_idx);
 
-      if (desc->type == OVERLAY_TYPE_BUTTONS)
+      switch(desc->type)
       {
-         out->buttons |= desc->key_mask;
+         case OVERLAY_TYPE_BUTTONS:
+            out->buttons |= desc->key_mask;
 
-         if (BIT64_GET(desc->key_mask, RARCH_JOYPAD_DPAD_AREA))
-            out->buttons |= eightway_state(desc, DPAD_AREA, ptr_idx, x, y);
-         else if (BIT64_GET(desc->key_mask, RARCH_JOYPAD_ABXY_AREA))
-            out->buttons |= eightway_state(desc, ABXY_AREA, ptr_idx, x, y);
-         else if (BIT64_GET(desc->key_mask, RARCH_OVERLAY_NEXT))
-            ol->next_index = desc->next_index;
-      }
-      else if (desc->type == OVERLAY_TYPE_KEYBOARD)
-      {
-         if (desc->key_mask < RETROK_LAST)
-            OVERLAY_SET_KEY(out, desc->key_mask);
-      }
-      else
-      {
-         float x_dist    = x - desc->x;
-         float y_dist    = y - desc->y;
-         float x_val     = x_dist / desc->range_x;
-         float y_val     = y_dist / desc->range_y;
-         float x_val_sat = x_val / desc->analog_saturate_pct;
-         float y_val_sat = y_val / desc->analog_saturate_pct;
-
-         unsigned int base = (desc->type == OVERLAY_TYPE_ANALOG_RIGHT) ? 2 : 0;
-
-         out->analog[base + 0] = clamp_float(x_val_sat, -1.0f, 1.0f) * 32767.0f;
-         out->analog[base + 1] = clamp_float(y_val_sat, -1.0f, 1.0f) * 32767.0f;
-
-         if (desc->movable)
-         {
-            desc->delta_x = clamp_float(x_dist, -desc->range_x, desc->range_x)
-               * ol->active->scale_w;
-            desc->delta_y = clamp_float(y_dist, -desc->range_y, desc->range_y)
-               * ol->active->scale_h;
-         }
+            if (BIT64_GET(desc->key_mask, RARCH_OVERLAY_NEXT))
+               ol->next_index = desc->next_index;
+            break;
+         case OVERLAY_TYPE_DPAD_AREA:
+         case OVERLAY_TYPE_ABXY_AREA:
+            input_overlay_get_eightway_state(out, desc, ptr_idx, x, y);
+            break;
+         case OVERLAY_TYPE_KEYBOARD:
+            if (desc->key_mask < RETROK_LAST)
+               OVERLAY_SET_KEY(out, desc->key_mask);
+            break;
+         case OVERLAY_TYPE_ANALOG_RIGHT:
+               base = 2;
+               /* fall-through */
+         case OVERLAY_TYPE_ANALOG_LEFT:
+            input_overlay_get_analog_state(out, desc, base, x, y,
+                  ol->active->scale_w, ol->active->scale_h);
+            break;
       }
    }
 
@@ -1899,13 +1992,15 @@ static INLINE void input_overlay_poll_mouse()
    if (state->ptr_count != old_state->ptr_count)
    {
       if (state->ptr_count)
-      {  /* relocate main pointer */
+      {
+         /* relocate main pointer */
          ol_mouse.prev_x = x_start = state->ptr_x;
          ol_mouse.prev_y = y_start = state->ptr_y;
       }
 
       if (state->ptr_count > old_state->ptr_count)
-      {  /* pointer added */
+      {
+         /* pointer added */
          peak_ptr_count = max(state->ptr_count, peak_ptr_count);
          start_usec     = now_usec;
       }
@@ -1968,14 +2063,46 @@ static void input_overlay_update_desc_geom(input_overlay_t *ol,
 }
 
 /**
+ * input_overlay_desc_active:
+ * @desc : overlay descriptor handle
+ * @state : polled input state
+ *
+ * @return true if range_mod and alpha_mod should be applied to @desc
+ */
+static INLINE bool input_overlay_desc_active(struct overlay_desc *desc,
+      input_overlay_state_t *state)
+{
+   size_t base = 0;
+
+   switch(desc->type)
+   {
+      case OVERLAY_TYPE_BUTTONS:
+         return (desc->updated != 0
+                 || ((state->buttons & desc->key_mask & ~META_KEY_MASK)
+                       == desc->key_mask && desc->key_mask != 0));
+      case OVERLAY_TYPE_ANALOG_RIGHT:
+            base = 2;
+            /* fall-through */
+      case OVERLAY_TYPE_ANALOG_LEFT:
+         return (desc->updated != 0
+                 || state->analog[base + 0] != 0.0f
+                 || state->analog[base + 1] != 0.0f);
+      default:
+         return desc->updated != 0;
+   }
+}
+
+/**
  * input_overlay_post_poll:
  * @ol                    : overlay handle
+ * @state                 : polled input state
  *
  * Called after all the input_overlay_poll() calls to
  * update the range modifiers for pressed/unpressed regions
  * and alpha mods.
  **/
-static INLINE void input_overlay_post_poll(input_overlay_t *ol)
+static INLINE void input_overlay_post_poll(input_overlay_t *ol,
+      input_overlay_state_t *state)
 {
    size_t i;
 
@@ -1991,7 +2118,7 @@ static INLINE void input_overlay_post_poll(input_overlay_t *ol)
       if (!desc)
          continue;
 
-      if (desc->updated)
+      if (input_overlay_desc_active(desc, state))
       {
          float opacity = driver_get_ptr()->osk_enable ?
                config_get_ptr()->input.osk_opacity :
@@ -2045,8 +2172,6 @@ static INLINE void input_overlay_poll_clear(input_overlay_t *ol)
       desc->range_y_mod = desc->range_y_hitbox;
       desc->updated = 0;
 
-      desc->delta_x = 0.0f;
-      desc->delta_y = 0.0f;
       input_overlay_update_desc_geom(ol, desc);
    }
    
@@ -2128,7 +2253,8 @@ void input_overlay_poll(input_overlay_t *overlay_device)
       }
       else if ((overlay_lightgun_active || overlay_mouse_active)
                   && !overlay_device->blocked)
-      {  /* Assume mouse or lightgun pointer if all descriptors were missed */
+      {
+         /* Assume mouse or lightgun pointer if all descriptors were missed */
          if (!state->ptr_count)
          {
             ptr_device = overlay_lightgun_active ?
@@ -2203,7 +2329,7 @@ void input_overlay_poll(input_overlay_t *overlay_device)
                                                state->analog[1]);
 
    if (input_count)
-      input_overlay_post_poll(overlay_device);
+      input_overlay_post_poll(overlay_device, state);
    else
       input_overlay_poll_clear(overlay_device);
 

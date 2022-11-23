@@ -74,8 +74,6 @@
 #define RETRO_LBL_LIGHTGUN_AUX_A "Lightgun Aux A"
 #define RETRO_LBL_LIGHTGUN_AUX_B "Lightgun Aux B"
 #define RETRO_LBL_LIGHTGUN_AUX_C "Lightgun Aux C"
-#define RETRO_LBL_DPAD_AREA "D-Pad Area"
-#define RETRO_LBL_ABXY_AREA "ABXY Area"
 #define RETRO_LBL_ENABLE_HOTKEY "Enable Hotkey"
 #define RETRO_LBL_VOLUME_UP "Volume Up"
 #define RETRO_LBL_VOLUME_DOWN "Volume Down"

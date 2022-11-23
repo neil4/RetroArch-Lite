@@ -1495,50 +1495,6 @@ int rarch_defer_core(core_info_list_t *core_info, const char *dir,
    return -1;
 }
 
-/**
- * rarch_replace_config:
- * @path                 : Path to config file to replace
- *                         current config file with.
- *
- * Replaces currently loaded configuration file with
- * another one. Will load a dummy core to flush state
- * properly.
- *
- * Quite intrusive and error prone.
- * Likely to have lots of small bugs.
- * Cleanly exit the main loop to ensure that all the tiny details
- * get set properly.
- *
- * This should mitigate most of the smaller bugs.
- *
- * Returns: true (1) if successful, false (0) if @path was the
- * same as the current config file.
- **/
-
-bool rarch_replace_config(const char *path)
-{
-   settings_t *settings = config_get_ptr();
-   global_t   *global   = global_get_ptr();
-
-   /* If config file to be replaced is the same as the
-    * current config file, exit. */
-   if (!strcmp(path, global->config_path))
-      return false;
-
-   if (settings->config_save_on_exit && *global->config_path)
-      main_config_file_save(global->config_path);
-
-      strlcpy(global->config_path, path, sizeof(global->config_path));
-   global->block_config_read = false;
-   *settings->libretro = '\0'; /* Load core in new config. */
-   *settings->core_content_directory = '\0';
-   *global->libretro_name = '\0';
-
-   event_command(EVENT_CMD_PREPARE_DUMMY);
-
-   return true;
-}
-
 void rarch_update_configs()
 {
    settings_t *settings = config_get_ptr();

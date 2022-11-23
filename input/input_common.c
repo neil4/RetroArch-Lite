@@ -78,9 +78,6 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
       DECLARE_BIND(lightgun_aux_b,   RARCH_LIGHTGUN_AUX_B, "Lightgun aux B"),
       DECLARE_BIND(lightgun_aux_c,   RARCH_LIGHTGUN_AUX_C, "Lightgun aux C"),
 
-      DECLARE_BIND(dpad_area, RARCH_JOYPAD_DPAD_AREA, "D-pad area"),
-      DECLARE_BIND(abxy_area, RARCH_JOYPAD_ABXY_AREA, "ABXY area"),
-
       DECLARE_META_BIND(2, toggle_keyboard_focus, RARCH_TOGGLE_KEYBOARD_FOCUS, "Keyboard Focus toggle"),
       DECLARE_META_BIND(2, enable_hotkey,         RARCH_ENABLE_HOTKEY, "Hotkeys enable hold"),
       DECLARE_META_BIND(1, toggle_fast_forward,   RARCH_FAST_FORWARD_KEY, "Fast forward toggle"),
@@ -107,7 +104,7 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
       DECLARE_META_BIND(2, slowmotion,            RARCH_SLOWMOTION, "Slow motion"),
       DECLARE_META_BIND(2, volume_up,             RARCH_VOLUME_UP, "Volume +"),
       DECLARE_META_BIND(2, volume_down,           RARCH_VOLUME_DOWN, "Volume -"),
-      DECLARE_META_BIND(2, overlay_next,          RARCH_OVERLAY_NEXT, "Overlay next"),
+      DECLARE_META_BIND(0, overlay_next,          RARCH_OVERLAY_NEXT, "Overlay next"),
       DECLARE_META_BIND(2, disk_eject_toggle,     RARCH_DISK_EJECT_TOGGLE, "Disc eject toggle"),
       DECLARE_META_BIND(2, disk_next,             RARCH_DISK_NEXT, "Disc next"),
       DECLARE_META_BIND(2, disk_prev,             RARCH_DISK_NEXT, "Disc prev"),

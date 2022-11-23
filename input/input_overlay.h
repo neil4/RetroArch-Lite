@@ -45,13 +45,6 @@ extern "C" {
  * for the overlay interface.
  */
 
-enum overlay_eightway_type
-{
-   DPAD_AREA = 0,
-   ABXY_AREA,
-   NUM_EIGHT_WAY_TYPES
-};
-
 struct overlay_eightway_vals
 {
    uint64_t up;
@@ -113,7 +106,8 @@ typedef struct video_overlay_interface
 enum overlay_hitbox
 {
    OVERLAY_HITBOX_RADIAL = 0,
-   OVERLAY_HITBOX_RECT
+   OVERLAY_HITBOX_RECT,
+   OVERLAY_HITBOX_NONE
 };
 
 enum overlay_type
@@ -121,6 +115,8 @@ enum overlay_type
    OVERLAY_TYPE_BUTTONS = 0,
    OVERLAY_TYPE_ANALOG_LEFT,
    OVERLAY_TYPE_ANALOG_RIGHT,
+   OVERLAY_TYPE_DPAD_AREA,
+   OVERLAY_TYPE_ABXY_AREA,
    OVERLAY_TYPE_KEYBOARD
 };
 
@@ -154,18 +150,25 @@ struct overlay_desc
    float x_orig, y_orig;
    float x_hitbox, y_hitbox;
 
-   float range_x, range_y;  /* for image and analog input */
+   /* Range for image and analog input */
+   float range_x, range_y;
    float range_x_orig, range_y_orig;
 
+   /* These stretch range_x/y to create range_x/y_hitbox */
    float reach_right, reach_left, reach_up, reach_down;
-   float range_x_hitbox, range_y_hitbox;  /* initial hitbox range */
+   float range_x_hitbox, range_y_hitbox;
 
+   /* Multiplies range_x/y_hitbox to create range_x/y_mod */
    float range_mod;
-   float range_x_mod, range_y_mod;  /* extended hitbox range */
+   float range_x_mod, range_y_mod;
 
    enum overlay_hitbox hitbox;
-   bool exclusive;            /* disallow other input in hitbox */
-   bool range_mod_exclusive;  /* disallow other input in extended hitbox */
+   /* If true, blocks input from overlapped hitboxes */
+   bool exclusive;
+   /* Similar, but only applies after range_mod takes effect */
+   bool range_mod_exclusive;
+
+   /* Nonzero if pressed. One bit per input pointer */
    uint16_t updated;
 
    enum overlay_type type;
