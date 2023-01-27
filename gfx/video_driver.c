@@ -1123,12 +1123,6 @@ bool video_monitor_fps_statistics(double *refresh_rate,
  *
  **/
 
-#ifdef _WIN32
-#define U64_SIGN "%I64u"
-#else
-#define U64_SIGN "%llu"
-#endif
-
 bool video_state_increment_frame()
 {
    static retro_time_t prev_frame_us;
@@ -1186,17 +1180,17 @@ bool video_monitor_get_fps(char *buf, size_t size,
 
    if ((video_state.frame_count % FPS_UPDATE_INTERVAL) == 0)
    {
-      snprintf(buf, size, "%s || FPS: %6.1f || Frames: " U64_SIGN,
+      snprintf(buf, size, "%s || FPS: %6.1f || Frames: " U64_FMT,
             global->title_buf, video_state.fps,
-            (unsigned long long)video_state.frame_count);
+            (uint64_t)video_state.frame_count);
       ret = true;
    }
 
    if (buf_fps)
    {
       if (settings->video.fullscreen)
-         snprintf(buf_fps, size_fps, "FPS: %.1f\nFrames: " U64_SIGN,
-               video_state.fps, (unsigned long long)video_state.frame_count);
+         snprintf(buf_fps, size_fps, "FPS: %.1f\nFrames: " U64_FMT,
+               video_state.fps, (uint64_t)video_state.frame_count);
       else
          snprintf(buf_fps, size_fps, "FPS: %.1f", video_state.fps);
    }

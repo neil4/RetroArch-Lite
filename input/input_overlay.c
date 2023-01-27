@@ -2509,8 +2509,7 @@ int16_t input_overlay_state(unsigned port, unsigned device_base,
                   base = 2;
                if (id == RETRO_DEVICE_ID_ANALOG_Y)
                   base += 1;
-               if (driver->overlay_state.analog[base])
-                  res = driver->overlay_state.analog[base];
+               res = driver->overlay_state.analog[base];
             }
             break;
       }

@@ -787,11 +787,7 @@ void config_set_hex(config_file_t *conf, const char *key, unsigned val)
 void config_set_uint64(config_file_t *conf, const char *key, uint64_t val)
 {
    char buf[128];
-#ifdef _WIN32
-   snprintf(buf, sizeof(buf), "%I64u", val);
-#else
-   snprintf(buf, sizeof(buf), "%llu", (long long unsigned)val);
-#endif
+   snprintf(buf, sizeof(buf), U64_FMT, val);
    config_set_string(conf, key, buf);
 }
 

@@ -238,6 +238,9 @@ static void *aligned_alloc__(size_t boundary, size_t size)
 
 static void aligned_free__(void *ptr)
 {
+   if (!ptr)
+      return;
+
    void **p = (void**)ptr;
    free(p[-1]);
 }

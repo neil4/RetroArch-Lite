@@ -135,8 +135,6 @@ void input_joykbd_update_enabled()
    settings_t *settings = config_get_ptr();
    int p;
 
-   joykbd_enabled = false;
-
    for (p = 0; p < settings->input.max_users; p++)
    {
       if ((RETRO_DEVICE_MASK & settings->input.libretro_device[p])
@@ -146,6 +144,8 @@ void input_joykbd_update_enabled()
          return;
       }
    }
+
+   joykbd_enabled = false;
 }
 
 void input_joykbd_init_binds()

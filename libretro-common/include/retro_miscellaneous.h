@@ -54,6 +54,9 @@ typedef unsigned int        uint;
 #include <retro_inline.h>
 #include <retro_endianness.h>
 #include <limits.h>
+#include <inttypes.h>
+
+#define U64_FMT "%" PRIu64
 
 #ifndef PATH_MAX_LENGTH
 #define PATH_MAX_LENGTH 4096

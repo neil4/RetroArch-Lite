@@ -27,11 +27,7 @@
 extern "C" {
 #endif
 
-#ifdef _WIN32
-#define PERF_LOG_FMT "[PERF]: Avg (%s): %I64u ticks, %I64u runs.\n"
-#else
-#define PERF_LOG_FMT "[PERF]: Avg (%s): %llu ticks, %llu runs.\n"
-#endif
+#define PERF_LOG_FMT "[PERF]: Avg (%s): " U64_FMT " ticks, " U64_FMT " runs.\n"
 
 /* Used internally by RetroArch. */
 #define RARCH_PERFORMANCE_INIT(X) \

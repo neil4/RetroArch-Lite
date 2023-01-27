@@ -71,13 +71,13 @@ void menu_display_fb_unset_dirty(void)
 static INLINE void menu_display_retro_run(driver_t *driver)
 {
 #ifdef HAVE_NETPLAY
-         if (driver->netplay_data)
-            netplay_pre_frame((netplay_t*)driver->netplay_data);
+   if (driver->netplay_data)
+      netplay_pre_frame((netplay_t*)driver->netplay_data);
 #endif
-         pretro_run();
+   pretro_run();
 #ifdef HAVE_NETPLAY
-         if (driver->netplay_data)
-            netplay_post_frame((netplay_t*)driver->netplay_data);
+   if (driver->netplay_data)
+      netplay_post_frame((netplay_t*)driver->netplay_data);
 #endif
 }
 
