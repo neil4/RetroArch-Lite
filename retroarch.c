@@ -1206,8 +1206,8 @@ int rarch_main_init(int argc, char *argv[])
    event_command(EVENT_CMD_CONTROLLERS_INIT);
    event_command(EVENT_CMD_RECORD_INIT);
    event_command(EVENT_CMD_CHEATS_INIT);
-
    event_command(EVENT_CMD_SAVEFILES_INIT);
+   event_command(EVENT_CMD_PREEMPT_UPDATE);
 #if defined(GEKKO) && defined(HW_RVL)
    {
       settings_t *settings = config_get_ptr();
@@ -1373,6 +1373,10 @@ void rarch_main_set_state(unsigned cmd)
                input_driver_keyboard_mapping_set_block(true);
          }
          video_driver_set_texture_enable(false, false);
+
+         /* Preemptive Frames isn't run behind the menu,
+          * so its savestate buffer is out of date. */
+         event_command(EVENT_CMD_PREEMPT_RESET_BUFFER);
          break;
       case RARCH_ACTION_STATE_QUIT:
          if (global)

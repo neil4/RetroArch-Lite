@@ -698,6 +698,9 @@ bool audio_driver_flush(const int16_t *data, size_t samples)
  **/
 void audio_driver_sample(int16_t left, int16_t right)
 {
+   if (driver_get_ptr()->audio_suspended)
+      return;
+
    audio_data.conv_outsamples[audio_data.data_ptr++] = left;
    audio_data.conv_outsamples[audio_data.data_ptr++] = right;
 
@@ -721,6 +724,9 @@ void audio_driver_sample(int16_t left, int16_t right)
  **/
 size_t audio_driver_sample_batch(const int16_t *data, size_t frames)
 {
+   if (driver_get_ptr()->audio_suspended)
+      return frames;
+
    if (frames > (AUDIO_CHUNK_SIZE_NONBLOCKING >> 1))
       frames = AUDIO_CHUNK_SIZE_NONBLOCKING >> 1;
 

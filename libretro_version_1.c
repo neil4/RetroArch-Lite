@@ -344,9 +344,6 @@ void retro_init_libretro_cbs(void *data)
 #endif
    if (driver->preempt_data)
    {
-      pretro_set_video_refresh(video_frame_preempt);
-      pretro_set_audio_sample(audio_sample_preempt);
-      pretro_set_audio_sample_batch(audio_sample_batch_preempt);
       pretro_set_input_poll(input_poll_preempt);
       pretro_set_input_state(input_state_preempt);
    }

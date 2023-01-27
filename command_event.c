@@ -595,7 +595,6 @@ static bool event_init_content(void)
 
    event_load_auto_state();
    event_command(EVENT_CMD_NETPLAY_INIT);
-   event_command(EVENT_CMD_PREEMPT_FRAMES_UPDATE);
 
    return true;
 }
@@ -846,9 +845,7 @@ bool event_command(enum event_command cmd)
             netplay_disconnect();
          else
 #endif
-         if (driver->preempt_data &&
-                !preempt_reset_buffer(driver->preempt_data))
-            deinit_preempt();
+         preempt_reset_buffer(driver->preempt_data);
          break;
       case EVENT_CMD_RESIZE_WINDOWED_SCALE:
          if (global->pending.windowed_scale == 0)
@@ -889,9 +886,7 @@ bool event_command(enum event_command cmd)
             netplay_disconnect();
          else
 #endif
-         if (driver->preempt_data &&
-                !preempt_reset_buffer(driver->preempt_data))
-            deinit_preempt();
+         preempt_reset_buffer(driver->preempt_data);
          break;
       case EVENT_CMD_SAVE_STATE:
          if (settings->savestate_auto_index)
@@ -1413,8 +1408,13 @@ bool event_command(enum event_command cmd)
          }
 #endif
          break;
-      case EVENT_CMD_PREEMPT_FRAMES_UPDATE:
-         update_preempt_frames();
+      case EVENT_CMD_PREEMPT_UPDATE:
+         preempt_deinit();
+         if (!preempt_init())
+            return false;
+         break;
+      case EVENT_CMD_PREEMPT_RESET_BUFFER:
+         preempt_reset_buffer(driver->preempt_data);
          break;
       case EVENT_CMD_FULLSCREEN_TOGGLE:
          if (!video_driver_has_windowed())

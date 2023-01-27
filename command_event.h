@@ -160,7 +160,10 @@ enum event_command
    EVENT_CMD_NETPLAY_TOGGLE,
    /* Flip netplay players. */
    EVENT_CMD_NETPLAY_FLIP_PLAYERS,
-   EVENT_CMD_PREEMPT_FRAMES_UPDATE,
+   /* Deinits/Reinits Preemptive Frames as needed. */
+   EVENT_CMD_PREEMPT_UPDATE,
+   /* Force Preemptive Frames to refill its state buffer. */
+   EVENT_CMD_PREEMPT_RESET_BUFFER,
    /* Initializes command interface. */
    EVENT_CMD_COMMAND_INIT,
    /* Deinitialize command interface. */

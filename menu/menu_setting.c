@@ -6022,7 +6022,7 @@ static bool setting_append_list_latency_options(
    START_GROUP(group_info, "Latency Settings", parent_group);
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-   
+
 #ifdef HAVE_GL_SYNC
    CONFIG_BOOL(
          settings->video.hard_sync,
@@ -6048,7 +6048,7 @@ static bool setting_append_list_latency_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0, 3, 1, true, true);
-   
+
    CONFIG_UINT(
          settings->video.hard_sync_scope,
          "video_hard_sync_scope",
@@ -6086,7 +6086,7 @@ static bool setting_append_list_latency_options(
       menu_settings_list_current_add_range(list, list_info, 0, MAX_PREEMPT_FRAMES, 1, true, true);
       (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_preemptive_frames;
-      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_PREEMPT_FRAMES_UPDATE);
+      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_PREEMPT_UPDATE);
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_IS_DEFERRED);
 
       CONFIG_UINT(
@@ -6135,7 +6135,7 @@ static bool setting_append_list_latency_options(
       (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_uint_scope_index;
    }
-   
+
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
    return true;
@@ -6150,7 +6150,7 @@ static bool setting_append_list_input_hotkey_options(
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();
-   
+
    if (!settings->menu.show_hotkey_menu)
       return true;
 

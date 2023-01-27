@@ -1203,28 +1203,45 @@ bool rarch_environment_cb(unsigned cmd, void *data)
       case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE:
       {
          int result = 0;
-         if (driver->audio_active)
+         if (driver->audio_active && !driver->audio_suspended)
             result |= 2;
          if (driver->video_active)
             result |= 1;
          if (preempt_in_preframe(driver->preempt_data))
-         {
-            result &= ~(1|2);
             result |= 4;
-         }
-         #ifdef HAVE_NETWORKING
+#ifdef HAVE_NETPLAY
          else if (driver->netplay_data)
          {
             if (netplay_is_replaying(driver->netplay_data))
                result &= ~(1|2);
             result |= 4;
          }
-         #endif
+#endif
          if (data != NULL)
          {
             int* result_p = (int*)data;
             *result_p = result;
          }
+         break;
+      }
+
+      case RETRO_ENVIRONMENT_GET_SAVESTATE_CONTEXT:
+      {
+         int result = RETRO_SAVESTATE_CONTEXT_NORMAL;
+
+         if (preempt_in_preframe(driver->preempt_data))
+            result = RETRO_SAVESTATE_CONTEXT_RUNAHEAD_SAME_INSTANCE;
+#ifdef HAVE_NETPLAY
+         else if (driver->netplay_data)
+            result = RETRO_SAVESTATE_CONTEXT_ROLLBACK_NETPLAY;
+            /* TODO: not when saving from menu */
+#endif
+         if (data != NULL)
+         {
+            int* result_p = (int*)data;
+            *result_p = result;
+         }
+
          break;
       }
 

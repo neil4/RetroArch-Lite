@@ -1484,7 +1484,7 @@ static void netplay_mask_unmask_config(bool starting)
       slowmotion_ratio = settings->slowmotion_ratio;
       settings->slowmotion_ratio = 1.033333;  /* shave 2fps for peer catch-up */
       
-      deinit_preempt(); /* Netplay overrides the same libretro calls */
+      preempt_deinit(); /* Netplay overrides the same libretro calls */
       
       has_started = true;
    }
@@ -1495,7 +1495,7 @@ static void netplay_mask_unmask_config(bool starting)
       settings->pause_nonactive = pause_nonactive;
       settings->slowmotion_ratio = slowmotion_ratio;
       
-      init_preempt(); /* skips if preempt_frames == 0 */
+      preempt_init(); /* skips if preempt_frames == 0 */
       
       has_started = false;
    }

@@ -1,5 +1,5 @@
 /*  RetroArch - A frontend for libretro.
- *  2019 - Neil Fore
+ *  2019-2023 - Neil Fore
  *
  *  RetroArch is free software: you can redistribute it and/or modify it under the terms
  *  of the GNU General Public License as published by the Free Software Found-
@@ -17,7 +17,6 @@
 /* Preemptive Frames is meant to be a battery friendly substitute for Run-Ahead.
  *
  * Internally replays recent frames with updated input to hide latency.
- * For efficiency, only digital joypad updates will trigger replays.
  */
 
 #include "dynamic.h"
@@ -26,24 +25,36 @@
 
 #define PREEMPT_NEXT_PTR(x) ((x + 1) % preempt->frames)
 
-struct preempt
+struct preempt_data
 {
    struct retro_callbacks cbs;
 
+   /* Savestate buffer */
    void* buffer[MAX_PREEMPT_FRAMES];
-   size_t frames;
    size_t state_size;
-   
-   /* Last-used joypad state. Replays are triggered when this changes. */
-   uint16_t joypad_state[MAX_USERS];
 
-   /* Pointer to where replays will start */
-   size_t start_ptr;
-   /* Pointer to current replay frame */
-   size_t replay_ptr;
+   /* States saved since buffer init/reset */
+   uint64_t states_saved;
+
+   /* Input states. Replays triggered on changes */
+   int16_t joypad_state[MAX_USERS];
+   int16_t analog_state[MAX_USERS][20];
+   int16_t ptrdev_state[MAX_USERS][4];
+
+   /* Mask of analog states requested */
+   uint32_t analog_mask[MAX_USERS];
+   /* Pointing device requested */
+   uint8_t ptr_dev[MAX_USERS];
 
    bool in_replay;
    bool in_preframe;
+
+   /* Number of latency frames to remove */
+   uint8_t frames;
+
+   /* Buffer indexes for replays */
+   uint8_t start_ptr;
+   uint8_t replay_ptr;
 };
 
 static bool preempt_allocating_mem;
@@ -63,78 +74,165 @@ bool preempt_in_preframe(preempt_t *preempt)
 
 void input_poll_preempt(void)
 {
-   /* no-op. Polling is done in input_poll_preframe */
+   /* no-op. Polling is done in preempt_input_poll */
 }
 
-static void input_poll_preframe(void)
+static INLINE bool preempt_ptr_input_dirty(preempt_t *preempt,
+      retro_input_state_t state_cb, unsigned device, unsigned port)
 {
-   driver_t *driver     = driver_get_ptr();
-   preempt_t *preempt   = (preempt_t*)driver->preempt_data;
-   settings_t *settings = config_get_ptr();
-   uint16_t new_joypad_state;
-   unsigned i;
+   int16_t state[4]  = {0};
+   unsigned count_id = 0;
+   unsigned x_id     = 0;
+   unsigned id, max_id;
+
+   switch (device)
+   {
+      case RETRO_DEVICE_MOUSE:
+         max_id = RETRO_DEVICE_ID_MOUSE_BUTTON_5;
+         break;
+      case RETRO_DEVICE_LIGHTGUN:
+         x_id   = RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X;
+         max_id = RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT;
+         break;
+      case RETRO_DEVICE_POINTER:
+         max_id   = RETRO_DEVICE_ID_POINTER_PRESSED;
+         count_id = RETRO_DEVICE_ID_POINTER_COUNT;
+         break;
+      default:
+         return false;
+   }
+
+   /* x, y */
+   state[0] = state_cb(port, device, 0, x_id    );
+   state[1] = state_cb(port, device, 0, x_id + 1);
+
+   /* buttons */
+   for (id = 2; id <= max_id; id++)
+      state[2] |= state_cb(port, device, 0, id) ? 1 << id : 0;
+
+   /* ptr count */
+   if (count_id)
+      state[3] = state_cb(port, device, 0, count_id);
+
+   if (memcmp(preempt->ptrdev_state[port], state, sizeof(state)) == 0)
+      return false;
+
+   memcpy(preempt->ptrdev_state[port], state, sizeof(state));
+   return true;
+}
+
+static INLINE bool preempt_analog_input_dirty(preempt_t *preempt,
+      retro_input_state_t state_cb, unsigned port)
+{
+   int16_t state[20] = {0};
+   uint8_t base, i;
+
+   /* axes */
+   for (i = 0; i < 2; i++)
+   {
+      base = i * 2;
+      if (preempt->analog_mask[port] & (1 << (base    )))
+         state[base    ] = state_cb(port, RETRO_DEVICE_ANALOG, i, 0);
+      if (preempt->analog_mask[port] & (1 << (base + 1)))
+         state[base + 1] = state_cb(port, RETRO_DEVICE_ANALOG, i, 1);
+   }
+
+   /* buttons */
+   for (i = 0; i < RARCH_FIRST_CUSTOM_BIND; i++)
+   {
+      if (preempt->analog_mask[port] & (1 << (i + 4)))
+         state[i + 4] = state_cb(port, RETRO_DEVICE_ANALOG,
+               RETRO_DEVICE_INDEX_ANALOG_BUTTON, i);
+   }
+
+   if (memcmp(preempt->analog_state[port], state, sizeof(state)) == 0)
+      return false;
+
+   memcpy(preempt->analog_state[port], state, sizeof(state));
+   return true;
+}
+
+static INLINE void preempt_input_poll(preempt_t *preempt)
+{
+   settings_t *settings         = config_get_ptr();
+   retro_input_state_t state_cb = preempt->cbs.state_cb;
+   unsigned max_users           = settings->input.max_users;
+   uint16_t joypad_state        = 0;
+   unsigned p;
 
    preempt->cbs.poll_cb();
-   
-   /* Gather joypad states */
-   for (i = 0; i < settings->input.max_users; i++)
-   {
-      new_joypad_state = preempt->cbs.state_cb
-            (i, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
 
-      if (new_joypad_state != preempt->joypad_state[i])
-      {  /* Input is dirty; trigger replays */
-         preempt->in_replay = true;
-         preempt->joypad_state[i] = new_joypad_state;
+   /* Check for input state changes */
+   for (p = 0; p < max_users; p++)
+   {
+      unsigned device = settings->input.libretro_device[p] & RETRO_DEVICE_MASK;
+
+      switch (device)
+      {
+         case RETRO_DEVICE_JOYPAD:
+         case RETRO_DEVICE_ANALOG:
+            /* Check full digital joypad */
+            joypad_state = state_cb(p, RETRO_DEVICE_JOYPAD,
+                  0, RETRO_DEVICE_ID_JOYPAD_MASK);
+            if (joypad_state != preempt->joypad_state[p])
+            {
+               preempt->joypad_state[p] = joypad_state;
+               preempt->in_replay = true;
+            }
+
+            /* Check requested analogs */
+            if (preempt->analog_mask[p] &&
+                  preempt_analog_input_dirty(preempt, state_cb, p))
+               preempt->in_replay = true;
+            break;
+         case RETRO_DEVICE_MOUSE:
+         case RETRO_DEVICE_LIGHTGUN:
+         case RETRO_DEVICE_POINTER:
+            /* Check full device state */
+            if (preempt_ptr_input_dirty(
+                  preempt, state_cb, preempt->ptr_dev[p], p))
+               preempt->in_replay = true;
+            break;
+         default:
+            break;
       }
    }
+
+   /* Clear requested inputs */
+   memset(preempt->analog_mask, 0, max_users * sizeof(uint32_t));
+   memset(preempt->ptr_dev, 0, max_users * sizeof(uint8_t));
 }
 
 int16_t input_state_preempt(unsigned port, unsigned device,
-      unsigned idx, unsigned id)
+      unsigned index, unsigned id)
 {
-   driver_t *driver = driver_get_ptr();
+   driver_t *driver   = driver_get_ptr();
    preempt_t *preempt = (preempt_t*)driver->preempt_data;
-   
-   if (device == RETRO_DEVICE_JOYPAD)
+   unsigned dev_class = device & RETRO_DEVICE_MASK;
+
+   switch (dev_class)
    {
-      if (id == RETRO_DEVICE_ID_JOYPAD_MASK)
-         return preempt->joypad_state[port];
-      else
-         return preempt->joypad_state[port] & (1 << id);
+      case RETRO_DEVICE_JOYPAD:
+         /* Shortcut callback */
+         if (id == RETRO_DEVICE_ID_JOYPAD_MASK)
+            return preempt->joypad_state[port];
+         else
+            return preempt->joypad_state[port] & (1 << id) ? 1 : 0;
+      case RETRO_DEVICE_ANALOG:
+         /* Add requested input to mask */
+         preempt->analog_mask[port] |= (1 << (id + index * 2));
+         break;
+      case RETRO_DEVICE_LIGHTGUN:
+      case RETRO_DEVICE_MOUSE:
+      case RETRO_DEVICE_POINTER:
+         /* Set pointing device for this port */
+         preempt->ptr_dev[port] = dev_class;
+         break;
+      default:
+         break;
    }
-   
-   return preempt->cbs.state_cb(port, device, idx, id);
-}
 
-void video_frame_preempt(const void *data, unsigned width,
-      unsigned height, size_t pitch)
-{
-   driver_t *driver = driver_get_ptr();
-   preempt_t *preempt = (preempt_t*)driver->preempt_data;
-   
-   if (!preempt->in_replay)
-      preempt->cbs.frame_cb(data, width, height, pitch);
-}
-
-void audio_sample_preempt(int16_t left, int16_t right)
-{
-   driver_t *driver = driver_get_ptr();
-   preempt_t *preempt = (preempt_t*)driver->preempt_data;
-   
-   if (!preempt->in_replay)
-      preempt->cbs.sample_cb(left, right);
-}
-
-size_t audio_sample_batch_preempt(const int16_t *data, size_t frames)
-{
-   driver_t *driver = driver_get_ptr();
-   preempt_t *preempt = (preempt_t*)driver->preempt_data;
-   
-   if (!preempt->in_replay)
-      return preempt->cbs.sample_batch_cb(data, frames);
-   
-   return frames;
+   return preempt->cbs.state_cb(port, device, index, id);
 }
 
 static bool preempt_init_buffer(preempt_t *preempt)
@@ -158,12 +256,12 @@ static bool preempt_init_buffer(preempt_t *preempt)
       }
    }
 
-   return preempt_reset_buffer(preempt);
+   return true;
 }
 
 /**
  * preempt_free:
- * @preempt    : pointer to preempt object
+ * @preempt    : pointer to preempt_t object
  *
  * Frees preempt handle.
  **/
@@ -182,7 +280,7 @@ static void preempt_free(preempt_t *preempt)
  *
  * Returns: new preempt handle.
  **/
-static preempt_t *preempt_new()
+static preempt_t *preempt_new(void)
 {
    settings_t *settings = config_get_ptr();
    preempt_t  *preempt  = (preempt_t*)calloc(1, sizeof(*preempt));
@@ -200,65 +298,92 @@ static preempt_t *preempt_new()
    return preempt;
 }
 
-static INLINE void preempt_update_serialize_size(preempt_t *preempt)
+/**
+ * preempt_serialize_or_realloc
+ *
+ * Attempt to handle variable savestate size
+ */
+static INLINE bool preempt_serialize_or_realloc(preempt_t *preempt)
 {
-   size_t i;
-   for (i = 0; i < preempt->frames; i++)
-      free(preempt->buffer[i]);
-
-   if (!preempt_init_buffer(preempt))
+   if (pretro_serialize(
+         preempt->buffer[preempt->start_ptr], preempt->state_size))
    {
-      deinit_preempt();
-      return;
+      preempt->states_saved++;
+      return true;
    }
 
-   preempt->in_preframe = false;
-   preempt->in_replay   = false;
+   if (preempt->state_size < pretro_serialize_size())
+      return event_command(EVENT_CMD_PREEMPT_UPDATE);
+
+   return false;
 }
 
 /**
  * preempt_pre_frame:
- * @preempt         : pointer to preempt object
+ * @preempt         : pointer to preempt_t object
  *
- * Pre-frame for preempt.
- * Call this before running retro_run().
+ * Pre-frame for preemptive frames.
+ * Called before retro_run().
  **/
 void preempt_pre_frame(preempt_t *preempt)
 {
+   driver_t *driver     = driver_get_ptr();
    preempt->in_preframe = true;
-   input_poll_preframe();
+   preempt_input_poll(preempt);
+   const char *failed_str;
    
-   if (preempt->in_replay)
+   if (preempt->in_replay
+         && preempt->states_saved >= preempt->frames)
    {
-      if (!pretro_unserialize(preempt->buffer[preempt->start_ptr],
-             preempt->state_size))
-         return preempt_update_serialize_size(preempt);
+      /* Suspend A/V and run preemptive frames */
+      driver->audio_suspended = true;
+      driver->video_active    = false;
+
+      if (!pretro_unserialize(
+            preempt->buffer[preempt->start_ptr], preempt->state_size))
+      {
+         failed_str = "Failed to Load State for Preemptive Frames.";
+         goto error;
+      }
 
       pretro_run();
       preempt->replay_ptr = PREEMPT_NEXT_PTR(preempt->start_ptr);
 
       while (preempt->replay_ptr != preempt->start_ptr)
       {
-         if (!pretro_serialize(preempt->buffer[preempt->replay_ptr],
-                preempt->state_size))
-            return preempt_update_serialize_size(preempt);
+         if (!pretro_serialize(
+               preempt->buffer[preempt->replay_ptr], preempt->state_size))
+         {
+            failed_str = "Failed to Save State for Preemptive Frames.";
+            goto error;
+         }
 
          pretro_run();
          preempt->replay_ptr = PREEMPT_NEXT_PTR(preempt->replay_ptr);
       }
-      preempt->in_replay = false;
+
+      preempt->in_replay      = false;
+      driver->audio_suspended = false;
+      driver->video_active    = true;
    }
    
    /* Save current state and update start_ptr to point to oldest state. */
-   if (!pretro_serialize(preempt->buffer[preempt->start_ptr],
-          preempt->state_size))
-      return preempt_update_serialize_size(preempt);
+   if (!preempt_serialize_or_realloc(preempt))
+   {
+      failed_str = "Failed to Save State for Preemptive Frames.";
+      goto error;
+   }
 
-   preempt->start_ptr = PREEMPT_NEXT_PTR(preempt->start_ptr);
+   preempt->start_ptr   = PREEMPT_NEXT_PTR(preempt->start_ptr);
    preempt->in_preframe = false;
+   return;
+
+error:
+   rarch_main_msg_queue_push(failed_str, 0, 180, false);
+   preempt_deinit();
 }
 
-void deinit_preempt(void)
+void preempt_deinit(void)
 {
    driver_t  *driver  = driver_get_ptr();
    preempt_t *preempt = (preempt_t*)driver->preempt_data;
@@ -272,27 +397,33 @@ void deinit_preempt(void)
 }
 
 /**
- * init_preempt:
+ * preempt_init:
  *
  * Creates buffers and sets callbacks. Skips if preempt_frames == 0.
  *
  * Returns: true on success, false on failure
  **/
-bool init_preempt(void)
+bool preempt_init(void)
 {
    driver_t   *driver   = driver_get_ptr();
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
    preempt_t  *preempt  = NULL;
    
-   if (settings->preempt_frames == 0 || !global->content_is_init)
+   if (settings->preempt_frames == 0
+         || !global->content_is_init || global->libretro_dummy)
       return false;
    
    if (driver->netplay_data)
-   {  /* Netplay overrides the same libretro callbacks and takes priority. */
+   {
       RARCH_WARN("Cannot use Preemptive Frames during Netplay.\n");
       return false;
    }
+
+   /* Run at least one frame before attempting
+    * pretro_serialize_size or pretro_serialize */
+   if (video_state_get_frame_count() == 0)
+      pretro_run();
 
    if (pretro_serialize_size() == 0)
    {
@@ -323,38 +454,12 @@ bool init_preempt(void)
 }
 
 /**
- * update_preempt_frames
- * 
- * Inits/Deinits/Reinits preempt as needed.
- */
-void update_preempt_frames()
-{
-   deinit_preempt();
-   init_preempt();
-}
-
-/**
  * preempt_reset_buffer
  * 
- * Fills preempt buffer with current state to prevent potentially loading a
- * bad state after init, reset, or user load-state.
+ * Forces preempt to refill its state buffer before replaying frames.
  */
-bool preempt_reset_buffer(preempt_t *preempt)
+void preempt_reset_buffer(preempt_t *preempt)
 {
-   unsigned i;
-
-   preempt->start_ptr = 0;
-
-   if (!pretro_serialize(preempt->buffer[0], preempt->state_size))
-   {
-      RARCH_WARN("Failed to serialize state for Preemptive Frames.");
-      rarch_main_msg_queue_push("Failed to serialize state for "
-         "Preemptive Frames.", 0, 180, false);
-      return false;
-   }
-   
-   for (i = 1; i < preempt->frames; i++)
-      memcpy(preempt->buffer[i], preempt->buffer[0], preempt->state_size);
-
-   return true;
+   if (preempt)
+      preempt->states_saved = 0;
 }

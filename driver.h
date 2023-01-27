@@ -273,6 +273,7 @@ typedef struct driver
    void *ui_companion_data;
 
    bool audio_active;
+   bool audio_suspended;
    bool video_active;
    bool camera_active;
    bool location_active;
