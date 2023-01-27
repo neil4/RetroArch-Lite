@@ -2440,10 +2440,10 @@ static INLINE int16_t overlay_lightgun_state(unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
          return BIT64_GET(driver->overlay_state.buttons,
-                          RETRO_DEVICE_ID_JOYPAD_START);
+                          RARCH_LIGHTGUN_START);
       case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
          return BIT64_GET(driver->overlay_state.buttons,
-                          RETRO_DEVICE_ID_JOYPAD_SELECT);
+                          RARCH_LIGHTGUN_SELECT);
       case RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP:
          return BIT64_GET(driver->overlay_state.buttons,
                           RETRO_DEVICE_ID_JOYPAD_UP);
