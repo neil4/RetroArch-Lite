@@ -235,7 +235,7 @@ int16_t input_state_preempt(unsigned port, unsigned device,
    return preempt->cbs.state_cb(port, device, index, id);
 }
 
-static bool preempt_init_buffer(preempt_t *preempt)
+static bool preempt_alloc_buffer(preempt_t *preempt)
 {
    unsigned i;
 
@@ -289,7 +289,7 @@ static preempt_t *preempt_new(void)
    
    preempt->frames = settings->preempt_frames;
 
-   if (!preempt_init_buffer(preempt))
+   if (!preempt_alloc_buffer(preempt))
    {
       preempt_free(preempt);
       preempt = NULL;
@@ -379,6 +379,8 @@ void preempt_pre_frame(preempt_t *preempt)
    return;
 
 error:
+   driver->audio_suspended = false;
+   driver->video_active    = true;
    rarch_main_msg_queue_push(failed_str, 0, 180, false);
    preempt_deinit();
 }

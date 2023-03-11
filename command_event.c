@@ -1104,11 +1104,9 @@ bool event_command(enum event_command cmd)
             event_command(EVENT_CMD_OVERLAY_SWAP_CACHED);
             break;
          }
-         else
-            event_command(EVENT_CMD_OVERLAY_UNLOAD);
 
+         event_command(EVENT_CMD_OVERLAY_UNLOAD);
          driver->overlay = input_overlay_new(path, true);
-
          if (!driver->overlay)
             RARCH_ERR("Failed to load overlay.\n");
       }
