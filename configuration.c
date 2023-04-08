@@ -705,7 +705,7 @@ static void config_set_defaults(void)
    settings->menu.pause_libretro               = true;
    settings->menu.mouse.enable                 = menu_mouse_support;
    settings->menu.pointer.enable               = pointer_enable;
-   settings->menu.timedate_mode                = 1;
+   settings->menu.timedate_mode                = 5;
    settings->menu.core_enable                  = true;
    settings->menu.dynamic_wallpaper_enable     = false;
    settings->menu.boxart_enable                = false;
@@ -746,6 +746,8 @@ static void config_set_defaults(void)
    settings->menu.show_privacy_menu            = show_privacy_menu;
    settings->menu.show_recording_menu          = show_recording_menu;
    settings->menu.show_core_updater_menu       = show_core_updater_menu;
+
+   settings->archive.mode                      = 1;   /* load */
 
    global->menu.msg_box_width                  = 57;  /* RGUI 16:10 */
 

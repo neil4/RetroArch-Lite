@@ -446,7 +446,7 @@ static int rarch_main_data_http_iterate_transfer(void *data)
          if (!start_usec)
             start_usec = now_usec;
 
-         if (now_usec - start_usec < 4000000)
+         if (now_usec - start_usec < 8000000)
             rarch_main_msg_queue_push("Download waiting...", 1, 1, true);
          else
          {

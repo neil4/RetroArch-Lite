@@ -204,7 +204,6 @@ struct overlay
    float center_x, center_y;
 
    bool full_screen;
-   bool fullscreen_image;
    
    bool lightgun_overlay;
    bool mouse_overlay;

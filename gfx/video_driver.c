@@ -1110,19 +1110,13 @@ bool video_monitor_fps_statistics(double *refresh_rate,
 #define FPS_UPDATE_INTERVAL 256
 
 /**
- * video_monitor_get_fps:
- * @buf           : string suitable for Window title
- * @size          : size of buffer.
- * @buf_fps       : string of raw FPS only (optional).
- * @size_fps      : size of raw FPS buffer.
+ * video_state_increment_frame:
  *
- * Get the amount of frames per seconds.
+ * @return true if frame should be displayed in fastforward mode
  *
- * Returns: true if framerate per seconds could be obtained,
- * otherwise false.
- *
- **/
-
+ * Updates video_state's frame_count, fps, and frame_time_samples.
+ * Return val only applies if non-blocking.
+ */
 bool video_state_increment_frame()
 {
    static retro_time_t prev_frame_us;
@@ -1169,6 +1163,19 @@ bool video_state_increment_frame()
    return true;
 }
 
+/**
+ * video_monitor_get_fps:
+ * @buf           : string suitable for Window title
+ * @size          : size of buffer.
+ * @buf_fps       : string of raw FPS only (optional).
+ * @size_fps      : size of raw FPS buffer.
+ *
+ * Get the amount of frames per seconds.
+ *
+ * Returns: true if framerate per seconds could be obtained,
+ * otherwise false.
+ *
+ **/
 bool video_monitor_get_fps(char *buf, size_t size,
       char *buf_fps, size_t size_fps)
 {

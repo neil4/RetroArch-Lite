@@ -153,7 +153,7 @@ static void input_overlay_scale(struct overlay *ol, float scale)
    if (!ol)
       return;
 
-   if (ol->block_scale || ol->fullscreen_image || driver_get_ptr()->osk_enable)
+   if (ol->block_scale || ol->image.width || driver_get_ptr()->osk_enable)
       scale = 1.0f;
 
    ol->scale   = scale;
@@ -561,7 +561,7 @@ static void input_overlay_update_aspect_and_shift(struct overlay *ol)
    struct overlay_desc* desc;
    size_t i;
 
-   if (!ol || ol->fullscreen_image || driver_get_ptr()->osk_enable)
+   if (!ol || ol->image.width || driver_get_ptr()->osk_enable)
       return;
 
    input_overlay_update_aspect_ratio_vals(ol);
@@ -695,10 +695,6 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    snprintf(overlay_desc_normalized_key, sizeof(overlay_desc_normalized_key),
          "overlay%u_desc%u_normalized", ol_idx, desc_idx);
    config_get_bool(ol->conf, overlay_desc_normalized_key, &normalized);
-   
-   snprintf(conf_key, sizeof(conf_key), "overlay%u_overlay", ol->pos);
-   input_overlay->fullscreen_image = config_get_string(ol->conf, conf_key, &key );
-   if (key) free(key);
 
    if (!normalized && (width == 0 || height == 0))
    {
