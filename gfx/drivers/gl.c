@@ -1695,8 +1695,8 @@ static bool gl_frame(void *data, const void *frame,
 #if !defined(RARCH_MOBILE)
    /* Disable BFI during fast forward, slow-motion,
     * and pause to prevent flicker. */
-   if (settings->video.black_frame_insertion &&
-         !driver->nonblock_state && !runloop->is_slowmotion
+   if (settings->video.black_frame_insertion
+         && gl->swap_interval && !runloop->is_slowmotion
          && !runloop->is_paused)
    {
       gfx_ctx_swap_buffers(gl);
@@ -1707,8 +1707,8 @@ static bool gl_frame(void *data, const void *frame,
    gfx_ctx_swap_buffers(gl);
 
 #ifdef HAVE_GL_SYNC
-   if (settings->video.hard_sync && gl->have_sync && !driver->nonblock_state
-         && !recursing)
+   if (settings->video.hard_sync && gl->have_sync
+         && gl->swap_interval && !recursing)
    {
       glClear(GL_COLOR_BUFFER_BIT);
       gl->fences[gl->fence_count++] = 
