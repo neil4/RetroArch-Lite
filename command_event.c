@@ -608,10 +608,10 @@ static bool event_init_core(void)
    if (!global->libretro_dummy)
       video_driver_set_pixel_format(RETRO_PIXEL_FORMAT_0RGB1555);
 
-   pretro_set_environment(rarch_environment_cb);
-
    /* per-core saves: reset redirection paths */
    set_paths_redirect();
+
+   pretro_set_environment(rarch_environment_cb);
 
    rarch_verify_api_version();
    pretro_init();
