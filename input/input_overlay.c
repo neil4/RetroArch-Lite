@@ -1978,7 +1978,8 @@ static INLINE void input_overlay_poll_mouse()
    retro_time_t           now_usec  = rarch_get_time_usec();
    uint32_t               hold_zone = settings->input.overlay_mouse_hold_zone;
    retro_time_t           hold_usec = settings->input.overlay_mouse_hold_ms * 1000;
-   bool                   can_drag  = settings->input.overlay_mouse_hold_to_drag;
+   bool                   can_hold  = settings->input.overlay_mouse_hold_to_drag;
+   bool                   feedback  = false;
    bool is_swipe, is_brief, is_long;
 
    static int x_start, y_start, peak_ptr_count;
@@ -2009,20 +2010,31 @@ static INLINE void input_overlay_poll_mouse()
    is_swipe = abs(state->ptr_x - x_start) > hold_zone ||
               abs(state->ptr_y - y_start) > hold_zone;
    is_brief = (now_usec - start_usec) < 200000;
-   is_long  = (now_usec - start_usec) > (can_drag ? hold_usec : 250000);
+   is_long  = (now_usec - start_usec) > (can_hold ? hold_usec : 250000);
 
-   if (!is_swipe && !ignore_new_buttons)
+   if (!ignore_new_buttons)
    {
-      if (is_long && state->ptr_count && can_drag)
+      if (!is_swipe)
       {
-         ol_mouse.hold = (1 << (state->ptr_count - 1));
-         if (driver->input->overlay_haptic_feedback)
-            driver->input->overlay_haptic_feedback();
+         if (is_long && state->ptr_count && can_hold)
+         {
+            /* long press */
+            ol_mouse.hold = (1 << (state->ptr_count - 1));
+            feedback = true;
+         }
+         else if (is_brief && !state->ptr_count && old_state->ptr_count)
+         {
+            /* click */
+            ol_mouse.click = (1 << (peak_ptr_count - 1));
+            ol_mouse.click_frames = settings->input.overlay_mouse_click_dur;
+         }
       }
-      else if (is_brief && !state->ptr_count && old_state->ptr_count)
+      else if (state->ptr_count > 1)
       {
-         ol_mouse.click = (1 << (peak_ptr_count - 1));
-         ol_mouse.click_frames = settings->input.overlay_mouse_click_dur;
+         /* If dragging 2+ fingers, hold RMB or MMB */
+         ol_mouse.hold = (1 << (state->ptr_count - 1));
+         feedback = true;
+         ignore_new_buttons = true;
       }
    }
 
@@ -2033,6 +2045,9 @@ static INLINE void input_overlay_poll_mouse()
    }
    else if (is_long)
       ignore_new_buttons = true;
+
+   if (feedback && driver->input->overlay_haptic_feedback)
+         driver->input->overlay_haptic_feedback();
 }
 
 /**
