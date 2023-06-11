@@ -2388,20 +2388,20 @@ static INLINE int16_t lightgun_delayed_trigger_state(bool trigger)
 {
    static bool buf[LIGHTGUN_TRIG_MAX_DELAY + 1];
    static int delayed_idx;
+   static uint64_t old_frame_count;
+
+   if (video_state_get_frame_count() == old_frame_count)
+      goto finish;
 
    delayed_idx = (delayed_idx + 1) % (LIGHTGUN_TRIG_MAX_DELAY + 1);
 
-   if (trigger)
-      buf[(delayed_idx + config_get_ptr()->input.lightgun_trigger_delay)
-            % (LIGHTGUN_TRIG_MAX_DELAY + 1)] = true;
+   buf[(delayed_idx + config_get_ptr()->input.lightgun_trigger_delay)
+         % (LIGHTGUN_TRIG_MAX_DELAY + 1)] = trigger;
 
-   if (buf[delayed_idx])
-   {
-      buf[delayed_idx] = false;
-      return 1;
-   }
+   old_frame_count = video_state_get_frame_count();
 
-   return 0;
+finish:
+   return buf[delayed_idx];
 }
 
 static INLINE int16_t overlay_lightgun_state(unsigned id)
