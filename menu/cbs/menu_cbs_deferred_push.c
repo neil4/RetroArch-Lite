@@ -242,7 +242,7 @@ static int deferred_push_input_osk_overlay(menu_displaylist_info_t *info)
    info->type_default = MENU_FILE_OVERLAY;
    strlcpy(info->exts, "cfg", sizeof(info->exts));
 
-   return menu_displaylist_push_list(info, DISPLAYLIST_OVERLAYS);
+   return menu_displaylist_push_list(info, DISPLAYLIST_OSK_OVERLAYS);
 }
 
 static int deferred_push_video_font_path(menu_displaylist_info_t *info)

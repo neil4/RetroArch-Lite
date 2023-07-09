@@ -2218,13 +2218,13 @@ static INLINE uint64_t menu_analog_dpad_state(const int16_t analog_x,
  **/
 void input_overlay_poll(input_overlay_t *overlay_device)
 {
-   unsigned i, j, device, ptr_device, input_count;
+   int i, j, device, ptr_device, input_count;
    uint16_t key_mod                 = 0;
    driver_t *driver                 = driver_get_ptr();
    input_overlay_state_t *state     = &driver->overlay_state;
    input_overlay_state_t *old_state = &driver->old_overlay_state;
    bool osk_state_changed           = false;
-   static unsigned old_input_count  = 0;
+   static int old_input_count       = 0;
 
    if (overlay_device->state != OVERLAY_STATUS_ALIVE)
       return;
@@ -2302,7 +2302,7 @@ void input_overlay_poll(input_overlay_t *overlay_device)
       key_mod |= RETROKMOD_META;
 
    /* CAPSLOCK SCROLLOCK NUMLOCK */
-   for (i = 0; i < ARRAY_SIZE(state->keys); i++)
+   for (i = (int)ARRAY_SIZE(state->keys); i-- > 0;)
    {
       if (state->keys[i] != old_state->keys[i])
       {

@@ -1577,6 +1577,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
       case DISPLAYLIST_REMAP_FILES:
       case DISPLAYLIST_THEMES:
       case DISPLAYLIST_OVERLAYS:
+      case DISPLAYLIST_OSK_OVERLAYS:
          menu_list_clear(info->list);
          if (menu_displaylist_parse_generic(info, &need_sort) == 0)
          {
@@ -1592,6 +1593,9 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          {
             case DISPLAYLIST_OVERLAYS:
                buf = settings->input.overlay;
+               break;
+            case DISPLAYLIST_OSK_OVERLAYS:
+               buf = settings->input.osk_overlay;
                break;
             case DISPLAYLIST_SHADER_PRESET:
                buf = settings->video.shader_path;
