@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+#define OVERLAY_MAX_TOUCH 16
+
 #define OVERLAY_GET_KEY(state, key) (((state)->keys[(key) / 32] >> ((key) % 32)) & 1)
 #define OVERLAY_SET_KEY(state, key) (state)->keys[(key) / 32] |= 1 << ((key) % 32)
 #define OVERLAY_CLEAR_KEY(state, key) (state)->keys[(key) / 32] &= ~(1 << ((key) % 32))
@@ -169,7 +171,8 @@ struct overlay_desc
    bool range_mod_exclusive;
 
    /* Nonzero if pressed. One bit per input pointer */
-   uint16_t updated;
+   uint16_t touch_mask;
+   uint16_t old_touch_mask;
 
    enum overlay_type type;
    uint64_t key_mask;
@@ -292,6 +295,14 @@ typedef struct input_overlay_state
    uint8_t ptr_count;
    
    uint32_t keys[RETROK_LAST / 32 + 1];
+
+   /* Input pointers from input_driver_state */
+   struct
+   {
+      int16_t x;
+      int16_t y;
+   } touch[OVERLAY_MAX_TOUCH];
+   int touch_count;
 } input_overlay_state_t;
 
 /**
