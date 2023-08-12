@@ -215,29 +215,6 @@ struct overlay
 
    struct
    {
-      struct
-      {
-         char key[64];
-         char path[PATH_MAX_LENGTH];
-      } paths;
-
-      struct
-      {
-         char key[64];
-      } names;
-
-      struct
-      {
-         char array[256];
-         char key[64];
-      } rect;
-
-      struct
-      {
-         char key[64];
-         unsigned size;
-      } descs;
-
       bool normalized;
       float alpha_mod;
       float range_mod;
