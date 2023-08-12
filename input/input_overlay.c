@@ -96,7 +96,7 @@ struct overlay_aspect_ratio_elem overlay_aspectratio_lut[OVERLAY_ASPECT_RATIO_EN
    { "16:10",         1.6f },
    { "16:9",          1.7778f },
    { "2:1",           2.0f },
-   { "Auto (Index)",  1.0f },
+   { "Auto (Config)", 1.0f },
    { "Auto (Free)",   1.0f },
 };
 
@@ -186,50 +186,6 @@ static void input_overlay_scale(struct overlay *ol, float scale)
    }
 }
 
-static unsigned input_overlay_auto_aspect_index(struct overlay *ol)
-{
-   size_t i, j;
-   float image_aspect, desc_ratio, ol_ratio;
-   float avg_delta[OVERLAY_ASPECT_RATIO_AUTO_INDEX];
-   float best_delta = 1e9;
-   unsigned best_index = 0;
-   unsigned num_images;
-
-   if (!ol)
-      return 0;
-   ol_ratio = ol->w / ol->h;
-
-   for (i = 0; i < OVERLAY_ASPECT_RATIO_AUTO_INDEX; i++)
-   {
-      avg_delta[i] = 0.0f;
-      num_images = 0;
-      for (j = 0; j < ol->size; j++)
-      {
-         struct overlay_desc *desc = &ol->descs[j];
-         if (!desc->image.width || !desc->image.height)
-            continue;
-         num_images++;
-         image_aspect = ((float)desc->image.width) / desc->image.height;
-         desc_ratio = ol_ratio * (desc->range_x_orig / desc->range_y_orig);
-         avg_delta[i] += overlay_aspectratio_lut[i].value * desc_ratio
-                         - image_aspect;
-      }
-      if (num_images)
-         avg_delta[i] /= num_images;
-   }
-
-   for (i = 0; i < OVERLAY_ASPECT_RATIO_AUTO_INDEX; i++)
-   {
-      if (fabs(avg_delta[i]) < best_delta)
-      {
-         best_delta = fabs(avg_delta[i]);
-         best_index = i;
-      }
-      else break; /* overlay aspects are sorted */
-   }
-   return best_index;
-}
-
 static float input_overlay_auto_aspect(struct overlay *ol)
 {
    size_t i;
@@ -279,17 +235,18 @@ static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
    video_driver_get_size(&disp_width, &disp_height);
    disp_aspect = (float)disp_width / disp_height;
 
-   if (settings->input.overlay_aspect_ratio_index ==
-            OVERLAY_ASPECT_RATIO_AUTO_FREE)
+   if (settings->input.overlay_aspect_ratio_index
+         == OVERLAY_ASPECT_RATIO_AUTO_FREE)
       ol_aspect = input_overlay_auto_aspect(ol);
-   else if (settings->input.overlay_aspect_ratio_index ==
-            OVERLAY_ASPECT_RATIO_AUTO_INDEX)
-      ol_aspect = overlay_aspectratio_lut
-            [input_overlay_auto_aspect_index(ol)].value;
+   else if (settings->input.overlay_aspect_ratio_index
+         >= OVERLAY_ASPECT_RATIO_AUTO_CONFIG)
+      ol_aspect = ol->config.aspect_ratio > 0
+            ? ol->config.aspect_ratio
+            : input_overlay_auto_aspect(ol);
    else
-      ol_aspect = overlay_aspectratio_lut
-            [settings->input.overlay_aspect_ratio_index].value;
-   
+      ol_aspect = overlay_aspectratio_lut[
+            settings->input.overlay_aspect_ratio_index].value;
+
    if (disp_aspect > ol_aspect * 1.001f)
    {
       ol_ar_mod.w = ol_aspect / disp_aspect;
@@ -1211,6 +1168,9 @@ bool input_overlay_load_overlays(input_overlay_t *ol)
 
       snprintf(conf_key, sizeof(conf_key), "overlay%u_range_mod", ol->pos);
       config_get_float(ol->conf, conf_key, &overlay->config.range_mod);
+
+      snprintf(conf_key, sizeof(conf_key), "overlay%u_aspect_ratio", ol->pos);
+      config_get_float(ol->conf, conf_key, &overlay->config.aspect_ratio);
 
       /* Precache load image array for simplicity. */
       overlay->load_images = (struct texture_image*)

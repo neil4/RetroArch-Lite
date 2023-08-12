@@ -71,7 +71,7 @@ enum overlay_aspect_ratio
    OVERLAY_ASPECT_RATIO_16_10,
    OVERLAY_ASPECT_RATIO_16_9,
    OVERLAY_ASPECT_RATIO_2_1,
-   OVERLAY_ASPECT_RATIO_AUTO_INDEX,
+   OVERLAY_ASPECT_RATIO_AUTO_CONFIG,
    OVERLAY_ASPECT_RATIO_AUTO_FREE,
    
    OVERLAY_ASPECT_RATIO_END
@@ -241,6 +241,7 @@ struct overlay
       bool normalized;
       float alpha_mod;
       float range_mod;
+      float aspect_ratio;
    } config;
 
    struct texture_image *load_images;
