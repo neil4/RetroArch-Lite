@@ -29,6 +29,7 @@ extern "C" {
 #endif
 
 #define OVERLAY_MAX_TOUCH 16
+#define OVERLAY_MAX_BISECT 2.5f
 
 #define OVERLAY_GET_KEY(state, key) (((state)->keys[(key) / 32] >> ((key) % 32)) & 1)
 #define OVERLAY_SET_KEY(state, key) (state)->keys[(key) / 32] |= 1 << ((key) % 32)

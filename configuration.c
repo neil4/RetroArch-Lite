@@ -807,7 +807,7 @@ static void config_set_defaults(void)
    settings->input.overlay_dpad_diag_sens          = overlay_dpad_diag_sens;
    settings->input.overlay_abxy_diag_sens          = overlay_abxy_diag_sens;
    settings->input.overlay_dpad_method             = VECTOR;
-   settings->input.overlay_abxy_method             = VECTOR_AND_AREA;
+   settings->input.overlay_abxy_method             = VECTOR;
    settings->input.touch_ellipse_magnify           = 1.0f;
    settings->input.overlay_vibrate_time            = OVERLAY_DEFAULT_VIBE;
    settings->input.overlay_scale                   = 1.0f;

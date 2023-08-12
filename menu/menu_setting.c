@@ -1761,6 +1761,19 @@ static void setting_get_string_representation_uint_overlay_aspect_ratio_index(vo
             overlay_aspectratio_lut[*setting->value.unsigned_integer].name,
             len);
 }
+
+static void setting_get_string_representation_overlay_bisect(void *data,
+      char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (!setting)
+      return;
+
+   if (*setting->value.fraction >= OVERLAY_MAX_BISECT)
+      strlcpy(s, "Max", len);
+   else
+      sprintf(s, "%.2f", *setting->value.fraction);
+}
 #endif
 
 static void setting_get_string_representation_uint_scope_index(void *data,
@@ -6695,8 +6708,10 @@ static bool setting_append_list_overlay_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0.5f, 2.5f, 0.01, true, true);
+   menu_settings_list_current_add_range(list, list_info, 0.5f, OVERLAY_MAX_BISECT, 0.01, true, true);
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_overlay_bisect;
 
    CONFIG_UINT(
          settings->input.overlay_aspect_scope,
@@ -6814,7 +6829,7 @@ static bool setting_append_list_overlay_options(
          settings->input.overlay_abxy_method,
          menu_hash_to_str(MENU_LABEL_OVERLAY_ABXY_EIGHTWAY_METHOD),
          "ABXY Input Method",
-         VECTOR_AND_AREA,
+         VECTOR,
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -7840,7 +7855,7 @@ static bool setting_append_list_menu_options(
          settings->archive.mode,
          "archive_mode",
          "Browser: Archive Mode",
-         0,
+         1,
          group_info.name,
          subgroup_info.name,
          parent_group,
