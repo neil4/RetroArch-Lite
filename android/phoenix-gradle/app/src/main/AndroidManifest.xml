@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.retroarchlite"
-    android:versionCode="66"
+    android:versionCode="67"
     android:sharedUserId="com.retroarchlite.uid.shared"
     android:sharedUserLabel="@string/sharedUserLabel" >
     <uses-feature android:glEsVersion="0x00030000" />
