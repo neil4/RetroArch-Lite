@@ -1280,14 +1280,14 @@ static int setting_action_ok_custom_viewport(void *data, bool wraparound)
    info->list          = menu_list->menu_stack;
    info->type          = MENU_SETTINGS_CUSTOM_VIEWPORT;
    info->directory_ptr = nav->selection_ptr;
-   strlcpy(info->label, "custom_viewport_1", sizeof(info->label));
+   strlcpy(info->label, "custom_viewport", sizeof(info->label));
 
    ret = menu_displaylist_push_list(info, DISPLAYLIST_INFO);
 
    video_driver_viewport_info(custom);
 
    aspectratio_lut[ASPECT_RATIO_CUSTOM].value =
-      (float)custom->width / custom->height;
+         (float)custom->width / custom->height;
 
    settings->video.aspect_ratio_idx = ASPECT_RATIO_CUSTOM;
 
@@ -5250,13 +5250,13 @@ static bool setting_append_list_video_options(
          &setting_get_string_representation_uint_aspect_ratio_index;
    
    CONFIG_ACTION(
-            menu_hash_to_str(MENU_LABEL_CUSTOM_RATIO),
-            menu_hash_to_str(MENU_LABEL_VALUE_CUSTOM_RATIO),
-            group_info.name,
-            subgroup_info.name,
-            parent_group);
-      (*list)[list_info->index - 1].action_ok      = &setting_action_ok_custom_viewport;
-      (*list)[list_info->index - 1].action_cancel  = NULL;
+         menu_hash_to_str(MENU_LABEL_CUSTOM_RATIO),
+         menu_hash_to_str(MENU_LABEL_VALUE_CUSTOM_RATIO),
+         group_info.name,
+         subgroup_info.name,
+         parent_group);
+   (*list)[list_info->index - 1].action_ok     = &setting_action_ok_custom_viewport;
+   (*list)[list_info->index - 1].action_cancel = NULL;
 
    CONFIG_UINT(
       settings->video.aspect_ratio_idx_scope,

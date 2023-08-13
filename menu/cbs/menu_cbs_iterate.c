@@ -283,20 +283,17 @@ static int action_iterate_load_open_zip(const char *label, char *s, size_t len, 
    return 0;
 }
 
-static int action_iterate_menu_viewport(char *s, size_t len, const char *label, unsigned action, uint32_t hash)
+static int action_iterate_menu_viewport(char *s, size_t len, const char *label, unsigned action)
 {
-   int stride_x = 1, stride_y = 1;
    struct retro_game_geometry *geom = NULL;
    const char *fmt                  = NULL;
    unsigned type                    = 0;
    video_viewport_t *custom         = video_viewport_get_custom();
    menu_display_t *disp             = menu_display_get_ptr();
-   menu_navigation_t *nav           = menu_navigation_get_ptr();
    menu_list_t *menu_list           = menu_list_get_ptr();
    settings_t *settings             = config_get_ptr();
    global_t *global                 = global_get_ptr();
    struct retro_system_av_info *av_info = video_viewport_get_system_av_info();
-   menu_displaylist_info_t *info;
 
    static video_viewport_t start_vp;
 
@@ -307,107 +304,61 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
 
    geom = (struct retro_game_geometry*)&av_info->geometry;
 
-   if (settings->video.scale_integer)
-   {
-      stride_x = geom->base_width;
-      stride_y = geom->base_height;
-   }
-
    switch (action)
    {
       case MENU_ACTION_UP:
-         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
+         if (settings->video.scale_integer)
+            custom->height += geom->base_height;
+         else /* shift up */
          {
-            custom->y      -= stride_y;
-            custom->height += stride_y;
+            custom->y  -= 1;
+            start_vp.y -= 1;
          }
-         else if (custom->height >= (unsigned)stride_y)
-            custom->height -= stride_y;
-
-         start_vp.width = 0;  /* flag start_vp reset */
          break;
 
       case MENU_ACTION_DOWN:
-         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
+         if (settings->video.scale_integer)
          {
-            custom->y += stride_y;
-            if (custom->height >= (unsigned)stride_y)
-               custom->height -= stride_y;
+            if (custom->height >= geom->base_height)
+               custom->height  -= geom->base_height;
          }
-         else
-            custom->height += stride_y;
-
-         start_vp.width = 0;
+         else /* shift down */
+         {
+            custom->y  += 1;
+            start_vp.y += 1;
+         }
          break;
 
       case MENU_ACTION_LEFT:
-         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
+         if (settings->video.scale_integer)
          {
-            custom->x     -= stride_x;
-            custom->width += stride_x;
+            if (custom->width >= geom->base_width)
+               custom->width  -= geom->base_width;
          }
-         else if (custom->width >= (unsigned)stride_x)
-            custom->width -= stride_x;
-
-         start_vp.width = 0;
+         else /* shift left */
+         {
+            custom->x  -= 1;
+            start_vp.x -= 1;
+         }
          break;
 
       case MENU_ACTION_RIGHT:
-         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
+         if (settings->video.scale_integer)
+            custom->width += geom->base_width;
+         else /* shift right */
          {
-            custom->x += stride_x;
-            if (custom->width >= (unsigned)stride_x)
-               custom->width -= stride_x;
-         }
-         else
-            custom->width += stride_x;
-
-         start_vp.width = 0;
-         break;
-
-      case MENU_ACTION_CANCEL:
-         menu_list_pop_stack(menu_list);
-         menu_entries_unset_refresh();
-
-         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_2)
-         {
-            info                = menu_displaylist_info_new();
-            info->list          = menu_list->menu_stack;
-            info->type          = MENU_SETTINGS_CUSTOM_VIEWPORT;
-            info->directory_ptr = nav->selection_ptr;
-            strlcpy(info->label, "custom_viewport_1", sizeof(info->label));
-
-            menu_displaylist_push_list(info, DISPLAYLIST_INFO);
-            free(info);
-         }
-         else
-         {
-            global->menu.block_push = false;
-            start_vp.width = 0;
+            custom->x  += 1;
+            start_vp.x += 1;
          }
          break;
 
       case MENU_ACTION_OK:
+      case MENU_ACTION_CANCEL:  /* finish */
          menu_list_pop_stack(menu_list);
          menu_entries_unset_refresh();
 
-         if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1
-               && !settings->video.scale_integer)
-         {
-            info                = menu_displaylist_info_new();
-            info->list          = menu_list->menu_stack;
-            info->type          = MENU_SETTINGS_CUSTOM_VIEWPORT;
-            info->directory_ptr = nav->selection_ptr;
-            strlcpy(info->label, "custom_viewport_2", sizeof(info->label));
-
-            menu_displaylist_push_list(info, DISPLAYLIST_INFO);
-            free(info);
-         }
-         else
-         {
-            global->menu.block_push = false;
-            start_vp.width = 0;
-         }
+         global->menu.block_push = false;
+         start_vp.width          = 0;
          break;
 
       case MENU_ACTION_START:  /* reset to default aspect */
@@ -441,7 +392,7 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
                ((start_vp.width - (float)custom->width) / 2.0f) + 0.5f;
          }
          break;
-         
+
       case MENU_ACTION_R:  /* zoom in */
          if (!settings->video.scale_integer)
          {
@@ -456,41 +407,24 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
             custom->x       = start_vp.x +
                ((start_vp.width - (float)custom->width) / 2.0f) + 0.5f;
          }
-
          break;
 
-      case MENU_ACTION_L2:  /* shift down or left */
-         if (!settings->video.scale_integer)
+      case MENU_ACTION_L2:  /* decrease width */
+         if (!settings->video.scale_integer && custom->width > RGUI_WIDTH)
          {
-            if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
-            {
-               custom->y  += 1;
-               start_vp.y += 1;
-            }
-            else
-            {
-               custom->x  -= 1;
-               start_vp.x -= 1;
-            }
+            custom->x     += 1;
+            custom->width -= 2;
+            start_vp.width = 0;
          }
-
          break;
 
-      case MENU_ACTION_R2:  /* shift up or right */
+      case MENU_ACTION_R2:  /* increase width */
          if (!settings->video.scale_integer)
          {
-            if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
-            {
-               custom->y  -= 1;
-               start_vp.y -= 1;
-            }
-            else
-            {
-               custom->x  += 1;
-               start_vp.x += 1;
-            }
+            custom->x     -= 1;
+            custom->width += 2;
+            start_vp.width = 0;
          }
-
          break;
 
       case MENU_ACTION_MESSAGE:
@@ -523,17 +457,10 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
    }
    else
    {
-      if (hash == MENU_LABEL_CUSTOM_VIEWPORT_1)
-         fmt = "Set Upper-Left Corner (%d, %d : %ux%u)\n"
-               " D-Pad : Move Corner\n"
-               " L / R : Zoom       \n"
-               "L2 / R2: Shift Y    ";
-      else
-         fmt = "Set Bottom-Right Corner (%d, %d : %ux%u)\n"
-               " D-Pad : Move Corner\n"
-               " L / R : Zoom       \n"
-               "L2 / R2: Shift X    ";
-
+      fmt = "Adjust Viewport (%d, %d : %ux%u)\n"
+               " D-Pad : Move     \n"
+               " L / R : Zoom -/+ \n"
+               "L2 / R2: Width -/+\n";
       snprintf(s, len, fmt,
             custom->x, custom->y, custom->width, custom->height);
    }
@@ -541,9 +468,9 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
    menu_driver_render_messagebox(s);
 
    if (!custom->width)
-      custom->width = stride_x;
+      custom->width = geom->base_width;
    if (!custom->height)
-      custom->height = stride_y;
+      custom->height = geom->base_height;
 
    aspectratio_lut[ASPECT_RATIO_CUSTOM].value =
       (float)custom->width / custom->height;
@@ -694,8 +621,7 @@ static enum action_iterate_type action_iterate_type(uint32_t hash)
          return ITERATE_TYPE_ZIP;
       case MENU_LABEL_MESSAGE:
          return ITERATE_TYPE_MESSAGE;
-      case MENU_LABEL_CUSTOM_VIEWPORT_1:
-      case MENU_LABEL_CUSTOM_VIEWPORT_2:
+      case MENU_LABEL_CUSTOM_VIEWPORT:
          return ITERATE_TYPE_VIEWPORT;
       case MENU_LABEL_CUSTOM_BIND:
       case MENU_LABEL_CUSTOM_BIND_ALL:
@@ -748,7 +674,7 @@ static int action_iterate_main(const char *label, unsigned action)
          break;
       case ITERATE_TYPE_VIEWPORT:
          global->menu.block_push = true;
-         ret = action_iterate_menu_viewport(msg, sizeof(msg), label, action, hash);
+         ret = action_iterate_menu_viewport(msg, sizeof(msg), label, action);
          break;
       case ITERATE_TYPE_INFO:
          ret = action_iterate_info(msg, sizeof(msg), label);

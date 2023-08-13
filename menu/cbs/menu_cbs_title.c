@@ -377,9 +377,6 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_DEFERRED_CORE_UPDATER_LIST:
          cbs->action_get_title = action_get_title_core_updater;
          break;
-      case MENU_LABEL_CUSTOM_VIEWPORT_2:
-         cbs->action_get_title = action_get_title_custom_viewport;
-         break;
       case MENU_LABEL_HELP:
          cbs->action_get_title = action_get_title_help;
          break;

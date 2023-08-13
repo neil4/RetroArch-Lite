@@ -319,8 +319,7 @@ extern "C" {
 #define MENU_LABEL_INFO                                                        0x7c9884d1U
 #define MENU_LABEL_INFO_SCREEN                                                 0xd97853d0U
 #define MENU_LABEL_LOAD_OPEN_ZIP                                               0x8aa3c068U
-#define MENU_LABEL_CUSTOM_VIEWPORT_1                                           0x76c3016fU
-#define MENU_LABEL_CUSTOM_VIEWPORT_2                                           0x76c30170U
+#define MENU_LABEL_CUSTOM_VIEWPORT                                             0xdb33a93fU
 #define MENU_LABEL_CUSTOM_RATIO                                                0xf038731eU
 #define MENU_LABEL_VALUE_CUSTOM_RATIO                                          0x3c94b73fU
 #define MENU_LABEL_CONFIRM_CORE_DELETION                                       0x111b482eU
