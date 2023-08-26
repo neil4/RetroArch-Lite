@@ -492,10 +492,10 @@ static int menu_input_set_timeout(enum menu_input_bind_mode type)
                    : MENU_KEYBOARD_BIND_TIMEOUT_SECONDS_LONG);
 
    menu_input->binds.timeout_end = rarch_get_time_usec() + time * 1000000;
-   if (global->menu.bind_mode_keyboard)  /* bind-all: keyboard mode */
-      input_keyboard_wait_keys(menu, menu_input_retropad_bind_keyboard_cb);
-   else if (type == MENU_INPUT_BIND_SINGLE)  /* hotkey: keyboard or joypad */
+   if (type == MENU_INPUT_BIND_SINGLE)  /* hotkey: keyboard or joypad */
       input_keyboard_wait_keys(menu, menu_input_hotkey_bind_keyboard_cb);
+   else if (global->menu.bind_mode_keyboard)  /* bind-all: keyboard mode */
+      input_keyboard_wait_keys(menu, menu_input_retropad_bind_keyboard_cb);
 
    return 0;
 }
@@ -554,15 +554,15 @@ int menu_input_bind_iterate(uint32_t label_hash)
 {
    int64_t current;
    struct menu_bind_state binds;
-   char msg[PATH_MAX_LENGTH];
+   char msg[NAME_MAX_LENGTH];
    char fmt[64];
    int timeout                  = 0;
    menu_input_t *menu_input     = menu_input_get_ptr();
    driver_t *driver             = driver_get_ptr();
    global_t *global             = global_get_ptr();
-   bool bind_mode_kb            = global ? global->menu.bind_mode_keyboard : false;
-   static int64_t hold_ms       = 0;
    bool hotkey_bind             = (label_hash == MENU_LABEL_CUSTOM_BIND);
+   bool bind_mode_kb            = global->menu.bind_mode_keyboard && !hotkey_bind;
+   static int64_t hold_ms       = 0;
 
    menu_driver_render();
 
@@ -576,16 +576,15 @@ int menu_input_bind_iterate(uint32_t label_hash)
       return 1;
    }
 
-   if (bind_mode_kb)  /* keyboard, all keys */
-      strlcpy(fmt, "[%s]\npress keyboard\n(timeout %d seconds)", 64);
-   else if (hotkey_bind)  /* keyboard or joypad, single key */
-      strlcpy(fmt, "[%s]\npress keyboard or joypad\n(timeout %d seconds)", 64);
-   else  /* joypad, all keys */
-      strlcpy(fmt, "[%s]\npress joypad\n(RETURN to skip)\n(timeout %d seconds)", 64);
+   if (hotkey_bind)
+      strlcpy(fmt, "[%s]\nPress keyboard or joypad\n \n(timeout %d seconds)", 64);
+   else if (bind_mode_kb)
+      strlcpy(fmt, "[%s]\nPress keyboard\n \n(timeout %d seconds)", 64);
+   else
+      strlcpy(fmt, "[%s]\nPress joypad\n \n(RETURN to skip)\n(timeout %d seconds)", 64);
 
-   snprintf(msg, sizeof(msg), fmt,
-            input_config_bind_map[menu_input->binds.begin
-                                  - MENU_SETTINGS_BIND_BEGIN].desc, timeout);
+   snprintf(msg, sizeof(msg), fmt, input_config_bind_map[
+         menu_input->binds.begin - MENU_SETTINGS_BIND_BEGIN].desc, timeout);
    menu_driver_render_messagebox(msg);
 
    if ( (bind_mode_kb || hotkey_bind)

@@ -1559,10 +1559,7 @@ static int setting_bind_action_ok(void *data, bool wraparound)
    global_t      *global     = global_get_ptr();
    (void)wraparound;
 
-   if (global->menu.bind_mode_keyboard)
-      menu_input_set_keyboard_bind_mode(data, MENU_INPUT_BIND_SINGLE);
-   else
-      menu_input_set_input_device_bind_mode(data, MENU_INPUT_BIND_SINGLE);
+   menu_input_set_input_device_bind_mode(data, MENU_INPUT_BIND_SINGLE);
 
    return 0;
 }
