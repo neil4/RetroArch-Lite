@@ -73,12 +73,12 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
       DECLARE_BIND(r_y_minus, RARCH_ANALOG_RIGHT_Y_MINUS, "Right analog Y- (up)"),
 
       /* TODO: Allow binding these */
-      DECLARE_BIND(lightgun_trigger, RARCH_LIGHTGUN_TRIGGER, "Lightgun trigger"),
-      DECLARE_BIND(lightgun_start,   RARCH_LIGHTGUN_START, "Lightgun start"),
-      DECLARE_BIND(lightgun_select,  RARCH_LIGHTGUN_SELECT, "Lightgun select"),
-      DECLARE_BIND(lightgun_aux_a,   RARCH_LIGHTGUN_AUX_A, "Lightgun aux A"),
-      DECLARE_BIND(lightgun_aux_b,   RARCH_LIGHTGUN_AUX_B, "Lightgun aux B"),
-      DECLARE_BIND(lightgun_aux_c,   RARCH_LIGHTGUN_AUX_C, "Lightgun aux C"),
+      DECLARE_BIND(gun_trigger, RARCH_LIGHTGUN_TRIGGER, "Lightgun trigger"),
+      DECLARE_BIND(gun_start,   RARCH_LIGHTGUN_START, "Lightgun start"),
+      DECLARE_BIND(gun_select,  RARCH_LIGHTGUN_SELECT, "Lightgun select"),
+      DECLARE_BIND(gun_aux_a,   RARCH_LIGHTGUN_AUX_A, "Lightgun aux A"),
+      DECLARE_BIND(gun_aux_b,   RARCH_LIGHTGUN_AUX_B, "Lightgun aux B"),
+      DECLARE_BIND(gun_aux_c,   RARCH_LIGHTGUN_AUX_C, "Lightgun aux C"),
 
       DECLARE_META_BIND(2, toggle_keyboard_focus, RARCH_TOGGLE_KEYBOARD_FOCUS, "Keyboard Focus toggle"),
       DECLARE_META_BIND(2, enable_hotkey,         RARCH_ENABLE_HOTKEY, "Hotkeys enable hold"),
