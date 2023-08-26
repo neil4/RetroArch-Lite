@@ -1556,7 +1556,6 @@ static int setting_action_action_ok(void *data, bool wraparound)
 
 static int setting_bind_action_ok(void *data, bool wraparound)
 {
-   global_t      *global     = global_get_ptr();
    (void)wraparound;
 
    menu_input_set_input_device_bind_mode(data, MENU_INPUT_BIND_SINGLE);
