@@ -98,12 +98,13 @@ bool menu_entries_show_back(void)
 }
 
 /* Sets 's' to the name of the current core 
- * (shown at the top of the UI). */
+ * (shown at the bottom of the UI). */
 void menu_entries_get_core_title(char *s, size_t len)
 {
    global_t *global          = global_get_ptr();
    const char *core_name     = global ? global->menu.info.library_name    : NULL;
    const char *core_version  = global ? global->menu.info.library_version : NULL;
+   unsigned pos;
 
    if (!core_name)
       core_name = global->system.info.library_name;
@@ -115,7 +116,10 @@ void menu_entries_get_core_title(char *s, size_t len)
    if (!core_version)
       core_version = "";
 
-   snprintf(s, len, "%s %s", core_name, core_version);
+   /* Assume s is larger than core_name */
+   pos  = strlcpy(s, core_name, len);
+   pos += strlcpy(s + pos, " ", len - pos);
+   strlcpy(s + pos, core_version, len - pos);
 }
 
 static bool menu_entries_get_nonblocking_refresh(void)

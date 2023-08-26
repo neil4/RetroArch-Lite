@@ -510,10 +510,9 @@ static float menu_animation_ticker_bounce(char *s, size_t len, uint64_t idx,
    unsigned tick_frames;
 
    /* Slower ticks for shorter strings */
-   tick_frames = str_len < (len + (len>>2)) ?
+   tick_frames       = str_len < (len + (len>>2)) ?
          g_tick_frames + (g_tick_frames>>1) : g_tick_frames;
 
-   /* Wrap long strings in options with some kind of ticker line. */
    ticker_period     = 2 * (str_len - len) + 8;
    phase             = (idx / tick_frames) % ticker_period;
 
@@ -558,7 +557,7 @@ static float menu_animation_ticker_bounce(char *s, size_t len, uint64_t idx,
 static float menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
       const char *str, const size_t str_len)
 {
-   unsigned ticker_period, phase;
+   unsigned ticker_period, phase, pos;
    unsigned phase1, phase2, phase3;
    const char   sep[4]  = {' ', (char)149, ' ', '\0'};  /* bullet */
    const size_t sep_len = 3;
@@ -580,19 +579,19 @@ static float menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
       strlcpy(s, str + phase, len + 1);
    else if (phase < phase2)
    {
-      strlcpy(s, str + phase, len + 1);
-      strlcat(s, sep, len + 1);
+      pos = strlcpy(s, str + phase, len + 1);
+      strlcpy(s + pos, sep, (len + 1) - pos);
    }
    else if (phase < phase3)
    {
-      strlcpy(s, str + phase, len + 1);
-      strlcat(s, sep, len + 1);
-      strlcat(s, str, len + 1);
+      pos  = strlcpy(s, str + phase, len + 1);
+      pos += strlcpy(s + pos, sep, (len + 1) - pos);
+      strlcpy(s + pos, str, (len + 1) - pos);
    }
    else
    {
-      strlcpy(s, sep + (phase - str_len), len + 1);
-      strlcat(s, str, len + 1);
+      pos = strlcpy(s, sep + (phase - str_len), len + 1);
+      strlcpy(s + pos, str, (len + 1) - pos);
    }
 
    return ((idx % g_tick_frames) / (float)g_tick_frames) * -1.01f;
@@ -601,7 +600,7 @@ static float menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
 /**
  * menu_animation_ticker_line:
  * @s                        : buffer to write new message line to.
- * @len                      : length of buffer @input.
+ * @len                      : length of buffer visible.
  * @idx                      : Index. Will be used for ticker logic.
  * @str                      : Input string.
  * @selected                 : Is the item currently selected in the menu?
@@ -628,7 +627,7 @@ float menu_animation_ticker_line(char *s, size_t len, uint64_t idx,
    if (!selected)
    {
       strlcpy(s, str, len + 1 - 3);
-      strlcat(s, "...", len + 1);
+      strlcpy(s + (len - 3), "...", 3 + 1);
       return 0.0f;
    }
 

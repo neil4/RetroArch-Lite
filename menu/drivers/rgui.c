@@ -1073,7 +1073,6 @@ static void rgui_render(void)
 
    for (; i < end; i++, y += FONT_HEIGHT_STRIDE)
    {
-      char message[NAME_MAX_LENGTH];
       char entry_title_buf[NAME_MAX_LENGTH];
       char type_str_buf[NAME_MAX_LENGTH];
       unsigned entry_spacing;
@@ -1086,7 +1085,6 @@ static void rgui_render(void)
       if (i > (nav->selection_ptr + 100))
          continue;
 
-      message[0]         = '\0';
       entry_title_buf[0] = '\0';
       type_str_buf[0]    = '\0';
 
@@ -1104,20 +1102,14 @@ static void rgui_render(void)
       offset = menu_animation_ticker_line(entry_title_buf,
             title_w, frame_count, entry.path, entry_selected);
 
-      snprintf(message, sizeof(message), "%-*.*s",
-            title_w, title_w, entry_title_buf);
-
-      blit_line(message, title_w, title_x, y,
+      blit_line(entry_title_buf, title_w, title_x, y,
             FONT_WIDTH_STRIDE * offset, color);
 
       /* entry value */
       offset = menu_animation_ticker_line(type_str_buf,
             entry_spacing, frame_count, entry.value, entry_selected);
 
-      snprintf(message, sizeof(message), "%-*s",
-            entry_spacing, type_str_buf);
-
-      blit_line(message, entry_spacing,
+      blit_line(type_str_buf, entry_spacing,
             title_x + FONT_WIDTH_STRIDE * (title_w + 1), y,
             FONT_WIDTH_STRIDE * offset, color);
    }
@@ -1138,12 +1130,18 @@ static void rgui_render(void)
 
    if (menu_input->keyboard.display)
    {
-      char msg[PATH_MAX_LENGTH];
+      char msg[NAME_MAX_LENGTH];
       const char *str = *menu_input->keyboard.buffer;
+      unsigned pos;
 
       if (!str)
          str = "";
-      snprintf(msg, sizeof(msg), "%s\n%s", menu_input->keyboard.label, str);
+
+      /* Assume msg is larger than keyboard.label */
+      pos = strlcpy(msg, menu_input->keyboard.label, sizeof(msg));
+      msg[pos++] = '\n';
+      strlcpy(msg + pos, str, sizeof(msg) - pos);
+
       rgui_render_messagebox(msg);
    }
    else
