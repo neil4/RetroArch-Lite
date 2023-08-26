@@ -303,7 +303,7 @@ static void set_special_paths(char **argv, unsigned num_content)
             sizeof(settings->system_directory));
 }
 
-void set_paths_redirect()
+void set_paths_redirect(void)
 {
    global_t                *global   = global_get_ptr();
    settings_t              *settings = config_get_ptr();
@@ -1499,7 +1499,7 @@ int rarch_defer_core(core_info_list_t *core_info, const char *dir,
    return -1;
 }
 
-void rarch_update_configs()
+void rarch_update_configs(void)
 {
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();

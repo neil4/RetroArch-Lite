@@ -476,7 +476,7 @@ static void *jni_haptic_thread(void* data)
    }
 }
 
-static void android_input_haptic_feedback()
+static void android_input_haptic_feedback(void)
 {
    pthread_cond_signal(&haptic_flag);
 }

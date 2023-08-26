@@ -76,7 +76,7 @@ static struct setting_desc *scoped_setting_list;
 #define SCOPED_LIST_ADD_PATH(key, var, scope_var) \
    SCOPED_LIST_ADD_VAR(key, CV_PATH, var, &scope_var)
 
-static void config_populate_scoped_setting_list()
+static void config_populate_scoped_setting_list(void)
 {
    settings_t       *settings  = config_get_ptr();
    video_viewport_t *custom_vp = video_viewport_get_custom();
@@ -549,7 +549,7 @@ const char *config_get_default_location(void)
    return "null";
 }
 
-static void config_check_overlay_preset()
+static void config_check_overlay_preset(void)
 {
    settings_t* settings = config_get_ptr();
    global_t* global     = global_get_ptr();
@@ -3033,7 +3033,7 @@ end:
    free(fullpath);
 }
 
-void config_save_scoped_files()
+void config_save_scoped_files(void)
 {
    config_save_scoped_file(THIS_CORE);
    config_save_scoped_file(THIS_CONTENT_DIR);
@@ -3041,7 +3041,7 @@ void config_save_scoped_files()
    scoped_settings_touched = false;
 }
 
-void config_unmask_globals()
+void config_unmask_globals(void)
 {
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
@@ -3229,7 +3229,7 @@ static void config_load_scoped_file(unsigned scope)
    }
 }
 
-void config_load_scoped_files()
+void config_load_scoped_files(void)
 {
    /* Back up or unmask global settings */
    config_unmask_globals();
@@ -3239,7 +3239,7 @@ void config_load_scoped_files()
    config_load_scoped_file(THIS_CONTENT_ONLY);
 }
 
-void config_load_core_file()
+void config_load_core_file(void)
 {
    config_unmask_globals();
    config_load_scoped_file(THIS_CORE);

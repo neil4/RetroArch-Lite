@@ -77,7 +77,7 @@ void rarch_main_data_overlay_iterate(void *data)
 end: ;
 }
 
-void rarch_main_data_overlay_finish()
+void rarch_main_data_overlay_finish(void)
 {
    driver_t       *driver  = driver_get_ptr();
    data_runloop_t *runloop = rarch_main_data_get_ptr();

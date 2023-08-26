@@ -1700,7 +1700,7 @@ int menu_displaylist_push(file_list_t *list, file_list_t *menu_list)
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
-bool menu_displaylist_init()
+bool menu_displaylist_init(void)
 {
    menu_list_t       *menu_list = menu_list_get_ptr();
    menu_navigation_t       *nav = menu_navigation_get_ptr();
@@ -1741,7 +1741,7 @@ void menu_displaylist_info_clear(menu_displaylist_info_t *info)
    info->setting = NULL;
 }
 
-menu_displaylist_info_t *menu_displaylist_info_new()
+menu_displaylist_info_t *menu_displaylist_info_new(void)
 {
    menu_displaylist_info_t *info = malloc(sizeof(menu_displaylist_info_t));
    rarch_assert(info != NULL);  /* for simplicity */

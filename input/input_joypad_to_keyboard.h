@@ -40,15 +40,15 @@ struct joykbd_bind
 extern bool joykbd_enabled;
 extern struct joykbd_bind joykbd_bind_list[];
 
-void input_joykbd_update_enabled();
+void input_joykbd_update_enabled(void);
 
-void input_joykbd_init_binds();
+void input_joykbd_init_binds(void);
 
 void input_joykbd_add_bind(enum retro_key rk, uint8_t btn);
 
 void input_joykbd_remove_bind(enum retro_key rk, uint8_t btn);
 
-void input_joykbd_poll();
+void input_joykbd_poll(void);
 
 int16_t input_joykbd_state(enum retro_key rk);
 

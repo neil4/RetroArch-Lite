@@ -196,7 +196,7 @@ end:
 }
 
 
-void core_info_queue_download()
+void core_info_queue_download(void)
 {
 #ifdef HAVE_NETWORKING
    char *info_path         = string_alloc(PATH_MAX_LENGTH);

@@ -1307,7 +1307,7 @@ error:
    rarch_main_msg_queue_push(msg, 1, 180, false);
 }
 
-bool netplay_send_savestate()
+bool netplay_send_savestate(void)
 {
    driver_t *driver   = driver_get_ptr();
    netplay_t *netplay = (netplay_t*)driver->netplay_data;
@@ -1501,17 +1501,17 @@ static void netplay_mask_unmask_config(bool starting)
    }
 }
 
-void netplay_mask_config()
+void netplay_mask_config(void)
 {
    netplay_mask_unmask_config(true);
 }
 
-void netplay_unmask_config()
+void netplay_unmask_config(void)
 {
    netplay_mask_unmask_config(false);
 }
 
-void netplay_disconnect()
+void netplay_disconnect(void)
 {
    driver_t *driver   = driver_get_ptr();
    netplay_t *netplay = (netplay_t*)driver->netplay_data;

@@ -130,7 +130,7 @@ struct joykbd_bind joykbd_bind_list[JOYKBD_LIST_LEN] = {
    {.rk = RETROK_F12,          .btn = NO_BTN, .next = NULL}
 };
 
-void input_joykbd_update_enabled()
+void input_joykbd_update_enabled(void)
 {
    settings_t *settings = config_get_ptr();
    int p;
@@ -148,7 +148,7 @@ void input_joykbd_update_enabled()
    joykbd_enabled = false;
 }
 
-void input_joykbd_init_binds()
+void input_joykbd_init_binds(void)
 {
    unsigned i;
    for (i = 0; i < JOYKBD_LIST_LEN; i++)
@@ -265,7 +265,7 @@ static INLINE void input_joykbd_update_state(uint32_t btn_state)
  * Sends keyboard events and updates @joykbd_state based on @joykbd_binds and
  * port 0 button state.
  **/
-void input_joykbd_poll()
+void input_joykbd_poll(void)
 {
    const input_device_driver_t *joypad;
    uint32_t btn_state;

@@ -668,7 +668,7 @@ bool core_option_updated(core_option_manager_t *opt_mgr)
    return opt_mgr->updated;
 }
 
-static void core_options_delete_unscoped()
+static void core_options_delete_unscoped(void)
 {
    char path[PATH_MAX_LENGTH];
 

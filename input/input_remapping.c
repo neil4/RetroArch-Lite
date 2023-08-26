@@ -156,7 +156,7 @@ bool input_remapping_load_file(const char *path)
    return true;
 }
 
-void remap_file_load_auto()
+void remap_file_load_auto(void)
 {
    settings_t *settings = config_get_ptr();
    char *path;
@@ -285,7 +285,7 @@ static bool input_remapping_save_file(const char *path)
    return ret;
 }
 
-static void input_remapping_delete_unscoped()
+static void input_remapping_delete_unscoped(void)
 {
    char *path = string_alloc(PATH_MAX_LENGTH);
 
@@ -314,7 +314,7 @@ static void input_remapping_delete_unscoped()
  *
  * Returns: true (1) if successful, otherwise false (0).
  **/
-bool input_remapping_save()
+bool input_remapping_save(void)
 {
    char *path = string_alloc(PATH_MAX_LENGTH);
 
@@ -374,7 +374,7 @@ void input_remapping_state(unsigned port,
    }
 }
 
-void input_remapping_set_default_desc()
+void input_remapping_set_default_desc(void)
 {
    struct retro_input_descriptor desc[MAX_USERS * sizeof(default_rid) + 1];
    unsigned i, j;

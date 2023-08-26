@@ -591,7 +591,7 @@ static void rarch_update_frame_time(void)
  *
  * Throttle core speed or fastforward speed.
  **/
-static void rarch_limit_frame_time()
+static void rarch_limit_frame_time(void)
 {
    retro_time_t target                  = 0;
    retro_time_t to_sleep_ms             = 0;

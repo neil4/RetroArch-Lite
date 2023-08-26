@@ -391,7 +391,7 @@ static void input_overlay_get_slope_limits(
  *
  * Updates diagonal sensitivity for all eightway_vals
  **/
-void input_overlay_update_eightway_diag_sens()
+void input_overlay_update_eightway_diag_sens(void)
 {
    settings_t* settings = config_get_ptr();
 
@@ -1345,7 +1345,7 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    }
 }
 
-static void input_overlay_update_mouse_scale()
+static void input_overlay_update_mouse_scale(void)
 {
    struct retro_system_av_info* av_info = video_viewport_get_system_av_info();
    unsigned disp_width, disp_height;
@@ -1943,7 +1943,7 @@ static INLINE bool input_overlay_poll_descs(
    return any_desc_hit;
 }
 
-static INLINE void input_overlay_poll_mouse()
+static INLINE void input_overlay_poll_mouse(void)
 {
    driver_t*              driver    = driver_get_ptr();
    settings_t*            settings  = config_get_ptr();
@@ -2623,7 +2623,7 @@ void input_overlay_set_alpha(input_overlay_t *ol)
       ol->iface->set_alpha(ol->iface_data, i, opacity);
 }
 
-void input_overlay_notify_video_updated()
+void input_overlay_notify_video_updated(void)
 {
    overlay_adjust_needed = true;
 }

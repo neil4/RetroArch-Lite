@@ -67,7 +67,7 @@ bool video_monitor_fps_statistics(double *refresh_rate,
  * Returns: true if frame should be shown in fast-forward mode, or false
  * if it should be dropped.
  */
-bool video_state_increment_frame();
+bool video_state_increment_frame(void);
 
 /**
  * video_monitor_get_fps:

@@ -1117,7 +1117,7 @@ bool video_monitor_fps_statistics(double *refresh_rate,
  * Updates video_state's frame_count, fps, and frame_time_samples.
  * Return val only applies if non-blocking.
  */
-bool video_state_increment_frame()
+bool video_state_increment_frame(void)
 {
    static retro_time_t prev_frame_us;
    static retro_time_t fps_start_us;
@@ -1290,7 +1290,7 @@ void video_driver_set_pixel_format(enum retro_pixel_format fmt)
    video_state.pix_fmt = fmt;
 }
 
-void video_driver_free_hw_context()
+void video_driver_free_hw_context(void)
 {
    struct retro_hw_render_callback *hw_render =
       (struct retro_hw_render_callback*)video_driver_callback();

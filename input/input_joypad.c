@@ -37,7 +37,7 @@ static float analog_dpad_low_slope   = 0.4142f;
 static float analog_dpad_deadzone_sq = 0.1111f;
 int16_t analog_dpad_state_utd;  /* todo: a better way to flag updates */
 
-void input_joypad_update_analog_dpad_params()
+void input_joypad_update_analog_dpad_params(void)
 {
    settings_t *settings  = config_get_ptr();
    const float diag_sens = settings->input.analog_diagonal_sensitivity;

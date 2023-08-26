@@ -119,7 +119,7 @@ static int menu_init_entries(menu_entries_t *entries)
    return 0;
 }
 
-static void menu_init_mame_list()
+static void menu_init_mame_list(void)
 {
    char mamelist_path[PATH_MAX_LENGTH];
    global_t *global = global_get_ptr();

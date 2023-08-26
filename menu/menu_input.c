@@ -530,7 +530,7 @@ int menu_input_set_input_device_bind_mode(void *data,
    return menu_input_set_timeout(type);
 }
 
-static int menu_input_bind_keyboard_stopcheck()
+static int menu_input_bind_keyboard_stopcheck(void)
 {
    menu_input_t *menu_input = menu_input_get_ptr();
    driver_t         *driver = driver_get_ptr();
@@ -886,7 +886,7 @@ static unsigned menu_input_mouse_btn_action(uint64_t input_mouse)
    return MENU_ACTION_NOOP;
 }
 
-static unsigned menu_input_mouse_action()
+static unsigned menu_input_mouse_action(void)
 {
    driver_t *driver         = driver_get_ptr();
    settings_t *settings     = config_get_ptr();
@@ -985,7 +985,7 @@ static unsigned menu_input_mouse_action()
    return menu_input_mouse_btn_action(input_mouse);
 }
 
-static unsigned menu_input_pointer_tap_action()
+static unsigned menu_input_pointer_tap_action(void)
 {
    global_t *global           = global_get_ptr();
    menu_input_t *menu_input   = menu_input_get_ptr();
@@ -1030,7 +1030,7 @@ static unsigned menu_input_pointer_tap_action()
    return MENU_ACTION_NOOP;
 }
 
-static unsigned menu_input_pointer_action()
+static unsigned menu_input_pointer_action(void)
 {
    unsigned ret               = MENU_ACTION_NOOP;
    menu_input_t *menu_input   = menu_input_get_ptr();

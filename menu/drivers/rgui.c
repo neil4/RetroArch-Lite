@@ -129,7 +129,7 @@ static INLINE uint16_t argb32_to_rgba4444(uint32_t col)
    return (r << 12) | (g << 8) | (b << 4) | a;
 }
 
-static void rgui_update_colors()
+static void rgui_update_colors(void)
 {
    rgui_hover_16b = argb32_to_rgba4444(rgui_hover_32b);
    rgui_normal_16b = argb32_to_rgba4444(rgui_normal_32b);
@@ -141,7 +141,7 @@ static void rgui_update_colors()
    rgui_particle_16b = argb32_to_rgba4444(rgui_particle_32b);
 }
 
-static void rgui_set_default_colors()
+static void rgui_set_default_colors(void)
 {
    rgui_hover_32b = rgui_hover_32b_default;
    rgui_normal_32b = rgui_normal_32b_default;
@@ -608,7 +608,7 @@ static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
    conf = NULL;
 }
 
-static void rgui_adjust_wallpaper_alpha()
+static void rgui_adjust_wallpaper_alpha(void)
 {
    settings_t *settings = config_get_ptr();
    global_t *global     = global_get_ptr();

@@ -661,7 +661,7 @@ void menu_animation_update_time(menu_animation_t *anim)
    }
 }
 
-void menu_update_ticker_speed()
+void menu_update_ticker_speed(void)
 {
    settings_t *settings = config_get_ptr();
    g_tick_frames = (unsigned)(12.0f / settings->menu.ticker_speed + 0.5f);
