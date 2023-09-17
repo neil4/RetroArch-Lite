@@ -6916,6 +6916,24 @@ static bool setting_append_list_overlay_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
+   if (driver->input && driver->input->overlay_haptic_feedback)
+   {
+      CONFIG_INT(
+            settings->input.overlay_vibrate_time,
+            "input_overlay_vibrate_time",
+            "Haptic Feedback",
+            OVERLAY_DEFAULT_VIBE,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, -1, 50, 1, true, true);
+      menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_overlay_haptic_feedback;
+   }
+
    if (show_osk_settings || settings->menu.show_advanced_settings)
    {
       CONFIG_ACTION(
@@ -6944,24 +6962,6 @@ static bool setting_append_list_overlay_options(
             group_info.name,
             subgroup_info.name,
             parent_group);
-   }
-
-   if (driver->input && driver->input->overlay_haptic_feedback)
-   {
-      CONFIG_INT(
-            settings->input.overlay_vibrate_time,
-            "input_overlay_vibrate_time",
-            "Haptic Feedback",
-            OVERLAY_DEFAULT_VIBE,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, -1, 50, 1, true, true);
-      menu_settings_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
-      (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_overlay_haptic_feedback;
    }
 
    END_SUB_GROUP(list, list_info, parent_group);
