@@ -47,7 +47,7 @@ static void menu_action_setting_disp_set_label_cheat_num_passes(
 {
    global_t *global = global_get_ptr();
 
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
    snprintf(s, len, "%u", global->cheat->buf_size);
 }
@@ -61,7 +61,7 @@ static void menu_action_setting_disp_set_label_core_options_scope(
       const char *path,
       char *s2, size_t len2)
 {
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
    strlcpy(s, scope_lut[core_options_scope].name, len);
 }
@@ -90,7 +90,7 @@ static void menu_action_setting_disp_set_label_shader_filter_pass(
    (void)menu;
 
    *s = '\0';
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_HLSL)
@@ -116,7 +116,7 @@ static void menu_action_setting_disp_set_label_filter(
    settings_t *settings = config_get_ptr();
 
    *s = '\0';
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
    strlcpy(s, "None", len);
 
@@ -137,7 +137,7 @@ static void menu_action_setting_disp_set_label_shader_preset(
    settings_t *settings = config_get_ptr();
 
    *s = '\0';
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
    strlcpy(s, "None", len);
 
@@ -162,7 +162,7 @@ static void menu_action_setting_disp_set_label_shader_num_passes(
    (void)menu;
 
    *s = '\0';
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_HLSL)
    snprintf(s, len, "%u", menu->shader->passes);
@@ -187,7 +187,7 @@ static void menu_action_setting_disp_set_label_shader_pass(
    (void)menu;
 
    *s = '\0';
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
    strlcpy(s, "N/A", len);
 
@@ -211,7 +211,7 @@ static void menu_action_setting_disp_set_label_shader_default_filter(
    settings_t *settings = config_get_ptr();
 
    *s = '\0';
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    snprintf(s, len, "%s",
          settings->video.smooth ? "Linear" : "Nearest");
 }
@@ -237,7 +237,7 @@ static void menu_action_setting_disp_set_label_shader_parameter(
       return;
 
    *s = '\0';
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 
 #if defined(HAVE_CG) || defined(HAVE_GLSL) || defined(HAVE_HLSL)
@@ -272,7 +272,7 @@ static void menu_action_setting_disp_set_label_shader_scale_pass(
       return;
 
    *s = '\0';
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 
    (void)pass;
@@ -329,7 +329,7 @@ static void menu_action_setting_turbo_id(
    else
       strlcpy(s, "---", len);
 
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 }
 
@@ -364,7 +364,7 @@ static void menu_action_setting_disp_set_label_input_desc(
       snprintf(s, len, "%s",
             axis_labels[mapped_id]);
 
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 }
 
@@ -390,7 +390,7 @@ static void menu_action_setting_disp_set_label_joykbd_input_desc(
    else
       snprintf(s, len, "---");
 
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 }
 
@@ -414,7 +414,7 @@ static void menu_action_setting_disp_set_label_cheat(
             menu_hash_to_str(MENU_VALUE_ON) :
             menu_hash_to_str(MENU_VALUE_OFF)
             );
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 }
 
@@ -450,7 +450,7 @@ static void menu_action_setting_disp_set_label_perf_counters(
    unsigned offset = type - MENU_SETTINGS_PERF_COUNTERS_BEGIN;
 
    *s = '\0';
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 
    menu_action_setting_disp_set_label_perf_counters_common(
@@ -474,7 +474,7 @@ static void menu_action_setting_disp_set_label_libretro_perf_counters(
    unsigned offset = type - MENU_SETTINGS_LIBRETRO_PERF_COUNTERS_BEGIN;
 
    *s = '\0';
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 
    menu_action_setting_disp_set_label_perf_counters_common(
@@ -493,7 +493,7 @@ static void menu_action_setting_disp_set_label_menu_more(
       char *s2, size_t len2)
 {
    strlcpy(s, "...", len);
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 }
 
@@ -511,7 +511,7 @@ static void menu_action_setting_disp_set_label_menu_disk_tray_status(
       (const struct retro_disk_control_callback*)
       &global->system.disk_control;
 
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    *s = '\0';
    strlcpy(s2, path, len2);
    if (!control)
@@ -535,7 +535,7 @@ static void menu_action_setting_disp_set_label_menu_disk_index(
       (const struct retro_disk_control_callback*)
       &global->system.disk_control;
 
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    *s = '\0';
    strlcpy(s2, path, len2);
    if (!control)
@@ -561,7 +561,7 @@ static void menu_action_setting_disp_set_label_menu_video_resolution(
 {
    unsigned width = 0, height = 0;
 
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    *s = '\0';
 
    (void)width;
@@ -852,7 +852,7 @@ static void menu_action_setting_disp_set_label(file_list_t* list,
       char *s2, size_t len2)
 {
    *s = '\0';
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
 
    setting_get_label(list, s, len, w, type, label, entry_label, i);
 
@@ -885,7 +885,7 @@ static void menu_action_setting_disp_set_label_core_option(
 {
    global_t *global = global_get_ptr();
 
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
    strlcpy(s, core_option_label(global->system.core_options, type), len);
 }
@@ -902,7 +902,7 @@ static void menu_action_setting_disp_set_label_libretro_device(
    rarch_setting_t setting;
    setting.index_offset = type - MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN;
 
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
    setting_get_string_representation_uint_libretro_device(&setting,
          s, len);
@@ -917,7 +917,7 @@ static void menu_action_setting_disp_set_label_remapping_scope(
       const char *path,
       char *s2, size_t len2)
 {
-   *w = 19;
+   *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);
    strlcpy(s, scope_lut[input_remapping_scope].name, len);
 }

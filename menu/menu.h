@@ -59,6 +59,8 @@
 #define MENU_KEYBOARD_BIND_TIMEOUT_SECONDS_LONG 9
 #define MENU_INPUT_BIND_HOLD_USEC 170000
 
+#define MENU_DEFAULT_ENTRY_SPACING 21
+
 #ifdef __cplusplus
 extern "C" {
 #endif
