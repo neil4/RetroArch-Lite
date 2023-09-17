@@ -117,8 +117,8 @@ void menu_entries_get_core_title(char *s, size_t len)
       core_version = "";
 
    /* Assume s is larger than core_name */
-   pos  = strlcpy(s, core_name, len);
-   pos += strlcpy(s + pos, " ", len - pos);
+   pos = strlcpy(s, core_name, len);
+   s[pos++] = ' ';
    strlcpy(s + pos, core_version, len - pos);
 }
 
