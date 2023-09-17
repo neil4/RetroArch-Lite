@@ -7107,6 +7107,7 @@ static bool setting_append_list_overlay_keyboard_options(
          general_read_handler);
    menu_settings_list_current_add_values(list, list_info, "cfg");
    (*list)[list_info->index - 1].action_start = &setting_action_start_path;
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_LOAD);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
 
    CONFIG_UINT(
@@ -7767,6 +7768,7 @@ static bool setting_append_list_menu_options(
          general_read_handler);
    menu_settings_list_current_add_values(list, list_info, "cfg");
    (*list)[list_info->index - 1].action_start = &setting_action_start_path;
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_LOAD);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
 
    if (core_loaded)

@@ -1039,8 +1039,6 @@ bool event_command(enum event_command cmd)
 
          driver->overlay_cache = driver->overlay;
          driver->overlay       = NULL;
-
-         memset(&driver->overlay_state, 0, sizeof(driver->overlay_state));
 #endif
          break;
       case EVENT_CMD_OVERLAY_FREE_CACHED:
@@ -1096,10 +1094,16 @@ bool event_command(enum event_command cmd)
             break;
          }
 
+         /* Cancel if overlay already loaded */
+         if (driver->overlay
+               && driver->overlay->state == OVERLAY_STATUS_ALIVE
+               && !strcmp(path, driver->overlay->path))
+            break;
+
          /* Load from cache if possible. */
          if (driver->overlay_cache
                && driver->overlay_cache->state == OVERLAY_STATUS_ALIVE
-               && !strcmp(path, driver->overlay_cache->overlay_path))
+               && !strcmp(path, driver->overlay_cache->path))
          {
             event_command(EVENT_CMD_OVERLAY_SWAP_CACHED);
             break;

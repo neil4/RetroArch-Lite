@@ -616,7 +616,7 @@ static bool input_overlay_load_desc_image(input_overlay_t *ol,
             image_path, sizeof(image_path)))
    {
       char path[PATH_MAX_LENGTH];
-      fill_pathname_resolve_relative(path, ol->overlay_path,
+      fill_pathname_resolve_relative(path, ol->path,
             image_path, sizeof(path));
 
       if (input_overlay_load_texture_image(input_overlay, &desc->image, path))
@@ -1186,7 +1186,7 @@ bool input_overlay_load_overlays(input_overlay_t *ol)
 
       if (rel_path[0] != '\0')
       {
-         fill_pathname_resolve_relative(res_path, ol->overlay_path,
+         fill_pathname_resolve_relative(res_path, ol->path,
                rel_path, PATH_MAX_LENGTH);
 
          if (!input_overlay_load_texture_image(
@@ -1450,14 +1450,14 @@ input_overlay_t *input_overlay_new(const char *path, bool enable)
    if (!ol)
       goto error;
 
-   ol->overlay_path    = strdup(path);
-   if (!ol->overlay_path)
+   ol->path = strdup(path);
+   if (!ol->path)
    {
       free(ol);
       return NULL;
    }
 
-   ol->conf            = config_file_new(ol->overlay_path);
+   ol->conf = config_file_new(ol->path);
 
    if (!ol->conf)
       goto error;
@@ -1520,6 +1520,8 @@ void input_overlay_load_cached(input_overlay_t *ol, bool enable)
  **/
 void input_overlay_enable(input_overlay_t *ol, bool enable)
 {
+   driver_t *driver = driver_get_ptr();
+
    if (!ol)
       return;
    ol->enable = enable;
@@ -1531,7 +1533,10 @@ void input_overlay_enable(input_overlay_t *ol, bool enable)
       input_overlay_connect_mouse(ol);
    }
    else
+   {
+      memset(&driver->overlay_state, 0, sizeof(driver->overlay_state));
       ol->iface = NULL;
+   }
 }
 
 /**
@@ -2599,7 +2604,7 @@ void input_overlay_free(input_overlay_t *ol)
    if (ol->iface)
       ol->iface->enable(ol->iface_data, false);
 
-   free(ol->overlay_path);
+   free(ol->path);
    free(ol);
 }
 

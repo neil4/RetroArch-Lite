@@ -244,7 +244,7 @@ struct input_overlay
    unsigned pos_increment;
 
    unsigned next_index;
-   char *overlay_path;
+   char *path;
    config_file_t *conf;
 
    enum overlay_status state;
