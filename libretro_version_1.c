@@ -153,7 +153,7 @@ static int16_t input_joypad_turbo_state(unsigned port, unsigned *id)
    int16_t  pressed;
 
    static int16_t old_pressed[MAX_USERS][RARCH_FIRST_CUSTOM_BIND];
-   static unsigned frame[MAX_USERS][RARCH_FIRST_CUSTOM_BIND];
+   static uint16_t frame[MAX_USERS][RARCH_FIRST_CUSTOM_BIND];
 
    if ( !((1 << *id) & TURBO_ID_MASK) )
       return 0;

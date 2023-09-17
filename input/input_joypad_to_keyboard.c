@@ -22,7 +22,7 @@ extern const struct retro_keybind *libretro_input_binds[];
 /* Each bind is a linked list within @joykbd_bind_list */
 static struct joykbd_bind *joykbd_binds[NUM_JOYKBD_BTNS];
 
-static uint32_t joykbd_state[RETROK_LAST / 32 + 1];
+static uint8_t joykbd_state[RETROK_LAST / 8 + 1];
 
 bool joykbd_enabled;
 
@@ -158,7 +158,7 @@ void input_joykbd_init_binds(void)
    }
 
    memset(joykbd_binds, 0, sizeof(joykbd_binds));
-   BITARRAY32_CLEAR_ALL(joykbd_state);
+   memset(joykbd_state, 0, sizeof(joykbd_state));
 }
 
 void input_joykbd_add_bind(enum retro_key rk, uint8_t btn)
@@ -250,9 +250,9 @@ static INLINE void input_joykbd_update_state(uint32_t btn_state)
             global->frontend_key_event(down, bind->rk, 0, 0);
 
          if (down)
-            BITARRAY32_SET(joykbd_state, bind->rk);
+            BIT_SET(joykbd_state, bind->rk);
          else
-            BITARRAY32_CLEAR(joykbd_state, bind->rk);
+            BIT_CLEAR(joykbd_state, bind->rk);
 
          bind = bind->next;
       }
@@ -292,7 +292,7 @@ void input_joykbd_poll(void)
 
 int16_t input_joykbd_state(enum retro_key rk)
 {
-   return BITARRAY32_GET(joykbd_state, rk) != 0;
+   return BIT_GET(joykbd_state, rk) != 0;
 }
 
 /* Prints the list of keys mapped to @btn as ticker text to @out

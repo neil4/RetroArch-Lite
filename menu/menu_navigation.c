@@ -66,13 +66,11 @@ void menu_navigation_decrement(menu_navigation_t *nav)
       return;
 
    if (nav->selection_ptr >= 1)
-         menu_navigation_set(nav,
-               nav->selection_ptr - 1, true);
+         menu_navigation_set(nav, nav->selection_ptr - 1, true);
    else
    {
       if (settings->menu.navigation.wraparound.vertical_enable)
-         menu_navigation_set(nav, 
-               menu_list_get_size(menu_list) - 1, true);
+         menu_navigation_set(nav, menu_list_get_size(menu_list) - 1, true);
       else
          menu_navigation_set(nav, 0, true);
    }
@@ -94,15 +92,13 @@ void menu_navigation_increment(menu_navigation_t *nav)
       return;
 
    if (nav->selection_ptr + 1 < (menu_list_get_size(menu_list)))
-      menu_navigation_set(nav,
-            nav->selection_ptr + 1, true);
+      menu_navigation_set(nav, nav->selection_ptr + 1, true);
    else
    {
       if (settings->menu.navigation.wraparound.vertical_enable)
          menu_navigation_clear(nav, false);
       else
-         menu_navigation_set(nav,
-               menu_list_get_size(menu_list) - 1, true);
+         menu_navigation_set(nav, menu_list_get_size(menu_list) - 1, true);
    }
 
    menu_driver_navigation_increment();

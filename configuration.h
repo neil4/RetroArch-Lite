@@ -138,20 +138,20 @@ typedef struct settings
    struct
    {
       char driver[32];
-      bool pause_libretro;
+      char theme_dir[PATH_MAX_LENGTH];
+      char theme[PATH_MAX_LENGTH];
+      unsigned rgui_particle_effect;
+      unsigned theme_scope;
       unsigned timedate_mode;
+      float rgui_particle_effect_speed_factor;
+      float wallpaper_opacity;
+      float ticker_speed;
+      bool pause_libretro;
       bool core_enable;
       bool dynamic_wallpaper_enable;
       bool boxart_enable;
       bool rgui_thick_bg_checkerboard;
       bool rgui_thick_bd_checkerboard;
-      unsigned rgui_particle_effect;
-      float rgui_particle_effect_speed_factor;
-      char theme_dir[PATH_MAX_LENGTH];
-      float wallpaper_opacity;
-      char theme[PATH_MAX_LENGTH];
-      unsigned theme_scope;
-      float ticker_speed;
 
       struct
       {
@@ -219,41 +219,43 @@ typedef struct settings
    {
       char driver[32];
       char device[PATH_MAX_LENGTH];
-      bool allow;
       unsigned width;
       unsigned height;
+      bool allow;
    } camera;
 
    struct
    {
       char driver[32];
-      bool allow;
       int update_interval_ms;
       int update_interval_distance;
+      bool allow;
    } location;
 
    struct
    {
       char driver[32];
+      char device[PATH_MAX_LENGTH];
       bool enable;
       bool mute_enable;
-      unsigned out_rate;
-      unsigned block_frames;
-      char device[PATH_MAX_LENGTH];
-      unsigned latency;
       bool sync;
       unsigned sync_scope;
+      unsigned out_rate;
+      unsigned block_frames;
+      unsigned latency;
 
-      char dsp_plugin[PATH_MAX_LENGTH];
-      char filter_dir[PATH_MAX_LENGTH];
-      unsigned dsp_scope;
+      float volume; /* dB scale. */
+      unsigned volume_scope;
 
       bool rate_control;
       float rate_control_delta;
       float max_timing_skew;
       unsigned max_timing_skew_scope;
-      float volume; /* dB scale. */
-      unsigned volume_scope;
+
+      char dsp_plugin[PATH_MAX_LENGTH];
+      char filter_dir[PATH_MAX_LENGTH];
+      unsigned dsp_scope;
+
       char resampler[32];
    } audio;
 
@@ -279,17 +281,18 @@ typedef struct settings
 
       unsigned libretro_device[MAX_USERS];
 
+      bool rumble_enable;
       bool remap_binds_enable;
       bool turbo_binds_enable;
       unsigned turbo_period;
       unsigned turbo_settings_scope;
-      bool rumble_enable;
       float axis_threshold;
       unsigned axis_threshold_scope;
       unsigned analog_dpad_mode;
       unsigned analog_diagonal_sensitivity;
       unsigned analog_dpad_deadzone;
       unsigned analog_dpad_scope;
+
       unsigned joypad_map[MAX_USERS];
       char device_names[MAX_USERS][64];
       bool autodetect_enable;
@@ -360,10 +363,11 @@ typedef struct settings
    } core;
 
    int state_slot;
-   
+
+   unsigned libretro_log_level;
+
    char libretro[PATH_MAX_LENGTH];
    char libretro_directory[PATH_MAX_LENGTH];
-   unsigned libretro_log_level;
    char libretro_info_path[PATH_MAX_LENGTH];
    char cheat_database[PATH_MAX_LENGTH];
    char cheat_settings_path[PATH_MAX_LENGTH];

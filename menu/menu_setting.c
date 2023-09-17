@@ -7881,7 +7881,7 @@ static bool setting_append_list_menu_options(
          settings->menu.timedate_mode,
          "menu_timedate_mode",
          "Display time / date",
-         1,
+         5,
          group_info.name,
          subgroup_info.name,
          parent_group,
