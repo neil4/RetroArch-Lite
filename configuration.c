@@ -765,6 +765,7 @@ static void config_set_defaults(void)
    settings->input.max_users                        = 2;
    settings->input.rumble_enable                    = false;
    settings->input.lightgun_allow_oob               = lightgun_allow_oob;
+   settings->input.auto_keyboard_focus              = false;
 
    rarch_assert(sizeof(settings->input.binds[0]) >= sizeof(retro_keybinds_1));
    rarch_assert(sizeof(settings->input.binds[1]) >= sizeof(retro_keybinds_rest));
@@ -1668,6 +1669,8 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->input.lightgun_allow_oob);
    config_get_bool(conf, "input_rumble_enable",
          &settings->input.rumble_enable);
+   config_get_bool(conf, "input_auto_keyboard_focus",
+         &settings->input.auto_keyboard_focus);
 
    config_get_bool(conf, "netplay_client_swap_input",
          &settings->input.netplay_client_swap_input);
@@ -2717,6 +2720,8 @@ bool main_config_file_save(const char *path)
          settings->input.rumble_enable);
    config_set_bool(conf, "input_remap_binds_enable",
          settings->input.remap_binds_enable);
+   config_set_bool(conf, "input_auto_keyboard_focus",
+         settings->input.auto_keyboard_focus);
    if (settings->input.turbo_settings_scope == GLOBAL)
    {
       config_set_bool(conf, "input_turbo_binds_enable",

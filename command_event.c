@@ -30,6 +30,7 @@
 #include "preempt.h"
 
 #include "configuration.h"
+#include "input/input_common.h"
 #include "input/input_remapping.h"
 #include "input/input_joypad.h"
 
@@ -595,6 +596,8 @@ static bool event_init_content(void)
 
    event_load_auto_state();
    event_command(EVENT_CMD_NETPLAY_INIT);
+
+   input_set_keyboard_focus_auto();
 
    return true;
 }

@@ -284,6 +284,7 @@ typedef struct settings
       bool rumble_enable;
       bool remap_binds_enable;
       bool turbo_binds_enable;
+      bool auto_keyboard_focus;
       unsigned turbo_period;
       unsigned turbo_settings_scope;
       float axis_threshold;

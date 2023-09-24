@@ -3692,6 +3692,11 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                      " \n"
                      "Requires savestate support from the core.\n");
             break;
+      case MENU_LABEL_INPUT_AUTO_KEYBOARD_FOCUS:
+         snprintf(s, len,
+                     " -- Auto-toggle Keyboard Focus when starting\n"
+                     "a core, based on its input device types.");
+            break;
       default:
          return -1;
    }
@@ -6457,6 +6462,19 @@ static bool setting_append_list_input_options(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation =
       &setting_get_string_representation_uint_scope_index;
+
+   CONFIG_BOOL(
+         settings->input.auto_keyboard_focus,
+         "input_auto_keyboard_focus",
+         "Auto Keyboard Focus",
+         false,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
 
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Analog", group_info.name, subgroup_info, parent_group);
