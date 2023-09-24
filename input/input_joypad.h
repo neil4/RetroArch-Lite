@@ -166,7 +166,7 @@ bool input_joypad_hat_raw(const input_device_driver_t *driver,
 const char *input_joypad_name(const input_device_driver_t *driver,
       unsigned port);
 
-void input_joypad_update_analog_dpad_params();
+void input_joypad_update_analog_dpad_params(void);
 
 #ifdef __cplusplus
 }

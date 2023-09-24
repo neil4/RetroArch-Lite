@@ -237,6 +237,8 @@ static bool input_config_autoconfigure_joypad_init(autoconfig_params_t *params)
 void input_config_autoconfigure_joypad(autoconfig_params_t *params)
 {
    bool ret = false;
+
+   menu_entries_set_refresh();
    
    if (!input_config_autoconfigure_joypad_init(params))
       return;

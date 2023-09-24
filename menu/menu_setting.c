@@ -862,6 +862,24 @@ static int setting_bind_action_start(void *data)
    return 0;
 }
 
+static bool menu_setting_joypad_connected(void)
+{
+   settings_t *settings = config_get_ptr();
+   bool connected       = false;
+   int i;
+
+   for (i = 0; i < settings->input.max_users; i++)
+   {
+      if (settings->input.device_names[*setting_joypad_map(i)][0])
+      {
+         connected = true;
+         break;
+      }
+   }
+
+   return connected;
+}
+
 /**
  ******* ACTION TOGGLE CALLBACK FUNCTIONS *******
 **/
@@ -6208,10 +6226,12 @@ static bool setting_append_list_input_options(
    unsigned user;
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
-   settings_t *settings = config_get_ptr();
-   global_t   *global   = global_get_ptr();
-   driver_t   *driver   = driver_get_ptr();
-   bool core_loaded     = *settings->libretro ? true : false;
+   settings_t *settings      = config_get_ptr();
+   global_t   *global        = global_get_ptr();
+   driver_t   *driver        = driver_get_ptr();
+   bool core_loaded          = *settings->libretro ? true : false;
+   bool show_joypad_settings = settings->menu.show_advanced_settings
+         || menu_setting_joypad_connected();
 	
    START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_INPUT_SETTINGS), parent_group);
 
@@ -6441,95 +6461,98 @@ static bool setting_append_list_input_options(
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Analog", group_info.name, subgroup_info, parent_group);
 
-   CONFIG_UINT(
-         settings->input.analog_dpad_mode,
-         menu_hash_to_str(MENU_LABEL_INPUT_ANALOG_DPAD_MODE),
-         "Analog To D-Pad Mode",
-         ANALOG_DPAD_NONE,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info,
-         ANALOG_DPAD_NONE, ANALOG_DPAD_LAST - 1, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation =
-         &setting_get_string_representation_uint_analog_dpad_mode;
+   if (show_joypad_settings)
+   {
+      CONFIG_UINT(
+            settings->input.analog_dpad_mode,
+            menu_hash_to_str(MENU_LABEL_INPUT_ANALOG_DPAD_MODE),
+            "Analog To D-Pad Mode",
+            ANALOG_DPAD_NONE,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info,
+            ANALOG_DPAD_NONE, ANALOG_DPAD_LAST - 1, 1, true, true);
+      (*list)[list_info->index - 1].get_string_representation =
+            &setting_get_string_representation_uint_analog_dpad_mode;
 
-   CONFIG_UINT(
-         settings->input.analog_diagonal_sensitivity,
-         menu_hash_to_str(MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS),
-         "  Diagonal Sensitivity",
-         analog_diagonal_sensitivity,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
-   menu_settings_list_current_add_cmd(list, list_info,
-         EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_percentage;
+      CONFIG_UINT(
+            settings->input.analog_diagonal_sensitivity,
+            menu_hash_to_str(MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS),
+            "  Diagonal Sensitivity",
+            analog_diagonal_sensitivity,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
+      menu_settings_list_current_add_cmd(list, list_info,
+            EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_percentage;
 
-   CONFIG_UINT(
-         settings->input.analog_dpad_deadzone,
-         "input_analog_dpad_deadzone",
-         "  Deadzone",
-         analog_dpad_deadzone,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 1, 100, 1, true, true);
-   menu_settings_list_current_add_cmd(list, list_info,
-         EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_percentage;
+      CONFIG_UINT(
+            settings->input.analog_dpad_deadzone,
+            "input_analog_dpad_deadzone",
+            "  Deadzone",
+            analog_dpad_deadzone,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 1, 100, 1, true, true);
+      menu_settings_list_current_add_cmd(list, list_info,
+            EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_percentage;
 
-   CONFIG_UINT(
-         settings->input.analog_dpad_scope,
-         "input_analog_dpad_scope",
-         "  Scope",
-         GLOBAL,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(
-         list, list_info, 0, global->max_scope, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation =
-      &setting_get_string_representation_uint_scope_index;
+      CONFIG_UINT(
+            settings->input.analog_dpad_scope,
+            "input_analog_dpad_scope",
+            "  Scope",
+            GLOBAL,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(
+            list, list_info, 0, global->max_scope, 1, true, true);
+      (*list)[list_info->index - 1].get_string_representation =
+         &setting_get_string_representation_uint_scope_index;
 
-   CONFIG_FLOAT(
-         settings->input.axis_threshold,
-         "input_axis_threshold",
-         "Analog Trigger Threshold",
-         axis_threshold,
-         "%.2f",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 1.0, 0.01, true, true);
+      CONFIG_FLOAT(
+            settings->input.axis_threshold,
+            "input_axis_threshold",
+            "Analog Trigger Threshold",
+            axis_threshold,
+            "%.2f",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0, 1.0, 0.01, true, true);
 
-   CONFIG_UINT(
-         settings->input.axis_threshold_scope,
-         "input_axis_threshold_scope",
-         "  Scope",
-         GLOBAL,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(
-         list, list_info, 0, global->max_scope, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation =
-      &setting_get_string_representation_uint_scope_index;
+      CONFIG_UINT(
+            settings->input.axis_threshold_scope,
+            "input_axis_threshold_scope",
+            "  Scope",
+            GLOBAL,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(
+            list, list_info, 0, global->max_scope, 1, true, true);
+      (*list)[list_info->index - 1].get_string_representation =
+         &setting_get_string_representation_uint_scope_index;
+   }
 
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Lightgun", group_info.name, subgroup_info, parent_group);
@@ -6565,7 +6588,8 @@ static bool setting_append_list_input_options(
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Rumble", group_info.name, subgroup_info, parent_group);
 
-   if (driver && driver->input && driver->input->set_rumble)
+   if (show_joypad_settings
+         && driver && driver->input && driver->input->set_rumble)
    {
       CONFIG_BOOL(
             settings->input.rumble_enable,
