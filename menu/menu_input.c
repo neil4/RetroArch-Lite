@@ -360,23 +360,16 @@ static bool menu_input_poll_find_trigger_pad(struct menu_bind_state *state,
 static bool menu_input_poll_find_trigger(struct menu_bind_state *state,
       struct menu_bind_state *new_state)
 {
-   unsigned i;
-   settings_t     *settings = config_get_ptr();
-   const unsigned      *map = settings->input.joypad_map;
+   settings_t *settings = config_get_ptr();
+   const unsigned  *map = settings->input.joypad_map;
 
    if (!state || !new_state)
       return false;
 
-   for (i = 0; *settings->input.device_names[map[i]]; i++)
-   {
-      if (!menu_input_poll_find_trigger_pad(state, new_state, i))
-         continue;
-
-      /* Update the joypad mapping automatically.
-       * More friendly that way. */
-      settings->input.joypad_map[state->user] = i;
+   if (*settings->input.device_names[map[state->user]]
+         && menu_input_poll_find_trigger_pad(state, new_state, state->user))
       return true;
-   }
+
    return false;
 }
 
@@ -466,6 +459,7 @@ static int menu_input_set_bind_mode_common(rarch_setting_t  *setting,
             [setting->index_offset][0];
          menu_input->binds.begin  = MENU_SETTINGS_BIND_BEGIN;
          menu_input->binds.last   = MENU_SETTINGS_BIND_LAST;
+         menu_input->binds.user   = setting->index_offset;
 
          info->list          = menu_list->menu_stack;
          info->type          = MENU_SETTINGS_CUSTOM_BIND_KEYBOARD;
