@@ -485,7 +485,7 @@ static const bool overlay_shift_y_lock_edges = true;
 static const bool overlay_mouse_hold_to_drag = true;
 static const unsigned overlay_mouse_hold_zone = 500;  /* [0, 32767] */
 static const unsigned overlay_mouse_hold_ms = 250;
-static const unsigned overlay_mouse_click_dur = 1;
+static const unsigned overlay_mouse_click_dur = 6;
 #endif
 static bool show_frame_throttle_menu = true;
 #ifdef HAVE_NETPLAY
