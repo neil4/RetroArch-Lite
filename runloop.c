@@ -606,7 +606,7 @@ static void rarch_limit_frame_time(void)
                           : settings->video.refresh_rate;
    
    if (menu_driver_alive())
-      mft_f = 0.0f;  /* rely on vsync */
+      mft_f = 1000000.0f / 60.5f;  /* try to rely on vsync */
    else if (runloop->is_slowmotion)
       mft_f = settings->slowmotion_ratio * (1000000.0f / throttled_fps);
    else if (driver->nonblock_state)
@@ -614,12 +614,12 @@ static void rarch_limit_frame_time(void)
       if (settings->fastforward_ratio > 1.0f)
          mft_f = 1000000.0f / (throttled_fps * settings->fastforward_ratio);
       else
-         mft_f = 0.0f;
+         return;
    }
    else if (settings->core_throttle_enable)
       mft_f = 1000000.0f / throttled_fps;
    else
-      mft_f = 0.0f;
+      return;
 
    runloop->frames.limit.minimum_time = (retro_time_t) roundf(mft_f);
 
