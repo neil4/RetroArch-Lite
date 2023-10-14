@@ -367,7 +367,7 @@ static bool menu_input_poll_find_trigger(struct menu_bind_state *state,
       return false;
 
    if (*settings->input.device_names[map[state->user]]
-         && menu_input_poll_find_trigger_pad(state, new_state, state->user))
+         && menu_input_poll_find_trigger_pad(state, new_state, map[state->user]))
       return true;
 
    return false;
