@@ -77,6 +77,7 @@
 #define RETRO_LBL_LIGHTGUN_AUX_B "Lightgun Aux B"
 #define RETRO_LBL_LIGHTGUN_AUX_C "Lightgun Aux C"
 #define RETRO_LBL_ENABLE_HOTKEY "Enable Hotkey"
+#define RETRO_LBL_ADVANCED_TOGGLE "Show Obscure Settings Toggle"
 #define RETRO_LBL_OVERLAY_NEXT "Next Overlay"
 #define RETRO_LBL_DISK_EJECT_TOGGLE "Disc Eject Toggle"
 #define RETRO_LBL_DISK_NEXT "Disc Swap Next"

@@ -203,6 +203,7 @@ static const struct cmd_map map[] = {
    { "OSK",                    RARCH_OSK },
    { "NETPLAY_FLIP",           RARCH_NETPLAY_FLIP },
    { "SLOWMOTION",             RARCH_SLOWMOTION },
+   { "ADVANCED_TOGGLE",        RARCH_ADVANCED_TOGGLE },
    { "OVERLAY_NEXT",           RARCH_OVERLAY_NEXT },
    { "DISK_EJECT_TOGGLE",      RARCH_DISK_EJECT_TOGGLE },
    { "DISK_NEXT",              RARCH_DISK_NEXT },

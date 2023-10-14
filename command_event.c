@@ -1524,6 +1524,17 @@ bool event_command(enum event_command cmd)
       case EVENT_CMD_PERFCNT_REPORT_FRONTEND_LOG:
          rarch_perf_log();
          break;
+      case EVENT_CMD_ADVANCED_SETTINGS_TOGGLE:
+         if (menu_driver_alive())
+         {
+            settings->menu.show_advanced_settings
+                  = !settings->menu.show_advanced_settings;
+            rarch_main_msg_queue_push(settings->menu.show_advanced_settings
+                  ? "Obscure settings shown"
+                  : "Obscure settings hidden", 1, 120, true);
+            menu_entries_set_refresh();
+         }
+         break;
       case EVENT_CMD_KEYBOARD_FOCUS_TOGGLE:
          if (global->keyboard_focus)
          {
