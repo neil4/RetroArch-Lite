@@ -104,8 +104,6 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
       DECLARE_META_BIND(2, osk_toggle,            RARCH_OSK, "On-screen keyboard toggle"),
       DECLARE_META_BIND(2, netplay_flip_players,  RARCH_NETPLAY_FLIP, "Netplay flip users"),
       DECLARE_META_BIND(2, slowmotion,            RARCH_SLOWMOTION, "Slow motion"),
-      DECLARE_META_BIND(2, volume_up,             RARCH_VOLUME_UP, "Volume +"),
-      DECLARE_META_BIND(2, volume_down,           RARCH_VOLUME_DOWN, "Volume -"),
       DECLARE_META_BIND(0, overlay_next,          RARCH_OVERLAY_NEXT, "Overlay next"),
       DECLARE_META_BIND(2, disk_eject_toggle,     RARCH_DISK_EJECT_TOGGLE, "Disc eject toggle"),
       DECLARE_META_BIND(2, disk_next,             RARCH_DISK_NEXT, "Disc next"),

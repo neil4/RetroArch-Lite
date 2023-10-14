@@ -3273,9 +3273,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                " -- Audio volume, expressed in dB.\n"
                " \n"
-               " 0 dB is normal volume. No gain will be applied.\n"
-               "Gain can be controlled in runtime with Input\n"
-               "Volume Up / Input Volume Down.");
+               " 0 dB is normal volume. No gain will be applied.");
          break;
       case MENU_LABEL_AUDIO_RATE_CONTROL_DELTA:
          snprintf(s, len,
@@ -3686,7 +3684,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                      "cost of higher CPU usage and jitter. \n");
             break;
       case MENU_LABEL_PREEMPTIVE_FRAMES:
-      snprintf(s, len,
+         snprintf(s, len,
                      " -- On joypad updates, recent frames are \n"
                      "internally rerun with the latest input. \n"
                      " \n"
@@ -5872,7 +5870,7 @@ static bool setting_append_list_audio_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   
+
    CONFIG_UINT(
       settings->audio.sync_scope,
       "audio_sync_scope",
@@ -7056,7 +7054,7 @@ static bool setting_append_list_overlay_mouse_options(
    menu_settings_list_current_add_range(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index;
+         &setting_get_string_representation_uint_scope_index;
 
    CONFIG_UINT(
          settings->input.overlay_mouse_hold_ms,
@@ -7165,7 +7163,7 @@ static bool setting_append_list_overlay_keyboard_options(
    menu_settings_list_current_add_range(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index;
+         &setting_get_string_representation_uint_scope_index;
 
    CONFIG_FLOAT(
          settings->input.osk_opacity,
@@ -7195,7 +7193,7 @@ static bool setting_append_list_overlay_keyboard_options(
    menu_settings_list_current_add_range(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index;
+         &setting_get_string_representation_uint_scope_index;
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -7247,7 +7245,7 @@ static bool setting_append_list_overlay_lightgun_options(
    menu_settings_list_current_add_range(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index;
+         &setting_get_string_representation_uint_scope_index;
 
    CONFIG_BOOL(
          settings->input.lightgun_allow_oob,
@@ -7275,7 +7273,7 @@ static bool setting_append_list_overlay_lightgun_options(
    menu_settings_list_current_add_range(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index;
+         &setting_get_string_representation_uint_scope_index;
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);

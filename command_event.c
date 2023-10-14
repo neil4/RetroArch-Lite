@@ -365,29 +365,6 @@ static void event_check_disk_next(
 }
 
 /**
- * event_set_volume:
- * @gain      : amount of gain to be applied to current volume level.
- *
- * Adjusts the current audio volume level.
- *
- **/
-static void event_set_volume(float gain)
-{
-   char msg[NAME_MAX_LENGTH];
-   settings_t *settings      = config_get_ptr();
-
-   settings->audio.volume += gain;
-   settings->audio.volume  = max(settings->audio.volume, -80.0f);
-   settings->audio.volume  = min(settings->audio.volume, 12.0f);
-
-   snprintf(msg, sizeof(msg), "Volume: %.1f dB", settings->audio.volume);
-   rarch_main_msg_queue_push(msg, 1, 180, true);
-   RARCH_LOG("%s\n", msg);
-
-   audio_driver_set_volume_gain(db_to_gain(settings->audio.volume));
-}
-
-/**
  * event_init_controllers:
  *
  * Initialize libretro controllers.
@@ -1546,12 +1523,6 @@ bool event_command(enum event_command cmd)
          break;
       case EVENT_CMD_PERFCNT_REPORT_FRONTEND_LOG:
          rarch_perf_log();
-         break;
-      case EVENT_CMD_VOLUME_UP:
-         event_set_volume(0.5f);
-         break;
-      case EVENT_CMD_VOLUME_DOWN:
-         event_set_volume(-0.5f);
          break;
       case EVENT_CMD_KEYBOARD_FOCUS_TOGGLE:
          if (global->keyboard_focus)

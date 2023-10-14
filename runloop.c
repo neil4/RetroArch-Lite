@@ -452,11 +452,6 @@ static int do_state_checks(event_cmd_state_t *cmd)
          driver->keyboard_linefeed_enable = !driver->keyboard_linefeed_enable;
    }
 
-   if (cmd->volume_up_pressed)
-      event_command(EVENT_CMD_VOLUME_UP);
-   else if (cmd->volume_down_pressed)
-      event_command(EVENT_CMD_VOLUME_DOWN);
-
 #ifdef HAVE_NETPLAY
    if (driver->netplay_data)
       return do_netplay_state_checks(cmd->netplay_flip_pressed, cmd->fullscreen_toggle);
@@ -958,8 +953,6 @@ static void rarch_main_cmd_get_state(event_cmd_state_t *cmd,
    cmd->screenshot_pressed          = BIT64_GET(trigger_input, RARCH_SCREENSHOT);
    cmd->mute_pressed                = BIT64_GET(trigger_input, RARCH_MUTE);
    cmd->osk_pressed                 = BIT64_GET(trigger_input, RARCH_OSK);
-   cmd->volume_up_pressed           = BIT64_GET(input, RARCH_VOLUME_UP);
-   cmd->volume_down_pressed         = BIT64_GET(input, RARCH_VOLUME_DOWN);
    cmd->reset_pressed               = BIT64_GET(trigger_input, RARCH_RESET);
    cmd->disk_prev_pressed           = BIT64_GET(trigger_input, RARCH_DISK_PREV);
    cmd->disk_next_pressed           = BIT64_GET(trigger_input, RARCH_DISK_NEXT);

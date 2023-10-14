@@ -826,8 +826,6 @@ static const struct retro_keybind retro_keybinds_1[] = {
    { true, RARCH_OSK,                     RETRO_LBL_OSK,                   RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_NETPLAY_FLIP,            RETRO_LBL_NETPLAY_FLIP,          RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_SLOWMOTION,              RETRO_LBL_SLOWMOTION,            RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
-   { true, RARCH_VOLUME_UP,               RETRO_LBL_VOLUME_UP,             RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
-   { true, RARCH_VOLUME_DOWN,             RETRO_LBL_VOLUME_DOWN,           RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_OVERLAY_NEXT,            RETRO_LBL_OVERLAY_NEXT,          RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_DISK_EJECT_TOGGLE,       RETRO_LBL_DISK_EJECT_TOGGLE,     RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_DISK_NEXT,               RETRO_LBL_DISK_NEXT,             RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },

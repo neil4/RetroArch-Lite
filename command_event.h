@@ -193,8 +193,6 @@ enum event_command
    /* Toggles fullscreen mode. */
    EVENT_CMD_FULLSCREEN_TOGGLE,
    EVENT_CMD_PERFCNT_REPORT_FRONTEND_LOG,
-   EVENT_CMD_VOLUME_UP,
-   EVENT_CMD_VOLUME_DOWN,
    EVENT_CMD_KEYBOARD_FOCUS_TOGGLE,
    EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS,
    EVENT_CMD_DATA_RUNLOOP_FREE,
@@ -210,8 +208,6 @@ typedef struct event_cmd_state
    bool screenshot_pressed;
    bool mute_pressed;
    bool osk_pressed;
-   bool volume_up_pressed;
-   bool volume_down_pressed;
    bool reset_pressed;
    bool disk_prev_pressed;
    bool disk_next_pressed;
