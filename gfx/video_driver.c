@@ -1139,6 +1139,7 @@ bool video_state_increment_frame(void)
       }
 
       video_state.frame_time_samples[write_index] = frame_time;
+      prev_frame_us = now_us;
 
       if (driver_get_ptr()->nonblock_state)
       {
@@ -1150,13 +1151,13 @@ bool video_state_increment_frame(void)
             frame_time_accum -= video_state.frame_time_target;
             if (frame_time_accum > video_state.frame_time_target)
                frame_time_accum = 0;
-            prev_frame_us = now_us;
             return true;
          }
+         else
+            return false;
       }
 
-      prev_frame_us = now_us;
-      return false;
+      return true;
    }
 
    prev_frame_us = fps_start_us = now_us;
