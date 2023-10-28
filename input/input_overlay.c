@@ -63,6 +63,9 @@ typedef struct overlay_mouse_vals
    int16_t prev_x;
    int16_t prev_y;
 
+   int16_t dx;
+   int16_t dy;
+
    uint8_t click;
    uint8_t hold;
 
@@ -2026,7 +2029,17 @@ static INLINE void input_overlay_poll_mouse(void)
       ignore_new_buttons = true;
 
    if (feedback && driver->input->overlay_haptic_feedback)
-         driver->input->overlay_haptic_feedback();
+      driver->input->overlay_haptic_feedback();
+
+   ol_mouse.dx = (state->ptr_x - ol_mouse.prev_x) * ol_mouse.scale_x;
+   ol_mouse.dy = (state->ptr_y - ol_mouse.prev_y) * ol_mouse.scale_y;
+
+   if (ol_mouse.click
+         && ol_mouse.click_frames-- == 0)
+   {
+      ol_mouse.click = 0;
+      ol_mouse.click_frames = 0;
+   }
 }
 
 /**
@@ -2389,37 +2402,23 @@ void input_overlay_poll(input_overlay_t *overlay_device)
 
 static INLINE int16_t overlay_mouse_state(unsigned id)
 {
-   input_overlay_state_t *state = &driver_get_ptr()->overlay_state;
-   int16_t res = 0;
-
    switch(id)
    {
       case RETRO_DEVICE_ID_MOUSE_X:
-         res = (state->ptr_x - ol_mouse.prev_x) * ol_mouse.scale_x;
-         ol_mouse.prev_x = state->ptr_x;
-         break;
+         ol_mouse.prev_x = driver_get_ptr()->overlay_state.ptr_x;
+         return ol_mouse.dx;
       case RETRO_DEVICE_ID_MOUSE_Y:
-         res = (state->ptr_y - ol_mouse.prev_y) * ol_mouse.scale_y;
-         ol_mouse.prev_y = state->ptr_y;
-         break;
+         ol_mouse.prev_y = driver_get_ptr()->overlay_state.ptr_y;
+         return ol_mouse.dy;
       case RETRO_DEVICE_ID_MOUSE_LEFT:
-         res = (ol_mouse.click & 0x1) || (ol_mouse.hold & 0x1);
-         if (--ol_mouse.click_frames == 0)
-            ol_mouse.click = 0;
-         break;
+         return (ol_mouse.click & 0x1) || (ol_mouse.hold & 0x1);
       case RETRO_DEVICE_ID_MOUSE_RIGHT:
-         res = (ol_mouse.click & 0x2) || (ol_mouse.hold & 0x2);
-         if (--ol_mouse.click_frames == 0)
-            ol_mouse.click = 0;
-         break;
+         return (ol_mouse.click & 0x2) || (ol_mouse.hold & 0x2);
       case RETRO_DEVICE_ID_MOUSE_MIDDLE:
-         res = (ol_mouse.click & 0x4) || (ol_mouse.hold & 0x4);
-         if (--ol_mouse.click_frames == 0)
-            ol_mouse.click = 0;
-         break;
+         return (ol_mouse.click & 0x4) || (ol_mouse.hold & 0x4);
    }
 
-   return res;
+   return 0;
 }
 
 /**
