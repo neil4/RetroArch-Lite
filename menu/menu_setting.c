@@ -3693,7 +3693,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
       case MENU_LABEL_INPUT_AUTO_KEYBOARD_FOCUS:
          snprintf(s, len,
                      " -- Auto-toggle Keyboard Focus when starting\n"
-                     "a core, based on its input device types.");
+                     "a core, based on the input devices used.");
             break;
       default:
          return -1;

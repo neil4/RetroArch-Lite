@@ -435,14 +435,12 @@ void input_get_bind_string(char *buf, const struct retro_keybind *bind,
 
 void input_set_keyboard_focus_auto(void)
 {
-   int i;
+   int p;
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
    bool want_kb_focus   = false;
    const struct retro_keybind *kb_focus_bind
          = &settings->input.binds[0][RARCH_TOGGLE_KEYBOARD_FOCUS];
-   const struct retro_controller_info *rci
-         = global->system.ports;
 
    if (!settings->input.auto_keyboard_focus)
       return;
@@ -453,9 +451,9 @@ void input_set_keyboard_focus_auto(void)
          || global->system.num_ports == 0)
       goto finish;
 
-   for (i = 0; i < rci[0].num_types; i++)
+   for (p = 0; p < settings->input.max_users; p++)
    {
-      if ((RETRO_DEVICE_MASK & rci[0].types[i].id)
+      if ((RETRO_DEVICE_MASK & settings->input.libretro_device[p])
              == RETRO_DEVICE_KEYBOARD)
       {
          want_kb_focus = true;
