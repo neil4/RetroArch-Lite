@@ -46,6 +46,8 @@ static bool overlay_lightgun_active;
 static bool overlay_mouse_active;
 static bool overlay_adjust_needed;
 
+static int16_t overlay_lightgun_autotrigger_state;
+
 typedef struct overlay_aspect_mod_vals
 {
    float w;
@@ -1348,6 +1350,27 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    }
 }
 
+/**
+ * lightgun_delayed_trigger_state:
+ * @trigger : trigger state without delay
+ *
+ * Adds delay to trigger state.
+ *
+ * @return 1 if trigger should be sent to core, 0 otherwise
+ **/
+static INLINE int16_t lightgun_delayed_trigger_state(bool trigger)
+{
+   static bool buf[LIGHTGUN_TRIG_MAX_DELAY + 1];
+   static int delayed_idx;
+
+   delayed_idx = (delayed_idx + 1) % (LIGHTGUN_TRIG_MAX_DELAY + 1);
+
+   buf[(delayed_idx + config_get_ptr()->input.lightgun_trigger_delay)
+         % (LIGHTGUN_TRIG_MAX_DELAY + 1)] = trigger;
+
+   return buf[delayed_idx];
+}
+
 static void input_overlay_update_mouse_scale(void)
 {
    struct retro_system_av_info* av_info = video_viewport_get_system_av_info();
@@ -2328,7 +2351,10 @@ void input_overlay_poll(input_overlay_t *overlay_device)
       }
    }
 
-   if (overlay_mouse_active)
+   if (overlay_lightgun_active)
+      overlay_lightgun_autotrigger_state =
+            lightgun_delayed_trigger_state(state->ptr_count == 1);
+   else if (overlay_mouse_active)
       input_overlay_poll_mouse();
 
    if (OVERLAY_GET_KEY(state, RETROK_LSHIFT)
@@ -2421,34 +2447,6 @@ static INLINE int16_t overlay_mouse_state(unsigned id)
    return 0;
 }
 
-/**
- * lightgun_delayed_trigger_state:
- * @trigger                      : trigger state without delay
- *
- * Adds delay to trigger state.
- * 
- * @return 1 if trigger should be sent to core, 0 otherwise
- **/
-static INLINE int16_t lightgun_delayed_trigger_state(bool trigger)
-{
-   static bool buf[LIGHTGUN_TRIG_MAX_DELAY + 1];
-   static int delayed_idx;
-   static uint64_t old_frame_count;
-
-   if (video_state_get_frame_count() == old_frame_count)
-      goto finish;
-
-   delayed_idx = (delayed_idx + 1) % (LIGHTGUN_TRIG_MAX_DELAY + 1);
-
-   buf[(delayed_idx + config_get_ptr()->input.lightgun_trigger_delay)
-         % (LIGHTGUN_TRIG_MAX_DELAY + 1)] = trigger;
-
-   old_frame_count = video_state_get_frame_count();
-
-finish:
-   return buf[delayed_idx];
-}
-
 static INLINE int16_t overlay_lightgun_state(unsigned id)
 {
    driver_t *driver = driver_get_ptr();
@@ -2474,8 +2472,7 @@ static INLINE int16_t overlay_lightgun_state(unsigned id)
                           RARCH_LIGHTGUN_AUX_C);
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
          if (global_get_ptr()->overlay_lightgun_autotrigger)
-            return lightgun_delayed_trigger_state(
-                  driver->overlay_state.ptr_count == 1);
+            return overlay_lightgun_autotrigger_state;
          return BIT64_GET(driver->overlay_state.buttons,
                           RARCH_LIGHTGUN_TRIGGER);
       case RETRO_DEVICE_ID_LIGHTGUN_START:
