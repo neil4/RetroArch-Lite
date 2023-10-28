@@ -5462,7 +5462,8 @@ static bool setting_append_list_video_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO|SD_FLAG_ADVANCED);
    
 #if defined(HAVE_THREADS) && !defined(RARCH_CONSOLE)
    CONFIG_BOOL(
