@@ -358,78 +358,40 @@ void menu_driver_free(menu_handle_t *menu)
 
 /**
  * menu_driver_wrap_text:
- * @param buf           : Text buffer to be modified
- * @param msg_len       : Text length before null terminator
- * @param line_width    : Max number of chars per line
- **/
-void menu_driver_wrap_text(char *buf, const unsigned msg_len,
+ * @param buf : Output
+ * @param msg : Input
+ * @param line_width : Max number of chars per line
+ *
+ * Copies @msg to @buf, replacing spaces with newlines
+ * as needed for a message box
+ */
+void menu_driver_wrap_text(char *buf, const char *msg,
       const unsigned line_width)
 {
-   const unsigned search_len = line_width * 0.67;
+   int i = 0, line = 0, space = 0;
 
-   unsigned line_start = 0;
-   unsigned cutoff, i;
-
-   /* Replace space with newline near each line_width interval */
-   for (i = line_width; i < msg_len; i = line_start + line_width)
+   for (; msg[i]; i++)
    {
-      cutoff = line_start + (line_width - search_len);
-      while (buf[i] != ' ' && i > cutoff)
-         i--;
+      buf[i] = msg[i];
 
-      if (buf[i] == ' ')
-         buf[i] = '\n';
-      else
+      if (msg[i] == ' ')
+         space = i;
+      else if (msg[i] == '\n')
       {
-         i = line_start + line_width;
-         while (i < msg_len && buf[i] != ' ')
-            i++;
-
-         if (buf[i] == ' ')
-            buf[i] = '\n';
+         line = i + 1;
+         space = 0;
+         continue;
       }
 
-      line_start = i + 1;
-   }
-}
-
-/**
- * menu_driver_sublabel_to_messagebox:
- * @param buf           : Output buffer
- * @param text          : Input
- * @param buf_size      : Output buffer array size
- *
- * Wraps @text for a messagebox, removing indents and replacing newlines
- * with bullet chars
- **/
-void menu_driver_sublabel_to_messagebox(char *buf, const char *text,
-      const unsigned buf_size)
-{
-   int last_nonspace = 0;
-   int i, j = 0;
-
-   for (i = 0; text[j] && i < buf_size - 1; i++)
-   {
-      buf[i] = text[j++];
-
-      /* Replace [spaces +] newline with space + bullet */
-      if (buf[i] == '\n')
+      if (i >= line + line_width && space)
       {
-         buf[last_nonspace + 1] = ' ';
-         buf[last_nonspace + 2] = (char)149;
-         i = last_nonspace + 2;
-
-         /* Remove indent */
-         while (text[j] == ' ') j++;
+         buf[space] = '\n';
+         line = space + 1;
+         space = 0;
       }
-
-      if (buf[i] != ' ')
-         last_nonspace = i;
    }
 
    buf[i] = '\0';
-
-   menu_driver_wrap_text(buf, i, 48);
 }
 
 void menu_driver_render_messagebox(const char *msg)

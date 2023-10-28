@@ -113,18 +113,8 @@ void core_option_get(core_option_manager_t *opt_mgr, struct retro_variable *var)
 
 static void core_option_write_info(struct core_option *option, const char *info)
 {
-   global_t *global = global_get_ptr();
-
-   if (!global->menu.have_sublabels)
-   {
-      /* Add room for text insertions */
-      unsigned len = strlen(info) + 16;
-      option->info = malloc(len * sizeof(char));
-
-      menu_driver_sublabel_to_messagebox(option->info, info, len);
-   }
-   else
-      option->info = strdup(info);
+   option->info = malloc(strlen(info)+1);
+   menu_driver_wrap_text(option->info, info, 48);
 }
 
 /* From RA v1.8.5 core_option_manager_parse_option.

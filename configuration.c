@@ -1762,8 +1762,6 @@ static bool config_load_file(const char *path, bool set_defaults)
    config_get_array(conf, "audio_driver",
          settings->audio.driver, sizeof(settings->audio.driver));
 
-   global->menu.have_sublabels = strcmp(settings->menu.driver, "rgui");
-
    config_get_path(conf, "video_filter",
          settings->video.softfilter_plugin, PATH_MAX_LENGTH);
    config_get_path(conf, "video_shader",

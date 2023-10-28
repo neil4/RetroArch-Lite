@@ -198,7 +198,6 @@ typedef struct global
       char wallpaper[PATH_MAX_LENGTH];
       bool force_dirty;
       bool block_push;
-      bool have_sublabels;
       unsigned msg_box_width;
    } menu;
 
