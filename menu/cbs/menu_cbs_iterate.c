@@ -573,7 +573,8 @@ static bool menu_input_file_delete_hold(char *s, size_t len,
       end_time = rarch_get_time_usec() + 1999999;
    timeout = (end_time - rarch_get_time_usec()) / 500000;
    
-   if (input_driver_key_pressed(settings->menu_default_btn))
+   if (input_driver_key_pressed(settings->menu_default_btn)
+         || menu_input_get_ptr()->mouse.middle)
    {
       if (timeout > 0)
       {
