@@ -18,8 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
+import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.preferences.util.UserPreferences;
 import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
@@ -326,8 +326,8 @@ public final class BackupCoresFragment extends ListFragment
          if (dlg.isShowing())
             dlg.dismiss();
 
-         Toast.makeText(getActivity(), (coreName.isEmpty() ? "Core" : coreName) + " installed.",
-               Toast.LENGTH_LONG).show();
+         DarkToast.makeText(getActivity(),
+               (coreName.isEmpty() ? "Core" : coreName) + " installed.");
 
          getActivity().setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
       }
@@ -351,13 +351,13 @@ public final class BackupCoresFragment extends ListFragment
             // Attempt to remove backup files
             if (new File(corePath).delete())
             {
-               Toast.makeText(getActivity(), "Backup core removed.", Toast.LENGTH_LONG).show();
+               DarkToast.makeText(getActivity(), "Backup core removed.");
                adapter.remove(core);
                adapter.notifyDataSetChanged();
             }
             else // Failed to delete.
             {
-               Toast.makeText(getActivity(), "Failed to remove backup core.", Toast.LENGTH_LONG).show();
+               DarkToast.makeText(getActivity(), "Failed to remove backup core.");
             }
          }
       });

@@ -7,7 +7,6 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.retroarch.browser.preferences.fragments.AudioVideoPreferenceFragment;
 import com.retroarch.browser.preferences.util.UserPreferences;
@@ -110,7 +109,8 @@ public final class DisplayRefreshRateTest extends Activity {
    @Override
    protected void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
-      Toast.makeText(this, R.string.touch_screen_with_fingers, Toast.LENGTH_LONG).show();
+
+      DarkToast.makeText(this, R.string.touch_screen_with_fingers);
       final GLSurfaceView surfaceView = new GLSurfaceView(this);
       surfaceView.setEGLContextClientVersion(2);
       surfaceView.setRenderer(new Renderer(this));
@@ -123,7 +123,8 @@ public final class DisplayRefreshRateTest extends Activity {
    protected void onDestroy() {
       SharedPreferences prefs = UserPreferences.getPreferences(this);
       String rate = prefs.getString("video_refresh_rate", "ERROR");
-      Toast.makeText(this, String.format(getString(R.string.refresh_rate_measured_to), fps, rate), Toast.LENGTH_LONG).show();
+      DarkToast.makeText(this,
+            String.format(getString(R.string.refresh_rate_measured_to), fps, rate));
       super.onDestroy();
    }
 }

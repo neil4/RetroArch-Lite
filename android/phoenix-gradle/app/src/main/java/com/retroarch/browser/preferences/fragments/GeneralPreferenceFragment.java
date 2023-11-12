@@ -9,8 +9,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
-import android.widget.Toast;
 
+import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.NativeInterface;
 import com.retroarch.browser.dirfragment.DirectoryFragment;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
@@ -87,9 +87,9 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
                            }
 
                            if (success)
-                              Toast.makeText(ctx, "Assets restored.", Toast.LENGTH_SHORT).show();
+                              DarkToast.makeText(ctx, "Assets restored.");
                            else
-                              Toast.makeText(ctx, "Failed to restore assets.", Toast.LENGTH_SHORT).show();
+                              DarkToast.makeText(ctx, "Failed to restore assets.");
                         }
                      })
                .setNegativeButton("No", new DialogInterface.OnClickListener()
@@ -123,9 +123,9 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
                            success |= NativeInterface.extractArchiveTo(path, folder, dataDir + '/' + folder);
 
                         if (success)
-                           Toast.makeText(ctx, "Assets installed.", Toast.LENGTH_SHORT).show();
+                           DarkToast.makeText(ctx, "Assets installed.");
                         else
-                           Toast.makeText(ctx, "Failed to extract assets.", Toast.LENGTH_SHORT).show();
+                           DarkToast.makeText(getActivity(), "Failed to extract assets.");
                      }
                   })
             .setNegativeButton("No", new DialogInterface.OnClickListener()

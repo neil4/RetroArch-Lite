@@ -16,8 +16,8 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-import android.widget.Toast;
 
+import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.FileWrapper;
 import com.retroarch.browser.IconAdapter;
 import com.retroarch.browser.preferences.PreferenceActivity;
@@ -265,11 +265,9 @@ public class DirectoryFragment extends DialogFragment
       }
       else if (pathSettingKey != null && !pathSettingKey.isEmpty())
       {
-         Toast.makeText( getActivity(),
-                         "Current Directory:\n"
-                         + UserPreferences.getPreferences(getActivity())
-                           .getString(pathSettingKey, "<Default>"),
-                         Toast.LENGTH_LONG ).show();
+         DarkToast.makeText(getActivity(), "Current Directory:\n"
+                     + UserPreferences.getPreferences(getActivity())
+                     .getString(pathSettingKey, "<Default>"));
       }
 
       // Setup the list
@@ -329,7 +327,8 @@ public class DirectoryFragment extends DialogFragment
          else if (item.isDirSelectItem())
          {
             finishWithPath(listedDirectory.getAbsolutePath());
-            Toast.makeText(getActivity(), "Selected Directory:\n" + listedDirectory.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            DarkToast.makeText(getActivity(), "Selected Directory:\n"
+                  + listedDirectory.getAbsolutePath());
             return;
          }
 

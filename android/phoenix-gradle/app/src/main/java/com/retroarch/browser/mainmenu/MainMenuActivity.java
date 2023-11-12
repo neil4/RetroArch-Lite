@@ -25,8 +25,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
+import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.IconAdapter;
 import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.NativeInterface;
@@ -116,7 +116,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
          {
             // Redirect to app info page instead, so that the user can manually grant the permission
             String text = "Navigate to Permissions -> Files and media -> Allow all the time";
-            Toast.makeText(act, text, Toast.LENGTH_LONG).show();
+            DarkToast.makeText(act, text);
 
             intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             intent.setData(Uri.fromParts("package", act.getPackageName(), null));
@@ -399,12 +399,13 @@ public final class MainMenuActivity extends FragmentActivity implements Director
    {
       if (!path.isEmpty())
       {
-         SharedPreferences.Editor edit = UserPreferences.getPreferences(this).edit();
-         edit.putString( libretroName + "_directory",
-                         path.substring(0, path.lastIndexOf( "/" )) ).apply();
+         int lastSlash = path.lastIndexOf('/');
 
-         Toast.makeText(this, String.format(getString(R.string.loading_data), path),
-               Toast.LENGTH_SHORT).show();
+         SharedPreferences.Editor edit = UserPreferences.getPreferences(this).edit();
+         edit.putString(libretroName + "_directory", path.substring(0, lastSlash)).apply();
+
+         DarkToast.makeText(this, String.format(getString(R.string.loading_data),
+               path.substring(lastSlash + 1)));
       }
 
       String currentIme = Settings.Secure.getString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD);

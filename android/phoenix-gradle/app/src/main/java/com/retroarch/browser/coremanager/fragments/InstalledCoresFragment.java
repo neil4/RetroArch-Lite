@@ -22,8 +22,8 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.preferences.util.UserPreferences;
 import com.retroarchlite.BuildConfig;
@@ -195,15 +195,15 @@ public final class InstalledCoresFragment extends ListFragment
             // Attempt to uninstall the core item.
             if (item.getUnderlyingFile().delete())
             {
-               Toast.makeText(getActivity(), String.format(getString(R.string.uninstall_success),
-                     item.getCoreTitle()), Toast.LENGTH_LONG).show();
+               DarkToast.makeText(getActivity(),
+                     String.format(getString(R.string.uninstall_success), item.getCoreTitle()));
                adapter.remove(item);
                adapter.notifyDataSetChanged();
             }
             else // Failed to uninstall.
             {
-               Toast.makeText(getActivity(), String.format(getString(R.string.uninstall_failure),
-                     item.getCoreTitle()), Toast.LENGTH_LONG).show();
+               DarkToast.makeText(getActivity(),
+                     String.format(getString(R.string.uninstall_failure), item.getCoreTitle()));
             }
          }
       });
@@ -252,8 +252,7 @@ public final class InstalledCoresFragment extends ListFragment
 
             String fmt = getString(success ?
                   R.string.reset_core_options_success : R.string.reset_core_options_failure);
-            Toast.makeText(getActivity(),
-                  String.format(fmt, item.getCoreTitle()), Toast.LENGTH_LONG).show();
+            DarkToast.makeText(getActivity(), String.format(fmt, item.getCoreTitle()));
          }
       });
       alert.show();
@@ -521,7 +520,7 @@ public final class InstalledCoresFragment extends ListFragment
       {
          super.onPostExecute(result);
          dlg.dismiss();
-         Toast.makeText(this.ctx, coreName + " backup created.", Toast.LENGTH_LONG).show();
+         DarkToast.makeText(ctx, coreName + " backup created.");
 
          ((Activity)ctx).setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
       }

@@ -2,6 +2,7 @@ package com.retroarch.browser.coremanager;
 
 
 import android.os.Bundle;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
@@ -44,6 +45,8 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
    public void onCreate(Bundle savedInstanceState)
    {
       super.onCreate(savedInstanceState);
+
+      AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
 
       // Set the ViewPager
       setContentView(R.layout.coremanager_viewpager);

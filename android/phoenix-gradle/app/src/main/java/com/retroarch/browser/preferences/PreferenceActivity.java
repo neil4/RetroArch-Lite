@@ -4,6 +4,8 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
@@ -38,6 +40,8 @@ public final class PreferenceActivity extends AppCompatActivity implements TabLi
    public void onCreate(Bundle savedInstanceState)
    {
       super.onCreate(savedInstanceState);
+
+      AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
 
       // Set the ViewPager.
       setContentView(R.layout.preference_viewpager);

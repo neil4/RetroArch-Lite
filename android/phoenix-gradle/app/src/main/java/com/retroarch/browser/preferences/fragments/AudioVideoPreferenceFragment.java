@@ -7,8 +7,8 @@ import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceManager;
 import android.view.Display;
 import android.view.WindowManager;
-import android.widget.Toast;
 
+import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
 import com.retroarchlite.R;
 
@@ -48,10 +48,9 @@ public final class AudioVideoPreferenceFragment extends PreferenceListFragment i
          edit.putString("video_refresh_rate", Double.toString(contentRate));
          edit.apply();
 
-         Toast.makeText(getActivity(),
+         DarkToast.makeText(getActivity(),
                String.format(getString(R.string.using_os_reported_refresh_rate),
-                     monitorRate, contentRate),
-               Toast.LENGTH_LONG).show();
+               monitorRate, contentRate));
       }
 
       return true;

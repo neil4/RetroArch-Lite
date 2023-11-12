@@ -21,8 +21,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
-import android.widget.Toast;
 
+import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.coremanager.CoreManagerActivity;
 import com.retroarch.browser.preferences.util.UserPreferences;
@@ -319,7 +319,7 @@ public final class DownloadableCoresFragment extends ListFragment
          super.onPostExecute(result);
 
          if (result.isEmpty())
-            Toast.makeText(adapter.getContext(), R.string.download_core_list_error, Toast.LENGTH_SHORT).show();
+            DarkToast.makeText(getActivity(), R.string.download_core_list_error);
          else
          {
             adapter.addAll(result);
@@ -471,7 +471,7 @@ public final class DownloadableCoresFragment extends ListFragment
          if (destFile.exists())
             destFile.delete();
 
-         Toast.makeText(ctx, coreName + " download canceled.", Toast.LENGTH_LONG).show();
+         DarkToast.makeText(ctx, coreName + " download canceled.");
 
          ((Activity)ctx).setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
       }
@@ -613,8 +613,8 @@ public final class DownloadableCoresFragment extends ListFragment
          if (isInfo)
             CoreManagerActivity.downloadableCoresFragment.refreshCores();
 
-         String msg = coreName + ((isDownload && isUpdate) ? " updated." : " installed.");
-         Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
+         DarkToast.makeText(ctx,
+               coreName + ((isDownload && isUpdate) ? " updated." : " installed."));
 
          ((Activity)ctx).setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
       }
