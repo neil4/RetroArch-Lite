@@ -542,6 +542,7 @@ static struct config_entry_list *config_get_entry(const config_file_t *conf,
       {
          if (prev)
             *prev = previous;
+         entry->used = true;
          return entry;
       }
 
@@ -722,6 +723,7 @@ void config_set_string(config_file_t *conf, const char *key, const char *val)
    {
       free(entry->value);
       entry->value = strdup(val);
+      entry->used  = true;
       return;
    }
 
@@ -733,6 +735,7 @@ void config_set_string(config_file_t *conf, const char *key, const char *val)
    entry->key      = strdup(key);
    entry->key_hash = djb2_calculate(key);
    entry->value    = strdup(val);
+   entry->used     = true;
 
    if (last)
       last->next = entry;
@@ -837,8 +840,9 @@ void config_file_dump(config_file_t *conf, FILE *file)
    list = (struct config_entry_list*)conf->entries;
    while (list)
    {
-      /* Don't write empty values */
-      if (!list->readonly && strcmp(list->value,""))
+      /* Don't write unused, read-only, or empty values */
+      if ((list->used || conf->write_unused_entries)
+            && !list->readonly && strcmp(list->value,""))
          fprintf(file, "%s = \"%s\"\n", list->key, list->value);
       list = list->next;
    }

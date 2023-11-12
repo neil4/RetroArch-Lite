@@ -111,7 +111,7 @@ void core_option_get(core_option_manager_t *opt_mgr, struct retro_variable *var)
    var->value = NULL;
 }
 
-static void core_option_write_info(struct core_option *option, const char *info)
+static void core_option_add_info(struct core_option *option, const char *info)
 {
    option->info = malloc(strlen(info)+1);
    menu_driver_wrap_text(option->info, info, 48);
@@ -217,7 +217,7 @@ static bool parse_v2_option(
       info                 = option_def->info;
 
    if (!string_is_empty(info))
-      core_option_write_info(option, info);
+      core_option_add_info(option, info);
 
    return parse_option_vals(option, opt_mgr->conf,
          option_def->values, option_def->default_value);
@@ -239,7 +239,7 @@ static void parse_v2_category(
       info      = NULL;
 
    if (!string_is_empty(info))
-      core_option_write_info(option, info);
+      core_option_add_info(option, info);
 }
 
 static bool parse_v1_option(
@@ -255,7 +255,7 @@ static bool parse_v1_option(
       option->desc = strdup(option_def->desc);
 
    if (!string_is_empty(option->desc) && !string_is_empty(option_def->info))
-      core_option_write_info(option, option_def->info);
+      core_option_add_info(option, option_def->info);
 
    return parse_option_vals(option, opt_mgr->conf,
          option_def->values, option_def->default_value);
@@ -706,6 +706,9 @@ bool core_option_flush(core_option_manager_t *opt_mgr)
                opt_mgr->conf, option->key, core_option_val(opt_mgr, i));
    }
 
+   /* Write file, including unused options if scope includes other content */
+   opt_mgr->conf->write_unused_entries
+         = (core_options_scope < THIS_CONTENT_ONLY);
    ret = config_file_write(opt_mgr->conf, opt_mgr->conf_path);
 
    if (ret)

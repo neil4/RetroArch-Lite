@@ -41,6 +41,7 @@ struct config_entry_list
    char *key;
    char *value;
    uint32_t key_hash;
+   bool used;
 
    struct config_entry_list *next;
 };
@@ -57,6 +58,7 @@ struct config_file
    struct config_entry_list *entries;
    struct config_entry_list *tail;
    unsigned include_depth;
+   bool write_unused_entries;
 
    struct config_include_list *includes;
 };
