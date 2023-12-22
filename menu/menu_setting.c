@@ -793,7 +793,7 @@ int setting_action_start_libretro_device_type(void *data)
 
    settings->input.libretro_device[port] = device;
    if (port < global->system.num_ports)
-      pretro_set_controller_port_device(port, device);
+      core_set_controller_port_device(port, device);
 
    input_joykbd_update_enabled();
    input_remapping_touched = true;
@@ -880,31 +880,13 @@ static bool menu_setting_joypad_connected(void)
    return connected;
 }
 
-/**
- ******* ACTION TOGGLE CALLBACK FUNCTIONS *******
-**/
-
-static void input_max_users_change_handler(void *data)
+static unsigned menu_setting_populate_devices(unsigned *devices,
+      size_t devices_size, unsigned port)
 {
-   /* todo: Defer to menu toggle */
-   event_command(EVENT_CMD_CONTROLLERS_INIT);
-   event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
-}
-
-int setting_action_left_libretro_device_type(
-      void *data, bool wraparound)
-{
-   unsigned current_device, current_idx, i, devices[128],
-            types = 0, port = 0;
    const struct retro_controller_info *desc = NULL;
-   rarch_setting_t *setting  = (rarch_setting_t*)data;
-   settings_t      *settings = config_get_ptr();
-   global_t          *global = global_get_ptr();
-
-   if (!setting)
-      return -1;
-
-   port = setting->index_offset;
+   global_t *global = global_get_ptr();
+   unsigned i, types = 0;
+   bool have_keyboard_mapping = false;
 
    devices[types++] = RETRO_DEVICE_NONE;
    devices[types++] = RETRO_DEVICE_JOYPAD;
@@ -922,12 +904,47 @@ int setting_action_left_libretro_device_type(
       for (i = 0; i < desc->num_types; i++)
       {
          unsigned id = desc->types[i].id;
-         if (types < ARRAY_SIZE(devices) &&
+         if (types < devices_size &&
                id != RETRO_DEVICE_NONE &&
                id != RETRO_DEVICE_JOYPAD)
+         {
+            if ((id & RETRO_DEVICE_MASK) == RETRO_DEVICE_KEYBOARD)
+               have_keyboard_mapping = true;
             devices[types++] = id;
+         }
       }
    }
+
+   if (!have_keyboard_mapping && types < devices_size)
+      devices[types++] = RETRO_DEVICE_KEYBOARD_DEFAULT;
+
+   return types;
+}
+
+/**
+ ******* ACTION TOGGLE CALLBACK FUNCTIONS *******
+**/
+
+static void input_max_users_change_handler(void *data)
+{
+   /* todo: Defer to menu toggle */
+   event_command(EVENT_CMD_CONTROLLERS_INIT);
+   event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
+}
+
+int setting_action_left_libretro_device_type(
+      void *data, bool wraparound)
+{
+   unsigned current_device, current_idx, i, devices[128], types, port;
+   rarch_setting_t *setting  = (rarch_setting_t*)data;
+   settings_t      *settings = config_get_ptr();
+   global_t          *global = global_get_ptr();
+
+   if (!setting)
+      return -1;
+
+   port = setting->index_offset;
+   types = menu_setting_populate_devices(devices, ARRAY_SIZE(devices), port);
 
    current_device = settings->input.libretro_device[port];
    current_idx    = 0;
@@ -945,7 +962,7 @@ int setting_action_left_libretro_device_type(
 
    settings->input.libretro_device[port] = current_device;
    if (port < global->system.num_ports)
-      pretro_set_controller_port_device(port, current_device);
+      core_set_controller_port_device(port, current_device);
 
    input_joykbd_update_enabled();
    input_remapping_touched = true;
@@ -955,9 +972,7 @@ int setting_action_left_libretro_device_type(
 int setting_action_right_libretro_device_type(
       void *data, bool wraparound)
 {
-   unsigned current_device, current_idx, i, devices[128],
-            types = 0, port = 0;
-   const struct retro_controller_info *desc = NULL;
+   unsigned current_device, current_idx, i, devices[128], types, port;
    rarch_setting_t *setting  = (rarch_setting_t*)data;
    settings_t      *settings = config_get_ptr();
    global_t          *global = global_get_ptr();
@@ -966,29 +981,7 @@ int setting_action_right_libretro_device_type(
       return -1;
 
    port = setting->index_offset;
-
-   devices[types++] = RETRO_DEVICE_NONE;
-   devices[types++] = RETRO_DEVICE_JOYPAD;
-
-   /* Only push RETRO_DEVICE_ANALOG as default if we use an 
-    * older core which doesn't use SET_CONTROLLER_INFO. */
-   if (!global->system.num_ports)
-      devices[types++] = RETRO_DEVICE_ANALOG;
-
-   if (port < global->system.num_ports)
-      desc = &global->system.ports[port];
-
-   if (desc)
-   {
-      for (i = 0; i < desc->num_types; i++)
-      {
-         unsigned id = desc->types[i].id;
-         if (types < ARRAY_SIZE(devices) &&
-               id != RETRO_DEVICE_NONE &&
-               id != RETRO_DEVICE_JOYPAD)
-            devices[types++] = id;
-      }
-   }
+   types = menu_setting_populate_devices(devices, ARRAY_SIZE(devices), port);
 
    current_device = settings->input.libretro_device[port];
    current_idx    = 0;
@@ -1006,7 +999,7 @@ int setting_action_right_libretro_device_type(
 
    settings->input.libretro_device[port] = current_device;
    if (port < global->system.num_ports)
-      pretro_set_controller_port_device(port, current_device);
+      core_set_controller_port_device(port, current_device);
 
    input_joykbd_update_enabled();
    input_remapping_touched = true;
@@ -1946,6 +1939,9 @@ void setting_get_string_representation_uint_libretro_device(void *data,
             break;
          case RETRO_DEVICE_ANALOG:
             name = "RetroPad w/ Analog";
+            break;
+         case RETRO_DEVICE_KEYBOARD_DEFAULT:
+            name = "RetroKeyboard";
             break;
          default:
             name = "Unknown";

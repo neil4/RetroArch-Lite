@@ -188,6 +188,8 @@ void uninit_libretro_sym(void);
 
 bool libretro_get_shared_context(void);
 
+void core_set_controller_port_device(unsigned port, unsigned device);
+
 #ifdef __cplusplus
 }
 #endif

@@ -390,6 +390,8 @@ static void event_init_controllers(void)
 
       if (desc)
          ident = desc->desc;
+      else if (device == RETRO_DEVICE_KEYBOARD_DEFAULT)
+         ident = "RetroKeyboard";
 
       if (!ident)
       {
@@ -413,7 +415,7 @@ static void event_init_controllers(void)
       else
          RARCH_LOG("Disconnecting device from port %u.\n", i+1);
 
-      pretro_set_controller_port_device(i, device);
+      core_set_controller_port_device(i, device);
    }
 }
 

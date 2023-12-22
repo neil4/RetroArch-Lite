@@ -84,7 +84,7 @@ bool input_remapping_load_file(const char *path)
          config_get_uint(conf, buf, &input->libretro_device[i]);
 
          if (global->main_is_init && i < input->max_users)
-            pretro_set_controller_port_device(i, input->libretro_device[i]);
+            core_set_controller_port_device(i, input->libretro_device[i]);
       }
    }
 

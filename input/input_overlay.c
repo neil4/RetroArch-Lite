@@ -1276,7 +1276,7 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    {
       /* Reconnect previous device */
       if (old_port < global->system.num_ports)
-         pretro_set_controller_port_device(
+         core_set_controller_port_device(
                old_port, settings->input.libretro_device[old_port]);
       overlay_lightgun_active = false;
    }
@@ -1310,7 +1310,7 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
          {
             if ((RETRO_DEVICE_MASK & rci.types[i].id) == RETRO_DEVICE_LIGHTGUN)
             {
-               pretro_set_controller_port_device(port, rci.types[i].id);
+               core_set_controller_port_device(port, rci.types[i].id);
                overlay_lightgun_active = true;
                break;
             }

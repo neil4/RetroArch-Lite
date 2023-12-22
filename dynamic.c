@@ -290,6 +290,13 @@ libretro_find_controller_description(
    return NULL;
 }
 
+void core_set_controller_port_device(unsigned port, unsigned device)
+{
+   pretro_set_controller_port_device(port,
+         device == RETRO_DEVICE_KEYBOARD_DEFAULT
+         ? RETRO_DEVICE_NONE : device);
+}
+
 /**
  * load_symbols:
  * @dummy                        : Load dummy symbols if true

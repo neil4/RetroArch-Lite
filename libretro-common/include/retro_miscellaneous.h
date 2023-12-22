@@ -179,4 +179,8 @@ typedef struct
 #define BIT64_GET(a, bit) (!!((a) &   (1ULL << ((bit) & 63))))
 #define BIT64_CLEAR_ALL(a)   ((a) = 0)
 
+/* A default keyboard device type to ensure a retropad-keyboard mapping is
+ * available. Always maps from pad 1 to augment the port 1 libretro device */
+#define RETRO_DEVICE_KEYBOARD_DEFAULT RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_KEYBOARD, 0xdef)
+
 #endif
