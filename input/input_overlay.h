@@ -268,10 +268,6 @@ typedef struct input_overlay_state
    uint64_t buttons;
    /* Left X, Left Y, Right X, Right Y */
    int16_t analog[4]; 
-
-   /* Mouse and Lightgun */
-   int16_t ptr_x, ptr_y;
-   uint8_t ptr_count;
    
    uint32_t keys[RETROK_LAST / 32 + 1];
 
@@ -282,6 +278,10 @@ typedef struct input_overlay_state
       int16_t y;
    } touch[OVERLAY_MAX_TOUCH];
    int touch_count;
+
+   /* Mouse and Lightgun */
+   int16_t ptr_x, ptr_y;
+   uint8_t ptr_count;
 } input_overlay_state_t;
 
 /**
@@ -403,9 +403,11 @@ void input_overlay_next(input_overlay_t *ol);
  *
  * Convert diagonal sensitivity to slope values for 8way_state functions
  **/
-void input_overlay_update_eightway_diag_sens();
+void input_overlay_update_eightway_diag_sens(void);
 
-void input_overlay_notify_video_updated();
+void input_overlay_notify_video_updated(void);
+
+void input_overlay_update_mouse_scale(void);
 
 #ifdef __cplusplus
 }

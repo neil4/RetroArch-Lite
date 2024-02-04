@@ -1371,7 +1371,7 @@ static INLINE int16_t lightgun_delayed_trigger_state(bool trigger)
    return buf[delayed_idx];
 }
 
-static void input_overlay_update_mouse_scale(void)
+void input_overlay_update_mouse_scale(void)
 {
    struct retro_system_av_info* av_info = video_viewport_get_system_av_info();
    unsigned disp_width, disp_height;
@@ -1989,7 +1989,7 @@ static INLINE void input_overlay_poll_mouse(void)
 
    static int x_start, y_start, peak_ptr_count;
    static retro_time_t start_usec;
-   static bool ignore_new_buttons;
+   static bool skip_buttons;
 
    if (state->ptr_count != old_state->ptr_count)
    {
@@ -2007,17 +2007,16 @@ static INLINE void input_overlay_poll_mouse(void)
          start_usec     = now_usec;
       }
       else
+         /* pointer removed */
          ol_mouse.hold = 0x0;
    }
-   else if (now_usec - start_usec > 500000)
-      ol_mouse.click = 0x0; /* remove any stale click */
 
    is_swipe = abs(state->ptr_x - x_start) > hold_zone ||
               abs(state->ptr_y - y_start) > hold_zone;
    is_brief = (now_usec - start_usec) < 200000;
    is_long  = (now_usec - start_usec) > (can_hold ? hold_usec : 250000);
 
-   if (!ignore_new_buttons)
+   if (!skip_buttons)
    {
       if (!is_swipe)
       {
@@ -2034,22 +2033,25 @@ static INLINE void input_overlay_poll_mouse(void)
             ol_mouse.click_frames = settings->input.overlay_mouse_click_dur;
          }
       }
-      else if (state->ptr_count > 1)
+      else
       {
+         skip_buttons = true;
          /* If dragging 2+ fingers, hold RMB or MMB */
-         ol_mouse.hold = (1 << (state->ptr_count - 1));
-         feedback = true;
-         ignore_new_buttons = true;
+         if (state->ptr_count > 1)
+         {
+            ol_mouse.hold = (1 << (state->ptr_count - 1));
+            feedback      = true;
+         }
       }
    }
 
    if (!state->ptr_count)
    {
-      ignore_new_buttons = false;
+      skip_buttons = false;
       peak_ptr_count = 0;
    }
    else if (is_long)
-      ignore_new_buttons = true;
+      skip_buttons = true;
 
    if (feedback && driver->input->overlay_haptic_feedback)
       driver->input->overlay_haptic_feedback();
@@ -2059,10 +2061,7 @@ static INLINE void input_overlay_poll_mouse(void)
 
    if (ol_mouse.click
          && ol_mouse.click_frames-- == 0)
-   {
       ol_mouse.click = 0;
-      ol_mouse.click_frames = 0;
-   }
 }
 
 /**
@@ -2291,11 +2290,6 @@ void input_overlay_poll(input_overlay_t *overlay_device)
 
    memcpy(old_state, state, sizeof(input_overlay_state_t));
    memset(state, 0, sizeof(input_overlay_state_t));
-   if (overlay_lightgun_active || overlay_mouse_active)
-   {
-      state->ptr_x = old_state->ptr_x;
-      state->ptr_y = old_state->ptr_y;
-   }
 
    device = overlay_device->active->full_screen ?
       RARCH_DEVICE_POINTER_SCREEN : RETRO_DEVICE_POINTER;
@@ -2349,6 +2343,12 @@ void input_overlay_poll(input_overlay_t *overlay_device)
 
          state->ptr_count++;
       }
+   }
+
+   if (!state->ptr_count)
+   {
+      state->ptr_x = old_state->ptr_x;
+      state->ptr_y = old_state->ptr_y;
    }
 
    if (overlay_lightgun_active)

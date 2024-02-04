@@ -7039,6 +7039,34 @@ static bool setting_append_list_overlay_mouse_options(
          general_read_handler);
 
    CONFIG_UINT(
+         settings->input.overlay_mouse_hold_ms,
+         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_HOLD_MS),
+         "  Long Press Threshold",
+         overlay_mouse_hold_ms,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 1000, 10, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_millisec;
+
+   CONFIG_UINT(
+         settings->input.overlay_mouse_hold_zone,
+         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_HOLD_ZONE),
+         "  Swipe Threshold",
+         overlay_mouse_hold_zone,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 5000, 50, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_overlay_mouse_hold_zone;
+
+   CONFIG_UINT(
          settings->input.overlay_mouse_hold_to_drag_scope,
          "input_overlay_mouse_hold_to_drag_scope",
          "  Scope",
@@ -7052,34 +7080,6 @@ static bool setting_append_list_overlay_mouse_options(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_uint_scope_index;
-
-   CONFIG_UINT(
-         settings->input.overlay_mouse_hold_ms,
-         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_HOLD_MS),
-         "Long Press Threshold",
-         overlay_mouse_hold_ms,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 100, 1000, 10, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_millisec;
-
-   CONFIG_UINT(
-         settings->input.overlay_mouse_hold_zone,
-         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_HOLD_ZONE),
-         "Swipe Threshold",
-         overlay_mouse_hold_zone,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 5000, 50, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_overlay_mouse_hold_zone;
 
    CONFIG_UINT(
          settings->input.overlay_mouse_click_dur,

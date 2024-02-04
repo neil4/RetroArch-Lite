@@ -185,6 +185,12 @@ static void config_populate_scoped_setting_list(void)
    SCOPED_LIST_ADD_BOOL("input_overlay_mouse_hold_to_drag",
       settings->input.overlay_mouse_hold_to_drag,
       settings->input.overlay_mouse_hold_to_drag_scope);
+   SCOPED_LIST_ADD_UINT("input_overlay_mouse_hold_ms",
+      settings->input.overlay_mouse_hold_ms,
+      settings->input.overlay_mouse_hold_to_drag_scope);
+   SCOPED_LIST_ADD_UINT("input_overlay_mouse_hold_zone",
+      settings->input.overlay_mouse_hold_zone,
+      settings->input.overlay_mouse_hold_to_drag_scope);
    SCOPED_LIST_ADD_UINT("input_overlay_mouse_click_dur",
       settings->input.overlay_mouse_click_dur,
       settings->input.overlay_mouse_click_dur_scope);
@@ -2801,13 +2807,14 @@ bool main_config_file_save(const char *path)
    }
 
    if (settings->input.overlay_mouse_hold_to_drag_scope == GLOBAL)
+   {
       config_set_bool(conf, "input_overlay_mouse_hold_to_drag",
            settings->input.overlay_mouse_hold_to_drag);
-
-   config_set_int(conf, "input_overlay_mouse_hold_ms",
-         settings->input.overlay_mouse_hold_ms);
-   config_set_int(conf, "input_overlay_mouse_hold_zone",
-         settings->input.overlay_mouse_hold_zone);
+      config_set_int(conf, "input_overlay_mouse_hold_ms",
+            settings->input.overlay_mouse_hold_ms);
+      config_set_int(conf, "input_overlay_mouse_hold_zone",
+            settings->input.overlay_mouse_hold_zone);
+   }
 
    if (settings->input.overlay_mouse_click_dur_scope == GLOBAL)
       config_set_int(conf, "input_overlay_mouse_click_dur",
