@@ -68,10 +68,11 @@ typedef struct overlay_mouse_vals
    int16_t dx;
    int16_t dy;
 
+   int16_t swipe_thres_x;
+   int16_t swipe_thres_y;
+
    uint8_t click;
    uint8_t hold;
-
-   uint8_t click_frames;
 } overlay_mouse_vals_t;
 
 typedef struct ellipse_px
@@ -1373,39 +1374,60 @@ static INLINE int16_t lightgun_delayed_trigger_state(bool trigger)
 
 void input_overlay_update_mouse_scale(void)
 {
+   settings_t *settings                 = config_get_ptr();
    struct retro_system_av_info* av_info = video_viewport_get_system_av_info();
+   const struct retro_game_geometry *geom;
    unsigned disp_width, disp_height;
-   float disp_aspect, content_aspect, adj_x, adj_y;
+   float disp_aspect, content_aspect, adj_x, adj_y, speed, swipe_thres;
 
    if (av_info)
    {
-      const struct retro_game_geometry *geom =
-         (const struct retro_game_geometry*)&av_info->geometry;
+      geom        = (const struct retro_game_geometry*)&av_info->geometry;
+      speed       = settings->input.overlay_mouse_speed;
+      swipe_thres = 655.36f * settings->input.overlay_mouse_swipe_thres;
 
       video_driver_get_size(&disp_width, &disp_height);
       disp_aspect = (float)disp_width / disp_height;
 
       content_aspect = (float)geom->base_width / geom->base_height;
 
-      adj_x = disp_aspect > content_aspect ?
-         (disp_aspect / content_aspect) : 1.0f;
-      adj_y = content_aspect > disp_aspect ?
-         (content_aspect / disp_aspect) : 1.0f;
+      if (disp_aspect > content_aspect)
+      {
+         adj_x = speed * (disp_aspect / content_aspect);
+         adj_y = speed;
+      }
+      else
+      {
+         adj_y = speed * (content_aspect / disp_aspect);
+         adj_x = speed;
+      }
 
       ol_mouse.scale_x = (adj_x * geom->base_width) / (float)0x7fff;
       ol_mouse.scale_y = (adj_y * geom->base_height) / (float)0x7fff;
+
+      if (disp_aspect > 1.0f)
+      {
+         ol_mouse.swipe_thres_x = (int16_t)(swipe_thres / disp_aspect);
+         ol_mouse.swipe_thres_y = (int16_t)swipe_thres;
+      }
+      else
+      {
+         ol_mouse.swipe_thres_x = (int16_t)swipe_thres;
+         ol_mouse.swipe_thres_y = (int16_t)(swipe_thres / disp_aspect);
+      }
    }
 }
 
 static void input_overlay_connect_mouse(input_overlay_t *ol)
 {
+   driver_t *driver      = driver_get_ptr();
    bool old_mouse_active = overlay_mouse_active;
-   overlay_mouse_active = ol->active->mouse_overlay;
+   overlay_mouse_active  = ol->active->mouse_overlay;
 
    if (overlay_mouse_active && !old_mouse_active)
    {
-      ol_mouse.prev_x = 0;
-      ol_mouse.prev_y = 0;
+      ol_mouse.prev_x = driver->overlay_state.ptr_x;
+      ol_mouse.prev_y = driver->overlay_state.ptr_y;
       input_overlay_update_mouse_scale();
       rarch_main_msg_queue_push("Mouse active", 2, 60, true);
    }
@@ -1974,36 +1996,43 @@ static INLINE bool input_overlay_poll_descs(
    return any_desc_hit;
 }
 
-static INLINE void input_overlay_poll_mouse(void)
+static INLINE void input_overlay_poll_mouse(int8_t old_ptr_count)
 {
    driver_t*              driver    = driver_get_ptr();
    settings_t*            settings  = config_get_ptr();
    input_overlay_state_t* state     = &driver->overlay_state;
-   input_overlay_state_t* old_state = &driver->old_overlay_state;
    retro_time_t           now_usec  = rarch_get_time_usec();
-   uint32_t               hold_zone = settings->input.overlay_mouse_hold_zone;
    retro_time_t           hold_usec = settings->input.overlay_mouse_hold_ms * 1000;
-   bool                   can_hold  = settings->input.overlay_mouse_hold_to_drag;
+   retro_time_t           dtap_usec = settings->input.overlay_mouse_tap_and_drag_ms * 1000;
+   bool                hold_to_drag = settings->input.overlay_mouse_hold_to_drag;
+   bool                dtap_to_drag = settings->input.overlay_mouse_tap_and_drag;
    bool                   feedback  = false;
    bool is_swipe, is_brief, is_long;
 
-   static int x_start, y_start, peak_ptr_count;
-   static retro_time_t start_usec;
-   static bool skip_buttons;
+   static retro_time_t start_usec, click_dur_usec, click_end_usec;
+   static retro_time_t last_down_usec, last_up_usec, pending_click_usec;
+   static int16_t x_start, y_start, peak_ptr_count, old_peak_ptr_count;
+   static bool skip_buttons, pending_click;
 
-   if (state->ptr_count != old_state->ptr_count)
+   /* Check for pointer count changes */
+   if (state->ptr_count != old_ptr_count)
    {
+      ol_mouse.click = 0;
+      pending_click  = false;
+
       if (state->ptr_count)
       {
-         /* relocate main pointer */
+         /* First touch. Reset deltas */
          ol_mouse.prev_x = x_start = state->ptr_x;
          ol_mouse.prev_y = y_start = state->ptr_y;
       }
+      else
+         old_peak_ptr_count = peak_ptr_count;
 
-      if (state->ptr_count > old_state->ptr_count)
+      if (state->ptr_count > old_ptr_count)
       {
          /* pointer added */
-         peak_ptr_count = max(state->ptr_count, peak_ptr_count);
+         peak_ptr_count = state->ptr_count;
          start_usec     = now_usec;
       }
       else
@@ -2011,56 +2040,90 @@ static INLINE void input_overlay_poll_mouse(void)
          ol_mouse.hold = 0x0;
    }
 
-   is_swipe = abs(state->ptr_x - x_start) > hold_zone ||
-              abs(state->ptr_y - y_start) > hold_zone;
+   /* Action type */
+   is_swipe = abs(state->ptr_x - x_start) > ol_mouse.swipe_thres_x ||
+              abs(state->ptr_y - y_start) > ol_mouse.swipe_thres_y;
    is_brief = (now_usec - start_usec) < 200000;
-   is_long  = (now_usec - start_usec) > (can_hold ? hold_usec : 250000);
+   is_long  = (now_usec - start_usec) > (hold_to_drag ? hold_usec : 250000);
 
+   /* Check if new button input should be created */
    if (!skip_buttons)
    {
       if (!is_swipe)
       {
-         if (is_long && state->ptr_count && can_hold)
+         if (hold_to_drag
+               && is_long && state->ptr_count)
          {
             /* long press */
             ol_mouse.hold = (1 << (state->ptr_count - 1));
             feedback = true;
          }
-         else if (is_brief && !state->ptr_count && old_state->ptr_count)
+         else if (is_brief)
          {
-            /* click */
-            ol_mouse.click = (1 << (peak_ptr_count - 1));
-            ol_mouse.click_frames = settings->input.overlay_mouse_click_dur;
+            if (state->ptr_count && !old_ptr_count)
+            {
+               /* New input. Check for double tap */
+               if (dtap_to_drag
+                     && now_usec - last_up_usec < dtap_usec)
+                  ol_mouse.hold = (1 << (old_peak_ptr_count - 1));
+
+               last_down_usec = now_usec;
+            }
+            else if (!state->ptr_count && old_ptr_count)
+            {
+               /* Finished a tap. Send click */
+               click_dur_usec = (now_usec - last_down_usec) + 5000;
+
+               if (dtap_to_drag)
+               {
+                  pending_click      = true;
+                  pending_click_usec = now_usec + dtap_usec;
+               }
+               else
+               {
+                  ol_mouse.click = (1 << (peak_ptr_count - 1));
+                  click_end_usec = now_usec + click_dur_usec;
+               }
+
+               last_up_usec = now_usec;
+            }
          }
       }
       else
       {
-         skip_buttons = true;
          /* If dragging 2+ fingers, hold RMB or MMB */
          if (state->ptr_count > 1)
          {
             ol_mouse.hold = (1 << (state->ptr_count - 1));
-            feedback      = true;
+            if (hold_to_drag)
+               feedback = true;
          }
+         skip_buttons = true;
       }
    }
 
-   if (!state->ptr_count)
+   /* Check for pending click */
+   if (pending_click && now_usec >= pending_click_usec)
    {
-      skip_buttons = false;
-      peak_ptr_count = 0;
+      ol_mouse.click = (1 << (old_peak_ptr_count - 1));
+      click_end_usec = now_usec + click_dur_usec;
+      pending_click  = false;
    }
+
+   if (!state->ptr_count)
+      skip_buttons = false; /* Reset button checks  */
    else if (is_long)
-      skip_buttons = true;
+      skip_buttons = true;  /* End of button checks */
 
    if (feedback && driver->input->overlay_haptic_feedback)
       driver->input->overlay_haptic_feedback();
 
+   /* Update deltas */
    ol_mouse.dx = (state->ptr_x - ol_mouse.prev_x) * ol_mouse.scale_x;
    ol_mouse.dy = (state->ptr_y - ol_mouse.prev_y) * ol_mouse.scale_y;
 
-   if (ol_mouse.click
-         && ol_mouse.click_frames-- == 0)
+   /* Remove stale clicks */
+   if (ol_mouse.click && now_usec > click_end_usec)
       ol_mouse.click = 0;
 }
 
@@ -2328,7 +2391,7 @@ void input_overlay_poll(input_overlay_t *overlay_device)
                state->analog[j] = polled_data.analog[j];
       }
       else if ((overlay_lightgun_active || overlay_mouse_active)
-                  && !overlay_device->blocked)
+                  && !overlay_device->blocked && !menu_driver_alive())
       {
          /* Assume mouse or lightgun pointer if all descriptors were missed */
          if (!state->ptr_count)
@@ -2351,11 +2414,14 @@ void input_overlay_poll(input_overlay_t *overlay_device)
       state->ptr_y = old_state->ptr_y;
    }
 
-   if (overlay_lightgun_active)
-      overlay_lightgun_autotrigger_state =
-            lightgun_delayed_trigger_state(state->ptr_count == 1);
-   else if (overlay_mouse_active)
-      input_overlay_poll_mouse();
+   if (!menu_driver_alive())
+   {
+      if (overlay_lightgun_active)
+         overlay_lightgun_autotrigger_state =
+               lightgun_delayed_trigger_state(state->ptr_count == 1);
+      else if (overlay_mouse_active)
+         input_overlay_poll_mouse(old_state->ptr_count);
+   }
 
    if (OVERLAY_GET_KEY(state, RETROK_LSHIFT)
        || OVERLAY_GET_KEY(state, RETROK_RSHIFT))

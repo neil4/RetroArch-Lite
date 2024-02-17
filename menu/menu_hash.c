@@ -306,14 +306,18 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "input_overlay_adjust_vertical_lock_edges";
       case MENU_LABEL_OVERLAY_BISECT_TO_ASPECT:
          return "input_overlay_bisect_aspect_ratio";
+      case MENU_LABEL_OVERLAY_MOUSE_SPEED:
+         return "input_overlay_mouse_speed";
       case MENU_LABEL_OVERLAY_MOUSE_HOLD_TO_DRAG:
          return "input_overlay_mouse_hold_to_drag";
       case MENU_LABEL_OVERLAY_MOUSE_HOLD_MS:
          return "input_overlay_mouse_hold_ms";
-      case MENU_LABEL_OVERLAY_MOUSE_HOLD_ZONE:
-         return "input_overlay_mouse_hold_zone";
-      case MENU_LABEL_OVERLAY_MOUSE_CLICK_DUR:
-         return "input_overlay_mouse_click_dur";
+      case MENU_LABEL_OVERLAY_MOUSE_SWIPE_THRESHOLD:
+         return "input_overlay_mouse_swipe_threshold";
+      case MENU_LABEL_OVERLAY_MOUSE_TAP_AND_DRAG:
+         return "input_overlay_mouse_tap_and_drag";
+      case MENU_LABEL_OVERLAY_MOUSE_TAP_AND_DRAG_MS:
+         return "input_overlay_mouse_tap_and_drag_ms";
       case MENU_LABEL_INPUT_ANALOG_DPAD_MODE:
          return "input_analog_dpad_mode";
       case MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS:

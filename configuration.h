@@ -324,12 +324,15 @@ typedef struct settings
       float osk_opacity;
       unsigned osk_opacity_scope;
 
+      float overlay_mouse_speed;
+      bool overlay_mouse_tap_and_drag;
+      unsigned overlay_mouse_tap_and_drag_ms;
+      unsigned overlay_mouse_tap_and_drag_scope;
       bool overlay_mouse_hold_to_drag;
+      unsigned overlay_mouse_hold_ms;
       unsigned overlay_mouse_hold_to_drag_scope;
-      uint32_t overlay_mouse_hold_ms;
-      uint32_t overlay_mouse_hold_zone;
-      uint32_t overlay_mouse_click_dur;
-      unsigned overlay_mouse_click_dur_scope;
+      float overlay_mouse_swipe_thres;
+      unsigned overlay_mouse_swipe_thres_scope;
       unsigned lightgun_trigger_delay;
       unsigned lightgun_trigger_delay_scope;
       bool lightgun_allow_oob;

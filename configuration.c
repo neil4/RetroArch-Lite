@@ -188,12 +188,15 @@ static void config_populate_scoped_setting_list(void)
    SCOPED_LIST_ADD_UINT("input_overlay_mouse_hold_ms",
       settings->input.overlay_mouse_hold_ms,
       settings->input.overlay_mouse_hold_to_drag_scope);
-   SCOPED_LIST_ADD_UINT("input_overlay_mouse_hold_zone",
-      settings->input.overlay_mouse_hold_zone,
-      settings->input.overlay_mouse_hold_to_drag_scope);
-   SCOPED_LIST_ADD_UINT("input_overlay_mouse_click_dur",
-      settings->input.overlay_mouse_click_dur,
-      settings->input.overlay_mouse_click_dur_scope);
+   SCOPED_LIST_ADD_BOOL("input_overlay_mouse_tap_and_drag",
+      settings->input.overlay_mouse_tap_and_drag,
+      settings->input.overlay_mouse_tap_and_drag_scope);
+   SCOPED_LIST_ADD_UINT("input_overlay_mouse_tap_and_drag_ms",
+      settings->input.overlay_mouse_tap_and_drag_ms,
+      settings->input.overlay_mouse_tap_and_drag_scope);
+   SCOPED_LIST_ADD_FLOAT("input_overlay_mouse_swipe_threshold",
+      settings->input.overlay_mouse_swipe_thres,
+      settings->input.overlay_mouse_swipe_thres_scope);
    SCOPED_LIST_ADD_UINT("input_lightgun_trigger_delay",
       settings->input.lightgun_trigger_delay,
       settings->input.lightgun_trigger_delay_scope);
@@ -822,10 +825,12 @@ static void config_set_defaults(void)
    settings->input.overlay_aspect_ratio_index      = OVERLAY_ASPECT_RATIO_AUTO_CONFIG;
    settings->input.overlay_bisect_aspect_ratio     = overlay_bisect_aspect_ratio;
    settings->input.overlay_shift_y_lock_edges      = overlay_shift_y_lock_edges;
+   settings->input.overlay_mouse_speed             = overlay_mouse_speed;
    settings->input.overlay_mouse_hold_to_drag      = overlay_mouse_hold_to_drag;
-   settings->input.overlay_mouse_hold_zone         = overlay_mouse_hold_zone;
+   settings->input.overlay_mouse_swipe_thres       = overlay_mouse_swipe_thres;
+   settings->input.overlay_mouse_tap_and_drag      = overlay_mouse_tap_and_drag;
+   settings->input.overlay_mouse_tap_and_drag_ms   = overlay_mouse_tap_and_drag_ms;
    settings->input.overlay_mouse_hold_ms           = overlay_mouse_hold_ms;
-   settings->input.overlay_mouse_click_dur         = overlay_mouse_click_dur;
    settings->input.lightgun_trigger_delay          = 0;
 #endif
 
@@ -1968,14 +1973,18 @@ static bool config_load_file(const char *path, bool set_defaults)
    config_get_float(conf, "input_osk_opacity",
          &settings->input.osk_opacity);
 
+   config_get_float(conf, "input_overlay_mouse_speed",
+         &settings->input.overlay_mouse_speed);
    config_get_bool(conf, "input_overlay_mouse_hold_to_drag",
          &settings->input.overlay_mouse_hold_to_drag);
    config_get_uint(conf, "input_overlay_mouse_hold_ms",
          &settings->input.overlay_mouse_hold_ms);
-   config_get_uint(conf, "input_overlay_mouse_hold_zone",
-         &settings->input.overlay_mouse_hold_zone);
-   config_get_uint(conf, "input_overlay_mouse_click_dur",
-         &settings->input.overlay_mouse_click_dur);
+   config_get_bool(conf, "input_overlay_mouse_tap_and_drag",
+         &settings->input.overlay_mouse_tap_and_drag);
+   config_get_uint(conf, "input_overlay_mouse_tap_and_drag_ms",
+         &settings->input.overlay_mouse_tap_and_drag_ms);
+   config_get_float(conf, "input_overlay_mouse_swipe_threshold",
+         &settings->input.overlay_mouse_swipe_thres);
 
    config_get_uint(conf, "input_lightgun_trigger_delay",
          &settings->input.lightgun_trigger_delay);
@@ -2806,19 +2815,28 @@ bool main_config_file_save(const char *path)
             settings->input.overlay_bisect_aspect_ratio);
    }
 
+   config_set_float(conf, "input_overlay_mouse_speed",
+         settings->input.overlay_mouse_speed);
+
    if (settings->input.overlay_mouse_hold_to_drag_scope == GLOBAL)
    {
       config_set_bool(conf, "input_overlay_mouse_hold_to_drag",
            settings->input.overlay_mouse_hold_to_drag);
       config_set_int(conf, "input_overlay_mouse_hold_ms",
             settings->input.overlay_mouse_hold_ms);
-      config_set_int(conf, "input_overlay_mouse_hold_zone",
-            settings->input.overlay_mouse_hold_zone);
    }
 
-   if (settings->input.overlay_mouse_click_dur_scope == GLOBAL)
-      config_set_int(conf, "input_overlay_mouse_click_dur",
-         settings->input.overlay_mouse_click_dur);
+   if (settings->input.overlay_mouse_tap_and_drag_scope == GLOBAL)
+   {
+      config_set_bool(conf, "input_overlay_mouse_tap_and_drag",
+           settings->input.overlay_mouse_tap_and_drag);
+      config_set_int(conf, "input_overlay_mouse_tap_and_drag_ms",
+            settings->input.overlay_mouse_tap_and_drag_ms);
+   }
+
+   if (settings->input.overlay_mouse_swipe_thres_scope == GLOBAL)
+      config_set_float(conf, "input_overlay_mouse_swipe_threshold",
+            settings->input.overlay_mouse_swipe_thres);
 
    if (settings->input.lightgun_trigger_delay_scope == GLOBAL)
       config_set_int(conf, "input_lightgun_trigger_delay",

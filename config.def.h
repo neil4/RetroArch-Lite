@@ -483,9 +483,11 @@ static const unsigned overlay_abxy_diag_sens = 50;
 static const float overlay_bisect_aspect_ratio = OVERLAY_MAX_BISECT;
 static const bool overlay_shift_y_lock_edges = true;
 static const bool overlay_mouse_hold_to_drag = true;
-static const unsigned overlay_mouse_hold_zone = 500;  /* [0, 32767] */
-static const unsigned overlay_mouse_hold_ms = 250;
-static const unsigned overlay_mouse_click_dur = 6;
+static const float overlay_mouse_speed = 1.0f;
+static const float overlay_mouse_swipe_thres = 1.0f;
+static const unsigned overlay_mouse_hold_ms = 200;
+static const bool overlay_mouse_tap_and_drag = false;
+static const unsigned overlay_mouse_tap_and_drag_ms = 200;
 #endif
 static bool show_frame_throttle_menu = true;
 #ifdef HAVE_NETPLAY

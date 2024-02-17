@@ -1870,14 +1870,6 @@ static void setting_get_string_representation_touch_method(void *data,
    }
 }
 
-static void setting_get_string_representation_overlay_mouse_hold_zone(
-      void *data, char *s, size_t len)
-{
-   rarch_setting_t *setting = (rarch_setting_t*)data;
-   sprintf(s, "%.1fx",
-         *setting->value.unsigned_integer / (float)overlay_mouse_hold_zone);
-}
-
 static void setting_get_string_button_combo(void *data, char *s, size_t len)
 {
    rarch_setting_t *setting = (rarch_setting_t*)data;
@@ -3213,6 +3205,10 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "bottom edge of the overlay to that\n"
                "edge of the screen.\n");
          break;
+      case MENU_LABEL_OVERLAY_MOUSE_SPEED:
+         snprintf(s, len,
+               " -- Cursor movement speed.");
+         break;
       case MENU_LABEL_OVERLAY_MOUSE_HOLD_TO_DRAG:
          snprintf(s, len,
                " -- Long press the screen to\n"
@@ -3224,18 +3220,29 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                " -- Hold time required for a long press.\n");
          break;
-      case MENU_LABEL_OVERLAY_MOUSE_HOLD_ZONE:
+      case MENU_LABEL_OVERLAY_MOUSE_SWIPE_THRESHOLD:
          snprintf(s, len,
-               " -- Allowable travel distance when\n"
-               "detecting a long press.\n");
-         break;
-      case MENU_LABEL_OVERLAY_MOUSE_CLICK_DUR:
-         snprintf(s, len,
-               " -- Number of frames a mouse button\n"
-               "will be held after a screen tap.\n"
+               " -- Allowable drift range when\n"
+               "detecting a long press or tap.\n"
                " \n"
-               "Increase if mouse clicks are\n"
-               "not recognized.");
+               "Expressed as a percentage of\n"
+               "the smaller screen dimension.");
+         break;
+      case MENU_LABEL_OVERLAY_MOUSE_TAP_AND_DRAG:
+         snprintf(s, len,
+               " -- Double-tap to begin holding a\n"
+               "mouse button on the second tap.\n"
+               " \n"
+               "Adds latency to mouse clicks.\n"
+               " \n"
+               "Use 1/2/3 fingers for L/R/M.\n");
+         break;
+      case MENU_LABEL_OVERLAY_MOUSE_TAP_AND_DRAG_MS:
+         snprintf(s, len,
+               " -- Allowable time between taps\n"
+               "when detecting a double tap.\n"
+               " \n"
+               "Also determines click latency.");
          break;
       case MENU_LABEL_VIDEO_MONITOR_INDEX:
          snprintf(s, len,
@@ -4128,6 +4135,11 @@ static void menu_swap_ok_cancel_toggle_change_handler(void *data)
       settings->menu_ok_btn          = default_menu_btn_ok;
       settings->menu_cancel_btn      = default_menu_btn_cancel;
    }
+}
+
+static void overlay_mouse_change_handler(void *data)
+{
+   input_overlay_update_mouse_scale();
 }
 
 static bool setting_append_list_main_menu_options(
@@ -7025,6 +7037,20 @@ static bool setting_append_list_overlay_mouse_options(
 
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
 
+   CONFIG_FLOAT(
+         settings->input.overlay_mouse_speed,
+         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_SPEED),
+         "Mouse Speed",
+         overlay_mouse_speed,
+         "%.1fx",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0.1, 5, 0.1, true, true);
+   (*list)[list_info->index - 1].change_handler = &overlay_mouse_change_handler;
+
    CONFIG_BOOL(
          settings->input.overlay_mouse_hold_to_drag,
          menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_HOLD_TO_DRAG),
@@ -7053,20 +7079,6 @@ static bool setting_append_list_overlay_mouse_options(
          &setting_get_string_representation_millisec;
 
    CONFIG_UINT(
-         settings->input.overlay_mouse_hold_zone,
-         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_HOLD_ZONE),
-         "  Swipe Threshold",
-         overlay_mouse_hold_zone,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 5000, 50, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_overlay_mouse_hold_zone;
-
-   CONFIG_UINT(
          settings->input.overlay_mouse_hold_to_drag_scope,
          "input_overlay_mouse_hold_to_drag_scope",
          "  Scope",
@@ -7081,21 +7093,36 @@ static bool setting_append_list_overlay_mouse_options(
    (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_uint_scope_index;
 
-   CONFIG_UINT(
-         settings->input.overlay_mouse_click_dur,
-         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_CLICK_DUR),
-         "Click Duration (frames)",
-         overlay_mouse_click_dur,
+   CONFIG_BOOL(
+         settings->input.overlay_mouse_tap_and_drag,
+         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_TAP_AND_DRAG),
+         "Double Tap to Drag",
+         overlay_mouse_tap_and_drag,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 1, 30, 1, true, true);
 
    CONFIG_UINT(
-         settings->input.overlay_mouse_click_dur_scope,
-         "input_overlay_mouse_click_dur_scope",
+         settings->input.overlay_mouse_tap_and_drag_ms,
+         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_TAP_AND_DRAG_MS),
+         "  Double Tap Threshold",
+         overlay_mouse_tap_and_drag_ms,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 50, 500, 10, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_millisec;
+
+   CONFIG_UINT(
+         settings->input.overlay_mouse_tap_and_drag_scope,
+         "input_overlay_mouse_tap_and_drag_scope",
          "  Scope",
          GLOBAL,
          group_info.name,
@@ -7106,7 +7133,36 @@ static bool setting_append_list_overlay_mouse_options(
    menu_settings_list_current_add_range(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index;
+         &setting_get_string_representation_uint_scope_index;
+
+   CONFIG_FLOAT(
+         settings->input.overlay_mouse_swipe_thres,
+         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_SWIPE_THRESHOLD),
+         "Swipe Threshold",
+         overlay_mouse_swipe_thres,
+         "%.1f%%",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 10, 0.1, true, true);
+   (*list)[list_info->index - 1].change_handler = &overlay_mouse_change_handler;
+
+   CONFIG_UINT(
+         settings->input.overlay_mouse_swipe_thres_scope,
+         "input_overlay_mouse_swipe_threshold_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_scope_index;
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
