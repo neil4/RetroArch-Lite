@@ -1531,6 +1531,7 @@ bool event_command(enum event_command cmd)
          {
             settings->menu.show_advanced_settings
                   = !settings->menu.show_advanced_settings;
+            settings_touched = true;
             rarch_main_msg_queue_push(settings->menu.show_advanced_settings
                   ? "Obscure settings shown"
                   : "Obscure settings hidden", 1, 120, true);

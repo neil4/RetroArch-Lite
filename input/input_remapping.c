@@ -292,15 +292,21 @@ static void input_remapping_delete_unscoped(void)
    if (input_remapping_scope < THIS_CONTENT_ONLY)
    {
       input_remapping_get_path(path, THIS_CONTENT_ONLY);
-      RARCH_LOG("Removing remap at path: \"%s\"\n", path);
-      remove(path);
+      if (path_file_exists(path))
+      {
+         RARCH_LOG("Removing remap at path: \"%s\"\n", path);
+         remove(path);
+      }
    }
 
    if (input_remapping_scope < THIS_CONTENT_DIR)
    {
       input_remapping_get_path(path, THIS_CONTENT_DIR);
-      RARCH_LOG("Removing remap at path: \"%s\"\n", path);
-      remove(path);
+      if (path_file_exists(path))
+      {
+         RARCH_LOG("Removing remap at path: \"%s\"\n", path);
+         remove(path);
+      }
    }
 
    free(path);
