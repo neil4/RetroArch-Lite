@@ -173,7 +173,7 @@ static int16_t input_joypad_turbo_state(unsigned port, unsigned *id)
 
 #ifdef HAVE_OVERLAY
    if (port == 0 && *input->overlay
-          && (driver_get_ptr()->overlay_state.buttons & (1 << mapped_id)))
+          && (driver_get_ptr()->overlay_state->buttons & (1 << mapped_id)))
       pressed |= 1;
 #endif
 

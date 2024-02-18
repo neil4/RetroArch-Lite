@@ -973,7 +973,7 @@ static bool android_input_key_pressed(void *data, int key)
    if (!android)
       return false;
 
-   return ((global->lifecycle_state | driver->overlay_state.buttons) & (1ULL << key))
+   return ((global->lifecycle_state | driver->overlay_state->buttons) & (1ULL << key))
           || input_joypad_pressed (android->joypad, 0, settings->input.binds[0], key)
           || (!KEYMAP_BLOCKED(android, key) && android_keyboard_port_input_pressed(settings->input.binds[0], key));
 }

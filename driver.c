@@ -45,6 +45,8 @@ static driver_t *driver_new(void)
    if (!driver)
       return NULL;
 
+   driver->overlay_state = driver->overlay_states;
+
    return driver;
 }
 

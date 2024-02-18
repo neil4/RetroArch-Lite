@@ -1410,8 +1410,8 @@ static void input_overlay_connect_mouse(input_overlay_t *ol)
 
    if (overlay_mouse_active && !old_mouse_active)
    {
-      ol_mouse.prev_x = driver->overlay_state.ptr_x;
-      ol_mouse.prev_y = driver->overlay_state.ptr_y;
+      ol_mouse.prev_x = driver->overlay_state->ptr_x;
+      ol_mouse.prev_y = driver->overlay_state->ptr_y;
       input_overlay_update_mouse_scale();
       rarch_main_msg_queue_push("Mouse active", 2, 60, true);
    }
@@ -1566,7 +1566,7 @@ void input_overlay_enable(input_overlay_t *ol, bool enable)
    }
    else
    {
-      memset(&driver->overlay_state, 0, sizeof(driver->overlay_state));
+      memset(driver->overlay_states, 0, sizeof(driver->overlay_states));
       ol->iface = NULL;
    }
 }
@@ -2397,16 +2397,22 @@ static void input_overlay_track_touch_inputs(
 void input_overlay_poll(input_overlay_t *overlay_device)
 {
    int i, j, device, ptr_device;
-   uint16_t key_mod                 = 0;
+   input_overlay_state_t *state;
+   input_overlay_state_t *old_state;
    driver_t *driver                 = driver_get_ptr();
-   input_overlay_state_t *state     = &driver->overlay_state;
-   input_overlay_state_t *old_state = &driver->old_overlay_state;
    bool osk_state_changed           = false;
+   uint16_t key_mod                 = 0;
+
+   static int ol_st_index;
 
    if (overlay_device->state != OVERLAY_STATUS_ALIVE)
       return;
 
-   memcpy(old_state, state, sizeof(input_overlay_state_t));
+   /* Swap new & old states */
+   old_state             = driver->overlay_state;
+   driver->overlay_state = driver->overlay_states + (ol_st_index ^= 1);
+   state                 = driver->overlay_state;
+
    memset(state, 0, sizeof(input_overlay_state_t));
 
    device = overlay_device->active->full_screen ?
@@ -2493,7 +2499,6 @@ void input_overlay_poll(input_overlay_t *overlay_device)
        || OVERLAY_GET_KEY(state, RETROK_RMETA))
       key_mod |= RETROKMOD_META;
 
-   /* CAPSLOCK SCROLLOCK NUMLOCK */
    for (i = (int)ARRAY_SIZE(state->keys); i-- > 0;)
    {
       if (state->keys[i] != old_state->keys[i])
@@ -2548,13 +2553,15 @@ void input_overlay_poll(input_overlay_t *overlay_device)
 
 static INLINE int16_t overlay_mouse_state(unsigned id)
 {
+   driver_t *driver = driver_get_ptr();
+
    switch(id)
    {
       case RETRO_DEVICE_ID_MOUSE_X:
-         ol_mouse.prev_x = driver_get_ptr()->overlay_state.ptr_x;
+         ol_mouse.prev_x = driver->overlay_state->ptr_x;
          return ol_mouse.dx;
       case RETRO_DEVICE_ID_MOUSE_Y:
-         ol_mouse.prev_y = driver_get_ptr()->overlay_state.ptr_y;
+         ol_mouse.prev_y = driver->overlay_state->ptr_y;
          return ol_mouse.dy;
       case RETRO_DEVICE_ID_MOUSE_LEFT:
          return (ol_mouse.click & 0x1) || (ol_mouse.hold & 0x1);
@@ -2575,13 +2582,13 @@ static int16_t overlay_lightgun_state(unsigned id)
    switch(id)
    {
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
-         return driver->overlay_state.ptr_x;
+         return driver->overlay_state->ptr_x;
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
-         return driver->overlay_state.ptr_y;
+         return driver->overlay_state->ptr_y;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
          return (config_get_ptr()->input.lightgun_allow_oob
-                 && (abs(driver->overlay_state.ptr_x) >= 0x7fff ||
-                     abs(driver->overlay_state.ptr_y) >= 0x7fff));
+                 && (abs(driver->overlay_state->ptr_x) >= 0x7fff ||
+                     abs(driver->overlay_state->ptr_y) >= 0x7fff));
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A:
          rarch_id = RARCH_LIGHTGUN_AUX_A;
          break;
@@ -2623,7 +2630,7 @@ static int16_t overlay_lightgun_state(unsigned id)
 
    if (rarch_id < RARCH_BIND_LIST_END
          && (BIT64_GET(ol_lightgun.multitouch, rarch_id) ||
-             BIT64_GET(driver->overlay_state.buttons, rarch_id)))
+             BIT64_GET(driver->overlay_state->buttons, rarch_id)))
       return 1;
    else
    return 0;
@@ -2655,13 +2662,13 @@ int16_t input_overlay_state(unsigned port, unsigned device_base,
       {
          case RETRO_DEVICE_JOYPAD:
             if (id < RARCH_CUSTOM_BIND_LIST_END &&
-                  (driver->overlay_state.buttons & (UINT64_C(1) << id)))
+                  (driver->overlay_state->buttons & (UINT64_C(1) << id)))
                res = 1;
             break;
          case RETRO_DEVICE_KEYBOARD:
             if (id < RETROK_LAST)
             {
-               if (OVERLAY_GET_KEY(&driver->overlay_state, id))
+               if (OVERLAY_GET_KEY(driver->overlay_state, id))
                   res = 1;
             }
             break;
@@ -2678,7 +2685,7 @@ int16_t input_overlay_state(unsigned port, unsigned device_base,
                   base = 2;
                if (id == RETRO_DEVICE_ID_ANALOG_Y)
                   base += 1;
-               res = driver->overlay_state.analog[base];
+               res = driver->overlay_state->analog[base];
             }
             break;
       }

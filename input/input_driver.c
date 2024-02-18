@@ -255,7 +255,7 @@ retro_input_t input_driver_keys_pressed(void)
    }
 
 #ifdef HAVE_OVERLAY
-   ret |= driver->overlay_state.buttons;
+   ret |= driver->overlay_state->buttons;
 #endif
 
 #ifdef HAVE_COMMAND

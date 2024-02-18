@@ -275,7 +275,7 @@ void input_joykbd_poll(void)
       return;
 
    joypad    = input_driver_get_joypad_driver();
-   btn_state = driver_get_ptr()->overlay_state.buttons;
+   btn_state = driver_get_ptr()->overlay_state->buttons;
 
    /* Assume keyboard to joypad binds are disabled */
    for (i = 0; i < NUM_JOYKBD_BTNS; i++)
