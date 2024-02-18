@@ -335,6 +335,8 @@ typedef struct settings
       unsigned overlay_mouse_swipe_thres_scope;
       unsigned lightgun_trigger_delay;
       unsigned lightgun_trigger_delay_scope;
+      unsigned lightgun_two_touch_input;
+      unsigned lightgun_two_touch_input_scope;
       bool lightgun_allow_oob;
       unsigned lightgun_allow_oob_scope;
 

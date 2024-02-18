@@ -76,6 +76,7 @@
 #define RETRO_LBL_LIGHTGUN_AUX_A "Lightgun Aux A"
 #define RETRO_LBL_LIGHTGUN_AUX_B "Lightgun Aux B"
 #define RETRO_LBL_LIGHTGUN_AUX_C "Lightgun Aux C"
+#define RETRO_LBL_LIGHTGUN_RELOAD "Lightgun Reload"
 #define RETRO_LBL_ENABLE_HOTKEY "Enable Hotkey"
 #define RETRO_LBL_ADVANCED_TOGGLE "Show Obscure Settings Toggle"
 #define RETRO_LBL_OVERLAY_NEXT "Next Overlay"

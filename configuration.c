@@ -200,6 +200,9 @@ static void config_populate_scoped_setting_list(void)
    SCOPED_LIST_ADD_UINT("input_lightgun_trigger_delay",
       settings->input.lightgun_trigger_delay,
       settings->input.lightgun_trigger_delay_scope);
+   SCOPED_LIST_ADD_UINT("input_lightgun_two_touch_input",
+      settings->input.lightgun_two_touch_input,
+      settings->input.lightgun_two_touch_input_scope);
 #endif  /* HAVE_OVERLAY */
    SCOPED_LIST_ADD_UINT("input_max_users",
       settings->input.max_users, settings->input.max_users_scope);
@@ -831,7 +834,8 @@ static void config_set_defaults(void)
    settings->input.overlay_mouse_tap_and_drag      = overlay_mouse_tap_and_drag;
    settings->input.overlay_mouse_tap_and_drag_ms   = overlay_mouse_tap_and_drag_ms;
    settings->input.overlay_mouse_hold_ms           = overlay_mouse_hold_ms;
-   settings->input.lightgun_trigger_delay          = 0;
+   settings->input.lightgun_trigger_delay          = lightgun_trigger_delay;
+   settings->input.lightgun_two_touch_input        = OVERLAY_LIGHTGUN_ACTION_NONE;
 #endif
 
    strlcpy(settings->network.buildbot_url, buildbot_server_url,
@@ -1988,6 +1992,8 @@ static bool config_load_file(const char *path, bool set_defaults)
 
    config_get_uint(conf, "input_lightgun_trigger_delay",
          &settings->input.lightgun_trigger_delay);
+   config_get_uint(conf, "input_lightgun_two_touch_input",
+         &settings->input.lightgun_two_touch_input);
 #endif  /* HAVE_OVERLAY */
 
    config_get_bool(conf, "rewind_enable",
@@ -2841,6 +2847,10 @@ bool main_config_file_save(const char *path)
    if (settings->input.lightgun_trigger_delay_scope == GLOBAL)
       config_set_int(conf, "input_lightgun_trigger_delay",
          settings->input.lightgun_trigger_delay);
+
+   if (settings->input.lightgun_two_touch_input_scope == GLOBAL)
+      config_set_int(conf, "input_lightgun_two_touch_input",
+            settings->input.lightgun_two_touch_input);
 
    config_set_int(conf, "input_vibrate_time",
          settings->input.overlay_vibrate_time);

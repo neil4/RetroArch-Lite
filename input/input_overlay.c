@@ -46,8 +46,6 @@ static bool overlay_lightgun_active;
 static bool overlay_mouse_active;
 static bool overlay_adjust_needed;
 
-static int16_t overlay_lightgun_autotrigger_state;
-
 typedef struct overlay_aspect_mod_vals
 {
    float w;
@@ -56,6 +54,12 @@ typedef struct overlay_aspect_mod_vals
    float h;
    float y_center_shift;
 } overlay_aspect_mod_vals_t;
+
+typedef struct overlay_lightgun_vals
+{
+   uint64_t multitouch;
+   bool autotrigger;
+} overlay_lightgun_vals_t;
 
 typedef struct overlay_mouse_vals
 {
@@ -83,6 +87,7 @@ typedef struct ellipse_px
 } ellipse_px_t;
 
 static overlay_aspect_mod_vals_t ol_ar_mod;
+static overlay_lightgun_vals_t ol_lightgun;
 static overlay_mouse_vals_t ol_mouse;
 static ellipse_px_t ol_ellipse;
 
@@ -1338,38 +1343,17 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
       rarch_main_msg_queue_push(msg, 2, 180, true);
 
       /* Set autotrigger if no trigger descriptor found */
-      global->overlay_lightgun_autotrigger = true;
+      ol_lightgun.autotrigger = true;
       for (i = 0; i < ol->active->size; i++)
       {
          if (ol->active->descs[i].key_mask
              & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER))
          {
-            global->overlay_lightgun_autotrigger = false;
+            ol_lightgun.autotrigger = false;
             break;
          }
       }
    }
-}
-
-/**
- * lightgun_delayed_trigger_state:
- * @trigger : trigger state without delay
- *
- * Adds delay to trigger state.
- *
- * @return 1 if trigger should be sent to core, 0 otherwise
- **/
-static INLINE int16_t lightgun_delayed_trigger_state(bool trigger)
-{
-   static bool buf[LIGHTGUN_TRIG_MAX_DELAY + 1];
-   static int delayed_idx;
-
-   delayed_idx = (delayed_idx + 1) % (LIGHTGUN_TRIG_MAX_DELAY + 1);
-
-   buf[(delayed_idx + config_get_ptr()->input.lightgun_trigger_delay)
-         % (LIGHTGUN_TRIG_MAX_DELAY + 1)] = trigger;
-
-   return buf[delayed_idx];
 }
 
 void input_overlay_update_mouse_scale(void)
@@ -1996,11 +1980,82 @@ static INLINE bool input_overlay_poll_descs(
    return any_desc_hit;
 }
 
-static INLINE void input_overlay_poll_mouse(int8_t old_ptr_count)
+static void input_overlay_poll_lightgun(input_overlay_state_t *state,
+      int8_t old_ptr_count)
+{
+   settings_t *settings = config_get_ptr();
+   const int ptr_count  = state->ptr_count;
+   unsigned action_mask = 0;
+   int8_t trig_delay    = settings->input.lightgun_trigger_delay;
+   int8_t delay_idx;
+
+   static uint16_t trig_buf;
+   static uint8_t now_idx, peak_ptr_count;
+
+   /* Clear previous input */
+   ol_lightgun.multitouch = 0;
+
+   /* Apply trigger delay */
+   now_idx   = (now_idx + 1) % (LIGHTGUN_TRIG_MAX_DELAY + 1);
+   delay_idx = (now_idx + trig_delay) % (LIGHTGUN_TRIG_MAX_DELAY + 1);
+
+   if (ptr_count > 0)
+      BIT16_SET(trig_buf, delay_idx);
+   else
+      BIT16_CLEAR(trig_buf, delay_idx);
+
+   /* Update peak pointer count */
+   if (!old_ptr_count && ptr_count)
+      peak_ptr_count = ptr_count;
+   else
+      peak_ptr_count = max(ptr_count, peak_ptr_count);
+
+   /* Create button input if we're past the trigger delay */
+   if (BIT16_GET(trig_buf, now_idx))
+      action_mask = (1 << (peak_ptr_count - 1));
+
+   if (action_mask)
+   {
+      unsigned action = OVERLAY_LIGHTGUN_ACTION_NONE;
+
+      switch (action_mask)
+      {
+         case 0x1:
+            if (ol_lightgun.autotrigger)
+               BIT64_SET(ol_lightgun.multitouch, RARCH_LIGHTGUN_TRIGGER);
+            break;
+         case 0x2:
+            action = settings->input.lightgun_two_touch_input;
+            break;
+         default:
+            break;
+      }
+
+      switch (action)
+      {
+         case OVERLAY_LIGHTGUN_ACTION_AUX_A:
+            BIT64_SET(ol_lightgun.multitouch, RARCH_LIGHTGUN_AUX_A);
+            break;
+         case OVERLAY_LIGHTGUN_ACTION_AUX_B:
+            BIT64_SET(ol_lightgun.multitouch, RARCH_LIGHTGUN_AUX_B);
+            break;
+         case OVERLAY_LIGHTGUN_ACTION_AUX_C:
+            BIT64_SET(ol_lightgun.multitouch, RARCH_LIGHTGUN_AUX_C);
+            break;
+         case OVERLAY_LIGHTGUN_ACTION_RELOAD:
+            BIT64_SET(ol_lightgun.multitouch, RARCH_LIGHTGUN_RELOAD);
+            break;
+         default:
+            break;
+      }
+   }
+}
+
+static INLINE void input_overlay_poll_mouse(input_overlay_state_t *state,
+      int8_t old_ptr_count)
 {
    driver_t*              driver    = driver_get_ptr();
    settings_t*            settings  = config_get_ptr();
-   input_overlay_state_t* state     = &driver->overlay_state;
    retro_time_t           now_usec  = rarch_get_time_usec();
    retro_time_t           hold_usec = settings->input.overlay_mouse_hold_ms * 1000;
    retro_time_t           dtap_usec = settings->input.overlay_mouse_tap_and_drag_ms * 1000;
@@ -2417,10 +2472,9 @@ void input_overlay_poll(input_overlay_t *overlay_device)
    if (!menu_driver_alive())
    {
       if (overlay_lightgun_active)
-         overlay_lightgun_autotrigger_state =
-               lightgun_delayed_trigger_state(state->ptr_count == 1);
+         input_overlay_poll_lightgun(state, old_state->ptr_count);
       else if (overlay_mouse_active)
-         input_overlay_poll_mouse(old_state->ptr_count);
+         input_overlay_poll_mouse(state, old_state->ptr_count);
    }
 
    if (OVERLAY_GET_KEY(state, RETROK_LSHIFT)
@@ -2513,9 +2567,10 @@ static INLINE int16_t overlay_mouse_state(unsigned id)
    return 0;
 }
 
-static INLINE int16_t overlay_lightgun_state(unsigned id)
+static int16_t overlay_lightgun_state(unsigned id)
 {
    driver_t *driver = driver_get_ptr();
+   unsigned rarch_id;
 
    switch(id)
    {
@@ -2525,42 +2580,52 @@ static INLINE int16_t overlay_lightgun_state(unsigned id)
          return driver->overlay_state.ptr_y;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
          return (config_get_ptr()->input.lightgun_allow_oob
-                 && (abs(driver->overlay_state.ptr_x) >= 0x7fbb ||
-                     abs(driver->overlay_state.ptr_y) >= 0x7fbb));
+                 && (abs(driver->overlay_state.ptr_x) >= 0x7fff ||
+                     abs(driver->overlay_state.ptr_y) >= 0x7fff));
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A:
-         return BIT64_GET(driver->overlay_state.buttons,
-                          RARCH_LIGHTGUN_AUX_A);
+         rarch_id = RARCH_LIGHTGUN_AUX_A;
+         break;
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_B:
-         return BIT64_GET(driver->overlay_state.buttons,
-                          RARCH_LIGHTGUN_AUX_B);
+         rarch_id = RARCH_LIGHTGUN_AUX_B;
+         break;
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_C:
-         return BIT64_GET(driver->overlay_state.buttons,
-                          RARCH_LIGHTGUN_AUX_C);
+         rarch_id = RARCH_LIGHTGUN_AUX_C;
+         break;
       case RETRO_DEVICE_ID_LIGHTGUN_TRIGGER:
-         if (global_get_ptr()->overlay_lightgun_autotrigger)
-            return overlay_lightgun_autotrigger_state;
-         return BIT64_GET(driver->overlay_state.buttons,
-                          RARCH_LIGHTGUN_TRIGGER);
+         rarch_id = RARCH_LIGHTGUN_TRIGGER;
+         break;
       case RETRO_DEVICE_ID_LIGHTGUN_START:
       case RETRO_DEVICE_ID_LIGHTGUN_PAUSE:
-         return BIT64_GET(driver->overlay_state.buttons,
-                          RARCH_LIGHTGUN_START);
+         rarch_id = RARCH_LIGHTGUN_START;
+         break;
       case RETRO_DEVICE_ID_LIGHTGUN_SELECT:
-         return BIT64_GET(driver->overlay_state.buttons,
-                          RARCH_LIGHTGUN_SELECT);
+         rarch_id = RARCH_LIGHTGUN_SELECT;
+         break;
+      case RETRO_DEVICE_ID_LIGHTGUN_RELOAD:
+         rarch_id = RARCH_LIGHTGUN_RELOAD;
+         break;
       case RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP:
-         return BIT64_GET(driver->overlay_state.buttons,
-                          RETRO_DEVICE_ID_JOYPAD_UP);
+         rarch_id = RETRO_DEVICE_ID_JOYPAD_UP;
+         break;
       case RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN:
-         return BIT64_GET(driver->overlay_state.buttons,
-                          RETRO_DEVICE_ID_JOYPAD_DOWN);
+         rarch_id = RETRO_DEVICE_ID_JOYPAD_DOWN;
+         break;
       case RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT:
-         return BIT64_GET(driver->overlay_state.buttons,
-                          RETRO_DEVICE_ID_JOYPAD_LEFT);
+         rarch_id = RETRO_DEVICE_ID_JOYPAD_LEFT;
+         break;
       case RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT:
-         return BIT64_GET(driver->overlay_state.buttons,
-                          RETRO_DEVICE_ID_JOYPAD_RIGHT);
+         rarch_id = RETRO_DEVICE_ID_JOYPAD_RIGHT;
+         break;
+      default:
+         rarch_id = RARCH_BIND_LIST_END;
+         break;
    }
+
+   if (rarch_id < RARCH_BIND_LIST_END
+         && (BIT64_GET(ol_lightgun.multitouch, rarch_id) ||
+             BIT64_GET(driver->overlay_state.buttons, rarch_id)))
+      return 1;
+   else
    return 0;
 }
 

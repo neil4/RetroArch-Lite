@@ -23,4 +23,4 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
   * 'L'/'R' sets min/max value.
 * Touchscreen
   * On most overlays, tapping the screen center toggles the menu.
-  * Overlay mouse: Use 1/2/3-finger tap for L/R/M click. Hold 0.25s to hold & drag.
+  * Overlay mouse: Use 1/2/3-finger tap for L/R/M click. Long-press or double-tap to drag.

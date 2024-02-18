@@ -36,7 +36,7 @@ extern "C" {
 #define OVERLAY_CLEAR_KEY(state, key) (state)->keys[(key) / 32] &= ~(1 << ((key) % 32))
 
 #define OVERLAY_DEFAULT_VIBE -1
-#define LIGHTGUN_TRIG_MAX_DELAY 10
+#define LIGHTGUN_TRIG_MAX_DELAY 15
 
 /* Overlay driver acts as a medium between input drivers 
  * and video driver.
@@ -91,6 +91,17 @@ enum eightway_method
    VECTOR = 0,
    TOUCH_AREA,
    VECTOR_AND_AREA
+};
+
+enum overlay_lightgun_action_type
+{
+   OVERLAY_LIGHTGUN_ACTION_NONE = 0,
+   OVERLAY_LIGHTGUN_ACTION_AUX_A,
+   OVERLAY_LIGHTGUN_ACTION_AUX_B,
+   OVERLAY_LIGHTGUN_ACTION_AUX_C,
+   OVERLAY_LIGHTGUN_ACTION_RELOAD,
+
+   OVERLAY_LIGHTGUN_ACTION_END
 };
 
 typedef struct video_overlay_interface

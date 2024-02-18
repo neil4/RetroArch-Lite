@@ -1839,6 +1839,33 @@ static void setting_get_string_representation_overlay_haptic_feedback(
          setting_get_string_representation_millisec(data, s, len);
    }
 }
+
+static void setting_get_string_representation_overlay_lightgun_action(
+      void *data, char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (!setting)
+      return;
+
+   switch (*setting->value.unsigned_integer)
+   {
+      case OVERLAY_LIGHTGUN_ACTION_NONE:
+         strlcpy(s, "None", len);
+         break;
+      case OVERLAY_LIGHTGUN_ACTION_AUX_A:
+         strlcpy(s, "Aux A (Cursor)", len);
+         break;
+      case OVERLAY_LIGHTGUN_ACTION_AUX_B:
+         strlcpy(s, "Aux B (Turbo)", len);
+         break;
+      case OVERLAY_LIGHTGUN_ACTION_AUX_C:
+         strlcpy(s, "Aux C", len);
+         break;
+      case OVERLAY_LIGHTGUN_ACTION_RELOAD:
+         strlcpy(s, "Offscreen Shot", len);
+         break;
+   }
+}
 #endif
 
 static void setting_get_string_representation_preemptive_frames(void *data,
@@ -3168,6 +3195,14 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                   " -- Delays lightgun trigger input to\n"
                   "occur after the cursor moves.\n");
+         break;
+     case MENU_LABEL_LIGHTGUN_TWO_TOUCH_INPUT:
+         snprintf(s, len,
+                  " -- Input to send to the core when\n"
+                  "two pointers are on screen.\n"
+                  " \n"
+                  "Trigger Delay should be nonzero\n"
+                  "to distinguish from 1-touch input.");
          break;
      case MENU_LABEL_INPUT_LIGHTGUN_ALLOW_OOB:
          snprintf(s, len,
@@ -7276,7 +7311,7 @@ static bool setting_append_list_overlay_lightgun_options(
          settings->input.lightgun_trigger_delay,
          "input_lightgun_trigger_delay",
          "Lightgun Trigger Delay (frames)",
-         0,
+         lightgun_trigger_delay,
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -7288,6 +7323,37 @@ static bool setting_append_list_overlay_lightgun_options(
    CONFIG_UINT(
          settings->input.lightgun_trigger_delay_scope,
          "input_lightgun_trigger_delay_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_scope_index;
+
+   CONFIG_UINT(
+         settings->input.lightgun_two_touch_input,
+         menu_hash_to_str(MENU_LABEL_LIGHTGUN_TWO_TOUCH_INPUT),
+         "2-Touch Input",
+         OVERLAY_LIGHTGUN_ACTION_NONE,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, OVERLAY_LIGHTGUN_ACTION_NONE,
+         OVERLAY_LIGHTGUN_ACTION_END - 1, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_overlay_lightgun_action;
+
+   CONFIG_UINT(
+         settings->input.lightgun_two_touch_input_scope,
+         "input_lightgun_two_touch_input_scope",
          "  Scope",
          GLOBAL,
          group_info.name,

@@ -334,6 +334,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "input_overlay_abxy_diagonal_sensitivity";
       case MENU_LABEL_OVERLAY_EIGHTWAY_TOUCH_MAGNIFY:
          return "input_touch_ellipse_magnify";
+      case MENU_LABEL_LIGHTGUN_TWO_TOUCH_INPUT:
+         return "input_lightgun_two_touch_input";
       case MENU_LABEL_LIGHTGUN_TRIGGER_DELAY:
          return "input_lightgun_trigger_delay";
       case MENU_LABEL_INPUT_LIGHTGUN_ALLOW_OOB:

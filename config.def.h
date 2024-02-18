@@ -723,7 +723,10 @@ static const unsigned turbo_period = 6;
  * gamepads, plug-and-play style. */
 static const bool input_autodetect_enable = true;
 
-static const unsigned lightgun_allow_oob = true;
+static const bool lightgun_allow_oob = true;
+#ifdef HAVE_OVERLAY
+static const unsigned lightgun_trigger_delay = 1;
+#endif
 
 #if defined(ANDROID)
 #if defined(ANDROID_ARM)
@@ -803,6 +806,7 @@ static const struct retro_keybind retro_keybinds_1[] = {
    { true, RARCH_LIGHTGUN_AUX_A,          RETRO_LBL_LIGHTGUN_AUX_A,        RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_LIGHTGUN_AUX_B,          RETRO_LBL_LIGHTGUN_AUX_B,        RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_LIGHTGUN_AUX_C,          RETRO_LBL_LIGHTGUN_AUX_C,        RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
+   { true, RARCH_LIGHTGUN_RELOAD,         RETRO_LBL_LIGHTGUN_RELOAD,       RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
 
    { true, RARCH_TOGGLE_KEYBOARD_FOCUS,   RETRO_LBL_TOGGLE_KEYBOARD_FOCUS, RETROK_SCROLLOCK, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_ENABLE_HOTKEY,           RETRO_LBL_ENABLE_HOTKEY,         RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
