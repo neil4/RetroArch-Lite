@@ -472,3 +472,13 @@ void uninit_drivers(int flags)
    if (flags & DRIVER_AUDIO)
       driver->audio_data = NULL;
 }
+
+#ifdef HAVE_OVERLAY
+void driver_swap_overlay_state(void)
+{
+   static int state_index;
+
+   state_index            ^= 1;
+   g_driver->overlay_state = g_driver->overlay_states + state_index;
+}
+#endif

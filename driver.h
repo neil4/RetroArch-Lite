@@ -454,6 +454,10 @@ driver_t *driver_get_ptr(void);
 void driver_free(void);
 
 void driver_clear_state(void);
+
+#ifdef HAVE_OVERLAY
+void driver_swap_overlay_state(void);
+#endif
   
 #ifdef __cplusplus
 }

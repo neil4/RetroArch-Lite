@@ -289,11 +289,37 @@ typedef struct input_overlay_state
       int16_t y;
    } touch[OVERLAY_MAX_TOUCH];
    int touch_count;
-
-   /* Mouse and Lightgun */
-   int16_t ptr_x, ptr_y;
-   uint8_t ptr_count;
 } input_overlay_state_t;
+
+typedef struct input_overlay_pointer_state
+{
+   int16_t x;
+   int16_t y;
+   int16_t prev_x;
+   int16_t prev_y;
+   uint8_t count;
+
+   struct lightgun_ptr
+   {
+      unsigned multitouch_id;
+      bool autotrigger;
+   } lightgun;
+
+   struct mouse_ptr
+   {
+      float scale_x;
+      float scale_y;
+
+      int16_t dx;
+      int16_t dy;
+
+      int16_t swipe_thres_x;
+      int16_t swipe_thres_y;
+
+      uint8_t click;
+      uint8_t hold;
+   } mouse;
+} input_overlay_pointer_state_t;
 
 /**
  * input_overlay_new:
