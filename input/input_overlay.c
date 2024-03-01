@@ -2289,7 +2289,8 @@ static INLINE uint64_t menu_analog_dpad_state(const int16_t analog_x,
 
 static INLINE void input_overlay_update_pointer_coords(unsigned idx)
 {
-   if (ol_ptr_st.device_mask & (1 << RETRO_DEVICE_LIGHTGUN))
+   if (ol_ptr_st.device_mask &
+         ((1 << RETRO_DEVICE_LIGHTGUN) | (1 << RETRO_DEVICE_POINTER)))
    {
       ol_ptr_st.x = input_driver_state(
             NULL, 0, RETRO_DEVICE_POINTER, idx,
@@ -2600,6 +2601,24 @@ static int16_t overlay_lightgun_state(unsigned id)
                || BIT64_GET(driver->overlay_state->buttons, rarch_id)));
 }
 
+static int16_t overlay_pointer_state(unsigned id)
+{
+   switch (id)
+   {
+      case RETRO_DEVICE_ID_POINTER_X:
+         ol_ptr_st.device_mask |= (1 << RETRO_DEVICE_POINTER);
+         return ol_ptr_st.x;
+      case RETRO_DEVICE_ID_POINTER_Y:
+         return ol_ptr_st.y;
+      case RETRO_DEVICE_ID_POINTER_PRESSED:
+         return ol_ptr_st.count > 0;
+      case RETRO_DEVICE_ID_POINTER_COUNT:
+         return ol_ptr_st.count;
+   }
+
+   return 0;
+}
+
 /**
  * input_state:
  * @port                 : user number.
@@ -2652,6 +2671,10 @@ int16_t input_overlay_state(unsigned port, unsigned device_class,
             break;
          case RETRO_DEVICE_LIGHTGUN:
             res = overlay_lightgun_state(*id);
+            *id = NO_BTN;
+            break;
+         case RETRO_DEVICE_POINTER:
+            res = overlay_pointer_state(*id);
             *id = NO_BTN;
             break;
       }
