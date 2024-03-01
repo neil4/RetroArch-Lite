@@ -221,7 +221,6 @@ struct overlay
    bool full_screen;
    
    bool lightgun_overlay;
-   bool mouse_overlay;
 
    char name[64];
 
@@ -261,7 +260,6 @@ struct input_overlay
    enum overlay_status state;
 
    bool has_osk_key;
-   bool has_mouse;
    bool has_lightgun;
 
    struct
@@ -295,20 +293,26 @@ typedef struct input_overlay_pointer_state
 {
    int16_t x;
    int16_t y;
-   int16_t prev_x;
-   int16_t prev_y;
+   int16_t screen_x;
+   int16_t screen_y;
    uint8_t count;
 
-   struct lightgun_ptr
+   /* Mask of requested devices */
+   uint8_t device_mask;
+
+   struct ol_lightgun_st
    {
       unsigned multitouch_id;
       bool autotrigger;
    } lightgun;
 
-   struct mouse_ptr
+   struct ol_mouse_st
    {
       float scale_x;
       float scale_y;
+
+      int16_t prev_x;
+      int16_t prev_y;
 
       int16_t dx;
       int16_t dy;
@@ -398,17 +402,18 @@ void input_overlay_poll(input_overlay_t *overlay_device);
 /**
  * input_state:
  * @port                 : user number.
- * @device_base          : base class of user device identifier.
+ * @device_class         : base class of user device identifier.
  * @idx                  : index value of user.
- * @id                   : identifier of key pressed by user.
+ * @id                   : pointer to identifier of key pressed by user.
  *
- * Overlay Input state callback function.
+ * Overlay Input state callback function. Sets @id to NO_BTN if overlay
+ * input should override lower level input.
  *
  * Returns: Non-zero if the given key (identified by @id) was pressed by the user
  * (assigned to @port).
  **/
 int16_t input_overlay_state(unsigned port, unsigned device_base,
-      unsigned idx, unsigned id);
+      unsigned idx, unsigned *id);
 
 /**
  * input_overlay_set_alpha:

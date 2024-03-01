@@ -247,6 +247,8 @@ extern "C" {
 #define MENU_VALUE_OFF                                                         0x0b880c40U
 #define MENU_VALUE_TRUE                                                        0x7c9e9fe5U
 #define MENU_VALUE_FALSE                                                       0x0f6bcef0U
+#define MENU_VALUE_ALWAYS                                                      0xa76399d6U
+#define MENU_VALUE_AUTO                                                        0x7c82b53eU
 #define MENU_VALUE_COMP                                                        0x6a166ba5U
 #define MENU_VALUE_CORE                                                        0x6a167f7fU
 #define MENU_VALUE_CURSOR                                                      0x57bba8b4U

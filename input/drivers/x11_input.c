@@ -262,11 +262,6 @@ static int16_t x_input_state(void *data,
                device == RARCH_DEVICE_POINTER_SCREEN);
 
       case RETRO_DEVICE_LIGHTGUN:
-#ifdef HAVE_OVERLAY
-         if (*settings->input.overlay)
-            break;
-         else
-#endif
          return x_lightgun_mouse_state(x11, id);
    }
 

@@ -240,6 +240,11 @@ static int16_t input_state(unsigned port, unsigned device,
       input_remapping_state(port, &device, &idx, &id);
    }
 
+#ifdef HAVE_OVERLAY
+   if (*input->overlay)
+      res |= input_overlay_state(port, device, idx, &id);
+#endif
+
    if (device == RETRO_DEVICE_KEYBOARD && id < RETROK_LAST)
    {
       res = input_driver_state(libretro_input_binds, port, device, idx, id);
@@ -247,11 +252,6 @@ static int16_t input_state(unsigned port, unsigned device,
    }
    else if (id < RARCH_CUSTOM_BIND_LIST_END)
       res |= input_driver_state(libretro_input_binds, port, device, idx, id);
-
-#ifdef HAVE_OVERLAY
-   if (*input->overlay)
-      res |= input_overlay_state(port, device, idx, id);
-#endif
 
    return res;
 }

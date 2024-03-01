@@ -6682,13 +6682,18 @@ static bool setting_append_list_overlay_options(
    settings_t *settings = config_get_ptr();
    global_t   *global   = global_get_ptr();
    driver_t   *driver   = driver_get_ptr();
+   input_overlay_t *ol  = driver->overlay;
 
-   bool show_osk_settings   = driver->overlay &&
-         driver->overlay->has_osk_key;
-   bool show_mouse_settings = driver->overlay && 
-         (driver->overlay->has_mouse || driver->overlay->has_osk_key);
-   bool show_lightgun_settings = driver->overlay &&
-         driver->overlay->has_lightgun;
+   bool auto_show_osk      = (ol && ol->has_osk_key) || !ol;
+   bool auto_show_mouse    =  ol && ol->has_osk_key;
+   bool auto_show_lightgun =  ol && ol->has_lightgun;
+
+   bool show_osk_settings = auto_show_osk
+         || settings->menu.show_osk_menu;
+   bool show_mouse_settings = auto_show_mouse
+         || settings->menu.show_overlay_mouse_menu;
+   bool show_lightgun_settings = auto_show_lightgun
+         || settings->menu.show_overlay_lightgun_menu;
 
    if (!settings->menu.show_overlay_menu)
       return true;
@@ -7443,6 +7448,42 @@ static bool setting_append_list_menu_visibility_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_osk_menu,
+         "show_osk_menu",
+         "  Show Keyboard menu",
+         false,
+         menu_hash_to_str(MENU_VALUE_AUTO),
+         menu_hash_to_str(MENU_VALUE_ALWAYS),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_overlay_mouse_menu,
+         "show_overlay_mouse_menu",
+         "  Show Mouse menu",
+         false,
+         menu_hash_to_str(MENU_VALUE_AUTO),
+         menu_hash_to_str(MENU_VALUE_ALWAYS),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_overlay_lightgun_menu,
+         "show_overlay_lightgun_menu",
+         "  Show Lightgun menu",
+         false,
+         menu_hash_to_str(MENU_VALUE_AUTO),
+         menu_hash_to_str(MENU_VALUE_ALWAYS),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
 #endif
    CONFIG_BOOL(
          settings->menu.show_frame_throttle_menu,
@@ -7714,7 +7755,6 @@ static bool setting_append_list_menu_options(
    global_t   *global   = global_get_ptr();
    driver_t   *driver   = driver_get_ptr();
    bool using_rgui  = !strcmp(settings->menu.driver, "rgui");
-   bool core_loaded = *settings->libretro ? true : false;
 
    START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_MENU_SETTINGS), parent_group);
 
@@ -7914,39 +7954,6 @@ static bool setting_append_list_menu_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-
-   CONFIG_PATH(
-         settings->input.osk_overlay,
-         menu_hash_to_str(MENU_LABEL_KEYBOARD_OVERLAY_PRESET),
-         menu_hash_to_str(MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET),
-         global->osk_overlay_dir,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_values(list, list_info, "cfg");
-   (*list)[list_info->index - 1].action_start = &setting_action_start_path;
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_LOAD);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
-
-   if (core_loaded)
-   {
-      CONFIG_UINT(
-            settings->input.osk_scope,
-            "input_osk_overlay_scope",
-            "  Scope",
-            GLOBAL,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(
-            list, list_info, 0, global->max_scope, 1, true, true);
-      (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_uint_scope_index;
-   }
 
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Navigation", group_info.name, subgroup_info, parent_group);

@@ -390,6 +390,10 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "OFF";
       case MENU_VALUE_ON:
          return "ON";
+      case MENU_VALUE_AUTO:
+         return "Auto";
+      case MENU_VALUE_ALWAYS:
+         return "Always";
       default:
          break;
    }

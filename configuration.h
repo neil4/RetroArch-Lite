@@ -189,6 +189,9 @@ typedef struct settings
       bool mame_titles;
 #ifdef HAVE_OVERLAY
       bool show_overlay_menu;
+      bool show_osk_menu;
+      bool show_overlay_mouse_menu;
+      bool show_overlay_lightgun_menu;
 #endif
       bool show_frame_throttle_menu;
       bool show_netplay_menu;
