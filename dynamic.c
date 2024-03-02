@@ -1184,8 +1184,6 @@ bool rarch_environment_cb(unsigned cmd, void *data)
              * using core-dependent aspect ratios. */
             event_command(EVENT_CMD_VIDEO_SET_ASPECT_RATIO);
 
-            input_overlay_update_mouse_scale();
-            
             /* TODO: Figure out what to do, if anything, with recording. */
          }
          break;

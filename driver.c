@@ -329,6 +329,8 @@ bool driver_update_system_av_info(const struct retro_system_av_info *info)
       event_command(EVENT_CMD_RECORD_INIT);
    }
 
+   input_overlay_notify_video_updated();
+
    return true;
 }
 
