@@ -1397,6 +1397,7 @@ bool input_overlay_new_done(input_overlay_t *ol)
    ol->conf = NULL;
 
    menu_entries_set_refresh();
+   input_overlay_update_mouse_scale();
 
    return true;
 }
@@ -2706,6 +2707,7 @@ void input_overlay_next(input_overlay_t *ol)
    input_overlay_load_active(ol);
 
    input_overlay_connect_lightgun(ol);
+   input_overlay_update_mouse_scale();
 
    ol->blocked = true;
    ol->next_index = (ol->index + 1) % ol->size;
