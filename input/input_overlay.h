@@ -314,9 +314,6 @@ typedef struct input_overlay_pointer_state
       int16_t prev_x;
       int16_t prev_y;
 
-      int16_t dx;
-      int16_t dy;
-
       int16_t swipe_thres_x;
       int16_t swipe_thres_y;
 

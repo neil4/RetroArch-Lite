@@ -2120,10 +2120,6 @@ static INLINE void input_overlay_poll_mouse(int8_t old_ptr_count)
    else if (is_long)
       skip_buttons = true;  /* End of button checks */
 
-   /* Update deltas */
-   mouse->dx = (ol_ptr_st.screen_x - mouse->prev_x) * mouse->scale_x;
-   mouse->dy = (ol_ptr_st.screen_y - mouse->prev_y) * mouse->scale_y;
-
    /* Remove stale clicks */
    if (mouse->click && now_usec > click_end_usec)
       mouse->click = 0;
@@ -2519,15 +2515,21 @@ void input_overlay_poll(input_overlay_t *overlay_device)
 
 static INLINE int16_t overlay_mouse_state(unsigned id)
 {
+   int16_t res;
+
    switch(id)
    {
       case RETRO_DEVICE_ID_MOUSE_X:
          ol_ptr_st.device_mask |= (1 << RETRO_DEVICE_MOUSE);
+         res = ol_ptr_st.mouse.scale_x
+               * (ol_ptr_st.screen_x - ol_ptr_st.mouse.prev_x);
          ol_ptr_st.mouse.prev_x = ol_ptr_st.screen_x;
-         return ol_ptr_st.mouse.dx;
+         return res;
       case RETRO_DEVICE_ID_MOUSE_Y:
+         res = ol_ptr_st.mouse.scale_y
+               * (ol_ptr_st.screen_y - ol_ptr_st.mouse.prev_y);
          ol_ptr_st.mouse.prev_y = ol_ptr_st.screen_y;
-         return ol_ptr_st.mouse.dy;
+         return res;
       case RETRO_DEVICE_ID_MOUSE_LEFT:
          return (ol_ptr_st.mouse.click & 0x1) ||
                 (ol_ptr_st.mouse.hold  & 0x1);
@@ -2604,10 +2606,10 @@ static int16_t overlay_lightgun_state(unsigned id)
 
 static int16_t overlay_pointer_state(unsigned id)
 {
+   ol_ptr_st.device_mask |= (1 << RETRO_DEVICE_POINTER);
    switch (id)
    {
       case RETRO_DEVICE_ID_POINTER_X:
-         ol_ptr_st.device_mask |= (1 << RETRO_DEVICE_POINTER);
          return ol_ptr_st.x;
       case RETRO_DEVICE_ID_POINTER_Y:
          return ol_ptr_st.y;
@@ -2669,6 +2671,7 @@ int16_t input_overlay_state(unsigned port, unsigned device_class,
             break;
          case RETRO_DEVICE_MOUSE:
             res = overlay_mouse_state(*id);
+            *id = NO_BTN;
             break;
          case RETRO_DEVICE_LIGHTGUN:
             res = overlay_lightgun_state(*id);
