@@ -2286,17 +2286,24 @@ static INLINE uint64_t menu_analog_dpad_state(const int16_t analog_x,
 
 static INLINE void input_overlay_update_pointer_coords(unsigned idx)
 {
+   /* Need multi-touch coordinates for pointer only */
+   if (ol_ptr_st.count
+         && !(ol_ptr_st.device_mask & (1 << RETRO_DEVICE_POINTER)))
+      goto finish;
+
+   /* Need viewport pointers for lightgun and pointer */
    if (ol_ptr_st.device_mask &
          ((1 << RETRO_DEVICE_LIGHTGUN) | (1 << RETRO_DEVICE_POINTER)))
    {
-      ol_ptr_st.x = input_driver_state(
+      ol_ptr_st.ptr[ol_ptr_st.count].x = input_driver_state(
             NULL, 0, RETRO_DEVICE_POINTER, idx,
             RETRO_DEVICE_ID_POINTER_X);
-      ol_ptr_st.y = input_driver_state(
+      ol_ptr_st.ptr[ol_ptr_st.count].y = input_driver_state(
             NULL, 0, RETRO_DEVICE_POINTER, idx,
             RETRO_DEVICE_ID_POINTER_Y);
    }
-   else if (ol_ptr_st.device_mask & (1 << RETRO_DEVICE_MOUSE))
+   /* Need fullscreen pointer for mouse only */
+   else
    {
       ol_ptr_st.screen_x = input_driver_state(
             NULL, 0, RARCH_DEVICE_POINTER_SCREEN, idx,
@@ -2305,6 +2312,9 @@ static INLINE void input_overlay_update_pointer_coords(unsigned idx)
             NULL, 0, RARCH_DEVICE_POINTER_SCREEN, idx,
             RETRO_DEVICE_ID_POINTER_Y);
    }
+
+finish:
+   ol_ptr_st.count++;
 }
 
 /**
@@ -2428,10 +2438,9 @@ void input_overlay_poll(input_overlay_t *overlay_device)
             if (polled_data.analog[j])
                state->analog[j] = polled_data.analog[j];
       }
-      else if (ol_ptr_st.device_mask && !overlay_device->blocked
-            && ol_ptr_st.count++ == 0)
+      else if (ol_ptr_st.device_mask && !overlay_device->blocked)
          input_overlay_update_pointer_coords(i);
-         }
+   }
 
    /* Lightgun & Mouse */
    if (ol_ptr_st.device_mask)
@@ -2553,13 +2562,13 @@ static int16_t overlay_lightgun_state(unsigned id)
    {
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
          ol_ptr_st.device_mask |= (1 << RETRO_DEVICE_LIGHTGUN);
-         return ol_ptr_st.x;
+         return ol_ptr_st.ptr[0].x;
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
-         return ol_ptr_st.y;
+         return ol_ptr_st.ptr[0].y;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
          return (config_get_ptr()->input.lightgun_allow_oob
-                 && (abs(ol_ptr_st.x) >= 0x7fff ||
-                     abs(ol_ptr_st.y) >= 0x7fff));
+                 && (abs(ol_ptr_st.ptr[0].x) >= 0x7fff ||
+                     abs(ol_ptr_st.ptr[0].y) >= 0x7fff));
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A:
          rarch_id = RARCH_LIGHTGUN_AUX_A;
          break;
@@ -2604,17 +2613,17 @@ static int16_t overlay_lightgun_state(unsigned id)
                || BIT64_GET(driver->overlay_state->buttons, rarch_id)));
 }
 
-static int16_t overlay_pointer_state(unsigned id)
+static int16_t overlay_pointer_state(unsigned idx, unsigned id)
 {
    ol_ptr_st.device_mask |= (1 << RETRO_DEVICE_POINTER);
    switch (id)
    {
       case RETRO_DEVICE_ID_POINTER_X:
-         return ol_ptr_st.x;
+         return ol_ptr_st.ptr[idx].x;
       case RETRO_DEVICE_ID_POINTER_Y:
-         return ol_ptr_st.y;
+         return ol_ptr_st.ptr[idx].y;
       case RETRO_DEVICE_ID_POINTER_PRESSED:
-         return ol_ptr_st.count > 0;
+         return idx < ol_ptr_st.count;
       case RETRO_DEVICE_ID_POINTER_COUNT:
          return ol_ptr_st.count;
    }
@@ -2678,7 +2687,7 @@ int16_t input_overlay_state(unsigned port, unsigned device_class,
             *id = NO_BTN;
             break;
          case RETRO_DEVICE_POINTER:
-            res = overlay_pointer_state(*id);
+            res = overlay_pointer_state(idx, *id);
             *id = NO_BTN;
             break;
       }

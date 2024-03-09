@@ -291,10 +291,16 @@ typedef struct input_overlay_state
 
 typedef struct input_overlay_pointer_state
 {
-   int16_t x;
-   int16_t y;
+   struct
+   {
+      int16_t x;
+      int16_t y;
+   } ptr[OVERLAY_MAX_TOUCH];
+
+   /* Main pointer, full screen */
    int16_t screen_x;
    int16_t screen_y;
+
    uint8_t count;
 
    /* Mask of requested devices */
