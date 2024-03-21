@@ -835,7 +835,7 @@ static void config_set_defaults(void)
    settings->input.overlay_mouse_tap_and_drag_ms   = overlay_mouse_tap_and_drag_ms;
    settings->input.overlay_mouse_hold_ms           = overlay_mouse_hold_ms;
    settings->input.lightgun_trigger_delay          = lightgun_trigger_delay;
-   settings->input.lightgun_two_touch_input        = OVERLAY_LIGHTGUN_ACTION_NONE;
+   settings->input.lightgun_two_touch_input        = OVERLAY_LIGHTGUN_ACTION_TRIGGER;
 #endif
 
    strlcpy(settings->network.buildbot_url, buildbot_server_url,

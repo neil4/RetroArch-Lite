@@ -1849,8 +1849,8 @@ static void setting_get_string_representation_overlay_lightgun_action(
 
    switch (*setting->value.unsigned_integer)
    {
-      case OVERLAY_LIGHTGUN_ACTION_NONE:
-         strlcpy(s, "None", len);
+      case OVERLAY_LIGHTGUN_ACTION_TRIGGER:
+         strlcpy(s, "Trigger", len);
          break;
       case OVERLAY_LIGHTGUN_ACTION_AUX_A:
          strlcpy(s, "Aux A (Cursor)", len);
@@ -1863,6 +1863,9 @@ static void setting_get_string_representation_overlay_lightgun_action(
          break;
       case OVERLAY_LIGHTGUN_ACTION_RELOAD:
          strlcpy(s, "Offscreen Shot", len);
+         break;
+      case OVERLAY_LIGHTGUN_ACTION_NONE:
+         strlcpy(s, "None", len);
          break;
    }
 }
@@ -7344,14 +7347,14 @@ static bool setting_append_list_overlay_lightgun_options(
          settings->input.lightgun_two_touch_input,
          menu_hash_to_str(MENU_LABEL_LIGHTGUN_TWO_TOUCH_INPUT),
          "2-Touch Input",
-         OVERLAY_LIGHTGUN_ACTION_NONE,
+         OVERLAY_LIGHTGUN_ACTION_TRIGGER,
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(
-         list, list_info, OVERLAY_LIGHTGUN_ACTION_NONE,
+         list, list_info, OVERLAY_LIGHTGUN_ACTION_TRIGGER,
          OVERLAY_LIGHTGUN_ACTION_END - 1, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_overlay_lightgun_action;

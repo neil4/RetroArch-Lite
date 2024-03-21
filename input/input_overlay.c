@@ -1348,7 +1348,7 @@ void input_overlay_update_mouse_scale(void)
    {
       geom        = (const struct retro_game_geometry*)&av_info->geometry;
       speed       = settings->input.overlay_mouse_speed;
-      swipe_thres = 655.36f * settings->input.overlay_mouse_swipe_thres;
+      swipe_thres = 655.35f * settings->input.overlay_mouse_swipe_thres;
 
       video_driver_get_size(&disp_width, &disp_height);
       disp_aspect = (float)disp_width / disp_height;
@@ -1956,11 +1956,12 @@ static void input_overlay_poll_lightgun(int8_t old_ptr_count)
    static uint16_t trig_buf;
    static uint8_t now_idx, peak_ptr_count;
    static const unsigned action_to_id[OVERLAY_LIGHTGUN_ACTION_END] = {
-      RARCH_BIND_LIST_END,
+      RARCH_LIGHTGUN_TRIGGER,
       RARCH_LIGHTGUN_AUX_A,
       RARCH_LIGHTGUN_AUX_B,
       RARCH_LIGHTGUN_AUX_C,
-      RARCH_LIGHTGUN_RELOAD
+      RARCH_LIGHTGUN_RELOAD,
+      RARCH_BIND_LIST_END
    };
 
    /* Update peak pointer count */
