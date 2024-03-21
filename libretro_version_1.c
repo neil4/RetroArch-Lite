@@ -247,7 +247,7 @@ static int16_t input_state(unsigned port, unsigned device,
 
    if (device == RETRO_DEVICE_KEYBOARD && id < RETROK_LAST)
    {
-      res = input_driver_state(libretro_input_binds, port, device, idx, id);
+      res |= input_driver_state(libretro_input_binds, port, device, idx, id);
       res |= input_joykbd_state(id);
    }
    else if (id < RARCH_CUSTOM_BIND_LIST_END)
