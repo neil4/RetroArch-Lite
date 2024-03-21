@@ -6472,7 +6472,7 @@ static bool setting_append_list_input_options(
          settings->input.turbo_binds_enable,
          menu_hash_to_str(MENU_LABEL_INPUT_TURBO_BIND_ENABLE),
          "Add Turbo ID to Remapping",
-         false,
+         show_turbo_id,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,

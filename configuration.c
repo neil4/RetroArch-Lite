@@ -772,7 +772,7 @@ static void config_set_defaults(void)
 
    settings->input.autoconfig_descriptor_label_show = true;
    settings->input.remap_binds_enable               = true;
-   settings->input.turbo_binds_enable               = false;
+   settings->input.turbo_binds_enable               = show_turbo_id;
    settings->input.turbo_period                     = turbo_period;
    settings->input.max_users                        = 2;
    settings->input.rumble_enable                    = false;

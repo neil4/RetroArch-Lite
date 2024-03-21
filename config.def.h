@@ -718,6 +718,7 @@ static const float axis_threshold = 0.5f;
 
 /* Turbo input rate (~10Hz default) */
 static const unsigned turbo_period = 6;
+static const bool show_turbo_id = true;
 
 /* Enable input auto-detection. Will attempt to autoconfigure
  * gamepads, plug-and-play style. */
