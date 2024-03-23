@@ -18,9 +18,9 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
 ### Control Notes
 * RGUI Menu
   * In Directory Settings, "Use Loaded ROM Path" will quickset a core-specific browser directory.
-  * 'Select' displays a highlighted core option's description.
+  * In Input Remapping, 'Select' displays the full keyboard mapping if a key is highlighted.
   * Hold 'Start' to delete a highlighted core or shader preset.
-  * 'L'/'R' sets min/max value.
+  * 'L'/'R' sets any min/max value.
 * Touchscreen
   * On most overlays, tapping the screen center toggles the menu.
   * Overlay mouse: Use 1/2/3-finger tap for L/R/M click. Long-press or double-tap to drag.
