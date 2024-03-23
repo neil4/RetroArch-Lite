@@ -25,7 +25,7 @@
 #include "../runloop.h"
 #include "../performance.h"
 
-static unsigned g_tick_frames;
+static unsigned frames_per_tick;
 
 menu_animation_t *menu_animation_get_ptr(void)
 {
@@ -511,7 +511,7 @@ static float menu_animation_ticker_bounce(char *s, size_t len, uint64_t idx,
 
    /* Slower ticks for shorter strings */
    tick_frames       = str_len < (len + (len>>2)) ?
-         g_tick_frames + (g_tick_frames>>1) : g_tick_frames;
+         frames_per_tick + (frames_per_tick>>1) : frames_per_tick;
 
    ticker_period     = 2 * (str_len - len) + 8;
    phase             = (idx / tick_frames) % ticker_period;
@@ -537,7 +537,7 @@ static float menu_animation_ticker_bounce(char *s, size_t len, uint64_t idx,
    else if (phase < phase_left_moving)
    {
       strlcpy(s, str + left_offset, len + 1);
-      return ((idx % tick_frames) / (float)tick_frames) * -1.01f;
+      return ((idx % tick_frames) / (float)tick_frames) * -1.001f;
    }
    else if (phase < phase_right_stop)
    {
@@ -547,7 +547,7 @@ static float menu_animation_ticker_bounce(char *s, size_t len, uint64_t idx,
    else
    {
       strlcpy(s, str + right_offset, len + 1);
-      return ((idx % tick_frames) / (float)tick_frames) * 1.01f;
+      return ((idx % tick_frames) / (float)tick_frames) * 1.001f;
    }
 }
 
@@ -573,7 +573,7 @@ static float menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
    phase3 = str_len;
 
    ticker_period = str_len + sep_len;
-   phase         = (idx / g_tick_frames) % ticker_period;
+   phase         = (idx / frames_per_tick) % ticker_period;
 
    if (phase < phase1)
       strlcpy(s, str + phase, len + 1);
@@ -594,7 +594,7 @@ static float menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
       strlcpy(s + pos, str, (len + 1) - pos);
    }
 
-   return ((idx % g_tick_frames) / (float)g_tick_frames) * -1.01f;
+   return ((idx % frames_per_tick) / (float)frames_per_tick) * -1.001f;
 }
 
 /**
@@ -660,8 +660,9 @@ void menu_animation_update_time(menu_animation_t *anim)
    }
 }
 
-void menu_update_ticker_speed(void)
+void menu_update_ticker_speed(int frames_per_tick_1x)
 {
    settings_t *settings = config_get_ptr();
-   g_tick_frames = (unsigned)(12.0f / settings->menu.ticker_speed + 0.5f);
+   frames_per_tick = (unsigned)(frames_per_tick_1x
+         / settings->menu.ticker_speed + 0.5f);
 }

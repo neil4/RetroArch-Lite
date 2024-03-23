@@ -8086,7 +8086,7 @@ static bool setting_append_list_menu_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0.5, 6, 0.5, true, true);
+   menu_settings_list_current_add_range(list, list_info, 0.5, 6, 0.1, true, true);
    (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
 
    END_SUB_GROUP(list, list_info, parent_group);

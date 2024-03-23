@@ -663,7 +663,7 @@ static INLINE void rgui_check_update(settings_t *settings,
             menu_entries_set_refresh();
       }
 
-      menu_update_ticker_speed();
+      menu_update_ticker_speed(2 * FONT_WIDTH_STRIDE);
       particle_effect_speed = settings->menu.rgui_particle_effect_speed_factor;
 
       global->menu.theme_update_flag = false;
@@ -1203,7 +1203,7 @@ static void *rgui_init(void)
      rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, global->menu.wallpaper,
                                     "cb_menu_wallpaper", 0, 1,true);
 
-   menu_update_ticker_speed();
+   menu_update_ticker_speed(2 * FONT_WIDTH_STRIDE);
 
    global->menu.msg_box_width = RGUI_TERM_WIDTH;
 
