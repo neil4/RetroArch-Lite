@@ -740,10 +740,6 @@ MENU
 
 #include "../menu/drivers/null.c"
 
-#ifdef HAVE_RMENU
-#include "../menu/drivers/rmenu.c"
-#endif
-
 #include "../menu/drivers/rgui.c"
 
 #ifdef HAVE_COMMAND
