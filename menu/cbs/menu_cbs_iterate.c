@@ -742,8 +742,9 @@ static int action_iterate_main(const char *label, unsigned action)
    if (do_messagebox)
       menu_driver_render_messagebox(msg);
 
-   if (do_pop_stack && (action == MENU_ACTION_OK
-                        || action == MENU_ACTION_CANCEL))
+   if (do_pop_stack && (action == MENU_ACTION_INFO
+                        || action == MENU_ACTION_CANCEL
+                        || action == MENU_ACTION_OK))
       menu_list_pop(menu_list->menu_stack, pop_selected);
 
    if (do_render)
