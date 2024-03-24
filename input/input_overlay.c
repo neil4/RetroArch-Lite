@@ -2303,8 +2303,10 @@ static INLINE void input_overlay_update_pointer_coords(unsigned idx)
             NULL, 0, RETRO_DEVICE_POINTER, idx,
             RETRO_DEVICE_ID_POINTER_Y);
    }
+
    /* Need fullscreen pointer for mouse only */
-   else
+   if (!ol_ptr_st.count
+         && ol_ptr_st.device_mask & (1 << RETRO_DEVICE_MOUSE))
    {
       ol_ptr_st.screen_x = input_driver_state(
             NULL, 0, RARCH_DEVICE_POINTER_SCREEN, idx,
