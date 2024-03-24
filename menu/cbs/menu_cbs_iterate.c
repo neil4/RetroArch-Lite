@@ -480,14 +480,46 @@ static int action_iterate_menu_viewport(char *s, size_t len, const char *label, 
    return 0;
 }
 
-static void delete_shader_preset(menu_list_t *menu_list)
+static void menu_delete_file(menu_list_t *menu_list)
 {
-   char file_path[PATH_MAX_LENGTH];
    char msg[NAME_MAX_LENGTH];
-   const char *menu_dir            = NULL;
-   const char *menu_label          = NULL;
-   settings_t *settings            = config_get_ptr();
-   struct video_shader *shader     = video_shader_driver_get_current_shader();
+   char *file_path            = string_alloc(PATH_MAX_LENGTH);
+   const char *menu_dir       = NULL;
+   const char *menu_label     = NULL;
+   menu_entry_t entry;
+   size_t selected;
+
+   /* get dir */
+   menu_list_get_last_stack(menu_list, &menu_dir, &menu_label, NULL, NULL);
+
+   /* get filename */
+   selected = menu_navigation_get_current_selection();
+   selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
+   menu_entry_get(&entry, selected, NULL, false);
+
+   fill_pathname_join(file_path, menu_dir, entry.path, PATH_MAX_LENGTH);
+
+   /* delete file */
+   if (remove(file_path))
+      rarch_main_msg_queue_push("Error deleting file", 1, 100, true);
+   else
+   {
+      snprintf(msg, NAME_MAX_LENGTH, "Deleted %s", path_basename(file_path));
+      rarch_main_msg_queue_push(msg, 1, 100, true);
+      menu_entries_set_refresh();
+   }
+
+   free(file_path);
+}
+
+static void menu_delete_shader_preset(menu_list_t *menu_list)
+{
+   char msg[NAME_MAX_LENGTH];
+   char *file_path             = string_alloc(PATH_MAX_LENGTH);
+   const char *menu_dir        = NULL;
+   const char *menu_label      = NULL;
+   settings_t *settings        = config_get_ptr();
+   struct video_shader *shader = video_shader_driver_get_current_shader();
    menu_entry_t entry;
    size_t selected;
 
@@ -520,31 +552,32 @@ static void delete_shader_preset(menu_list_t *menu_list)
             video_driver_set_shader(shader->type, NULL);
       }
    }
+
+   free(file_path);
 }
 
-static void delete_core_file(menu_list_t *menu_list)
+static void menu_delete_core_file(menu_list_t *menu_list)
 {
-   global_t *global                = global_get_ptr();
-   const char *menu_dir            = NULL;
-   const char *menu_label          = NULL;
-   menu_entry_t entry;
    char core_name[NAME_MAX_LENGTH];
-   char buf[PATH_MAX_LENGTH];
+   global_t *global       = global_get_ptr();
+   const char *menu_dir   = NULL;
+   const char *menu_label = NULL;
+   char *buf              = string_alloc(PATH_MAX_LENGTH);
+   menu_entry_t entry;
    size_t selected;
 
    core_name[0] = '\0';
-   buf[0] = '\0';
-   
+
    /* get dir */
    menu_list_get_last_stack(menu_list, &menu_dir, &menu_label, NULL, NULL);
-   
+
    /* get filename */
    selected = menu_navigation_get_current_selection();
    selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
    menu_entry_get(&entry, selected, NULL, false);
-   
+
    fill_pathname_join(buf, menu_dir, entry.path, PATH_MAX_LENGTH);
-   
+
    /* delete core */
    if (remove(buf))
       rarch_main_msg_queue_push("Error deleting core", 1, 100, true);
@@ -560,6 +593,8 @@ static void delete_core_file(menu_list_t *menu_list)
       menu_entries_set_refresh();
       event_command(EVENT_CMD_CORE_INFO_INIT);
    }
+
+   free(buf);
 }
 
 static bool menu_input_file_delete_hold(char *s, size_t len,
@@ -608,6 +643,7 @@ enum action_iterate_type
    ITERATE_TYPE_BIND,
    ITERATE_TYPE_CONFIRM_CORE_DELETE,
    ITERATE_TYPE_CONFIRM_SHADER_PRESET_DELETE,
+   ITERATE_TYPE_CONFIRM_FILE_DELETE,
 };
 
 static enum action_iterate_type action_iterate_type(uint32_t hash)
@@ -632,6 +668,8 @@ static enum action_iterate_type action_iterate_type(uint32_t hash)
          return ITERATE_TYPE_CONFIRM_CORE_DELETE;
       case MENU_LABEL_CONFIRM_SHADER_PRESET_DELETION:
          return ITERATE_TYPE_CONFIRM_SHADER_PRESET_DELETE;
+      case MENU_LABEL_CONFIRM_FILE_DELETION:
+         return ITERATE_TYPE_CONFIRM_FILE_DELETE;
    }
 
    return ITERATE_TYPE_DEFAULT;
@@ -692,13 +730,17 @@ static int action_iterate_main(const char *label, unsigned action)
          do_messagebox   = true;
          do_pop_stack    = true;
          break;
+      case ITERATE_TYPE_CONFIRM_FILE_DELETE:
+         if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list, "file"))
+            menu_delete_file(menu_list);
+         break;
       case ITERATE_TYPE_CONFIRM_CORE_DELETE:
          if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list, "core"))
-            delete_core_file(menu_list);
+            menu_delete_core_file(menu_list);
          break;
       case ITERATE_TYPE_CONFIRM_SHADER_PRESET_DELETE:
          if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list, "preset"))
-            delete_shader_preset(menu_list);
+            menu_delete_shader_preset(menu_list);
          break;
       case ITERATE_TYPE_DEFAULT:
          selected = menu_navigation_get_current_selection();

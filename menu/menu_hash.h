@@ -318,7 +318,7 @@ extern "C" {
 #define MENU_LABEL_VALUE_VIDEO_SHADER_PRESET                                   0x5990f82eU
 #define MENU_LABEL_VIDEO_SHADER_PRESET                                         0xc5d3bae4U
 #define MENU_LABEL_CHEAT_FILE_LOAD                                             0x57336148U
-#define MENU_LABEL_VALUE_CHEAT_FILE_LOAD                                       0x5b983e0aU
+#define MENU_LABEL_VALUE_CHEAT_FILE_LOAD                                       0x73fa0eeaU
 #define MENU_LABEL_REMAP_FILE_LOAD                                             0x9c2799b8U
 #define MENU_LABEL_VALUE_REMAP_FILE_LOAD                                       0xabdd415aU
 #define MENU_LABEL_MESSAGE                                                     0xbe463eeaU
@@ -330,6 +330,7 @@ extern "C" {
 #define MENU_LABEL_VALUE_CUSTOM_RATIO                                          0x3c94b73fU
 #define MENU_LABEL_CONFIRM_CORE_DELETION                                       0x111b482eU
 #define MENU_LABEL_CONFIRM_SHADER_PRESET_DELETION                              0xd43a4c8eU
+#define MENU_LABEL_CONFIRM_FILE_DELETION                                       0xb957f4e5U
 #define MENU_LABEL_HELP                                                        0x7c97d2eeU
 #define MENU_LABEL_VALUE_HELP                                                  0x7c8646ceU
 #define MENU_LABEL_INPUT_OVERLAY                                               0x24e24796U
@@ -413,7 +414,6 @@ extern "C" {
 #define MENU_LABEL_VALUE_SHADER_APPLY_CHANGES                                  0x5ecf945bU
 #define MENU_LABEL_VALUE_SAVE_NEW_CONFIG                                       0xd49f2c94U
 #define MENU_LABEL_ONSCREEN_DISPLAY_SETTINGS                                   0x67571029U
-#define MENU_LABEL_CHEAT_APPLY_CHANGES                                         0xde88aa27U
 #define MENU_LABEL_CUSTOM_BIND                                                 0x1e84b3fcU
 #define MENU_LABEL_CUSTOM_BIND_ALL                                             0x79ac14f4U
 #define MENU_LABEL_CUSTOM_BIND_DEFAULTS                                        0xe88f7b13U
@@ -422,7 +422,7 @@ extern "C" {
 #define MENU_LABEL_RESTART_CONTENT                                             0x1ea2e224U
 #define MENU_LABEL_DISK_IMAGE_APPEND                                           0x5af7d709U
 #define MENU_LABEL_VALUE_CONFIGURATIONS                                        0x88eb27f0U
-#define MENU_LABEL_VALUE_CHEAT_FILE_SAVE_AS                                    0xf2498a2dU
+#define MENU_LABEL_VALUE_CHEAT_FILE_SAVE_AS                                    0xd03c4badU
 #define MENU_LABEL_CHEAT_FILE_SAVE_AS                                          0x1f58dccaU
 #define MENU_LABEL_VIDEO_SHADER_PRESET_SAVE_AS                                 0x3d6e5ce5U
 #define MENU_LABEL_VALUE_VIDEO_SHADER_PRESET_SAVE_AS                           0x405d77b2U

@@ -7650,7 +7650,6 @@ CONFIG_BOOL(
          parent_group,
          general_write_handler,
          general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    CONFIG_BOOL(
          settings->menu.show_logging_menu,
          "show_logging_menu",
@@ -8668,7 +8667,6 @@ CONFIG_DIR(
          list,
          list_info,
          SD_FLAG_ALLOW_EMPTY | SD_FLAG_PATH_DIR | SD_FLAG_BROWSER_ACTION);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_DIR(
          settings->video.filter_dir,

@@ -48,7 +48,7 @@
 #endif
 
 #ifndef MAX_CHEAT_COUNTERS
-#define MAX_CHEAT_COUNTERS 100
+#define MAX_CHEAT_COUNTERS 1000
 #endif
 
 #define MENU_SETTINGS_CORE_INFO_NONE    0xffff
@@ -60,6 +60,8 @@
 #define MENU_INPUT_BIND_HOLD_USEC 170000
 
 #define MENU_DEFAULT_ENTRY_SPACING 21
+#define MENU_NARROW_ENTRY_SPACING 18
+#define MENU_WIDE_ENTRY_SPACING 24
 
 #ifdef __cplusplus
 extern "C" {

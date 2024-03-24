@@ -87,6 +87,7 @@ int action_right_cheat(unsigned type, const char *label,
 
    cheat->cheats[idx].state = !cheat->cheats[idx].state;
    cheat_manager_update(cheat, idx);
+   cheat_manager_apply_cheats(cheat);
 
    return 0;
 }

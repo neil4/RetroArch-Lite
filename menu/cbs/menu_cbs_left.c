@@ -92,6 +92,7 @@ static int action_left_cheat(unsigned type, const char *label,
 
    cheat->cheats[idx].state = !cheat->cheats[idx].state;
    cheat_manager_update(cheat, idx);
+   cheat_manager_apply_cheats(cheat);
 
    return 0;
 }
@@ -386,6 +387,7 @@ static int action_left_cheat_num_passes(unsigned type, const char *label,
       new_size = cheat->size - 1;
    menu_entries_set_refresh();
    cheat_manager_realloc(cheat, new_size);
+   cheat_manager_apply_cheats(cheat);
 
    return 0;
 }
@@ -400,6 +402,7 @@ static int action_l_cheat_num_passes(unsigned type, const char *label)
 
    menu_entries_set_refresh();
    cheat_manager_realloc(cheat, 0);
+   cheat_manager_apply_cheats(cheat);
 
    return 0;
 }

@@ -888,14 +888,10 @@ static int menu_displaylist_parse_options_cheats(menu_displaylist_info_t *info)
          "Cheat Passes",
          "cheat_num_passes",
          0, 0, 0);
-   menu_list_push(info->list,
-         "Apply Cheat Changes",
-         "cheat_apply_changes",
-         MENU_SETTING_ACTION, 0, 0);
 
    for (i = 0; i < cheat->size; i++)
    {
-      char cheat_label[64];
+      char cheat_label[NAME_MAX_LENGTH];
 
       snprintf(cheat_label, sizeof(cheat_label), "Cheat #%u: ", i);
       if (cheat->cheats[i].desc)

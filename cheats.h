@@ -54,7 +54,7 @@ cheat_manager_t *cheat_manager_load(const char *path);
  **/
 bool cheat_manager_save(cheat_manager_t *handle, const char *path);
 
-bool cheat_manager_realloc(cheat_manager_t *handle, unsigned new_size);
+bool cheat_manager_realloc(cheat_manager_t *handle, int new_size);
 
 void cheat_manager_free(cheat_manager_t *handle);
 

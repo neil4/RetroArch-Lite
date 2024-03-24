@@ -117,13 +117,13 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_CORE_OPTION_CATEGORY:
          return "core_options_category";
       case MENU_LABEL_VALUE_CHEAT_FILE_LOAD:
-         return "Cheat File Load";
+         return "Load Cheat File";
       case MENU_LABEL_CHEAT_FILE_LOAD:
          return "cheat_file_load";
       case MENU_LABEL_CHEAT_FILE_SAVE_AS:
          return "cheat_file_save_as";
       case MENU_LABEL_VALUE_CHEAT_FILE_SAVE_AS:
-         return "Cheat File Save As";
+         return "Save Cheat File As";
       case MENU_LABEL_FRONTEND_COUNTERS:
          return "frontend_counters";
       case MENU_LABEL_CORE_COUNTERS:

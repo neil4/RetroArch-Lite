@@ -151,21 +151,6 @@ static int action_ok_file_load_detect_core(const char *path,
    return -1;
 }
 
-static int action_ok_cheat_apply_changes(const char *path,
-      const char *label, unsigned type, size_t idx, size_t entry_idx)
-{
-   global_t *global       = global_get_ptr();
-   cheat_manager_t *cheat = global->cheat;
-
-   if (!cheat)
-      return -1;
-
-   cheat_manager_apply_cheats(cheat);
-
-   return 0;
-}
-
-
 static int action_ok_shader_pass_load(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -658,6 +643,8 @@ static int action_ok_cheat_file_load(const char *path,
    menu_list_flush_stack(menu_list,
          menu_hash_to_str(MENU_LABEL_CORE_CHEAT_OPTIONS), 0);
 
+   cheat_manager_apply_cheats(global->cheat);
+
    return 0;
 }
 
@@ -731,7 +718,7 @@ static int action_ok_shader_preset_load(const char *path,
 static int action_ok_cheat(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
-   menu_input_key_start_line("Input Cheat",
+   menu_input_key_start_line("Input Code",
          label, type, idx, menu_input_st_cheat_callback);
    return 0;
 }
@@ -1433,9 +1420,6 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_SHADER_APPLY_CHANGES:
          cbs->action_ok = action_ok_shader_apply_changes;
-         break;
-      case MENU_LABEL_CHEAT_APPLY_CHANGES:
-         cbs->action_ok = action_ok_cheat_apply_changes;
          break;
       case MENU_LABEL_VIDEO_SHADER_PRESET_SAVE_AS:
          cbs->action_ok = action_ok_shader_preset_save_as;

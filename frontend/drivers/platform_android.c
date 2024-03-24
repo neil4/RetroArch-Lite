@@ -639,6 +639,8 @@ static void frontend_android_get_environment_settings(int *argc,
                   "system", sizeof(g_defaults.system_dir));
             fill_pathname_join(g_defaults.menu_config_dir, path,
                   "config", sizeof(g_defaults.menu_config_dir));
+            fill_pathname_join(g_defaults.cheats_dir, path,
+                  "cheats", sizeof(g_defaults.cheats_dir));
          }
       }
    }

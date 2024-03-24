@@ -362,6 +362,8 @@ static void frontend_win32_get_environment_settings(int *argc, char *argv[],
                       sizeof(g_defaults.menu_theme_dir));
    fill_pathname_join(g_defaults.audio_filter_dir, exe_dir, "audio_filters",
                       sizeof(g_defaults.audio_filter_dir));
+   fill_pathname_join(g_defaults.cheats_dir, exe_dir, "cheats",
+                      sizeof(g_defaults.cheats_dir));
 }
 
 static void frontend_win32_attach_console(void)

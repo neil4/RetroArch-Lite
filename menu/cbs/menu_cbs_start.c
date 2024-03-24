@@ -143,6 +143,27 @@ static int action_start_shader_preset_delete(unsigned type, const char *label)
    return ret;
 }
 
+static int action_start_file_delete(unsigned type, const char *label)
+{
+   int ret                  = 0;
+   menu_list_t   *menu_list = menu_list_get_ptr();
+   menu_navigation_t *nav   = menu_navigation_get_ptr();
+   menu_displaylist_info_t *info;
+
+   if (!menu_list)
+      return -1;
+
+   info = menu_displaylist_info_new();
+
+   info->list          = menu_list->menu_stack;
+   info->directory_ptr = nav->selection_ptr;
+   strlcpy(info->label, "confirm_file_deletion", sizeof(info->label));
+
+   ret = menu_displaylist_push_list(info, DISPLAYLIST_INFO);
+   free(info);
+   return ret;
+}
+
 static int action_start_performance_counters_core(unsigned type, const char *label)
 {
    struct retro_perf_counter **counters = (struct retro_perf_counter**)
@@ -323,6 +344,7 @@ static int action_start_cheat_num_passes(unsigned type, const char *label)
    {
       menu_entries_set_refresh();
       cheat_manager_realloc(cheat, 0);
+      cheat_manager_apply_cheats(cheat);
    }
 
    return 0;
@@ -478,6 +500,8 @@ static int menu_cbs_init_bind_start_compare_type(menu_file_list_cbs_t *cbs,
    else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
          && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
       cbs->action_start = action_start_libretro_device_type;
+   else if (type == MENU_FILE_CHEAT)
+      cbs->action_start = action_start_file_delete;
    else
       return -1;
 

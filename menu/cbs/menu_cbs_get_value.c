@@ -47,7 +47,7 @@ static void menu_action_setting_disp_set_label_cheat_num_passes(
 {
    global_t *global = global_get_ptr();
 
-   *w = MENU_DEFAULT_ENTRY_SPACING;
+   *w = MENU_NARROW_ENTRY_SPACING;
    strlcpy(s2, path, len2);
    snprintf(s, len, "%u", global->cheat->buf_size);
 }
@@ -407,14 +407,14 @@ static void menu_action_setting_disp_set_label_cheat(
    unsigned cheat_index = type - MENU_SETTINGS_CHEAT_BEGIN;
 
    if (cheat_index < global->cheat->buf_size)
-      snprintf(s, len, "%s : (%s)",
-            (global->cheat->cheats[cheat_index].code != NULL)
-            ? global->cheat->cheats[cheat_index].code : "N/A",
+      snprintf(s, len, "%s : %s",
             global->cheat->cheats[cheat_index].state ? 
             menu_hash_to_str(MENU_VALUE_ON) :
-            menu_hash_to_str(MENU_VALUE_OFF)
+            menu_hash_to_str(MENU_VALUE_OFF),
+            (global->cheat->cheats[cheat_index].code != NULL)
+            ? global->cheat->cheats[cheat_index].code : "N/A"
             );
-   *w = MENU_DEFAULT_ENTRY_SPACING;
+   *w = MENU_NARROW_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 }
 
@@ -494,6 +494,20 @@ static void menu_action_setting_disp_set_label_menu_more(
 {
    strlcpy(s, "...", len);
    *w = MENU_DEFAULT_ENTRY_SPACING;
+   strlcpy(s2, path, len2);
+}
+
+static void menu_action_setting_disp_set_narrow_label_menu_more(
+      file_list_t* list,
+      unsigned *w, unsigned type, unsigned i,
+      const char *label,
+      char *s, size_t len,
+      const char *entry_label,
+      const char *path,
+      char *s2, size_t len2)
+{
+   strlcpy(s, "...", len);
+   *w = MENU_NARROW_ENTRY_SPACING;
    strlcpy(s2, path, len2);
 }
 
@@ -836,7 +850,7 @@ static void menu_action_setting_disp_set_label_directory_setting(file_list_t* li
       char *s2, size_t len2)
 {
    *s = '\0';
-   *w = 24;
+   *w = MENU_WIDE_ENTRY_SPACING;
 
    setting_get_label(list, s, len, w, type, label, entry_label, i);
 
@@ -1014,6 +1028,10 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
       case MENU_LABEL_CORE_CHEAT_OPTIONS:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_menu_more;
+         break;
+      case MENU_LABEL_CHEAT_FILE_LOAD:
+         cbs->action_get_value =
+            menu_action_setting_disp_set_narrow_label_menu_more;
          break;
       default:
          return - 1;

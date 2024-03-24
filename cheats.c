@@ -23,6 +23,7 @@
 #include <compat/strl.h>
 #include <compat/posix_string.h>
 #include <string/stdstring.h>
+#include "menu/menu.h"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -43,7 +44,8 @@ void cheat_manager_apply_cheats(cheat_manager_t *handle)
 
    for (i = 0; i < handle->size; i++)
    {
-      if (handle->cheats[i].state)
+      if (handle->cheats[i].state
+            && !string_is_empty(handle->cheats[i].code))
          pretro_cheat_set(idx++, true, handle->cheats[i].code);
    }
 }
@@ -88,12 +90,13 @@ bool cheat_manager_save(cheat_manager_t *handle, const char *path)
 
    for (i = 0; i < handle->size; i++)
    {
-      char key[64];
-      char desc_key[256];
-      char code_key[256];
-      char enable_key[256];
+      char desc_key[32];
+      char code_key[32];
+      char enable_key[32];
 
-      snprintf(key, sizeof(key), "cheat%u", i);
+      if (string_is_empty(handle->cheats[i].code))
+         continue;
+
       snprintf(desc_key, sizeof(desc_key), "cheat%u_desc", i);
       snprintf(code_key, sizeof(code_key), "cheat%u_code", i);
       snprintf(enable_key, sizeof(enable_key), "cheat%u_enable", i);
@@ -133,21 +136,20 @@ cheat_manager_t *cheat_manager_load(const char *path)
    if (cheats == 0)
       return NULL;
 
-   cheat = cheat_manager_new(cheats);
+   cheats = min(cheats, MAX_CHEAT_COUNTERS);
+   cheat  = cheat_manager_new(cheats);
 
    if (!cheat)
       return NULL;
 
    for (i = 0; i < cheats; i++)
    {
-      char key[64];
-      char desc_key[256];
-      char code_key[256];
-      char enable_key[256];
+      char desc_key[32];
+      char code_key[32];
+      char enable_key[32];
       char *tmp            = NULL;
       bool tmp_bool        = false;
 
-      snprintf(key, sizeof(key), "cheat%u", i);
       snprintf(desc_key, sizeof(desc_key), "cheat%u_desc", i);
       snprintf(code_key, sizeof(code_key), "cheat%u_code", i);
       snprintf(enable_key, sizeof(enable_key), "cheat%u_enable", i);
@@ -184,6 +186,8 @@ cheat_manager_t *cheat_manager_new(unsigned size)
    if (!handle)
       return NULL;
 
+   size = min(size, MAX_CHEAT_COUNTERS);
+
    handle->buf_size = size;
    handle->size     = size;
    handle->cheats   = (struct item_cheat*)
@@ -207,19 +211,30 @@ cheat_manager_t *cheat_manager_new(unsigned size)
    return handle;
 }
 
-bool cheat_manager_realloc(cheat_manager_t *handle, unsigned new_size)
+bool cheat_manager_realloc(cheat_manager_t *handle, int new_size)
 {
-   unsigned i;
+   int old_size;
+   int i;
 
    if (!handle)
       return false;
+
+   new_size = min(new_size, MAX_CHEAT_COUNTERS);
+   old_size = handle->size;
 
    if (!handle->cheats)
       handle->cheats = (struct item_cheat*)
          calloc(new_size, sizeof(struct item_cheat));
    else
+   {
+      for (i = old_size; i-- > new_size;)
+      {
+         free(handle->cheats[i].desc);
+         free(handle->cheats[i].code);
+      }
       handle->cheats = (struct item_cheat*)
          realloc(handle->cheats, new_size * sizeof(struct item_cheat));
+   }
 
    if (!handle->cheats)
    {
@@ -231,7 +246,7 @@ bool cheat_manager_realloc(cheat_manager_t *handle, unsigned new_size)
    handle->buf_size = new_size;
    handle->size     = new_size;
 
-   for (i = 0; i < handle->size; i++)
+   for (i = old_size; i < new_size; i++)
    {
       handle->cheats[i].desc    = NULL;
       handle->cheats[i].code    = NULL;
@@ -294,6 +309,7 @@ void cheat_manager_index_next(cheat_manager_t *handle)
       return;
 
    handle->ptr = (handle->ptr + 1) % handle->size;
+   cheat_manager_apply_cheats(handle);
    cheat_manager_update(handle, handle->ptr);
 }
 
@@ -307,5 +323,6 @@ void cheat_manager_index_prev(cheat_manager_t *handle)
    else
       handle->ptr--;
 
+   cheat_manager_apply_cheats(handle);
    cheat_manager_update(handle, handle->ptr);
 }
