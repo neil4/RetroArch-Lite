@@ -1520,7 +1520,10 @@ bool event_command(enum event_command cmd)
             RARCH_LOG("Grab mouse state: %s.\n",
                   grab_mouse_state ? "yes" : "no");
 
-            video_driver_show_mouse(!grab_mouse_state);
+            if (grab_mouse_state)
+               video_driver_show_mouse(false);
+            else if (!settings->video.fullscreen)
+               video_driver_show_mouse(true);
          }
          break;
       case EVENT_CMD_PERFCNT_REPORT_FRONTEND_LOG:

@@ -655,14 +655,33 @@ static void dinput_grab_mouse(void *data, bool state)
 {
    struct dinput_input *di = (struct dinput_input*)data;
    driver_t *driver = driver_get_ptr();
+   HWND hwnd = (HWND)driver->video_window;
+   RECT clip_rect;
 
    IDirectInputDevice8_Unacquire(di->mouse);
    IDirectInputDevice8_SetCooperativeLevel(di->mouse,
-      (HWND)driver->video_window,
-      state ?
-      (DISCL_EXCLUSIVE | DISCL_FOREGROUND) :
-      (DISCL_NONEXCLUSIVE | DISCL_FOREGROUND));
+      hwnd, (DISCL_NONEXCLUSIVE | DISCL_FOREGROUND));
    IDirectInputDevice8_Acquire(di->mouse);
+
+   if (state && hwnd)
+   {
+      PWINDOWINFO info = (PWINDOWINFO)malloc(sizeof(*info));
+
+      if (info)
+      {
+         info->cbSize = sizeof(PWINDOWINFO);
+
+         if (GetWindowInfo(hwnd, info))
+            clip_rect = info->rcClient;
+
+         free(info);
+      }
+      info = NULL;
+   }
+   else
+      GetWindowRect(GetDesktopWindow(), &clip_rect);
+
+   ClipCursor(&clip_rect);
 }
 
 static bool dinput_set_rumble(void *data, unsigned port,
