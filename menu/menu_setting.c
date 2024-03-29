@@ -2949,7 +2949,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_DISK_NEXT:
          snprintf(s, len,
-               " -- Cycles through disk images. Use after \n"
+               " -- Cycles through disc images. Use after \n"
                "ejecting. \n"
                " \n"
                " Complete by toggling eject again.");

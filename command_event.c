@@ -213,7 +213,7 @@ static void event_disk_control_set_eject(bool new_state, bool print_log)
 void event_disk_control_append_image(const char *path)
 {
    unsigned new_idx;
-   char msg[PATH_MAX_LENGTH];
+   char msg[NAME_MAX_LENGTH];
    struct retro_game_info info = {0};
    global_t *global = global_get_ptr();
    const struct retro_disk_control_callback *control = 
@@ -231,8 +231,8 @@ void event_disk_control_append_image(const char *path)
    control->replace_image_index(new_idx, &info);
    control->set_image_index(new_idx);
 
-   snprintf(msg, sizeof(msg), "Loaded disc: %s", path);
-   RARCH_LOG("%s\n", msg);
+   RARCH_LOG("Loaded disc: %s\n", path);
+   snprintf(msg, sizeof(msg), "Loaded disc: %s", path_basename(path));
    rarch_main_msg_queue_push(msg, 0, 180, true);
 
    event_command(EVENT_CMD_AUTOSAVE_DEINIT);
@@ -259,11 +259,12 @@ void event_disk_control_append_image(const char *path)
  *
  * Perform disk eject (Core Disk Options).
  **/
-static void event_check_disk_eject(
+static bool event_check_disk_eject(
       const struct retro_disk_control_callback *control)
 {
    bool new_state = !control->get_eject_state();
    event_disk_control_set_eject(new_state, true);
+   return new_state;
 }
 
 /**
@@ -1455,12 +1456,9 @@ bool event_command(enum event_command cmd)
                (const struct retro_disk_control_callback*)
                &global->system.disk_control;
 
-            if (control)
-            {
-               event_check_disk_eject(control);
-               if (menu_driver_alive())
-                  rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
-            }
+            if (control && !event_check_disk_eject(control)
+                  && menu_driver_alive())
+               rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
          }
          else
             rarch_main_msg_queue_push("Core does not support Disc Control.", 1, 120, true);
