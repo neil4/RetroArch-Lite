@@ -4290,7 +4290,6 @@ static bool setting_append_list_main_menu_options(
    }
 
 #ifdef HAVE_NETWORKING
-#ifndef EXTERNAL_LAUNCHER
    if (settings->menu.show_core_updater)
    {
       CONFIG_ACTION(
@@ -4300,7 +4299,6 @@ static bool setting_append_list_main_menu_options(
             subgroup_info.name,
             parent_group);
    }
-#endif
 #endif
 
    if (global->perfcnt_enable)
@@ -7560,7 +7558,6 @@ static bool setting_append_list_menu_visibility_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-#ifndef EXTERNAL_LAUNCHER
    CONFIG_BOOL(
          settings->menu.show_core_updater,
          "show_core_updater",
@@ -7586,7 +7583,6 @@ static bool setting_append_list_menu_visibility_options(
          general_write_handler,
          general_read_handler);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-#endif  /* EXTERNAL_LAUNCHER */
    CONFIG_BOOL(
          settings->menu.show_core_info,
          "menu_show_core_info",
@@ -8228,7 +8224,7 @@ static bool setting_append_list_core_updater_options(
       rarch_setting_info_t *list_info,
       const char *parent_group)
 {
-#if defined(HAVE_NETWORKING) && !defined(EXTERNAL_LAUNCHER)
+#if defined(HAVE_NETWORKING)
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
    settings_t *settings = config_get_ptr();

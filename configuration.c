@@ -2622,10 +2622,8 @@ bool main_config_file_save(const char *path)
          settings->menu.show_cheat_options);
    config_set_bool(conf, "menu_swap_ok_cancel",
          settings->menu.swap_ok_cancel);
-#ifndef EXTERNAL_LAUNCHER
    config_set_bool(conf, "show_core_updater",
          settings->menu.show_core_updater);
-#endif
    config_set_bool(conf, "menu_show_core_info",
          settings->menu.show_core_info);
    config_set_bool(conf, "menu_show_system_info",

@@ -498,8 +498,10 @@ static bool show_configuration_menu = false;
 static bool show_user_menu = false;
 #ifdef EXTERNAL_LAUNCHER
 static bool show_directory_menu = false;
+static bool show_core_updater = false;
 #else
 static bool show_directory_menu = true;
+static bool show_core_updater = true;
 #endif
 static bool show_privacy_menu = false;
 static bool show_recording_menu = false;
@@ -509,9 +511,6 @@ static bool show_font_menu = false;
 static bool show_hotkey_menu = false;
 #else
 static bool show_hotkey_menu = true;
-#endif
-#ifndef EXTERNAL_LAUNCHER
-static bool show_core_updater = true;
 #endif
 static bool show_rewind_menu = false;
 

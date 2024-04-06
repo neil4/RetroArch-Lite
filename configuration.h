@@ -212,9 +212,7 @@ typedef struct settings
       bool show_font_menu;
       bool show_core_info;
       bool show_system_info;
-#ifndef EXTERNAL_LAUNCHER
       bool show_core_updater;
-#endif
       bool swap_ok_cancel;
    } menu;
 
