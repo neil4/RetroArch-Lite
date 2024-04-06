@@ -1469,6 +1469,12 @@ static bool config_load_file(const char *path, bool set_defaults)
 #ifdef HAVE_OVERLAY
    config_get_bool(conf, "show_overlay_menu",
          &settings->menu.show_overlay_menu);
+   config_get_bool(conf, "show_osk_menu",
+         &settings->menu.show_osk_menu);
+   config_get_bool(conf, "show_overlay_lightgun_menu",
+         &settings->menu.show_overlay_lightgun_menu);
+   config_get_bool(conf, "show_overlay_mouse_menu",
+         &settings->menu.show_overlay_mouse_menu);
 #endif
    config_get_bool(conf, "show_frame_throttle_menu",
          &settings->menu.show_frame_throttle_menu);
@@ -2587,6 +2593,12 @@ bool main_config_file_save(const char *path)
 #ifdef HAVE_OVERLAY
    config_set_bool(conf, "show_overlay_menu",
          settings->menu.show_overlay_menu);
+   config_set_bool(conf, "show_osk_menu",
+         settings->menu.show_osk_menu);
+   config_set_bool(conf, "show_overlay_lightgun_menu",
+         settings->menu.show_overlay_lightgun_menu);
+   config_set_bool(conf, "show_overlay_mouse_menu",
+         settings->menu.show_overlay_mouse_menu);
 #endif
    config_set_bool(conf, "show_frame_throttle_menu",
          settings->menu.show_frame_throttle_menu);

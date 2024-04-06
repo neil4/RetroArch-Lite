@@ -7318,7 +7318,7 @@ static bool setting_append_list_overlay_lightgun_options(
    CONFIG_UINT(
          settings->input.lightgun_trigger_delay,
          "input_lightgun_trigger_delay",
-         "Lightgun Trigger Delay (frames)",
+         "Trigger Delay (frames)",
          lightgun_trigger_delay,
          group_info.name,
          subgroup_info.name,
