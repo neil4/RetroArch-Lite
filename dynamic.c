@@ -220,8 +220,10 @@ bool libretro_get_system_info(const char *path,
       return false;
 
    memcpy(info, &dummy_info, sizeof(*info));
-   info->library_name    = strdup(dummy_info.library_name);
-   info->library_version = strdup(dummy_info.library_version);
+   if (dummy_info.library_name)
+      info->library_name = strdup(dummy_info.library_name);
+   if (dummy_info.library_version)
+      info->library_version = strdup(dummy_info.library_version);
    if (dummy_info.valid_extensions)
       info->valid_extensions = strdup(dummy_info.valid_extensions);
    dylib_close(lib);

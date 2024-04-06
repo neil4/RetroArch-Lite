@@ -1062,7 +1062,7 @@ static void init_system_info(void)
    if (!info->library_name)
       info->library_name = "Unknown";
    if (!info->library_version)
-      info->library_version = "v0";
+      info->library_version = "";
 
 #ifdef RARCH_CONSOLE
    snprintf(global->title_buf, sizeof(global->title_buf), "%s %s",
