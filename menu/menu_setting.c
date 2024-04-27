@@ -1604,6 +1604,13 @@ static void setting_get_string_representation_default(void *data,
    strlcpy(s, "...", len);
 }
 
+static void setting_get_string_representation_none(void *data,
+      char *s, size_t len)
+{
+   (void)data;
+   *s = '\0';
+}
+
 /**
  * setting_get_string_representation_st_float:
  * @setting            : pointer to setting
@@ -2911,14 +2918,11 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_SHADER_APPLY_CHANGES:
          snprintf(s, len,
-               " -- Saves current preset. \n"
+               " -- Saves current preset to\n"
+               "the base shader directory.\n"
                " \n"
-               "After changing shader settings, use this to \n"
-               "save changes to the current Shader Preset. \n"
-               " \n"
-               "If no preset is loaded, a placeholder \n"
-               "(temporary.glslp) is created. The file\n"
-               "persists after RetroArch exits."
+               "If no preset is loaded,\n"
+               "temporary.glslp is saved."
                );
          break;
       case MENU_LABEL_INPUT_BIND_DEVICE_ID:
@@ -4225,6 +4229,8 @@ static bool setting_append_list_main_menu_options(
             group_info.name,
             subgroup_info.name,
             parent_group);
+      (*list)[list_info->index - 1].get_string_representation = 
+            &setting_get_string_representation_none;
    }
 #endif /* #if defined(HAVE_DYNAMIC)... */
    if (!core_loaded && global->core_info
@@ -4350,6 +4356,8 @@ static bool setting_append_list_main_menu_options(
       menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_RESET);
       (*list)[list_info->index - 1].action_ok = 
       (*list)[list_info->index - 1].action_select = &setting_bool_action_ok_exit;
+      (*list)[list_info->index - 1].get_string_representation = 
+            &setting_get_string_representation_none;
    }
 #ifndef HAVE_DYNAMIC
    CONFIG_ACTION(
@@ -4370,6 +4378,8 @@ static bool setting_append_list_main_menu_options(
          subgroup_info.name,
          parent_group);
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_QUIT_RETROARCH);
+   (*list)[list_info->index - 1].get_string_representation = 
+            &setting_get_string_representation_none;
 #endif
 
    END_SUB_GROUP(list, list_info, parent_group);
@@ -8560,6 +8570,8 @@ static bool setting_append_list_directory_options(
                subgroup_info.name,
                parent_group);
          (*list)[list_info->index - 1].action_ok = &setting_action_ok_quickset_core_content_directory;
+         (*list)[list_info->index - 1].get_string_representation = 
+               &setting_get_string_representation_none;
       }
    }
 
