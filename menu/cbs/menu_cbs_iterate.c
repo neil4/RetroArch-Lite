@@ -494,7 +494,8 @@ static void menu_delete_file(menu_list_t *menu_list)
 
    /* get filename */
    selected = menu_navigation_get_current_selection();
-   selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
+   if (selected > menu_list_get_size(menu_list)-1)
+      return;
    menu_entry_get(&entry, selected, NULL, false);
 
    fill_pathname_join(file_path, menu_dir, entry.path, PATH_MAX_LENGTH);
@@ -528,7 +529,8 @@ static void menu_delete_shader_preset(menu_list_t *menu_list)
 
    /* get filename */
    selected = menu_navigation_get_current_selection();
-   selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
+   if (selected > menu_list_get_size(menu_list)-1)
+      return;
    menu_entry_get(&entry, selected, NULL, false);
 
    fill_pathname_join(file_path, menu_dir, entry.path, PATH_MAX_LENGTH);
@@ -561,7 +563,6 @@ static void menu_delete_core_file(menu_list_t *menu_list)
    char core_name[NAME_MAX_LENGTH];
    global_t *global       = global_get_ptr();
    const char *menu_dir   = NULL;
-   const char *menu_label = NULL;
    char *buf              = string_alloc(PATH_MAX_LENGTH);
    menu_entry_t entry;
    size_t selected;
@@ -569,11 +570,12 @@ static void menu_delete_core_file(menu_list_t *menu_list)
    core_name[0] = '\0';
 
    /* get dir */
-   menu_list_get_last_stack(menu_list, &menu_dir, &menu_label, NULL, NULL);
+   menu_list_get_last_stack(menu_list, &menu_dir, NULL, NULL, NULL);
 
    /* get filename */
    selected = menu_navigation_get_current_selection();
-   selected = max(min(selected, menu_list_get_size(menu_list)-1), 0);
+   if (selected > menu_list_get_size(menu_list)-1)
+      return;
    menu_entry_get(&entry, selected, NULL, false);
 
    fill_pathname_join(buf, menu_dir, entry.path, PATH_MAX_LENGTH);

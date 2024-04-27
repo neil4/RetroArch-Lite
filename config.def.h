@@ -517,21 +517,17 @@ static bool show_rewind_menu = false;
 static bool default_sort_savefiles_enable = true;
 static bool default_sort_savestates_enable = true;
 
-static unsigned default_menu_btn_ok          = RETRO_DEVICE_ID_JOYPAD_A;
-static unsigned default_menu_btn_cancel      = RETRO_DEVICE_ID_JOYPAD_B;
-static unsigned default_menu_btn_search      = RETRO_DEVICE_ID_JOYPAD_X;
-static unsigned default_menu_btn_default     = RETRO_DEVICE_ID_JOYPAD_START;
-static unsigned default_menu_btn_info        = RETRO_DEVICE_ID_JOYPAD_SELECT;
+static unsigned default_menu_btn_ok      = RETRO_DEVICE_ID_JOYPAD_A;
+static unsigned default_menu_btn_cancel  = RETRO_DEVICE_ID_JOYPAD_B;
+static unsigned default_menu_btn_search  = RETRO_DEVICE_ID_JOYPAD_X;
+static unsigned default_menu_btn_default = RETRO_DEVICE_ID_JOYPAD_START;
+static unsigned default_menu_btn_info    = RETRO_DEVICE_ID_JOYPAD_SELECT;
 
 /* Crop overscanned frames. */
 static const bool crop_overscan = true;
 
 /* Font size for on-screen messages. */
-#if defined(HAVE_RMENU)
-static const float font_size = 1.0f;
-#else
 static const float font_size = 32;
-#endif
 
 /* Offset for where messages will be placed on-screen. 
  * Values are in range [0.0, 1.0]. */

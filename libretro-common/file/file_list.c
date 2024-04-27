@@ -287,9 +287,9 @@ static int file_list_alt_cmp(const void *a_, const void *b_)
    const char *cmp_a = a->alt ? a->alt : a->path;
    const char *cmp_b = b->alt ? b->alt : b->path;
 
-   if (a->type == MENU_FILE_DIRECTORY && b->type != MENU_FILE_DIRECTORY)
+   if (a->type > b->type)
       return -1;
-   if (b->type == MENU_FILE_DIRECTORY && a->type != MENU_FILE_DIRECTORY)
+   if (b->type > a->type)
       return 1;
 
    return strcasecmp(cmp_a, cmp_b);

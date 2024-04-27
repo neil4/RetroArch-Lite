@@ -84,8 +84,7 @@ void core_option_free(core_option_manager_t *opt_mgr)
       string_list_free(opt_mgr->opts[i].labels);
    }
 
-   if (opt_mgr->conf)
-      config_file_free(opt_mgr->conf);
+   config_file_free(opt_mgr->conf);
    free(opt_mgr->opts);
    free(opt_mgr->index_map);
    free(opt_mgr);

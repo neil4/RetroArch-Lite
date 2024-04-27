@@ -63,7 +63,7 @@ typedef unsigned int        uint;
 #endif
 
 #ifndef NAME_MAX_LENGTH
-#define NAME_MAX_LENGTH 255
+#define NAME_MAX_LENGTH 256
 #endif
 
 #ifndef max
