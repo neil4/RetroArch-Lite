@@ -28,6 +28,7 @@
 #include "retroarch.h"
 #include "dir_list_special.h"
 #include "preempt.h"
+#include "core_history.h"
 
 #include "configuration.h"
 #include "input/input_common.h"
@@ -579,6 +580,8 @@ static bool event_init_content(void)
 
    input_set_keyboard_focus_auto();
 
+   core_history_init();
+
    return true;
 }
 
@@ -901,6 +904,7 @@ bool event_command(enum event_command cmd)
          global->libretro_dummy = true;
          global->max_scope      = GLOBAL;
 
+         core_history_deinit();
          rarch_update_configs();
          *global->basename = '\0';
 

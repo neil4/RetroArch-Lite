@@ -210,6 +210,10 @@ typedef struct global
       bool frame_is_reverse;
    } rewind;
 
+   /* Core history paths and count */
+   char **history;
+   size_t history_size;
+
    bool sram_load_disable;
    bool sram_save_disable;
    bool use_sram;

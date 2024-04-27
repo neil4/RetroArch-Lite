@@ -22,6 +22,7 @@
 #include "../runloop.h"
 #include "../runloop_data.h"
 #include "../input/input_remapping.h"
+#include "../core_history.h"
 #ifdef HAVE_NETPLAY
 #include "../netplay.h"
 #endif
@@ -44,6 +45,7 @@ void main_exit_save_config(void)
 #endif
 
    *settings->libretro = '\0';
+   core_history_deinit();
    rarch_update_configs();
    event_command(EVENT_CMD_AUTOSAVE_STATE);
 }

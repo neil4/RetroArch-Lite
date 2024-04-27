@@ -98,6 +98,7 @@ OBJ += frontend/frontend.o \
 		libretro-common/string/stdstring.o \
 		dir_list_special.o \
 		file_ops.o \
+		core_history.o \
 		libretro-common/file//nbio/nbio_stdio.o \
 		libretro-common/file/file_path.o \
 		file_path_special.o \
@@ -125,7 +126,7 @@ OBJ += frontend/frontend.o \
 		input/input_common.o \
 		input/input_keymaps.o \
 		input/input_remapping.o \
-	        input/input_joypad_to_keyboard.o \
+		input/input_joypad_to_keyboard.o \
 		input/input_sensor.o \
 		input/keyboard_line.o \
 		libretro-common/file/vfs_implementation.o

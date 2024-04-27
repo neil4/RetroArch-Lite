@@ -19,8 +19,10 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import androidx.fragment.app.FragmentActivity;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -203,6 +205,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
 
       // Inflate the ListView we're using.
       ListView coreList = (ListView) findViewById(R.id.list);
+      registerForContextMenu(coreList);
 
       // Populate local core list
       //
@@ -276,6 +279,39 @@ public final class MainMenuActivity extends FragmentActivity implements Director
          contentBrowser.show(getSupportFragmentManager(), "contentBrowser");
       }
    }
+
+   public void itemHistoryClick(AdapterView<?> parent, View view, int position, long id)
+   {
+      final ModuleWrapper item = adapter.getItem(position);
+      libretroPath = item.getUnderlyingFile().getAbsolutePath();
+      libretroName = InstalledCoresFragment.sanitizedLibretroName(libretroPath);
+
+      // Show Content History
+      //
+      final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+      final String defaultConfig = UserPreferences.defaultBaseDir + "/config";
+      String cfgDir = prefs.getBoolean("config_directory_enable", false) ?
+            prefs.getString("rgui_config_directory", defaultConfig) : defaultConfig;
+      String historyPath = cfgDir + '/' + libretroName + '/'
+            + libretroName + "_history.txt";
+
+      String title = "History (" + item.getCoreTitle() + ")";
+      DirectoryFragment contentBrowser = DirectoryFragment.newInstance(title,
+            item.getSupportedExtensions());
+
+      // No history if no supported file extensions
+      if (contentBrowser == null)
+      {
+         DarkToast.makeText(this, String.format(getString(R.string.contentless_core),
+               item.getCoreTitle()));
+         return;
+      }
+
+      contentBrowser.setShowMameTitles(prefs.getBoolean("mame_titles", false));
+      contentBrowser.setFileListPath(historyPath);
+      contentBrowser.setOnDirectoryFragmentClosedListener(this);
+      contentBrowser.show(getSupportFragmentManager(), "contentBrowser");
+   }
    
    private final AdapterView.OnItemClickListener onClickListener = new AdapterView.OnItemClickListener()
    {
@@ -285,6 +321,32 @@ public final class MainMenuActivity extends FragmentActivity implements Director
          itemClick(listView, view, position, id);
       }
    };
+
+   @Override
+   public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
+   {
+      super.onCreateContextMenu(menu, v, menuInfo);
+
+      MenuInflater inflater = this.getMenuInflater();
+      inflater.inflate(R.menu.launcher_context_menu, menu);
+   }
+
+   @Override
+   public boolean onContextItemSelected(MenuItem item)
+   {
+      final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+
+      switch (item.getItemId())
+      {
+         case R.id.show_history:
+         {
+            itemHistoryClick(null, null, info.position, 0);
+            return true;
+         }
+         default:
+            return super.onContextItemSelected(item);
+      }
+   }
    
    private void extractAssets()
    {
@@ -400,6 +462,13 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       if (!path.isEmpty())
       {
          int lastSlash = path.lastIndexOf('/');
+
+         if (!new File(path).exists())
+         {
+            DarkToast.makeText(this, String.format(getString(R.string.file_dne),
+                  path.substring(lastSlash + 1)));
+            return;
+         }
 
          SharedPreferences.Editor edit = UserPreferences.getPreferences(this).edit();
          edit.putString(libretroName + "_directory", path.substring(0, lastSlash)).apply();

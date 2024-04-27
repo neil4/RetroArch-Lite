@@ -100,6 +100,11 @@ static int deferred_push_disk_options(menu_displaylist_info_t *info)
    return menu_displaylist_push_list(info, DISPLAYLIST_OPTIONS_DISK);
 }
 
+static int deferred_push_core_history(menu_displaylist_info_t *info)
+{
+   return menu_displaylist_push_list(info, DISPLAYLIST_CORE_HISTORY);
+}
+
 #ifdef HAVE_NETWORKING
 /* HACK - we have to find some way to pass state inbetween
  * function pointer callback functions that don't necessarily
@@ -381,6 +386,9 @@ static int menu_cbs_init_bind_deferred_push_compare_label(menu_file_list_cbs_t *
          break;
       case MENU_LABEL_DETECT_CORE_LIST:
          cbs->action_deferred_push = deferred_push_detect_core_list;
+         break;
+      case MENU_LABEL_CORE_HISTORY:
+         cbs->action_deferred_push = deferred_push_core_history;
          break;
       default:
          return -1;

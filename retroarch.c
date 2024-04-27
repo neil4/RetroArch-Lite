@@ -47,6 +47,7 @@
 #include "performance.h"
 #include "cheats.h"
 #include "input/input_remapping.h"
+#include "core_history.h"
 
 #include "git_version.h"
 #include "intl/intl.h"

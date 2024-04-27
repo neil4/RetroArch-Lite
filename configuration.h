@@ -199,6 +199,7 @@ typedef struct settings
       bool show_hotkey_menu;
       bool show_rewind_menu;
       bool show_core_menu;
+      bool show_core_history_menu;
       bool show_cheat_options;
       bool show_driver_menu;
       bool show_ui_menu;
@@ -367,6 +368,10 @@ typedef struct settings
    {
       bool set_supports_no_game_enable;
       bool option_categories;
+      bool history_write;
+      bool history_show_always;
+      unsigned history_size;
+      unsigned history_scope;
    } core;
 
    int state_slot;

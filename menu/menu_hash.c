@@ -154,6 +154,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "No core information available.";
       case MENU_LABEL_VALUE_NO_CORE_OPTIONS_AVAILABLE:
          return "No core options available.";
+      case MENU_LABEL_VALUE_NO_CORE_HISTORY_AVAILABLE:
+         return "No ROM history available.";
       case MENU_LABEL_VALUE_NO_CORES_AVAILABLE:
          return "No cores available.";
       case MENU_VALUE_NO_CORE:
@@ -170,6 +172,14 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Settings";
       case MENU_LABEL_MENU_SETTINGS:
          return "Menu Settings";
+      case MENU_LABEL_HISTORY_SETTINGS:
+         return "History Settings";
+      case MENU_LABEL_HISTORY_ERASE:
+         return "core_history_erase";
+      case MENU_LABEL_HISTORY_SHOW_ALWAYS:
+         return "core_history_show_always";
+      case MENU_LABEL_HISTORY_WRITE:
+         return "core_history_write";
       case MENU_LABEL_INPUT_SETTINGS:
          return "Input Settings";
       case MENU_LABEL_VIDEO_SETTINGS:
@@ -214,6 +224,12 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Load Core";
       case MENU_LABEL_LOAD_CONTENT:
          return "load_content";
+      case MENU_LABEL_CORE_HISTORY:
+         return "core_history";
+      case MENU_LABEL_CORE_HISTORY_ENTRY:
+         return "core_history_entry";
+      case MENU_LABEL_VALUE_CORE_HISTORY:
+         return "ROM History";
       case MENU_LABEL_VALUE_LOAD_CONTENT:
          return "Load ROM";
       case MENU_LABEL_UNLOAD_CORE:
@@ -394,6 +410,8 @@ static const char *menu_hash_to_str_english(uint32_t hash)
          return "Auto";
       case MENU_VALUE_ALWAYS:
          return "Always";
+      case MENU_VALUE_DEFAULT:
+         return "Default";
       default:
          break;
    }

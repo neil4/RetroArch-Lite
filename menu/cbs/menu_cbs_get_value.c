@@ -1026,6 +1026,7 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
       case MENU_LABEL_REMAP_FILE_LOAD:
       case MENU_LABEL_CORE_OPTION_CATEGORY:
       case MENU_LABEL_CORE_CHEAT_OPTIONS:
+      case MENU_LABEL_CORE_HISTORY:
          cbs->action_get_value =
             menu_action_setting_disp_set_label_menu_more;
          break;

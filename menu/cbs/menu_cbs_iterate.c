@@ -33,6 +33,7 @@
 #include "../../input/input_common.h"
 #include "../../input/input_autodetect.h"
 #include "../../performance.h"
+#include "../../core_history.h"
 
 static int archive_open(void)
 {
@@ -599,24 +600,51 @@ static void menu_delete_core_file(menu_list_t *menu_list)
    free(buf);
 }
 
+static void menu_remove_history_entry(menu_list_t *menu_list)
+{
+   global_t *global = global_get_ptr();
+   char msg[NAME_MAX_LENGTH];
+   size_t selected;
+   menu_entry_t entry;
+
+   /* get entry index */
+   selected = menu_navigation_get_current_selection();
+   if (selected > menu_list_get_size(menu_list)-1)
+      return;
+   menu_entry_get(&entry, selected, NULL, false);
+
+   /* remove */
+   if (entry.entry_idx == 0
+         && !strcmp(global->fullpath, global->history[0]))
+      snprintf(msg, NAME_MAX_LENGTH, "Canceled - Entry is the loaded ROM.");
+   else
+   {
+      core_history_remove(entry.entry_idx);
+      snprintf(msg, NAME_MAX_LENGTH, "Removed entry (%s)", entry.path);
+   }
+
+   rarch_main_msg_queue_push(msg, 1, 100, true);
+   menu_entries_set_refresh();
+}
+
 static bool menu_input_file_delete_hold(char *s, size_t len,
-                                        menu_list_t *menu_list, char* type)
+      menu_list_t *menu_list, char* action)
 {
    settings_t *settings = config_get_ptr();
    int timeout          = 0;
    static int64_t end_time;
-   
+
    if (!end_time)
       end_time = rarch_get_time_usec() + 1999999;
    timeout = (end_time - rarch_get_time_usec()) / 500000;
-   
+
    if (input_driver_key_pressed(settings->menu_default_btn)
          || menu_input_get_ptr()->mouse.middle)
    {
       if (timeout > 0)
       {
          snprintf(s, len, "Hold for %d"
-                          "\nto DELETE this %s.", timeout, type);
+                          "\nto %s.", timeout, action);
          menu_driver_render_messagebox(s);
          return false;
       }
@@ -646,6 +674,7 @@ enum action_iterate_type
    ITERATE_TYPE_CONFIRM_CORE_DELETE,
    ITERATE_TYPE_CONFIRM_SHADER_PRESET_DELETE,
    ITERATE_TYPE_CONFIRM_FILE_DELETE,
+   ITERATE_TYPE_CONFIRM_HISTORY_ENTRY_REMOVE,
 };
 
 static enum action_iterate_type action_iterate_type(uint32_t hash)
@@ -672,6 +701,8 @@ static enum action_iterate_type action_iterate_type(uint32_t hash)
          return ITERATE_TYPE_CONFIRM_SHADER_PRESET_DELETE;
       case MENU_LABEL_CONFIRM_FILE_DELETION:
          return ITERATE_TYPE_CONFIRM_FILE_DELETE;
+      case MENU_LABEL_CONFIRM_HISTORY_ENTRY_REMOVAL:
+         return ITERATE_TYPE_CONFIRM_HISTORY_ENTRY_REMOVE;
    }
 
    return ITERATE_TYPE_DEFAULT;
@@ -733,16 +764,24 @@ static int action_iterate_main(const char *label, unsigned action)
          do_pop_stack    = true;
          break;
       case ITERATE_TYPE_CONFIRM_FILE_DELETE:
-         if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list, "file"))
+         if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list,
+               "DELETE this file"))
             menu_delete_file(menu_list);
          break;
       case ITERATE_TYPE_CONFIRM_CORE_DELETE:
-         if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list, "core"))
+         if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list,
+               "DELETE this core"))
             menu_delete_core_file(menu_list);
          break;
       case ITERATE_TYPE_CONFIRM_SHADER_PRESET_DELETE:
-         if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list, "preset"))
+         if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list,
+               "DELETE this preset"))
             menu_delete_shader_preset(menu_list);
+         break;
+      case ITERATE_TYPE_CONFIRM_HISTORY_ENTRY_REMOVE:
+         if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list,
+               "remove this entry"))
+            menu_remove_history_entry(menu_list);
          break;
       case ITERATE_TYPE_DEFAULT:
          selected = menu_navigation_get_current_selection();

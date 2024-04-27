@@ -35,6 +35,7 @@
 #include "../performance.h"
 #include "../preempt.h"
 #include "drivers/rgui.h"
+#include "../core_history.h"
 
 #if defined(__CELLOS_LV2__)
 #include <sdk_version.h>
@@ -2678,6 +2679,10 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "extensions for the loaded core. "
                );
          break;
+      case MENU_LABEL_CORE_HISTORY:
+         snprintf(s, len,
+               "-- Browse ROM history for this core.");
+         break;
       case MENU_LABEL_CORE_LIST:
          snprintf(s, len,
                "-- Load Core.  \n"
@@ -3740,6 +3745,22 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                      " -- Auto-toggle Keyboard Focus when starting\n"
                      "a core, based on the input devices used.");
             break;
+      case MENU_LABEL_HISTORY_WRITE:
+         snprintf(s, len,
+                     " -- Write core's ROM history to file.\n"
+                     " \n"
+                     "If disabled, history updates will\n"
+                     "be in memory only.");
+            break;
+      case MENU_LABEL_HISTORY_SHOW_ALWAYS:
+         snprintf(s, len,
+                     " -- Shows or hides 'ROM History'\n"
+                     "in the Main Menu.\n"
+                     " \n"
+                     "'Default' hides history while\n"
+                     "content is running or if\n"
+                     "file updates are disabled.");
+            break;
       default:
          return -1;
    }
@@ -4200,8 +4221,7 @@ static bool setting_append_list_main_menu_options(
    START_GROUP(group_info, main_menu, parent_group);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
    
-#ifndef EXTERNAL_LAUNCHER
-#if defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT)
+#if !defined(EXTERNAL_LAUNCHER) && (defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT))
    if (!core_loaded)
    {
       CONFIG_ACTION(
@@ -4211,7 +4231,9 @@ static bool setting_append_list_main_menu_options(
             subgroup_info.name,
             parent_group);
    }
-   else  /* core loaded */
+#endif
+
+   if (core_loaded)
    {
       if (global->libretro_supports_content)
       {
@@ -4221,8 +4243,20 @@ static bool setting_append_list_main_menu_options(
                group_info.name,
                subgroup_info.name,
                parent_group);
+
+         if (settings->core.history_show_always
+               || (settings->core.history_write && !global->content_is_init))
+         {
+            CONFIG_ACTION(
+                  menu_hash_to_str(MENU_LABEL_CORE_HISTORY),
+                  menu_hash_to_str(MENU_LABEL_VALUE_CORE_HISTORY),
+                  group_info.name,
+                  subgroup_info.name,
+                  parent_group);
+         }
       }
-      
+
+#if !defined(EXTERNAL_LAUNCHER) && (defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT))
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_UNLOAD_CORE),
             menu_hash_to_str(MENU_LABEL_VALUE_UNLOAD_CORE),
@@ -4231,10 +4265,12 @@ static bool setting_append_list_main_menu_options(
             parent_group);
       (*list)[list_info->index - 1].get_string_representation = 
             &setting_get_string_representation_none;
+#endif
    }
-#endif /* #if defined(HAVE_DYNAMIC)... */
+
+#if !defined(EXTERNAL_LAUNCHER) && (defined(HAVE_DYNAMIC) || defined(HAVE_LIBRETRO_MANAGEMENT))
    if (!core_loaded && global->core_info
-            && core_info_list_num_info_files(global->core_info))
+         && core_info_list_num_info_files(global->core_info))
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_DETECT_CORE_LIST),
@@ -4243,17 +4279,7 @@ static bool setting_append_list_main_menu_options(
             subgroup_info.name,
             parent_group);
    }
-#else /* #ifndef EXTERNAL_LAUNCHER */
-   if (global->libretro_supports_content)
-   {
-      CONFIG_ACTION(
-            menu_hash_to_str(MENU_LABEL_LOAD_CONTENT),
-            menu_hash_to_str(MENU_LABEL_VALUE_LOAD_CONTENT),
-            group_info.name,
-            subgroup_info.name,
-            parent_group);
-   }
-#endif  /* #ifndef EXTERNAL_LAUNCHER */
+#endif
 
    if (global->content_is_init)
       CONFIG_ACTION(
@@ -7557,6 +7583,18 @@ static bool setting_append_list_menu_visibility_options(
          general_write_handler,
          general_read_handler);
    CONFIG_BOOL(
+         settings->menu.show_core_history_menu,
+         "show_core_history_menu",
+         "Show History menu",
+         show_core_history_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   CONFIG_BOOL(
          settings->menu.show_core_menu,
          "show_core_menu",
          "Show Core Settings menu",
@@ -8123,6 +8161,107 @@ static bool setting_append_list_menu_options(
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 72, 999, 1, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+   END_SUB_GROUP(list, list_info, parent_group);
+   END_GROUP(list, list_info, parent_group);
+
+   return true;
+}
+
+static bool setting_append_list_history_options(
+      rarch_setting_t **list,
+      rarch_setting_info_t *list_info,
+      const char *parent_group)
+{
+   rarch_setting_group_info_t group_info    = {0};
+   rarch_setting_group_info_t subgroup_info = {0};
+   settings_t *settings = config_get_ptr();
+   global_t *global     = global_get_ptr();
+   bool core_loaded     = *settings->libretro ? true : false;
+
+   static char erase_history_label[NAME_MAX_LENGTH];
+
+   if (!settings->menu.show_core_history_menu)
+      return true;
+
+   START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_HISTORY_SETTINGS), parent_group);
+
+   parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
+
+   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
+
+   CONFIG_UINT(
+         settings->core.history_scope,
+         "core_history_scope",
+         "History Settings Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, min(THIS_CORE, global->max_scope), 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+
+   CONFIG_BOOL(
+         settings->core.history_write,
+         menu_hash_to_str(MENU_LABEL_HISTORY_WRITE),
+         "Write History to File",
+         true,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+
+   CONFIG_UINT(
+         settings->core.history_size,
+         "core_history_size",
+         "History Size",
+         core_history_size,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 1, MAX_HISTORY_SIZE, 1, true, true);
+
+   CONFIG_BOOL(
+         settings->core.history_show_always,
+         menu_hash_to_str(MENU_LABEL_HISTORY_SHOW_ALWAYS),
+         "Show History",
+         core_history_show_always,
+         menu_hash_to_str(MENU_VALUE_DEFAULT),
+         menu_hash_to_str(MENU_VALUE_ALWAYS),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+
+   if (core_loaded)
+   {
+      if (global->menu.info.library_name && *global->menu.info.library_name)
+         snprintf(erase_history_label, sizeof(erase_history_label),
+               "Erase History (%s)", global->menu.info.library_name);
+      else
+         strlcpy(erase_history_label, "Erase History (this core)",
+               sizeof(erase_history_label));
+
+      CONFIG_ACTION(
+            menu_hash_to_str(MENU_LABEL_HISTORY_ERASE),
+            erase_history_label,
+            group_info.name,
+            subgroup_info.name,
+            parent_group);
+      (*list)[list_info->index - 1].get_string_representation = 
+               &setting_get_string_representation_none;
+   }
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -9093,6 +9232,12 @@ rarch_setting_t *menu_setting_new(unsigned mask)
    if (mask & SL_FLAG_MENU_OPTIONS)
    {
       if (!setting_append_list_menu_options(&list, list_info, root))
+         goto error;
+   }
+
+   if (mask & SL_FLAG_HISTORY_OPTIONS)
+   {
+      if (!setting_append_list_history_options(&list, list_info, root))
          goto error;
    }
 

@@ -16,10 +16,12 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
   * Contact-area based input
 
 ### Control Notes
+* Android Launcher
+  * Long press a core to view its ROM history.
 * RGUI Menu
   * In Directory Settings, "Use Loaded ROM Path" will quickset a core-specific browser directory.
   * In Input Remapping, 'Select' displays the full keyboard mapping if a key is highlighted.
-  * Hold 'Start' to delete a highlighted core or shader preset.
+  * Hold 'Start' to delete a highlighted core, shader preset, or history entry.
   * 'L'/'R' sets any min/max value.
 * Touchscreen
   * On most overlays, tapping the screen center toggles the menu.

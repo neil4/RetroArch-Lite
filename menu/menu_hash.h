@@ -249,6 +249,7 @@ extern "C" {
 #define MENU_VALUE_FALSE                                                       0x0f6bcef0U
 #define MENU_VALUE_ALWAYS                                                      0xa76399d6U
 #define MENU_VALUE_AUTO                                                        0x7c82b53eU
+#define MENU_VALUE_DEFAULT                                                     0x693dbc6aU
 #define MENU_VALUE_COMP                                                        0x6a166ba5U
 #define MENU_VALUE_CORE                                                        0x6a167f7fU
 #define MENU_VALUE_CURSOR                                                      0x57bba8b4U
@@ -267,7 +268,10 @@ extern "C" {
 #define MENU_LABEL_VALUE_DETECT_CORE_LIST                                      0x69f11813U
 #define MENU_LABEL_DETECT_CORE_LIST_OK                                         0xabba2a7aU
 #define MENU_LABEL_LOAD_CONTENT                                                0x5745de1fU
+#define MENU_LABEL_CORE_HISTORY                                                0xcb268b7fU
+#define MENU_LABEL_CORE_HISTORY_ENTRY                                          0x03c2fbb0U
 #define MENU_LABEL_VALUE_LOAD_CONTENT                                          0x755f3680U
+#define MENU_LABEL_VALUE_CORE_HISTORY                                          0x17b87ee5U
 #define MENU_LABEL_VALUE_CORE_UPDATER_LIST                                     0x0372767dU
 #define MENU_LABEL_CORE_UPDATER_LIST                                           0xe12f4ee3U
 #define MENU_LABEL_DOWNLOADABLE_CORE                                           0x4d82fb99U
@@ -303,6 +307,7 @@ extern "C" {
 #define MENU_LABEL_DISK_CYCLE_TRAY_STATUS                                      0x3035cdc1U
 #define MENU_LABEL_VALUE_DISK_CYCLE_TRAY_STATUS                                0xf44928c4U
 #define MENU_LABEL_VALUE_NO_CORE_OPTIONS_AVAILABLE                             0xd064cbe6U
+#define MENU_LABEL_VALUE_NO_CORE_HISTORY_AVAILABLE                             0xcb51d0d1U
 #define MENU_LABEL_VALUE_DISK_INDEX                                            0xadbce4a8U
 #define MENU_LABEL_VALUE_DISK_IMAGE_APPEND                                     0x1cb28c6bU
 #define MENU_LABEL_DISK_INDEX                                                  0x6c14bf54U
@@ -331,6 +336,7 @@ extern "C" {
 #define MENU_LABEL_CONFIRM_CORE_DELETION                                       0x111b482eU
 #define MENU_LABEL_CONFIRM_SHADER_PRESET_DELETION                              0xd43a4c8eU
 #define MENU_LABEL_CONFIRM_FILE_DELETION                                       0xb957f4e5U
+#define MENU_LABEL_CONFIRM_HISTORY_ENTRY_REMOVAL                               0x7cbd2faaU
 #define MENU_LABEL_HELP                                                        0x7c97d2eeU
 #define MENU_LABEL_VALUE_HELP                                                  0x7c8646ceU
 #define MENU_LABEL_INPUT_OVERLAY                                               0x24e24796U
@@ -391,6 +397,10 @@ extern "C" {
 #define MENU_LABEL_CORE_UPDATER_SETTINGS                                       0x124ad454U
 #define MENU_LABEL_NETWORK_SETTINGS                                            0x8b50d180U
 #define MENU_LABEL_ARCHIVE_SETTINGS                                            0x78e85398U
+#define MENU_LABEL_HISTORY_SETTINGS                                            0xde663ee8U
+#define MENU_LABEL_HISTORY_ERASE                                               0x03c4dc6eU
+#define MENU_LABEL_HISTORY_SHOW_ALWAYS                                         0x3549f36fU
+#define MENU_LABEL_HISTORY_WRITE                                               0x050ab7a9U
 #define MENU_LABEL_USER_SETTINGS                                               0xcdc9a8f5U
 #define MENU_LABEL_INPUT_USER_1_BINDS                                          0x4d2b4e35U
 #define MENU_LABEL_INPUT_USER_2_BINDS                                          0x9a258af6U

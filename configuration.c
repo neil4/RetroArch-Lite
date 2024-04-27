@@ -96,6 +96,12 @@ static void config_populate_scoped_setting_list(void)
       settings->core.set_supports_no_game_enable, core_specific_scope);
    SCOPED_LIST_ADD_BOOL("core_option_categories",
       settings->core.option_categories, core_specific_scope);
+   SCOPED_LIST_ADD_BOOL("core_history_write",
+      settings->core.history_write, settings->core.history_scope);
+   SCOPED_LIST_ADD_BOOL("core_history_show_always",
+      settings->core.history_show_always, settings->core.history_scope);
+   SCOPED_LIST_ADD_UINT("core_history_size",
+      settings->core.history_size, settings->core.history_scope)
    SCOPED_LIST_ADD_BOOL("rewind_enable",
       settings->rewind_enable, core_specific_scope);
    SCOPED_LIST_ADD_UINT("rewind_buffer_size",
@@ -742,6 +748,7 @@ static void config_set_defaults(void)
    settings->menu.show_logging_menu            = show_logging_menu;
    settings->menu.show_hotkey_menu             = show_hotkey_menu;
    settings->menu.show_rewind_menu             = show_rewind_menu;
+   settings->menu.show_core_history_menu       = show_core_history_menu;
 #ifndef EXTERNAL_LAUNCHER
    settings->menu.show_core_updater            = show_core_updater;
 #endif
@@ -854,6 +861,9 @@ static void config_set_defaults(void)
 
    settings->core.set_supports_no_game_enable  = true;
    settings->core.option_categories            = true;
+   settings->core.history_show_always          = core_history_show_always;
+   settings->core.history_write                = true;
+   settings->core.history_size                 = core_history_size;
 
    video_viewport_reset_custom();
 
@@ -1522,6 +1532,8 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->menu.show_core_updater_menu);
    config_get_bool(conf, "show_font_menu",
          &settings->menu.show_font_menu);
+   config_get_bool(conf, "show_core_history_menu",
+         &settings->menu.show_core_history_menu);
    config_get_path(conf, "menu_theme_dir",
          settings->menu.theme_dir, PATH_MAX_LENGTH);
    if (!strcmp(settings->menu.theme_dir, "default"))
@@ -1599,6 +1611,13 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->core.set_supports_no_game_enable);
    config_get_bool(conf, "core_option_categories",
          &settings->core.option_categories);
+
+   config_get_bool(conf, "core_history_show_always",
+         &settings->core.history_show_always);
+   config_get_bool(conf, "core_history_write",
+         &settings->core.history_write);
+   config_get_uint(conf, "core_history_size",
+         &settings->core.history_size);
 
 #ifdef RARCH_CONSOLE
    /* TODO - will be refactored later to make it more clean - it's more
@@ -2642,6 +2661,8 @@ bool main_config_file_save(const char *path)
          settings->menu.show_core_updater_menu);
    config_set_bool(conf, "show_font_menu",
          settings->menu.show_font_menu);
+   config_set_bool(conf, "show_core_history_menu",
+         settings->menu.show_core_history_menu);
 
    config_set_string(conf, "core_updater_buildbot_url",
          settings->network.buildbot_url);
@@ -2895,6 +2916,16 @@ bool main_config_file_save(const char *path)
          settings->core.set_supports_no_game_enable);
       config_set_bool(conf, "core_option_categories",
          settings->core.option_categories);
+   }
+
+   if (settings->core.history_scope == GLOBAL)
+   {
+      config_set_bool(conf, "core_history_show_always",
+         settings->core.history_show_always);
+      config_set_bool(conf, "core_history_write",
+            settings->core.history_write);
+      config_set_int(conf, "core_history_size",
+            settings->core.history_size);
    }
 
    config_set_int(conf, "archive_mode",

@@ -25,8 +25,10 @@ import com.retroarch.browser.preferences.util.ConfigFile;
 import com.retroarch.browser.preferences.util.UserPreferences;
 import com.retroarchlite.R;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -54,6 +56,7 @@ public class DirectoryFragment extends DialogFragment
    
    public static ConfigFile mameListFile = null;
    private boolean showMameTitles;
+   private String fileListPath = null;
 
    public static final class BackStackItem implements Parcelable
    {
@@ -235,6 +238,11 @@ public class DirectoryFragment extends DialogFragment
       this.showMameTitles = showMameTitles;
    }
 
+   public void setFileListPath(String path)
+   {
+      this.fileListPath = path;
+   }
+
    @Override
    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
    {
@@ -290,7 +298,11 @@ public class DirectoryFragment extends DialogFragment
          mameListFile = new ConfigFile(mameListPath);
       }
 
-      wrapFiles();
+      if (fileListPath != null)
+         wrapFileList();
+      else
+         wrapFiles();
+
       return rootView;
    }
    
@@ -477,6 +489,34 @@ public class DirectoryFragment extends DialogFragment
          }
       });
       
+      // Update
+      adapter.notifyDataSetChanged();
+   }
+
+   protected void wrapFileList()
+   {
+      adapter.clear();
+
+      try
+      {
+         String item;
+         BufferedReader br = new BufferedReader(
+               new InputStreamReader(new FileInputStream(fileListPath)));
+
+         while ((item = br.readLine()) != null)
+         {
+            boolean showMameTitle = showMameTitles
+                  && (item.endsWith(".zip") || item.endsWith((".7z")));
+            adapter.add(new FileWrapper(new File(item), FileWrapper.FILE, true,
+                  showMameTitle ? mameListFile : null));
+         }
+         br.close();
+      }
+      catch (Exception e)
+      {
+         // TODO
+      }
+
       // Update
       adapter.notifyDataSetChanged();
    }

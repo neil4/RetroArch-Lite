@@ -1,0 +1,4 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/show_history"
+        android:title="@string/launcher_ctx_show_history"/>
+</menu>

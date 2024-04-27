@@ -29,6 +29,7 @@
 #include "../../retroarch.h"
 #include "../../runloop_data.h"
 #include "../../input/input_remapping.h"
+#include "../../core_history.h"
 
 extern unsigned input_remapping_scope;
 
@@ -1142,6 +1143,27 @@ static int action_ok_file_load(const char *path,
    return 0;
 }
 
+static int action_ok_history_file_load(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   global_t *global = global_get_ptr();
+
+   if (entry_idx >= global->history_size)
+      return 0;
+
+   if (!path_file_exists(global->history[entry_idx]))
+   {
+      rarch_main_msg_queue_push("File does not exist.", 1, 180, true);
+      return 0;
+   }
+
+   strlcpy(global->fullpath, global->history[entry_idx],
+         sizeof(global->fullpath));
+   menu_common_load_content(true);
+
+   return -1;
+}
+
 static int action_ok_set_path(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
@@ -1336,6 +1358,40 @@ static int action_ok_video_resolution(const char *path,
    return 0;
 }
 
+static int action_ok_core_history_erase(const char *path,
+      const char *label, unsigned type, size_t idx, size_t entry_idx)
+{
+   char name[NAME_MAX_LENGTH];
+   char msg[NAME_MAX_LENGTH];
+   global_t *global = global_get_ptr();
+   const char *msg_disp;
+   bool success;
+
+   /* Require second press to confirm */
+   snprintf(msg, NAME_MAX_LENGTH, "Press again to erase history...");
+   msg_disp = rarch_main_msg_queue_pull();
+
+   if (msg_disp && !strcmp(msg_disp, msg))
+      success = core_history_erase();
+   else
+      goto finish;
+
+   /* Inform user */
+   if (global->menu.info.library_name && *global->menu.info.library_name)
+      strlcpy(name, global->menu.info.library_name, sizeof(name));
+   else
+      strlcpy(name, "core", sizeof(name));
+
+   if (success)
+      snprintf(msg, NAME_MAX_LENGTH, "Erased %s history.", name);
+   else
+      snprintf(msg, NAME_MAX_LENGTH, "Failed to erase %s history.", name);
+
+finish:
+   rarch_main_msg_queue_push(msg, 1, 120, true);
+   return 0;
+}
+
 static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       const char *label, uint32_t hash)
 {
@@ -1406,6 +1462,7 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_PERFORMANCE_COUNTERS:
       case MENU_LABEL_FRONTEND_COUNTERS:
       case MENU_LABEL_CORE_COUNTERS:
+      case MENU_LABEL_CORE_HISTORY:
          cbs->action_ok = action_ok_push_default;
          break;
       case MENU_LABEL_CORE_OPTION_CATEGORY:
@@ -1450,6 +1507,12 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_MENU_VISIBILITIES:
          cbs->action_ok = action_ok_menu_visibilities;
+         break;
+      case MENU_LABEL_CORE_HISTORY_ENTRY:
+         cbs->action_ok = action_ok_history_file_load;
+         break;
+      case MENU_LABEL_HISTORY_ERASE:
+         cbs->action_ok = action_ok_core_history_erase;
          break;
       default:
          return -1;

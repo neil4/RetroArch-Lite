@@ -101,6 +101,19 @@ static int action_get_title_core_info_directory(const char *path, const char *la
    return 0;
 }
 
+static int action_get_title_core_history(const char *path, const char *label,
+      unsigned menu_type, char *s, size_t len)
+{
+   global_t *global = global_get_ptr();
+
+   if (global->menu.info.library_name && *global->menu.info.library_name)
+      snprintf(s, len, "HISTORY (%s)", global->menu.info.library_name);
+   else
+      strlcpy(s, "HISTORY", len);
+
+   return 0;
+}
+
 static int action_get_title_audio_filter(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
@@ -353,6 +366,7 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_CONFIRM_CORE_DELETION:
       case MENU_LABEL_CONFIRM_SHADER_PRESET_DELETION:
       case MENU_LABEL_CONFIRM_FILE_DELETION:
+      case MENU_LABEL_CONFIRM_HISTORY_ENTRY_REMOVAL:
       case MENU_LABEL_SETTINGS:
       case MENU_LABEL_INPUT_SETTINGS:
       case MENU_LABEL_FRONTEND_COUNTERS:
@@ -398,6 +412,9 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_LIBRETRO_INFO_PATH:
          cbs->action_get_title = action_get_title_core_info_directory;
+         break;
+      case MENU_LABEL_CORE_HISTORY:
+         cbs->action_get_title = action_get_title_core_history;
          break;
       default:
          return -1;

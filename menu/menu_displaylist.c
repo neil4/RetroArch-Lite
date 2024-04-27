@@ -38,6 +38,7 @@
 #include "../input/input_remapping.h"
 #include "../input/input_keymaps.h"
 #include "../input/input_joypad_to_keyboard.h"
+#include "../core_history.h"
 
 #ifdef HAVE_NETWORKING
 extern char *core_buf;
@@ -1017,6 +1018,29 @@ static void menu_displaylist_push_core_options(menu_displaylist_info_t *info)
             "", MENU_SETTINGS_CORE_OPTION_NONE, 0, 0);
 }
 
+static void menu_displaylist_push_core_history(menu_displaylist_info_t *info)
+{
+   settings_t *settings = config_get_ptr();
+   global_t *global     = global_get_ptr();
+   size_t i, size;
+
+   core_history_refresh();
+
+   /* Create menu list */
+   size = min(global->history_size, settings->core.history_size);
+   for (i = 0; i < size; i++)
+   {
+      menu_list_push(info->list, path_basename(global->history[i]),
+            menu_hash_to_str(MENU_LABEL_CORE_HISTORY_ENTRY),
+            MENU_FILE_PLAIN, 0, i);
+   }
+
+   if (info->list->size == 0)
+      menu_list_push(info->list,
+            menu_hash_to_str(MENU_LABEL_VALUE_NO_CORE_HISTORY_AVAILABLE),
+            "", MENU_SETTINGS_CORE_HISTORY_NONE, 0, 0);
+}
+
 static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *info)
 {
    unsigned p, retro_id;
@@ -1557,6 +1581,11 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
       case DISPLAYLIST_CORE_OPTIONS_CATEGORY:
          menu_list_clear(info->list);
          menu_displaylist_push_core_options(info);
+         need_push = true;
+         break;
+      case DISPLAYLIST_CORE_HISTORY:
+         menu_list_clear(info->list);
+         menu_displaylist_push_core_history(info);
          need_push = true;
          break;
       case DISPLAYLIST_DEFAULT:
