@@ -215,11 +215,11 @@ static float input_overlay_auto_aspect(struct overlay *ol)
  */
 static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
 {
-   unsigned disp_width, disp_height;
+   struct input_struct *input = &config_get_ptr()->input;
    float disp_aspect, ol_aspect, bisect_aspect, max_bisect, bisect_w;
-   settings_t* settings = config_get_ptr();
+   unsigned disp_width, disp_height;
    
-   /* initialize AR mod vals to defaults */
+   /* Initialize AR mod vals to defaults */
    ol_ar_mod.w              = 1.0f;
    ol_ar_mod.x_center_shift = 0.0f;
    ol_ar_mod.x_bisect_shift = 0.0f;
@@ -229,17 +229,17 @@ static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
    video_driver_get_size(&disp_width, &disp_height);
    disp_aspect = (float)disp_width / disp_height;
 
-   if (settings->input.overlay_aspect_ratio_index
+   if (input->overlay_aspect_ratio_index
          == OVERLAY_ASPECT_RATIO_AUTO_FREE)
       ol_aspect = input_overlay_auto_aspect(ol);
-   else if (settings->input.overlay_aspect_ratio_index
+   else if (input->overlay_aspect_ratio_index
          >= OVERLAY_ASPECT_RATIO_AUTO_CONFIG)
       ol_aspect = ol->config.aspect_ratio > 0
             ? ol->config.aspect_ratio
             : input_overlay_auto_aspect(ol);
    else
       ol_aspect = overlay_aspectratio_lut[
-            settings->input.overlay_aspect_ratio_index].value;
+            input->overlay_aspect_ratio_index].value;
 
    if (disp_aspect > ol_aspect * 1.001f)
    {
@@ -252,12 +252,12 @@ static void input_overlay_update_aspect_ratio_vals(struct overlay *ol)
       ol_ar_mod.y_center_shift = (1.0f - ol_ar_mod.h) / 2.0f;
    }
 
-   /* adjust for scale to keep bisect aspect setting relative to display */
-   bisect_aspect = settings->input.overlay_bisect_aspect_ratio
-         / settings->input.overlay_scale;
-   max_bisect = disp_aspect / settings->input.overlay_scale;
-   bisect_aspect = (bisect_aspect >= OVERLAY_MAX_BISECT) ?
-         max_bisect : min(bisect_aspect, max_bisect);
+   /* Adjust for scale to keep bisect aspect setting relative to display */
+   bisect_aspect = input->overlay_bisect_aspect_ratio / input->overlay_scale;
+   max_bisect = disp_aspect / input->overlay_scale;
+   bisect_aspect = (input->overlay_bisect_aspect_ratio >= OVERLAY_MAX_BISECT)
+         ? max_bisect
+         : min(bisect_aspect, max_bisect);
    if (bisect_aspect > ol_aspect * ol_ar_mod.h)
    {
       bisect_w = bisect_aspect / disp_aspect;
