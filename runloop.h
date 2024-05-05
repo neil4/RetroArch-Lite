@@ -155,7 +155,6 @@ typedef struct global
       unsigned windowed_scale;
    } pending;
 
-
    struct
    {
       struct retro_system_info info;
@@ -316,6 +315,7 @@ typedef struct global
    
    unsigned max_scope;
    bool keyboard_focus;
+   bool grab_mouse_state;
 
    retro_keyboard_event_t frontend_key_event;
 } global_t;

@@ -933,6 +933,7 @@ bool event_command(enum event_command cmd)
 
             if (menu_driver_alive())
                event_command(EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
+            global->grab_mouse_state = false;
          }
          break;
       case EVENT_CMD_CHEATS_DEINIT:
@@ -1512,19 +1513,18 @@ bool event_command(enum event_command cmd)
          break;
       case EVENT_CMD_GRAB_MOUSE_TOGGLE:
          {
-            static bool grab_mouse_state  = false;
+            bool *state = &global->grab_mouse_state;
+            *state      = !*state;
 
-            grab_mouse_state = !grab_mouse_state;
-
-            if (!driver->input || !input_driver_grab_mouse(grab_mouse_state))
+            if (!driver->input || !input_driver_grab_mouse(*state))
                return false;
 
             RARCH_LOG("Grab mouse state: %s.\n",
-                  grab_mouse_state ? "yes" : "no");
+                  *state ? "yes" : "no");
 
-            if (grab_mouse_state)
+            if (*state)
                video_driver_show_mouse(false);
-            else if (!settings->video.fullscreen)
+            else if (!settings->video.fullscreen || driver->overlay)
                video_driver_show_mouse(true);
          }
          break;
