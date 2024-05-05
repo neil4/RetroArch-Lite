@@ -6786,58 +6786,24 @@ static bool setting_append_list_overlay_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
-   CONFIG_BOOL(
-         settings->input.overlay_adjust_aspect,
-         "input_overlay_adjust_aspect",
-         "Adjust Aspect Ratio",
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_UINT(
-         settings->input.overlay_aspect_ratio_index,
-         menu_hash_to_str(MENU_LABEL_OVERLAY_ASPECT_RATIO_INDEX),
-         "  Assumed Overlay Aspect",
-         OVERLAY_ASPECT_RATIO_AUTO_CONFIG,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(
-         list, list_info, 0, OVERLAY_ASPECT_RATIO_AUTO_FREE, 1, true, true);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
-   (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_uint_overlay_aspect_ratio_index;
-
    CONFIG_FLOAT(
-         settings->input.overlay_bisect_aspect_ratio,
-         menu_hash_to_str(MENU_LABEL_OVERLAY_BISECT_TO_ASPECT),
-         settings->menu.show_advanced_settings ?
-         "  Bisect to Aspect" : "Bisect to Aspect Ratio",
-         overlay_bisect_aspect_ratio,
+         settings->input.overlay_opacity,
+         menu_hash_to_str(MENU_LABEL_OVERLAY_OPACITY),
+         menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_OPACITY),
+         overlay_opacity,
          "%.2f",
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0.5f, OVERLAY_MAX_BISECT, 0.01, true, true);
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
-   (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_overlay_bisect;
+   menu_settings_list_current_add_range(list, list_info, 0, 1, 0.01, true, true);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_SET_ALPHA);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
 
    CONFIG_UINT(
-         settings->input.overlay_aspect_scope,
-         "input_overlay_aspect_scope",
+         settings->input.overlay_opacity_scope,
+         "input_overlay_opacity_scope",
          "  Scope",
          GLOBAL,
          group_info.name,
@@ -6911,6 +6877,70 @@ static bool setting_append_list_overlay_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 
+   CONFIG_BOOL(
+         settings->input.overlay_adjust_aspect,
+         "input_overlay_adjust_aspect",
+         "Adjust Aspect Ratio",
+         true,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+   CONFIG_UINT(
+         settings->input.overlay_aspect_ratio_index,
+         menu_hash_to_str(MENU_LABEL_OVERLAY_ASPECT_RATIO_INDEX),
+         "  Assumed Overlay Aspect",
+         OVERLAY_ASPECT_RATIO_AUTO_CONFIG,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, OVERLAY_ASPECT_RATIO_AUTO_FREE, 1, true, true);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_overlay_aspect_ratio_index;
+
+   CONFIG_FLOAT(
+         settings->input.overlay_bisect_aspect_ratio,
+         menu_hash_to_str(MENU_LABEL_OVERLAY_BISECT_TO_ASPECT),
+         settings->menu.show_advanced_settings ?
+         "  Bisect to Aspect" : "Bisect to Aspect Ratio",
+         overlay_bisect_aspect_ratio,
+         "%.2f",
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0.5f, OVERLAY_MAX_BISECT, 0.01, true, true);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_overlay_bisect;
+
+   CONFIG_UINT(
+         settings->input.overlay_aspect_scope,
+         "input_overlay_aspect_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+      &setting_get_string_representation_uint_scope_index;
+
    CONFIG_UINT(
          settings->input.overlay_dpad_method,
          menu_hash_to_str(MENU_LABEL_OVERLAY_DPAD_EIGHTWAY_METHOD),
@@ -6927,7 +6957,7 @@ static bool setting_append_list_overlay_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_touch_method;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   
+
    CONFIG_UINT(
          settings->input.overlay_dpad_diag_sens,
          menu_hash_to_str(MENU_LABEL_OVERLAY_DPAD_DIAGONAL_SENS),
@@ -6946,7 +6976,7 @@ static bool setting_append_list_overlay_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_percentage;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_IS_DEFERRED);
-   
+
    CONFIG_UINT(
          settings->input.overlay_abxy_method,
          menu_hash_to_str(MENU_LABEL_OVERLAY_ABXY_EIGHTWAY_METHOD),
@@ -6963,7 +6993,7 @@ static bool setting_append_list_overlay_options(
    (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_touch_method;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   
+
    CONFIG_UINT(
          settings->input.overlay_abxy_diag_sens,
          menu_hash_to_str(MENU_LABEL_OVERLAY_ABXY_DIAGONAL_SENS),
@@ -6982,7 +7012,7 @@ static bool setting_append_list_overlay_options(
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_percentage;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
-   
+
    CONFIG_UINT(
          settings->input.overlay_dpad_abxy_config_scope,
          "input_overlay_dpad_abxy_config_scope",
@@ -6997,7 +7027,7 @@ static bool setting_append_list_overlay_options(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
-   
+
    CONFIG_FLOAT(
          settings->input.touch_ellipse_magnify,
          "input_touch_ellipse_magnify",
@@ -7011,36 +7041,6 @@ static bool setting_append_list_overlay_options(
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.1f, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_FLOAT(
-         settings->input.overlay_opacity,
-         menu_hash_to_str(MENU_LABEL_OVERLAY_OPACITY),
-         menu_hash_to_str(MENU_LABEL_VALUE_OVERLAY_OPACITY),
-         overlay_opacity,
-         "%.2f",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 1, 0.01, true, true);
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_SET_ALPHA);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
-
-   CONFIG_UINT(
-         settings->input.overlay_opacity_scope,
-         "input_overlay_opacity_scope",
-         "  Scope",
-         GLOBAL,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(
-         list, list_info, 0, global->max_scope, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index;
 
    if (driver->input && driver->input->overlay_haptic_feedback)
    {

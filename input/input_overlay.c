@@ -1241,11 +1241,11 @@ error:
 /**
  * input_overlay_connect_lightgun
  * @param ol            : overlay handle
- * 
- * If overlay#_lightgun is true (in the .cfg file) for the active overlay,
- * connects overlay's input to the first lightgun device selected in Input
- * Settings, or the first found in the core if none is selected.
- * Then sets autotrigger if no trigger descriptor found.
+ *
+ * If no lightgun device is selected, connects/disconnects the first one
+ * found in the core if the active overlay is/isn't a lightgun.
+ *
+ * Sets autotrigger if the active overlay has no trigger button.
  */
 static void input_overlay_connect_lightgun(input_overlay_t *ol)
 {
