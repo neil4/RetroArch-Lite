@@ -256,6 +256,7 @@ public class DirectoryFragment extends DialogFragment
          isDirectoryTarget = savedInstanceState.getBoolean("DIRTARGET");
          pathSettingKey = savedInstanceState.getString("PATHSETTINGKEY");
          allowedExt = savedInstanceState.getStringArrayList("EXTS");
+         fileListPath = savedInstanceState.getString("PATHLIST");
       }
 
       // Set the dialog title.
@@ -369,6 +370,7 @@ public class DirectoryFragment extends DialogFragment
       outState.putBoolean("DIRTARGET", isDirectoryTarget);
       outState.putStringArrayList("EXTS", allowedExt);
       outState.putString("PATHSETTINGKEY", pathSettingKey);
+      outState.putString("PATHLIST", fileListPath);
    }
 
    private void finishWithPath(String path)

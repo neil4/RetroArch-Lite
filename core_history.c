@@ -319,6 +319,5 @@ void core_history_deinit()
 
    if (settings->core.history_write)
       core_history_write();
-   else
-      core_history_free();
+   core_history_free();
 }
