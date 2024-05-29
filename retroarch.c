@@ -1323,9 +1323,6 @@ void rarch_main_set_state(unsigned cmd)
             /* Stop all rumbling before entering the menu. */
             event_command(EVENT_CMD_RUMBLE_STOP);
 
-            if (settings->menu.pause_libretro)
-               event_command(EVENT_CMD_AUDIO_STOP);
-
             /* Override keyboard callback to redirect to menu instead.
              * We'll use this later for something ...
              * FIXME: This should probably be moved to menu_common somehow. */
