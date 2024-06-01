@@ -396,12 +396,12 @@ public final class DownloadableCoresFragment extends ListFragment
 
             // Set up the streams
             final int fileLen = connection.getContentLength();
-            is = new BufferedInputStream(connection.getInputStream(), 8192);
+            is = new BufferedInputStream(connection.getInputStream(), 65536);
             os = new FileOutputStream(destFile);
 
             // Download and write to storage.
             long downloaded = 0;
-            byte[] buffer = new byte[8192];
+            byte[] buffer = new byte[65536];
             int bufLen;
             while ((bufLen = is.read(buffer)) != -1)
             {
@@ -535,7 +535,7 @@ public final class DownloadableCoresFragment extends ListFragment
          ZipInputStream zis = null;
          ZipEntry entry;
          File file;
-         byte[] buffer = new byte[8192];
+         byte[] buffer = new byte[65536];
          long zipLen = zipFile.length();
          int readLen;
 

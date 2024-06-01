@@ -475,7 +475,7 @@ public final class InstalledCoresFragment extends ListFragment
             fos = new FileOutputStream(zipPath);
             zos = new ZipOutputStream(fos);
             entry = new ZipEntry(libFile.getName());
-            byte[] buffer = new byte[8192];
+            byte[] buffer = new byte[65536];
 
             zos.putNextEntry(entry);
             while((chunkLen = fis.read(buffer)) >= 0)
