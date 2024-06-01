@@ -937,6 +937,7 @@ static int action_ok_path_use_directory(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    settings_touched = true;
+   scoped_settings_touched = true;
    return menu_entry_pathdir_set_value(0, NULL);
 }
 

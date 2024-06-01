@@ -1319,7 +1319,7 @@ static int setting_action_ok_quickset_core_content_directory(void *data, bool wr
    strlcpy(settings->core_content_directory, global->fullpath, PATH_MAX_LENGTH);
    path_basedir(settings->core_content_directory);
 
-   settings_touched = true;   
+   scoped_settings_touched = true;
    return 0;
 }
 
