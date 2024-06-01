@@ -6572,40 +6572,44 @@ static bool setting_append_list_input_options(
             general_read_handler);
       menu_settings_list_current_add_range(list, list_info,
             ANALOG_DPAD_NONE, ANALOG_DPAD_LAST - 1, 1, true, true);
+      menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
       (*list)[list_info->index - 1].get_string_representation =
             &setting_get_string_representation_uint_analog_dpad_mode;
 
-      CONFIG_UINT(
-            settings->input.analog_diagonal_sensitivity,
-            menu_hash_to_str(MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS),
-            "  Diagonal Sensitivity",
-            analog_diagonal_sensitivity,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
-      menu_settings_list_current_add_cmd(list, list_info,
-            EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS);
-      (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_uint_percentage;
+      if (settings->input.analog_dpad_mode != ANALOG_DPAD_NONE)
+      {
+         CONFIG_UINT(
+               settings->input.analog_diagonal_sensitivity,
+               menu_hash_to_str(MENU_LABEL_INPUT_ANALOG_DPAD_DIAGONAL_SENS),
+               "  Diagonal Sensitivity",
+               analog_diagonal_sensitivity,
+               group_info.name,
+               subgroup_info.name,
+               parent_group,
+               general_write_handler,
+               general_read_handler);
+         menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
+         menu_settings_list_current_add_cmd(list, list_info,
+               EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS);
+         (*list)[list_info->index - 1].get_string_representation = 
+            &setting_get_string_representation_uint_percentage;
 
-      CONFIG_UINT(
-            settings->input.analog_dpad_deadzone,
-            "input_analog_dpad_deadzone",
-            "  Deadzone",
-            analog_dpad_deadzone,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 1, 100, 1, true, true);
-      menu_settings_list_current_add_cmd(list, list_info,
-            EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS);
-      (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_uint_percentage;
+         CONFIG_UINT(
+               settings->input.analog_dpad_deadzone,
+               "input_analog_dpad_deadzone",
+               "  Deadzone",
+               analog_dpad_deadzone,
+               group_info.name,
+               subgroup_info.name,
+               parent_group,
+               general_write_handler,
+               general_read_handler);
+         menu_settings_list_current_add_range(list, list_info, 1, 100, 1, true, true);
+         menu_settings_list_current_add_cmd(list, list_info,
+               EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS);
+         (*list)[list_info->index - 1].get_string_representation = 
+            &setting_get_string_representation_uint_percentage;
+      }
 
       CONFIG_UINT(
             settings->input.analog_dpad_scope,
@@ -8206,12 +8210,12 @@ static bool setting_append_list_history_options(
       &setting_get_string_representation_uint_scope_index;
 
    CONFIG_BOOL(
-         settings->core.history_write,
-         menu_hash_to_str(MENU_LABEL_HISTORY_WRITE),
-         "Write History to File",
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
+         settings->core.history_show_always,
+         menu_hash_to_str(MENU_LABEL_HISTORY_SHOW_ALWAYS),
+         "Show History",
+         core_history_show_always,
+         menu_hash_to_str(MENU_VALUE_DEFAULT),
+         menu_hash_to_str(MENU_VALUE_ALWAYS),
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -8232,12 +8236,12 @@ static bool setting_append_list_history_options(
          list, list_info, 1, MAX_HISTORY_SIZE, 1, true, true);
 
    CONFIG_BOOL(
-         settings->core.history_show_always,
-         menu_hash_to_str(MENU_LABEL_HISTORY_SHOW_ALWAYS),
-         "Show History",
-         core_history_show_always,
-         menu_hash_to_str(MENU_VALUE_DEFAULT),
-         menu_hash_to_str(MENU_VALUE_ALWAYS),
+         settings->core.history_write,
+         menu_hash_to_str(MENU_LABEL_HISTORY_WRITE),
+         "Write History to File",
+         true,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,
          subgroup_info.name,
          parent_group,
