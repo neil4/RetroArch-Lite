@@ -33,10 +33,10 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    private final String description;
    private int firmwareCount = 0;
    private final String firmwares;
-   private String coreTitle;
-   private String systemTitle;
-   private String titleText;
-   private String subText;
+   private final String coreTitle;
+   private final String systemTitle;
+   private final String titleText;
+   private final String subText;
 
    /**
     * Constructor
@@ -399,6 +399,8 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    {
       int i = displayName.indexOf(" (") + 2;
       int j = displayName.lastIndexOf(')');
+      if (i < 2 || coreName == null)
+         return displayName;
       if (i > 2 && j > i && j-i > coreName.length())
          return displayName.substring(i, j);
       return coreName;
@@ -409,7 +411,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
       int i = displayName.indexOf(" (");
       if (i > 1)
          return displayName.substring(0, i);
-      if (!systemName.isEmpty())
+      if (systemName != null && !systemName.isEmpty())
          return systemName;
       return displayName;
    }
