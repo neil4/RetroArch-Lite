@@ -331,7 +331,7 @@ static void frontend_win32_get_environment_settings(int *argc, char *argv[],
       void *args, void *params_data)
 {
    HMODULE hModule = GetModuleHandleW(NULL);
-   WCHAR exe_path[PATH_MAX_LENGTH];
+   WCHAR *exe_path = (WCHAR*)malloc(PATH_MAX_LENGTH * sizeof(WCHAR));
    char exe_dir[PATH_MAX_LENGTH];
    
    GetModuleFileNameW(hModule, exe_path, PATH_MAX_LENGTH);
@@ -364,6 +364,8 @@ static void frontend_win32_get_environment_settings(int *argc, char *argv[],
                       sizeof(g_defaults.audio_filter_dir));
    fill_pathname_join(g_defaults.cheats_dir, exe_dir, "cheats",
                       sizeof(g_defaults.cheats_dir));
+
+   free(exe_path);
 }
 
 static void frontend_win32_attach_console(void)

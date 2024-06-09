@@ -1911,10 +1911,11 @@ static bool config_load_file(const char *path, bool set_defaults)
 
    config_get_path(conf, "rgui_config_directory",
          settings->menu_config_directory, PATH_MAX_LENGTH);
-   if (!strcmp(settings->menu_config_directory, "default"))
+   if (!*settings->menu_config_directory ||
+         !strcmp(settings->menu_config_directory, "default"))
    {
       fill_pathname_join(settings->menu_config_directory,
-            path_default_dotslash(), "config", PATH_MAX_LENGTH);
+            ".", "config", PATH_MAX_LENGTH);
       RARCH_WARN("rgui_config_directory is not set in config. "
             "Assuming relative directory: \"%s\".\n",
             settings->menu_config_directory);
@@ -2132,9 +2133,10 @@ static bool config_load_file(const char *path, bool set_defaults)
          RARCH_WARN("savestate_directory is not a directory, ignoring ...\n");
    }
 
-   if (!config_get_path(conf, "system_directory",
-            settings->system_directory, PATH_MAX_LENGTH)
-       || !strcmp(settings->system_directory, "default"))
+   config_get_path(conf, "system_directory",
+         settings->system_directory, PATH_MAX_LENGTH);
+   if (!*settings->system_directory ||
+         !strcmp(settings->system_directory, "default"))
    {
       fill_pathname_join(settings->system_directory,
             ".", "system", PATH_MAX_LENGTH);

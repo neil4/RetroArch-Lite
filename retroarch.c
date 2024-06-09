@@ -349,11 +349,9 @@ void set_paths_redirect(void)
       /* per-core saves: append the libretro_name to the save location */
       if (settings->sort_savefiles_enable)
       {
-         fill_pathname_dir(
-               global->core_savefile_dir,
-               global->libretro_name,
-               "",
-               sizeof(global->core_savefile_dir));
+         fill_pathname_slash(global->core_savefile_dir, PATH_MAX_LENGTH);
+         strlcat(global->core_savefile_dir,
+               global->libretro_name, PATH_MAX_LENGTH);
 
          /* if path doesn't exist, try to create it.
           * If everything fails revert to the original path. */
@@ -367,11 +365,9 @@ void set_paths_redirect(void)
       /* per-core states: append the libretro_name to the save location */
       if (settings->sort_savestates_enable)
       {
-         fill_pathname_dir(
-               global->core_savestate_dir,
-               global->libretro_name,
-               "",
-               sizeof(global->core_savestate_dir));
+         fill_pathname_slash(global->core_savestate_dir, PATH_MAX_LENGTH);
+         strlcat(global->core_savestate_dir,
+               global->libretro_name, PATH_MAX_LENGTH);
 
          /* If path doesn't exist, try to create it.
           * If everything fails, revert to the original path. */
