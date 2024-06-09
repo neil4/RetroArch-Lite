@@ -4588,12 +4588,27 @@ static bool setting_append_list_core_options(
          general_write_handler,
          general_read_handler);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_on_off_core_specific; 
+         &setting_get_string_representation_on_off_core_specific;
+
+   CONFIG_BOOL(
+         settings->core.start_without_content,
+         "core_start_without_content",
+         "Start without Content",
+         false,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_on_off_core_specific;
 
    CONFIG_BOOL(
          settings->load_dummy_on_core_shutdown,
          menu_hash_to_str(MENU_LABEL_DUMMY_ON_CORE_SHUTDOWN),
-         "Dummy On Core Shutdown",
+         "Dummy on Core Shutdown",
          load_dummy_on_core_shutdown,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -4603,22 +4618,7 @@ static bool setting_append_list_core_options(
          general_write_handler,
          general_read_handler);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_on_off_core_specific; 
-
-   CONFIG_BOOL(
-         settings->core.set_supports_no_game_enable,
-         "core_set_supports_no_game_enable",
-         "Supports No Content Enable",
-         true,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_on_off_core_specific;
+         &setting_get_string_representation_on_off_core_specific;
 
    CONFIG_BOOL(
          settings->core.option_categories,
@@ -4633,7 +4633,7 @@ static bool setting_append_list_core_options(
          general_write_handler,
          general_read_handler);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_on_off_core_specific; 
+         &setting_get_string_representation_on_off_core_specific;
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -5028,7 +5028,7 @@ static bool setting_append_list_rewind_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_REWIND_TOGGLE);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_on_off_core_specific; 
+         &setting_get_string_representation_on_off_core_specific;
 
    CONFIG_UINT(
          settings->rewind_buffer_size,

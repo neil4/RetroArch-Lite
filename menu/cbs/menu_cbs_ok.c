@@ -982,13 +982,19 @@ static int action_ok_core_load(const char *path,
          sizeof(settings->libretro));
    event_command(EVENT_CMD_LOAD_CORE);
    menu_list_flush_stack(menu_list, NULL, MENU_SETTINGS);
-#if defined(HAVE_DYNAMIC)
-   if (menu->load_no_content && settings->core.set_supports_no_game_enable)
-   {  /* No content needed for this core, load core immediately. */
-      *global->fullpath = '\0';
 
-      menu_common_load_content(false);
-      return -1;
+#if defined(HAVE_DYNAMIC)
+   if (menu->load_no_content)
+   {
+      bool has_valid_exts = global->menu.info.valid_extensions &&
+         *global->menu.info.valid_extensions;
+
+      if (settings->core.start_without_content || !has_valid_exts)
+      {
+         *global->fullpath = '\0';
+         menu_common_load_content(false);
+         return -1;
+      }
    }
 
    return 0;

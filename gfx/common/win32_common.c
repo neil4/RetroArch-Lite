@@ -182,9 +182,13 @@ LRESULT win32_menu_loop(HWND owner, WPARAM wparam)
    {
       event_command(cmd);
 
-      if (cmd == EVENT_CMD_LOAD_CORE
-            && settings->core.set_supports_no_game_enable)
-         menu_common_load_content(false);
+      if (cmd == EVENT_CMD_LOAD_CORE)
+      {
+         bool has_valid_exts = global->menu.info.valid_extensions &&
+               *global->menu.info.valid_extensions;
+         if (settings->core.start_without_content || !has_valid_exts)
+            menu_common_load_content(false);
+      }
 
       event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
    }

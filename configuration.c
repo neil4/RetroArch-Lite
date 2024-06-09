@@ -92,8 +92,8 @@ static void config_populate_scoped_setting_list(void)
       settings->video.shared_context, core_specific_scope);
    SCOPED_LIST_ADD_BOOL("load_dummy_on_core_shutdown",
       settings->load_dummy_on_core_shutdown, core_specific_scope);
-   SCOPED_LIST_ADD_BOOL("core_set_supports_no_game_enable",
-      settings->core.set_supports_no_game_enable, core_specific_scope);
+   SCOPED_LIST_ADD_BOOL("core_start_without_content",
+      settings->core.start_without_content, core_specific_scope);
    SCOPED_LIST_ADD_BOOL("core_option_categories",
       settings->core.option_categories, core_specific_scope);
    SCOPED_LIST_ADD_BOOL("core_history_write",
@@ -859,7 +859,7 @@ static void config_set_defaults(void)
    settings->input.analog_diagonal_sensitivity = analog_diagonal_sensitivity;
    settings->input.analog_dpad_deadzone        = analog_dpad_deadzone;
 
-   settings->core.set_supports_no_game_enable  = true;
+   settings->core.start_without_content        = false;
    settings->core.option_categories            = true;
    settings->core.history_show_always          = core_history_show_always;
    settings->core.history_write                = true;
@@ -1607,8 +1607,8 @@ static bool config_load_file(const char *path, bool set_defaults)
    config_get_bool(conf, "video_force_srgb_disable",
          &settings->video.force_srgb_disable);
 
-   config_get_bool(conf, "core_set_supports_no_game_enable",
-         &settings->core.set_supports_no_game_enable);
+   config_get_bool(conf, "core_start_without_content",
+         &settings->core.start_without_content);
    config_get_bool(conf, "core_option_categories",
          &settings->core.option_categories);
 
@@ -2914,8 +2914,8 @@ bool main_config_file_save(const char *path)
 
    if (!*settings->libretro)
    {
-      config_set_bool(conf, "core_set_supports_no_game_enable",
-         settings->core.set_supports_no_game_enable);
+      config_set_bool(conf, "core_start_without_content",
+         settings->core.start_without_content);
       config_set_bool(conf, "core_option_categories",
          settings->core.option_categories);
    }

@@ -366,7 +366,7 @@ typedef struct settings
 
    struct
    {
-      bool set_supports_no_game_enable;
+      bool start_without_content;
       bool option_categories;
       bool history_write;
       bool history_show_always;
