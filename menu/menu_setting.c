@@ -6724,14 +6724,19 @@ static bool setting_append_list_overlay_options(
    global_t   *global   = global_get_ptr();
    driver_t   *driver   = driver_get_ptr();
    input_overlay_t *ol  = driver->overlay;
+   struct retro_keybind *osk_bind =
+         &settings->input.binds[0][RARCH_OSK];
 
-   bool auto_show_osk      = (ol && ol->has_osk_key) || !ol;
-   bool auto_show_mouse    =  ol && ol->has_osk_key;
+   bool osk_hotkey_bound   =
+         osk_bind->key != RETROK_UNKNOWN ||
+         osk_bind->joykey != NO_BTN ||
+         osk_bind->joyaxis != AXIS_NONE;
+   bool auto_show_osk      = (ol && ol->has_osk_key) || osk_hotkey_bound;
    bool auto_show_lightgun =  ol && ol->has_lightgun;
 
    bool show_osk_settings = auto_show_osk
          || settings->menu.show_osk_menu;
-   bool show_mouse_settings = auto_show_mouse
+   bool show_mouse_settings = auto_show_osk
          || settings->menu.show_overlay_mouse_menu;
    bool show_lightgun_settings = auto_show_lightgun
          || settings->menu.show_overlay_lightgun_menu;
@@ -6759,7 +6764,7 @@ static bool setting_append_list_overlay_options(
    (*list)[list_info->index - 1].action_start = &setting_action_start_path;
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_LOAD);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
-   
+
    CONFIG_FLOAT(
          settings->input.overlay_scale,
          menu_hash_to_str(MENU_LABEL_OVERLAY_SCALE),
