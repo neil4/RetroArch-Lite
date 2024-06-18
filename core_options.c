@@ -557,9 +557,6 @@ finish:
          return;
    }
 
-   path_basedir(path);
-   path_mkdir(path);
-
    core_options_touched = false;
 }
 

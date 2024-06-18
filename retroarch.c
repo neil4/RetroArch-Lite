@@ -35,6 +35,7 @@
 #include <compat/getopt.h>
 #include <compat/posix_string.h>
 #include <file/file_path.h>
+#include <string/stdstring.h>
 
 #include <rhash.h>
 
@@ -313,40 +314,53 @@ void set_paths_redirect(void)
          ? djb2_calculate(global->system.info.library_name) : 0);
    char *basename = *global->fullpath ?
          global->basename : global->libretro_name;
-   
-   /* Default to subdirectories 'save' and 'state' */
+   char *buf      = string_alloc(PATH_MAX_LENGTH);
+
+   /* Create core-specific config directory,
+    * used for configs, core options, remaps, and history */
+   fill_pathname_join(buf, settings->menu_config_directory,
+         global->libretro_name, PATH_MAX_LENGTH);
+   path_mkdir(buf);
+
+   /* Default remap directory to config directory.
+    * Create core-specific directory if different */
+   if (!*settings->input_remapping_directory)
+      strlcpy(settings->input_remapping_directory,
+            settings->menu_config_directory, PATH_MAX_LENGTH);
+   else if (strcmp(settings->input_remapping_directory,
+         settings->menu_config_directory))
+   {
+      fill_pathname_join(buf, settings->input_remapping_directory,
+            global->libretro_name, PATH_MAX_LENGTH);
+      path_mkdir(buf);
+   }
+
+   /* Set default savefile and savestate directories */
    if (*global->savefile_dir)
       strlcpy(global->core_savefile_dir, global->savefile_dir,
               sizeof(global->savefile_dir));
    else
    {
       strlcpy(global->core_savefile_dir, path_default_dotslash(),
-              sizeof(global->core_savefile_dir));
+            sizeof(global->core_savefile_dir));
       strlcat(global->core_savefile_dir, "save",
-              sizeof(global->core_savefile_dir));
+            sizeof(global->core_savefile_dir));
    }
    
    if (*global->savestate_dir)
       strlcpy(global->core_savestate_dir, global->savestate_dir,
-              sizeof(global->savestate_dir));
+            sizeof(global->savestate_dir));
    else
    {
       strlcpy(global->core_savestate_dir, path_default_dotslash(),
-              sizeof(global->core_savestate_dir));
+            sizeof(global->core_savestate_dir));
       strlcat(global->core_savestate_dir, "state",
-              sizeof(global->core_savestate_dir));
+            sizeof(global->core_savestate_dir));
    }
-   
-   /* Default input_remapping_directory to menu_config_directory if empty.
-    * Subdirectories are created later. */
-   if (settings->input_remapping_directory[0] == '\0')
-      strlcpy(settings->input_remapping_directory,
-              settings->menu_config_directory,
-              sizeof(settings->menu_config_directory));
 
    if (global_library_name_hash != MENU_VALUE_NO_CORE)
    {
-      /* per-core saves: append the libretro_name to the save location */
+      /* per-core saves */
       if (settings->sort_savefiles_enable)
       {
          fill_pathname_slash(global->core_savefile_dir, PATH_MAX_LENGTH);
@@ -357,12 +371,11 @@ void set_paths_redirect(void)
           * If everything fails revert to the original path. */
          if(!path_is_directory(global->core_savefile_dir))
             if(!path_mkdir(global->core_savefile_dir))
-               strlcpy(global->core_savefile_dir,
-                       global->savefile_dir,
-                       sizeof(global->savefile_dir));
+               strlcpy(global->core_savefile_dir, global->savefile_dir,
+                     sizeof(global->core_savefile_dir));
       }
 
-      /* per-core states: append the libretro_name to the save location */
+      /* per-core states */
       if (settings->sort_savestates_enable)
       {
          fill_pathname_slash(global->core_savestate_dir, PATH_MAX_LENGTH);
@@ -373,19 +386,18 @@ void set_paths_redirect(void)
           * If everything fails, revert to the original path. */
          if(!path_is_directory(global->core_savestate_dir))
             if(!path_mkdir(global->core_savestate_dir))
-               strlcpy(global->core_savestate_dir,
-                       global->savestate_dir,
-                       sizeof(global->savestate_dir));
+               strlcpy(global->core_savestate_dir, global->savestate_dir,
+                     sizeof(global->core_savestate_dir));
       }
    }
 
    if(path_is_directory(global->core_savefile_dir))
       strlcpy(global->savefile_name,
-              global->core_savefile_dir, sizeof(global->core_savefile_dir));
+            global->core_savefile_dir, sizeof(global->core_savefile_dir));
 
    if(path_is_directory(global->core_savestate_dir))
       strlcpy(global->savestate_name,
-              global->core_savestate_dir, sizeof(global->core_savestate_dir));
+            global->core_savestate_dir, sizeof(global->core_savestate_dir));
 
    if (path_is_directory(global->savefile_name))
    {
@@ -407,6 +419,8 @@ void set_paths_redirect(void)
             ".state", sizeof(global->cheatfile_name));
       RARCH_LOG("Redirecting cheat file to \"%s\".\n", global->cheatfile_name);
    }
+
+   free(buf);
 }
 
 void rarch_set_paths(const char *path)

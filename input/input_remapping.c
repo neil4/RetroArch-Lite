@@ -207,7 +207,6 @@ static bool input_remapping_save_file(const char *path)
    char buf[32];
    config_file_t *conf        = NULL;
    struct input_struct *input = &config_get_ptr()->input;
-   char *basedir              = strdup(path);
    bool turbo_all;
 
    if (!(conf = config_file_new(NULL)))
@@ -277,16 +276,12 @@ static bool input_remapping_save_file(const char *path)
       }
    }
 
-   path_parent_dir(basedir);
-   path_mkdir(basedir);
-
    ret = config_file_write(conf, path);
    config_file_free(conf);
 
    if (ret)
       strlcpy(input->remapping_path, path, PATH_MAX_LENGTH);
 
-   free(basedir);
    return ret;
 }
 
