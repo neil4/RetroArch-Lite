@@ -2393,7 +2393,7 @@ void input_overlay_poll(input_overlay_t *overlay_device)
 
    static uint8_t old_ptr_count;
 
-   if (overlay_device->state != OVERLAY_STATUS_ALIVE)
+   if (!overlay_device->active)
       return;
 
    /* Swap new & old states */
@@ -2713,7 +2713,7 @@ int16_t input_overlay_state(unsigned port, unsigned device_class,
  **/
 void input_overlay_next(input_overlay_t *ol)
 {
-   if (!ol)
+   if (!ol || ol->state != OVERLAY_STATUS_ALIVE)
       return;
 
    ol->index = ol->next_index;
