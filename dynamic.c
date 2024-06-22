@@ -858,8 +858,12 @@ bool rarch_environment_cb(unsigned cmd, void *data)
 
       case RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE:
          RARCH_LOG("Environ SET_DISK_CONTROL_INTERFACE.\n");
-         global->system.disk_control = 
-            *(const struct retro_disk_control_callback*)data;
+         if (data)
+            global->system.disk_control =
+                  *(const struct retro_disk_control_callback*)data;
+         else
+            memset(&global->system.disk_control, 0,
+                  sizeof(struct retro_disk_control_callback));
          break;
 
       case RETRO_ENVIRONMENT_SET_HW_RENDER:
