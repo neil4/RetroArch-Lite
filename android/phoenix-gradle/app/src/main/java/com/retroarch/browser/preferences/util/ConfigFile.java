@@ -79,6 +79,7 @@ public final class ConfigFile
 
    private void parseLine(String line)
    {
+
       String[] tokens = line.split("=", 2);
       if (tokens.length < 2)
          return;
@@ -90,7 +91,13 @@ public final class ConfigFile
       String value = tokens[1];
 
       if (value.startsWith("\""))
-         value = value.substring(1, value.lastIndexOf('\"'));
+      {
+         // If end quote is missing, use remaining string (mainline behavior)
+         int end = value.lastIndexOf('\"');
+         if (end < 1) end = value.length();
+
+         value = value.substring(1, end);
+      }
       else
          value = value.split(" ")[0];
 
