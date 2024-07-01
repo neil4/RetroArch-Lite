@@ -459,6 +459,8 @@ public final class MainMenuActivity extends FragmentActivity implements Director
    @Override
    public void onDirectoryFragmentClosed(String path)
    {
+      SharedPreferences prefs = UserPreferences.getPreferences(this);
+
       if (!path.isEmpty())
       {
          int lastSlash = path.lastIndexOf('/');
@@ -470,8 +472,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
             return;
          }
 
-         SharedPreferences.Editor edit = UserPreferences.getPreferences(this).edit();
-         edit.putString(libretroName + "_directory", path.substring(0, lastSlash)).apply();
+         prefs.edit().putString(libretroName + "_directory", path.substring(0, lastSlash)).apply();
 
          DarkToast.makeText(this, String.format(getString(R.string.loading_data),
                path.substring(lastSlash + 1)));
@@ -498,6 +499,8 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       retro.putExtra("IME", currentIme);
       retro.putExtra("DATADIR", getApplicationInfo().dataDir);
       retro.putExtra("EXTDIR", UserPreferences.defaultBaseDir);
+      if (prefs.getBoolean("exit_to_launcher", false))
+         retro.putExtra("EXITTOAPPID", getString(R.string.app_id));
 
       startActivity(retro);
 

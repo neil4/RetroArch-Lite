@@ -36,6 +36,11 @@
             android:key="mame_titles"
             android:summary="@string/mame_titles_desc"
             android:title="@string/mame_titles" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="exit_to_launcher"
+            android:summary="@string/exit_to_launcher_desc"
+            android:title="@string/exit_to_launcher" />
     </PreferenceCategory>
 
     <!-- Assets -->

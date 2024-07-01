@@ -79,7 +79,6 @@ public final class ConfigFile
 
    private void parseLine(String line)
    {
-
       String[] tokens = line.split("=", 2);
       if (tokens.length < 2)
          return;

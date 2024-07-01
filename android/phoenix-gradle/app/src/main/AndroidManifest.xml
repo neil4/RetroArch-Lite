@@ -22,7 +22,8 @@
         <activity android:name="com.retroarch.browser.DisplayRefreshRateTest"/>
         <activity android:name="com.retroarch.browser.mainmenu.MainMenuActivity"
                   android:exported="true"
-                  android:theme="@android:style/Theme.Holo">
+                  android:theme="@android:style/Theme.Holo"
+                  android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

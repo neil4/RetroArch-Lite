@@ -1,5 +1,7 @@
 package com.retroarch.browser.retroactivity;
 
+import android.content.ComponentName;
+import android.content.Intent;
 import android.view.View;
 import android.os.Vibrator;
 import android.os.Build;
@@ -53,6 +55,16 @@ public class RetroActivity extends NativeActivity
    public void onRetroArchExit()
    {
       UserPreferences.readbackConfigFile(this);
+
+      // Restart launcher menu if option was set
+      String appId = getIntent().getStringExtra("EXITTOAPPID");
+      if (appId != null)
+      {
+         Intent mainMenu = new Intent();
+         mainMenu.setComponent(new ComponentName(appId,
+               "com.retroarch.browser.mainmenu.MainMenuActivity"));
+         startActivity(mainMenu);
+      }
    }
 
    @Keep
