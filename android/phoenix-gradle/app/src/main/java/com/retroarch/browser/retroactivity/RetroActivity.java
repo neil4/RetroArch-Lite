@@ -2,6 +2,7 @@ package com.retroarch.browser.retroactivity;
 
 import android.content.ComponentName;
 import android.content.Intent;
+import android.view.WindowManager;
 import android.view.View;
 import android.os.Vibrator;
 import android.os.Build;
@@ -46,6 +47,14 @@ public class RetroActivity extends NativeActivity
                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
 
       decorView.setSystemUiVisibility(visibility);
+
+      if (Build.VERSION.SDK_INT >= 28)
+      {
+         getWindow().getAttributes().layoutInDisplayCutoutMode =
+               UserPreferences.getPreferences(this).getBoolean("display_over_cutout", true)
+                     ? WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                     : WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
+      }
    }
 
    // Exiting cleanly from NDK seems to be nearly impossible.

@@ -153,6 +153,8 @@
     <string name="calibrate_refresh_rate_desc">Attempts to find the true refresh rate of monitor. Updates value in \'Force refresh rate (Hz)\' option. To help ensure accuracy, make sure no intense background services are running, and avoid triggering screensaver.</string>
     <string name="set_os_reported_refresh_rate">Set OS-reported Refresh Rate</string>
     <string name="set_os_reported_refresh_rate_desc">Sets refresh rate equal to OS-reported value. This might not be accurate for your device.</string>
+    <string name="enable_display_over_cutout">Extend into Display Cutout Area</string>
+    <string name="enable_display_over_cutout_desc">Allow video behind the camera notch and other blind areas.</string>
     
     <!-- Miscellaneous -->
     <string name="ok">OK</string>

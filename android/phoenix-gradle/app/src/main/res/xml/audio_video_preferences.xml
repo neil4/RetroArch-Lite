@@ -18,6 +18,10 @@
    </PreferenceCategory>
     
    <PreferenceCategory android:title="@string/video_options">
+      <CheckBoxPreference android:title="@string/enable_display_over_cutout"
+         android:summary="@string/enable_display_over_cutout_desc"
+         android:key="display_over_cutout"
+         android:defaultValue="true"/>
       <Preference
          android:summary="@string/calibrate_refresh_rate_desc"
          android:title="@string/calibrate_refresh_rate" >
