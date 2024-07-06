@@ -84,27 +84,28 @@ static void menu_input_key_end_line(void)
    driver->flushing_input = true;
 }
 
-static void menu_input_search_callback(void *userdata, const char *str)
+static bool menu_input_search_callback(void *userdata, const char *str)
 {
    size_t idx = 0;
    menu_list_t *menu_list = menu_list_get_ptr();
    menu_navigation_t *nav = menu_navigation_get_ptr();
 
    if (!menu_list || !nav)
-      return;
+      return true;
 
    if (str && *str && file_list_search(menu_list->selection_buf, str, &idx))
          menu_navigation_set(nav, idx, true);
 
    menu_input_key_end_line();
+   return true;
 }
 
-void menu_input_st_uint_callback(void *userdata, const char *str)
+bool menu_input_st_uint_callback(void *userdata, const char *str)
 {
    menu_input_t *menu_input = menu_input_get_ptr();
 
    if (!menu_input)
-      return;
+      return true;
 
    if (str && *str)
    {
@@ -114,14 +115,15 @@ void menu_input_st_uint_callback(void *userdata, const char *str)
    }
 
    menu_input_key_end_line();
+   return true;
 }
 
-void menu_input_st_hex_callback(void *userdata, const char *str)
+bool menu_input_st_hex_callback(void *userdata, const char *str)
 {
    menu_input_t *menu_input = menu_input_get_ptr();
 
    if (!menu_input)
-      return;
+      return true;
 
    if (str && *str)
    {
@@ -135,15 +137,15 @@ void menu_input_st_hex_callback(void *userdata, const char *str)
    }
 
    menu_input_key_end_line();
+   return true;
 }
 
-
-void menu_input_st_string_callback(void *userdata, const char *str)
+bool menu_input_st_string_callback(void *userdata, const char *str)
 {
    menu_input_t *menu_input = menu_input_get_ptr();
 
    if (!menu_input)
-      return;
+      return true;
 
    if (str && *str)
    {
@@ -172,9 +174,10 @@ void menu_input_st_string_callback(void *userdata, const char *str)
    }
 
    menu_input_key_end_line();
+   return true;
 }
 
-void menu_input_st_cheat_callback(void *userdata, const char *str)
+bool menu_input_st_cheat_callback(void *userdata, const char *str)
 {
    global_t *global         = global_get_ptr();
    cheat_manager_t *cheat   = global ? global->cheat : NULL;
@@ -183,17 +186,44 @@ void menu_input_st_cheat_callback(void *userdata, const char *str)
    (void)userdata;
 
    if (!menu_input || !cheat)
-      return;
+      return true;
 
    if (cheat && str && *str)
    {
       unsigned cheat_index = menu_input->keyboard.type - MENU_SETTINGS_CHEAT_BEGIN;
 
       cheat->cheats[cheat_index].code  = strdup(str);
-      cheat->cheats[cheat_index].state = true;
+      cheat->cheats[cheat_index].state = false;
+   }
+
+   /* Now ask for cheat name */
+   menu_input->keyboard.label  = "Enter Cheat Name";
+   menu_input->keyboard.buffer = input_keyboard_start_line(
+         menu_driver_get_ptr(), menu_input_st_cheatname_callback);
+
+   return false;
+}
+
+bool menu_input_st_cheatname_callback(void *userdata, const char *str)
+{
+   global_t *global         = global_get_ptr();
+   cheat_manager_t *cheat   = global ? global->cheat : NULL;
+   menu_input_t *menu_input = menu_input_get_ptr();
+
+   (void)userdata;
+
+   if (!menu_input || !cheat)
+      return true;
+
+   if (cheat && str && *str)
+   {
+      unsigned cheat_index = menu_input->keyboard.type - MENU_SETTINGS_CHEAT_BEGIN;
+      cheat->cheats[cheat_index].desc = strdup(str);
    }
 
    menu_input_key_end_line();
+   menu_entries_set_refresh();
+   return true;
 }
 
 void menu_input_search_start(void)

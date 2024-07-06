@@ -113,10 +113,7 @@ bool input_keyboard_line_event(
     * printable characters for unicode stuff. */
 
    if (c == '\r' || c == '\n')
-   {
-      state->cb(state->userdata, state->buffer);
-      return true;
-   }
+      return state->cb(state->userdata, state->buffer);
 
    if (c == '\b' || c == '\x7f') /* 0x7f is ASCII for del */
    {

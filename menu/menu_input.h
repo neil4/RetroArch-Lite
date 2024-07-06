@@ -169,12 +169,13 @@ void menu_input_key_start_line(const char *label,
       const char *label_setting, unsigned type, unsigned idx,
       input_keyboard_line_complete_t cb);
 
-void menu_input_st_uint_callback(void *userdata, const char *str);
-void menu_input_st_hex_callback(void *userdata, const char *str);
+bool menu_input_st_uint_callback(void *userdata, const char *str);
+bool menu_input_st_hex_callback(void *userdata, const char *str);
 
-void menu_input_st_string_callback(void *userdata, const char *str);
+bool menu_input_st_string_callback(void *userdata, const char *str);
 
-void menu_input_st_cheat_callback(void *userdata, const char *str);
+bool menu_input_st_cheat_callback(void *userdata, const char *str);
+bool menu_input_st_cheatname_callback(void *userdata, const char *str);
 
 int menu_input_bind_iterate(uint32_t label_hash);
 

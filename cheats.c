@@ -112,6 +112,13 @@ bool cheat_manager_save(cheat_manager_t *handle, const char *path)
    ret = config_file_write(conf, cheats_file);
    config_file_free(conf);
 
+   if (ret)
+      snprintf(buf, 128, "Saved %s", path_basename(cheats_file));
+   else
+      snprintf(buf, 128, "Error saving %s", path_basename(cheats_file));
+
+   rarch_main_msg_queue_push(buf, 2, 180, true);
+
    free(buf);
    free(cheats_file);
    return ret;

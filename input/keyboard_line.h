@@ -31,8 +31,9 @@ typedef struct input_keyboard_line input_keyboard_line_t;
 /** Line complete callback. 
  * Calls back after return is pressed with the completed line.
  * Line can be NULL.
+ * Returns: true if input is finished, false if keyboard input should continue.
  **/
-typedef void (*input_keyboard_line_complete_t)(void *userdata,
+typedef bool (*input_keyboard_line_complete_t)(void *userdata,
       const char *line);
 
 typedef bool (*input_keyboard_press_t)(void *userdata, unsigned code);
