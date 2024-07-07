@@ -1,5 +1,8 @@
 package com.retroarch.browser.coremanager.fragments;
 
+import java.io.File;
+import java.net.URL;
+
 /**
  * Represents a core that can be downloaded.
  */
@@ -63,6 +66,16 @@ final class DownloadableCore implements Comparable<DownloadableCore>
    public String getCoreURL()
    {
       return coreURL;
+   }
+
+   public String getFilePath()
+   {
+      try {
+         return new File(new URL(coreURL).toURI()).getPath();
+      }
+      catch (Exception e) {
+         return null;
+      }
    }
 
    /**

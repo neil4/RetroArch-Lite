@@ -60,6 +60,7 @@
     
     <!-- Local Cores Context Menu -->
     <string name="backup_cores_ctx_title">Actions</string>
+    <string name="backup_cores_ctx_rename_file">Rename File</string>
     <string name="backup_cores_ctx_remove_core">Remove Backup Core</string>
     <string name="backup_cores_confirm_install_msg">Install %1$s?</string>
 
@@ -163,7 +164,10 @@
     <string name="general">General</string>
     <string name="no">No</string>
     <string name="yes">Yes</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
     <string name="confirm_title">Confirm</string>
+    <string name="rename_title">Rename File</string>
 
     
 </resources>

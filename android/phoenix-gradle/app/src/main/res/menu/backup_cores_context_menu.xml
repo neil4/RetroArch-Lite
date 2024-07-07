@@ -1,4 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/rename_backupcore"
+        android:title="@string/backup_cores_ctx_rename_file"/>
     <item android:id="@+id/remove_backupcore"
           android:title="@string/backup_cores_ctx_remove_core"/>
 </menu>

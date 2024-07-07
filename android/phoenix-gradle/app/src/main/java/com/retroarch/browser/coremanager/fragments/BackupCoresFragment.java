@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import com.retroarch.browser.DarkToast;
@@ -91,7 +92,6 @@ public final class BackupCoresFragment extends ListFragment
          backupCoresDir = sharedPrefs.getBoolean("backup_cores_directory_enable", false) ?
                sharedPrefs.getString("backup_cores_directory", defaultBackupCoresDir) : defaultBackupCoresDir;
          PopulateCoresList();
-         adapter.notifyDataSetChanged();
       }
    }
    
@@ -118,7 +118,7 @@ public final class BackupCoresFragment extends ListFragment
          public void onClick(DialogInterface dialog, int which)
          {
             String destDir = getContext().getApplicationInfo().dataDir + "/cores";
-            String srcPath = backupCoresDir + '/' + core.getShortURLName();
+            String srcPath = core.getFilePath();
 
             if (srcPath.endsWith(".zip"))
             {
@@ -150,11 +150,15 @@ public final class BackupCoresFragment extends ListFragment
    {
       final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
 
-      if (item.getItemId() == R.id.remove_backupcore)
+      switch (item.getItemId())
       {
-         return RemoveCore(info.position);
+         case R.id.rename_backupcore:
+            return RenameFile(info.position);
+         case R.id.remove_backupcore:
+            return RemoveCore(info.position);
+         default:
+            return super.onContextItemSelected(item);
       }
-      return super.onContextItemSelected(item);
    }
    
    void PopulateCoresList()
@@ -176,11 +180,8 @@ public final class BackupCoresFragment extends ListFragment
             if (!isZip && !fileName.endsWith(".so"))
                continue;
 
-            int idx = fileName.indexOf("_android");
-            if (idx < 0)
-               idx = fileName.indexOf('.');
-
-            String infoName = fileName.substring(0, idx) + ".info";
+            String infoName = InstalledCoresFragment.sanitizedLibretroName(fileName)
+                  + "_libretro.info";
             String infoPath = getContext().getApplicationInfo().dataDir + "/info/" + infoName;
             if (!isZip && !new File(infoPath).exists())
                infoPath = backupCoresDir + '/' + infoName;
@@ -193,6 +194,7 @@ public final class BackupCoresFragment extends ListFragment
          Collections.sort(cores);
          adapter.clear();
          adapter.addAll(cores);
+         adapter.notifyDataSetChanged();
       }
       catch (Exception e)
       {
@@ -333,23 +335,81 @@ public final class BackupCoresFragment extends ListFragment
       }
    }
 
+   public boolean RenameFile(int position)
+   {
+      final DownloadableCore core = adapter.getItem(position);
+      final File oldFile   = new File(core.getFilePath());
+      final String oldName = oldFile.getName();
+      final String ext     = oldName.substring(oldName.lastIndexOf('.'));
+
+      // Create EditText view
+      final View dialogView = requireActivity().getLayoutInflater()
+            .inflate(R.layout.edit_text_dialog, null);
+      final EditText editText = dialogView.findViewById(R.id.edit_line);
+      editText.setText(oldName);
+
+      // Build AlertDialog
+      final AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
+      alert.setView(dialogView)
+           .setTitle(R.string.rename_title)
+           .setNegativeButton(R.string.cancel, null);
+      alert.setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener()
+      {
+         @Override
+         public void onClick(DialogInterface dialog, int which)
+         {
+            final String input   = editText.getText().toString().trim();
+            final String newName = input.endsWith(ext) ? input : input + ext;
+            final File newFile   = new File(oldFile.getParentFile(), newName);
+
+            if (newName.equals(oldName) || newName.equals(ext))
+               return;
+            if (newFile.exists())
+               DarkToast.makeText(getActivity(), "A duplicate name exists.");
+            else try
+            {
+               if (oldFile.renameTo(newFile))
+               {
+                  updateList();
+                  DarkToast.makeText(getActivity(), "File renamed.");
+               }
+               else
+                  DarkToast.makeText(getActivity(), "Invalid file name");
+            }
+            catch (Exception e)
+            {
+               DarkToast.makeText(getActivity(), "Access denied.");
+            }
+         }
+      });
+      // TODO: Handle orientation changes
+      getActivity().setRequestedOrientation(SCREEN_ORIENTATION_LOCKED);
+      alert.setOnDismissListener(
+            dialog -> getActivity().setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED)
+      );
+      alert.show();
+
+      return true;
+   }
+
    public boolean RemoveCore(int position)
    {
       final DownloadableCore core = adapter.getItem(position);
-      final String corePath = core.getCoreURL().replace("file:", "");
+      final File coreFile   = new File(core.getFilePath());
+      final String fileName = coreFile.getName();
 
       // Begin building the AlertDialog
       final AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
-      alert.setTitle(R.string.confirm_title);
-      alert.setMessage("Remove " + core.getCoreName() + " backup?");
-      alert.setNegativeButton(R.string.no, null);
+      alert.setTitle(R.string.confirm_title)
+           .setMessage("Remove " + core.getCoreName() + " backup?" + "\n\n" + fileName)
+           .setNegativeButton(R.string.no, null);
       alert.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
       {
          @Override
          public void onClick(DialogInterface dialog, int which)
          {
             // Attempt to remove backup files
-            if (new File(corePath).delete())
+            if (coreFile.delete())
             {
                DarkToast.makeText(getActivity(), "Backup core removed.");
                adapter.remove(core);

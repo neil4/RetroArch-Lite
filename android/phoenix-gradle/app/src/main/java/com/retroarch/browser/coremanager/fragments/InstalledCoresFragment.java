@@ -268,8 +268,11 @@ public final class InstalledCoresFragment extends ListFragment
    public static String sanitizedLibretroName(String path)
    {
       int startIndex = path.lastIndexOf('/') + 1;
+      int endIndex = path.indexOf("_libretro", startIndex);
+      if (endIndex < 0)
+         endIndex = path.indexOf('.');
 
-      return path.substring(startIndex, path.indexOf("_libretro", startIndex));
+      return path.substring(startIndex, endIndex);
    }
 
    /**
