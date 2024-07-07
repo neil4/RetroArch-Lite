@@ -61,6 +61,18 @@ public final class InstalledCoresFragment extends ListFragment
    // Adapter backing this ListFragment.
    private InstalledCoresAdapter adapter;
 
+   private static OnCoreBackupListener coreBackupListener = null;
+
+   /**
+    * Dictates what actions will occur when a core backup completes.
+    * <p>
+    * Acts like a callback so that communication between fragments is possible.
+    */
+   public interface OnCoreBackupListener
+   {
+      void onCoreBackupCreated();
+   }
+
    /**
     * Interface that a parent fragment must implement
     * in order to display the core info view.
@@ -86,6 +98,8 @@ public final class InstalledCoresFragment extends ListFragment
 
       // Get the callback. (implemented within InstalledCoresManagerFragment).
       callback = (OnCoreItemClickedListener) getParentFragment();
+
+      coreBackupListener = (OnCoreBackupListener) getActivity();
    }
    
    @Override
@@ -524,6 +538,7 @@ public final class InstalledCoresFragment extends ListFragment
          super.onPostExecute(result);
          dlg.dismiss();
          DarkToast.makeText(ctx, coreName + " backup created.");
+         coreBackupListener.onCoreBackupCreated();
 
          ((Activity)ctx).setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
       }

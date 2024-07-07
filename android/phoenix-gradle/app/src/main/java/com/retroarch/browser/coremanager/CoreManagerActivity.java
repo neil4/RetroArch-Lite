@@ -33,7 +33,7 @@ import java.io.InputStreamReader;
  * Activity which provides the base for viewing installed cores,
  * as well as the ability to download other cores.
  */
-public final class CoreManagerActivity extends AppCompatActivity implements DownloadableCoresFragment.OnCoreDownloadedListener, BackupCoresFragment.OnCoreCopiedListener, TabListener
+public final class CoreManagerActivity extends AppCompatActivity implements DownloadableCoresFragment.OnCoreDownloadedListener, BackupCoresFragment.OnCoreCopiedListener, InstalledCoresFragment.OnCoreBackupListener, TabListener
 {
    // ViewPager for the fragments
    private ViewPager viewPager;
@@ -92,6 +92,11 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
       MainMenuActivity.checkRuntimePermissions(this);
    }
 
+   @Override
+   public void onResume() {
+      super.onResume();
+      backupCoresFragment.updateList();
+   }
 
    @Override
    public void onDestroy() {
@@ -106,8 +111,6 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
    {
       // Switch to the fragment indicated by the tab's position.
       viewPager.setCurrentItem(tab.getPosition());
-      if (tab.getPosition() == 1)
-         backupCoresFragment.updateList();
    }
 
    @Override
@@ -132,6 +135,12 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
    public void onCoreCopied()
    {
       updateInstalledCoreList();
+   }
+
+   @Override
+   public void onCoreBackupCreated()
+   {
+      backupCoresFragment.updateList();
    }
 
    private void updateInstalledCoreList()
