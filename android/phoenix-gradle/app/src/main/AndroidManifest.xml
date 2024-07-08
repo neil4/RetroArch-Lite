@@ -23,7 +23,7 @@
         <activity android:name="com.retroarch.browser.mainmenu.MainMenuActivity"
                   android:exported="true"
                   android:theme="@android:style/Theme.Holo"
-                  android:launchMode="singleInstance">
+                  android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
