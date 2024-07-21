@@ -64,6 +64,7 @@ public class RetroActivity extends NativeActivity
    public void onRetroArchExit()
    {
       UserPreferences.readbackConfigFile(this);
+      MainMenuActivity.retro = null;
 
       // Restart launcher menu if option was set
       String appId = getIntent().getStringExtra("EXITTOAPPID");
