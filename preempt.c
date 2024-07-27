@@ -44,6 +44,7 @@ struct preempt_data
    /* Mask of analog states requested */
    uint32_t analog_mask[MAX_USERS];
    /* Pointing device requested */
+   /* TODO: handle multiple devices used */
    uint8_t ptr_dev[MAX_USERS];
 
    bool in_replay;
@@ -154,9 +155,8 @@ static INLINE bool preempt_analog_input_dirty(preempt_t *preempt,
 
 static INLINE void preempt_input_poll(preempt_t *preempt)
 {
-   settings_t *settings         = config_get_ptr();
    retro_input_state_t state_cb = preempt->cbs.state_cb;
-   unsigned max_users           = settings->input.max_users;
+   unsigned max_users           = config_get_ptr()->input.max_users;
    uint16_t joypad_state        = 0;
    unsigned p;
 
@@ -165,42 +165,32 @@ static INLINE void preempt_input_poll(preempt_t *preempt)
    /* Check for input state changes */
    for (p = 0; p < max_users; p++)
    {
-      unsigned device = settings->input.libretro_device[p] & RETRO_DEVICE_MASK;
-
-      switch (device)
+      /* Check full digital joypad */
+      joypad_state = state_cb(p, RETRO_DEVICE_JOYPAD,
+            0, RETRO_DEVICE_ID_JOYPAD_MASK);
+      if (joypad_state != preempt->joypad_state[p])
       {
-         case RETRO_DEVICE_JOYPAD:
-         case RETRO_DEVICE_ANALOG:
-            /* Check full digital joypad */
-            joypad_state = state_cb(p, RETRO_DEVICE_JOYPAD,
-                  0, RETRO_DEVICE_ID_JOYPAD_MASK);
-            if (joypad_state != preempt->joypad_state[p])
-            {
-               preempt->joypad_state[p] = joypad_state;
-               preempt->in_replay = true;
-            }
+         preempt->joypad_state[p] = joypad_state;
+         preempt->in_replay = true;
+      }
 
-            /* Check requested analogs */
-            if (preempt->analog_mask[p] &&
-                  preempt_analog_input_dirty(preempt, state_cb, p))
-               preempt->in_replay = true;
-            break;
-         case RETRO_DEVICE_MOUSE:
-         case RETRO_DEVICE_LIGHTGUN:
-         case RETRO_DEVICE_POINTER:
-            /* Check full device state */
-            if (preempt_ptr_input_dirty(
-                  preempt, state_cb, preempt->ptr_dev[p], p))
-               preempt->in_replay = true;
-            break;
-         default:
-            break;
+      /* Check requested analogs */
+      if (preempt->analog_mask[p] &&
+            preempt_analog_input_dirty(preempt, state_cb, p))
+      {
+         preempt->in_replay = true;
+         preempt->analog_mask[p] = 0;
+      }
+
+      /* Check requested pointing device */
+      if (preempt->ptr_dev[p])
+      {
+         if (preempt_ptr_input_dirty(
+               preempt, state_cb, preempt->ptr_dev[p], p))
+            preempt->in_replay = true;
+         preempt->ptr_dev[p] = RETRO_DEVICE_NONE;
       }
    }
-
-   /* Clear requested inputs */
-   memset(preempt->analog_mask, 0, max_users * sizeof(uint32_t));
-   memset(preempt->ptr_dev, 0, max_users * sizeof(uint8_t));
 }
 
 int16_t input_state_preempt(unsigned port, unsigned device,
@@ -223,10 +213,15 @@ int16_t input_state_preempt(unsigned port, unsigned device,
          preempt->analog_mask[port] |= (1 << (id + index * 2));
          break;
       case RETRO_DEVICE_LIGHTGUN:
-      case RETRO_DEVICE_MOUSE:
       case RETRO_DEVICE_POINTER:
          /* Set pointing device for this port */
          preempt->ptr_dev[port] = dev_class;
+         break;
+      case RETRO_DEVICE_MOUSE:
+         preempt->ptr_dev[port] = dev_class;
+         /* Return stored x,y */
+         if (id < 2)
+            return preempt->ptrdev_state[port][id];
          break;
       default:
          break;
