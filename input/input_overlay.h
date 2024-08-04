@@ -202,6 +202,7 @@ struct overlay_desc
    bool movable;
 
    struct overlay_eightway_vals *eightway_vals;
+   struct overlay_desc *anchor;
 };
 
 struct overlay

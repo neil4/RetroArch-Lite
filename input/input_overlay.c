@@ -509,6 +509,28 @@ static void input_overlay_set_vertex_geom(input_overlay_t *ol)
    }
 }
 
+static void input_overlay_anchor_descs(struct overlay *ol)
+{
+   bool adjust_aspect = config_get_ptr()->input.overlay_adjust_aspect;
+   float adj_w = adjust_aspect ? ol_ar_mod.w : 1.0f;
+   float adj_h = adjust_aspect ? ol_ar_mod.h : 1.0f;
+   int i;
+
+   for (i = 0; i < ol->size; i++)
+   {
+      if (ol->descs[i].anchor)
+      {
+         struct overlay_desc* desc = &ol->descs[i];
+         struct overlay_desc* anchor = desc->anchor;
+
+         desc->x = anchor->x + (desc->x_orig - anchor->x_orig) * adj_w;
+         desc->y = anchor->y + (desc->y_orig - anchor->y_orig) * adj_h;
+
+         input_overlay_desc_init_imagebox(desc);
+      }
+   }
+}
+
 static void input_overlay_update_aspect_and_shift(struct overlay *ol)
 {
    struct overlay_desc* desc;
@@ -526,6 +548,10 @@ static void input_overlay_update_aspect_and_shift(struct overlay *ol)
       input_overlay_desc_init_imagebox(desc);
       input_overlay_desc_init_hitbox(desc);
    }
+
+   /* Reposition any desc anchored to another, since the desc
+    * or its anchor might be locked to the screen edge */
+   input_overlay_anchor_descs(ol);
 }
 
 void input_overlays_update_aspect_shift_scale(input_overlay_t *ol)
@@ -1375,6 +1401,40 @@ void input_overlay_update_mouse_scale(void)
    }
 }
 
+void input_overlay_set_eightway_anchors(input_overlay_t *ol)
+{
+   int i, j, k;
+   for (i = 0; i < ol->size; i++)
+   {
+      struct overlay *overlay = ol->overlays + i;
+
+      for (j = 0; j < overlay->size; j++)
+      {
+         struct overlay_desc *desc = overlay->descs + j;
+         if (desc->hitbox != OVERLAY_HITBOX_NONE)
+            continue;
+
+         for (k = 0; k < overlay->size; k++)
+         {
+            struct overlay_desc *desc2 = overlay->descs + k;
+            uint64_t mask = desc->key_mask;
+
+            if (!desc2->eightway_vals)
+               continue;
+
+            if (((mask & desc2->eightway_vals->up) == mask)
+                || ((mask & desc2->eightway_vals->down) == mask)
+                || ((mask & desc2->eightway_vals->left) == mask)
+                || ((mask & desc2->eightway_vals->right) == mask))
+            {
+               desc->anchor = desc2;
+               break;
+            }
+         }
+      }
+   }
+}
+
 bool input_overlay_new_done(input_overlay_t *ol)
 {
    if (!ol)
@@ -1391,6 +1451,7 @@ bool input_overlay_new_done(input_overlay_t *ol)
 
    menu_entries_set_refresh();
    input_overlay_update_mouse_scale();
+   input_overlay_set_eightway_anchors(ol);
 
    return true;
 }
