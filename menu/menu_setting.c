@@ -6546,7 +6546,7 @@ static bool setting_append_list_input_options(
          settings->input.auto_keyboard_focus,
          "input_auto_keyboard_focus",
          "Auto Keyboard Focus",
-         false,
+         true,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,

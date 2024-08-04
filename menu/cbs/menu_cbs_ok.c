@@ -1247,10 +1247,8 @@ static int action_ok_core_updater_download(const char *path,
 
    strlcpy(runloop->http.msg_filename, path,
            sizeof(runloop->http.msg_filename));
-   snprintf(buf, sizeof(buf),
-         "%s %s.",
-         menu_hash_to_str(MENU_LABEL_VALUE_STARTING_DOWNLOAD),
-            path);
+   snprintf(buf, sizeof(buf), "%s %s.",
+         menu_hash_to_str(MENU_LABEL_VALUE_STARTING_DOWNLOAD), path);
 
    rarch_main_msg_queue_push(buf, 1, 90, true);
 

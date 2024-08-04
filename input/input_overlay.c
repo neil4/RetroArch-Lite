@@ -1251,11 +1251,9 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
 {
    global_t*   global   = global_get_ptr();
    settings_t* settings = config_get_ptr();
+   struct retro_controller_info rci;
    static int old_port;
    int port, i;
-   char msg[64];
-   struct retro_controller_info rci;
-   bool generic = false;
 
    if (overlay_lightgun_active)
    {
@@ -1309,17 +1307,12 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
          /* Fall back to generic lightgun */
          port = 0;
          overlay_lightgun_active = true;
-         generic = true;
       }
    }
 
    if (overlay_lightgun_active)
    {
       old_port = port;
-
-      /* Notify user */
-      snprintf(msg, 60, "%s active", generic ? "Lightgun" : rci.types[i].desc);
-      rarch_main_msg_queue_push(msg, 2, 180, true);
 
       /* Set autotrigger if no trigger descriptor found */
       ol_ptr_st.lightgun.autotrigger = true;

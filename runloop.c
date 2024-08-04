@@ -122,7 +122,7 @@ static void check_fast_forward_button(bool fastforward_pressed,
 {
    driver_t *driver = driver_get_ptr();
 
-   /* To avoid continous switching if we hold the button down, we require
+   /* To avoid continuous switching if we hold the button down, we require
     * that the button must go from pressed to unpressed back to pressed 
     * to be able to toggle between then.
     */

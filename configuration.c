@@ -780,7 +780,7 @@ static void config_set_defaults(void)
    settings->input.max_users                        = 2;
    settings->input.rumble_enable                    = false;
    settings->input.lightgun_allow_oob               = lightgun_allow_oob;
-   settings->input.auto_keyboard_focus              = false;
+   settings->input.auto_keyboard_focus              = true;
 
    rarch_assert(sizeof(settings->input.binds[0]) >= sizeof(retro_keybinds_1));
    rarch_assert(sizeof(settings->input.binds[1]) >= sizeof(retro_keybinds_rest));

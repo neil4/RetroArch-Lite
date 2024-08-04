@@ -1369,12 +1369,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
       case DISPLAYLIST_OPTIONS_REMAPPINGS:
          menu_list_clear(info->list);
          if (!global->has_set_input_descriptors)
-         {
-            if (!joykbd_enabled)
-               rarch_main_msg_queue_push("Defaulting to RetroPad input "
-                                         "descriptors.", 1, 180, true);
             input_remapping_set_default_desc();
-         }
          ret = menu_displaylist_parse_options_remappings(info);
 
          need_push    = true;

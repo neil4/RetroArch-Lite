@@ -139,11 +139,14 @@ static INLINE bool preempt_analog_input_dirty(preempt_t *preempt,
    }
 
    /* buttons */
-   for (i = 0; i < RARCH_FIRST_CUSTOM_BIND; i++)
+   if (preempt->analog_mask[port] & 0xfff0)
    {
-      if (preempt->analog_mask[port] & (1 << (i + 4)))
-         state[i + 4] = state_cb(port, RETRO_DEVICE_ANALOG,
-               RETRO_DEVICE_INDEX_ANALOG_BUTTON, i);
+      for (i = 0; i < RARCH_FIRST_CUSTOM_BIND; i++)
+      {
+         if (preempt->analog_mask[port] & (1 << (i + 4)))
+            state[i + 4] = state_cb(port, RETRO_DEVICE_ANALOG,
+                  RETRO_DEVICE_INDEX_ANALOG_BUTTON, i);
+      }
    }
 
    if (memcmp(preempt->analog_state[port], state, sizeof(state)) == 0)
@@ -156,8 +159,7 @@ static INLINE bool preempt_analog_input_dirty(preempt_t *preempt,
 static INLINE void preempt_input_poll(preempt_t *preempt)
 {
    retro_input_state_t state_cb = preempt->cbs.state_cb;
-   unsigned max_users           = config_get_ptr()->input.max_users;
-   uint16_t joypad_state        = 0;
+   unsigned max_users = config_get_ptr()->input.max_users;
    unsigned p;
 
    preempt->cbs.poll_cb();
@@ -166,7 +168,7 @@ static INLINE void preempt_input_poll(preempt_t *preempt)
    for (p = 0; p < max_users; p++)
    {
       /* Check full digital joypad */
-      joypad_state = state_cb(p, RETRO_DEVICE_JOYPAD,
+      uint16_t joypad_state = state_cb(p, RETRO_DEVICE_JOYPAD,
             0, RETRO_DEVICE_ID_JOYPAD_MASK);
       if (joypad_state != preempt->joypad_state[p])
       {
