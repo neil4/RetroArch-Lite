@@ -21,7 +21,7 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
 * RGUI Menu
   * In Directory Settings, "Use Loaded ROM Path" will quickset a core-specific browser directory.
   * In Input Remapping, 'Select' displays the full keyboard mapping if a key is highlighted.
-  * Hold 'Start' to delete a highlighted core, shader preset, or history entry.
+  * Hold 'Start' to delete a highlighted core, history entry, shader preset, remap, or option file.
   * 'L'/'R' sets any min/max value.
 * Touchscreen
   * On most overlays, tapping the screen center toggles the menu.
