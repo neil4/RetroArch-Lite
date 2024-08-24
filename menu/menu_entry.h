@@ -65,7 +65,7 @@ int menu_entry_iterate(unsigned action);
 int menu_entry_select(uint32_t i);
 
 int menu_entry_action(menu_entry_t *entry,
-                      unsigned i, enum menu_action action);
+        unsigned i, enum menu_action action);
 
 #ifdef __cplusplus
 }

@@ -4935,7 +4935,7 @@ static bool setting_append_list_frame_throttling_options(
          "throttle_using_core_fps",
          "  Refresh Rate",
          throttle_using_core_fps,
-         "Video Setting",
+         "Video setting",
          "Core provided",
          group_info.name,
          subgroup_info.name,

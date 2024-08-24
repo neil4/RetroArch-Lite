@@ -426,14 +426,11 @@ public class DirectoryFragment extends DialogFragment
    }
 
    /**
-    * Allows specifying an allowed file extension.
+    * Allows specifying allowed file extensions.
     * <p>
-    * Any files that contain this file extension will be shown
+    * Any files that contain these file extension will be shown
     * within the DirectoryFragment file browser. Those that don't
-    * contain this extension will not be shown.
-    * <p>
-    * It is possible to specify more than one allowed extension by
-    * simply calling this method with a different file extension specified.
+    * contain any of these extensions will not be shown.
     * 
     * @param exts The file extension(s) to allow being shown in this DirectoryFragment.
     */

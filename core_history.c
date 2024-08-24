@@ -236,9 +236,8 @@ void core_history_refresh()
    /* Move old entries */
    for (i = 0, j = 1; i < old_size; i++)
    {
-      if (!global->history[i])
-         continue;
-      new_history[j++] = global->history[i];
+      if (global->history[i])
+         new_history[j++] = global->history[i];
    }
    
    /* Don't grow forever */

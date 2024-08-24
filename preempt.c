@@ -44,7 +44,7 @@ struct preempt_data
    /* Mask of analog states requested */
    uint32_t analog_mask[MAX_USERS];
    /* Pointing device requested */
-   /* TODO: handle multiple devices used */
+   /* TODO: handle multiple devices per port */
    uint8_t ptr_dev[MAX_USERS];
 
    bool in_replay;
@@ -220,10 +220,12 @@ int16_t input_state_preempt(unsigned port, unsigned device,
          preempt->ptr_dev[port] = dev_class;
          break;
       case RETRO_DEVICE_MOUSE:
-         preempt->ptr_dev[port] = dev_class;
          /* Return stored x,y */
          if (id < 2)
+         {
+            preempt->ptr_dev[port] = dev_class;
             return preempt->ptrdev_state[port][id];
+         }
          break;
       default:
          break;

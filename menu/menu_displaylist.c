@@ -45,7 +45,7 @@ extern char *core_buf;
 extern size_t core_len;
 
 static void print_buf_lines(file_list_t *list, char *buf, int buf_size,
-      unsigned type)
+      const char* label, unsigned type)
 {
    int i;
    char c;
@@ -55,7 +55,6 @@ static void print_buf_lines(file_list_t *list, char *buf, int buf_size,
    {
       size_t ln;
 
-      /* The end of the buffer, print the last bit */
       if (*(buf + i) == '\0')
          break;
 
@@ -74,8 +73,7 @@ static void print_buf_lines(file_list_t *list, char *buf, int buf_size,
       if (line_start[ln] == '\n')
          line_start[ln] = '\0';
 
-      menu_list_push(list, line_start,
-            menu_hash_to_str(MENU_LABEL_DOWNLOADABLE_CORE), type, 0, 0);
+      menu_list_push(list, line_start, label, type, 0, 0);
 
       /* Restore the saved char */
       *(buf + i + 1) = c;
@@ -1480,7 +1478,9 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          menu_list_push(info->list, "", "", MENU_FILE_DOWNLOAD_CORE_INFO, 0, 0);
 
          /* Add downloadable core file names */
-         print_buf_lines(info->list, buf, core_len, MENU_FILE_DOWNLOAD_CORE);
+         print_buf_lines(info->list, buf, core_len,
+               menu_hash_to_str(MENU_LABEL_DOWNLOADABLE_CORE),
+               MENU_FILE_DOWNLOAD_CORE);
          free(buf);
 
          if (info->list->size > 1)

@@ -407,9 +407,6 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_VIDEO_FONT_PATH:
          cbs->action_get_title = action_get_title_font_path;
          break;
-      case MENU_LABEL_VIDEO_FILTER:
-         cbs->action_get_title = action_get_title_video_filter;
-         break;
       case MENU_LABEL_AUDIO_DSP_PLUGIN:
          cbs->action_get_title = action_get_title_audio_filter;
          break;
@@ -449,6 +446,9 @@ static int menu_cbs_init_bind_title_compare_type(menu_file_list_cbs_t *cbs,
          break;
       case MENU_SETTING_ACTION_CORE_DISK_OPTIONS:
          cbs->action_get_title = action_get_title_action_generic;
+         break;
+      case MENU_FILE_VIDEOFILTER:
+         cbs->action_get_title = action_get_title_video_filter;
          break;
       default:
          return -1;
