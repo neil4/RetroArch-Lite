@@ -334,7 +334,6 @@ extern "C" {
 #define MENU_LABEL_CUSTOM_RATIO                                                0xf038731eU
 #define MENU_LABEL_VALUE_CUSTOM_RATIO                                          0x3c94b73fU
 #define MENU_LABEL_CONFIRM_CORE_DELETION                                       0x111b482eU
-#define MENU_LABEL_CONFIRM_SHADER_PRESET_DELETION                              0xd43a4c8eU
 #define MENU_LABEL_CONFIRM_FILE_DELETION                                       0xb957f4e5U
 #define MENU_LABEL_CONFIRM_HISTORY_ENTRY_REMOVAL                               0x7cbd2faaU
 #define MENU_LABEL_HELP                                                        0x7c97d2eeU

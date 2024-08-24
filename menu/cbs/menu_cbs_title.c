@@ -155,6 +155,13 @@ static int action_get_title_video_shader_preset(const char *path, const char *la
    return 0;
 }
 
+static int action_get_title_video_shader(const char *path, const char *label, 
+      unsigned menu_type, char *s, size_t len)
+{
+   snprintf(s, len, "SHADER %s", path);
+   return 0;
+}
+
 #if 0
 static int action_get_title_generic(char *s, size_t len, const char *path,
       const char *text)
@@ -327,6 +334,9 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_VIDEO_SHADER_PRESET:
          cbs->action_get_title = action_get_title_video_shader_preset;
          break;
+      case MENU_LABEL_VIDEO_SHADER_PASS:
+         cbs->action_get_title = action_get_title_video_shader;
+         break;
       case MENU_LABEL_RGUI_CONFIG_DIRECTORY:
          cbs->action_get_title = action_get_title_config_directory;
          break;
@@ -364,7 +374,6 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
       case MENU_LABEL_PERFORMANCE_COUNTERS:
       case MENU_LABEL_CORE_LIST:
       case MENU_LABEL_CONFIRM_CORE_DELETION:
-      case MENU_LABEL_CONFIRM_SHADER_PRESET_DELETION:
       case MENU_LABEL_CONFIRM_FILE_DELETION:
       case MENU_LABEL_CONFIRM_HISTORY_ENTRY_REMOVAL:
       case MENU_LABEL_SETTINGS:

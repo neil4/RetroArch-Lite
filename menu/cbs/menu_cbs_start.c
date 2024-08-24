@@ -143,11 +143,6 @@ static int action_start_info_display(const char *info_label)
    return ret;
 }
 
-static int action_start_shader_preset_delete(unsigned type, const char *label)
-{
-   return action_start_info_display("confirm_shader_preset_deletion");
-}
-
 static int action_start_file_delete(unsigned type, const char *label)
 {
    return action_start_info_display("confirm_file_deletion");
@@ -462,8 +457,6 @@ static int menu_cbs_init_bind_start_compare_type(menu_file_list_cbs_t *cbs,
 {
    if (type == MENU_FILE_CORE)
       cbs->action_start = action_start_core_delete;
-   else if (type == MENU_FILE_SHADER_PRESET)
-         cbs->action_start = action_start_shader_preset_delete;
    else if (type >= MENU_SETTINGS_SHADER_PARAMETER_0
          && type <= MENU_SETTINGS_SHADER_PARAMETER_LAST)
       cbs->action_start = action_start_shader_action_parameter;
@@ -481,7 +474,7 @@ static int menu_cbs_init_bind_start_compare_type(menu_file_list_cbs_t *cbs,
    else if (type >= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_BEGIN
          && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
       cbs->action_start = action_start_libretro_device_type;
-   else if (type == MENU_FILE_CHEAT)
+   else if (type == MENU_FILE_CHEAT || type == MENU_FILE_SHADER_PRESET)
       cbs->action_start = action_start_file_delete;
    else
       return -1;

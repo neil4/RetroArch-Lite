@@ -1321,6 +1321,68 @@ static unsigned menu_displaylist_path_nav_idx(file_list_t *list, char *path)
    return 0;
 }
 
+/* Sets nav index leading to the in-use path of the given type */
+static void menu_displaylist_set_nav_to_path(menu_displaylist_info_t *info,
+      unsigned type)
+{
+   settings_t   *settings = config_get_ptr();
+   menu_handle_t    *menu = menu_driver_get_ptr();
+   menu_navigation_t *nav = menu_navigation_get_ptr();
+   char *path;
+   size_t idx;
+
+   if (menu->input.last_action != MENU_ACTION_OK)
+      return;
+
+   switch (type)
+   {
+      case DISPLAYLIST_OVERLAYS:
+         path = settings->input.overlay;
+         break;
+      case DISPLAYLIST_OSK_OVERLAYS:
+         path = settings->input.osk_overlay;
+         break;
+      case DISPLAYLIST_SHADER_PRESET:
+         path = settings->video.shader_path;
+         break;
+      case DISPLAYLIST_SHADER_PASS:
+         path = menu->shader->pass[menu->shader->pass_idx].source.path;
+         break;
+      case DISPLAYLIST_VIDEO_FILTERS:
+         path = settings->video.softfilter_plugin;
+         break;
+      case DISPLAYLIST_AUDIO_FILTERS:
+         path = settings->audio.dsp_plugin;
+         break;
+      case DISPLAYLIST_OPTIONS_FILES:
+         core_option_get_conf_path(info->path_b, core_options_scope);
+         path = info->path_b;
+         break;
+      case DISPLAYLIST_REMAP_FILES:
+         path = settings->input.remapping_path;
+         break;
+      case DISPLAYLIST_THEMES:
+         path = settings->menu.theme;
+         break;
+      case DISPLAYLIST_CHEAT_FILES:
+         path = settings->cheat_database;
+         break;
+      default:
+         path = NULL;
+   }
+
+   if (path)
+   {
+      if (path != info->path_b)
+         strlcpy(info->path_b, path, PATH_MAX_LENGTH);
+
+      path_resolve_realpath(info->path_b, PATH_MAX_LENGTH);
+      idx = menu_displaylist_path_nav_idx(info->list, info->path_b);
+      if (idx != 0)
+         menu_navigation_set(nav, idx, true);
+   }
+}
+
 int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
 {
    size_t i, list_size;
@@ -1604,51 +1666,7 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
             need_refresh = true;
             need_push    = true;
          }
-
-         if (menu->input.last_action != MENU_ACTION_OK)
-            break;
-
-         /* Set nav index leading to in-use path */
-         switch (type)
-         {
-            case DISPLAYLIST_OVERLAYS:
-               buf = settings->input.overlay;
-               break;
-            case DISPLAYLIST_OSK_OVERLAYS:
-               buf = settings->input.osk_overlay;
-               break;
-            case DISPLAYLIST_SHADER_PRESET:
-               buf = settings->video.shader_path;
-               break;
-            case DISPLAYLIST_VIDEO_FILTERS:
-               buf = settings->video.softfilter_plugin;
-               break;
-            case DISPLAYLIST_AUDIO_FILTERS:
-               buf = settings->audio.dsp_plugin;
-               break;
-            case DISPLAYLIST_OPTIONS_FILES:
-               core_option_get_conf_path(info->path_b, core_options_scope);
-               buf = info->path_b;
-               break;
-            case DISPLAYLIST_REMAP_FILES:
-               buf = settings->input.remapping_path;
-               break;
-            case DISPLAYLIST_THEMES:
-               buf = settings->menu.theme;
-               break;
-            case DISPLAYLIST_CHEAT_FILES:
-               buf = settings->cheat_database;
-               break;
-            default:
-               buf = NULL;
-         }
-
-         if (buf)
-         {
-            i = menu_displaylist_path_nav_idx(info->list, buf);
-            if (i != 0)
-               menu_navigation_set(nav, i, true);
-         }
+         menu_displaylist_set_nav_to_path(info, type);
          break;
    }
 
