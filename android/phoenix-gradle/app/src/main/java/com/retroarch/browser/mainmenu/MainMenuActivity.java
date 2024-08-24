@@ -499,7 +499,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       retro.putExtra("IME", currentIme);
       retro.putExtra("DATADIR", getApplicationInfo().dataDir);
       retro.putExtra("EXTDIR", UserPreferences.defaultBaseDir);
-      if (prefs.getBoolean("exit_to_launcher", false))
+      if (prefs.getBoolean("exit_to_launcher", true))
          retro.putExtra("EXITTOAPPID", getString(R.string.app_id));
 
       startActivity(retro);

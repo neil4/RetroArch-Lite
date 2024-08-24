@@ -37,7 +37,7 @@
             android:summary="@string/mame_titles_desc"
             android:title="@string/mame_titles" />
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="exit_to_launcher"
             android:summary="@string/exit_to_launcher_desc"
             android:title="@string/exit_to_launcher" />
