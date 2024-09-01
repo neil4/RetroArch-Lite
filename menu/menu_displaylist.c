@@ -1329,9 +1329,6 @@ static void menu_displaylist_set_nav_to_path(menu_displaylist_info_t *info,
    char *path;
    size_t idx;
 
-   if (menu->input.last_action != MENU_ACTION_OK)
-      return;
-
    switch (type)
    {
       case DISPLAYLIST_OVERLAYS:
@@ -1666,7 +1663,8 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
             need_refresh = true;
             need_push    = true;
          }
-         menu_displaylist_set_nav_to_path(info, type);
+         if (menu->input.last_action == MENU_ACTION_OK)
+            menu_displaylist_set_nav_to_path(info, type);
          break;
    }
 
