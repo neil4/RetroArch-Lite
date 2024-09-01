@@ -1552,3 +1552,18 @@ bool rarch_clear_all_thread_waits(unsigned clear_threads, void* data)
 
    return true;
 }
+
+void get_savestate_path(char *path)
+{
+   global_t   *global   = global_get_ptr();
+   settings_t *settings = config_get_ptr();
+
+   if (settings->state_slot > 0)
+      snprintf(path, PATH_MAX_LENGTH, "%s%d",
+            global->savestate_name, settings->state_slot);
+   else if (settings->state_slot < 0)
+      snprintf(path, PATH_MAX_LENGTH, "%s.auto",
+            global->savestate_name);
+   else
+      strlcpy(path, global->savestate_name, PATH_MAX_LENGTH);
+}

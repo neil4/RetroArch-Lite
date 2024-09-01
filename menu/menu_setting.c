@@ -17,6 +17,7 @@
 
 #include <file/file_path.h>
 #include <file/config_file.h>
+#include <string/stdstring.h>
 
 #include "menu.h"
 #include "menu_input.h"
@@ -36,6 +37,7 @@
 #include "../preempt.h"
 #include "drivers/rgui.h"
 #include "../core_history.h"
+#include "../retroarch.h"
 
 #if defined(__CELLOS_LV2__)
 #include <sdk_version.h>
@@ -2601,7 +2603,7 @@ static rarch_setting_t setting_string_setting_options(enum setting_type type,
 }
 
 static INLINE void setting_get_dl_core_info(char *s, size_t len,
-                                            const char* path)
+      const char* path)
 {
    global_t *global = global_get_ptr();
    char key[NAME_MAX_LENGTH];
@@ -2609,6 +2611,28 @@ static INLINE void setting_get_dl_core_info(char *s, size_t len,
 
    if (!core_info_list_get_description(global->core_info_dl, key, s, len, true))
       snprintf(s, len, "-- No description available for this core --");
+}
+
+static void setting_get_savestate_info(char *s, size_t len)
+{
+   char       *path     = string_alloc(PATH_MAX_LENGTH);
+   settings_t *settings = config_get_ptr();
+
+   get_savestate_path(path);
+
+   if (path_exists(path))
+   {
+      time_t mtime = path_modified_time(path);
+      char buf[32];
+
+      strftime(buf, 32, "%b %d %Y %H:%M:%S", localtime(&mtime));
+      snprintf(s, len, "State %i date/time modified:\n%s",
+            settings->state_slot, buf);
+   }
+   else
+      snprintf(s, len, "State %i is empty", settings->state_slot);
+
+   free(path);
 }
 
 static int setting_get_description_compare_label(uint32_t label_hash,
@@ -3761,6 +3785,10 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                      "content is running or if\n"
                      "file updates are disabled.");
             break;
+      case MENU_LABEL_SAVESTATE:
+      case MENU_LABEL_LOADSTATE:
+         setting_get_savestate_info(s, len);
+         break;
       default:
          return -1;
    }

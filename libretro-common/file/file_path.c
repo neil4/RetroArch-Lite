@@ -801,3 +801,26 @@ void fill_short_pathname_representation(char* out_rep,
    else
       strlcpy(out_rep,path_short, size);
 }
+
+time_t path_modified_time(char *path)
+{
+#ifdef _WIN32
+   FILETIME mtime;
+   ULARGE_INTEGER ularge;
+   HANDLE file = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL,
+         OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+   GetFileTime(file, NULL, NULL, &mtime);
+   CloseHandle(file);
+
+   ularge.LowPart  = mtime.dwLowDateTime;
+   ularge.HighPart = mtime.dwHighDateTime;
+
+   return (time_t)((ularge.QuadPart - 116444736000000000ULL) / 10000000ULL);
+#else
+   struct stat info;
+   stat(path, &info);
+
+   return info.st_mtime;
+#endif
+}

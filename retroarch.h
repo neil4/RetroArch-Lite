@@ -167,6 +167,8 @@ int rarch_info_get_capabilities(enum rarch_capabilities type, char *s, size_t le
 
 bool rarch_clear_all_thread_waits(unsigned clear_threads, void* data);
 
+void get_savestate_path(char *path);
+
 #ifdef __cplusplus
 }
 #endif

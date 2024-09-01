@@ -437,6 +437,8 @@ void fill_pathname_slash(char *path, size_t size);
 void fill_pathname_application_path(char *buf, size_t size);
 #endif
 
+time_t path_modified_time(char *path);
+
 #ifdef __cplusplus
 }
 #endif
