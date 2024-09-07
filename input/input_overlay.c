@@ -1401,7 +1401,7 @@ void input_overlay_update_mouse_scale(void)
    }
 }
 
-void input_overlay_set_eightway_anchors(input_overlay_t *ol)
+static void input_overlay_set_eightway_anchors(input_overlay_t *ol)
 {
    int i, j, k;
    for (i = 0; i < ol->size; i++)
@@ -1411,14 +1411,13 @@ void input_overlay_set_eightway_anchors(input_overlay_t *ol)
       for (j = 0; j < overlay->size; j++)
       {
          struct overlay_desc *desc = overlay->descs + j;
+         uint64_t mask             = desc->key_mask;
          if (desc->hitbox != OVERLAY_HITBOX_NONE)
             continue;
 
          for (k = 0; k < overlay->size; k++)
          {
             struct overlay_desc *desc2 = overlay->descs + k;
-            uint64_t mask = desc->key_mask;
-
             if (!desc2->eightway_vals)
                continue;
 
@@ -1967,16 +1966,19 @@ static INLINE bool input_overlay_poll_descs(
             BIT16_CLEAR(descs[j].touch_mask, touch_idx);
       }
 
-      any_desc_hit = true;
-      BIT16_SET(desc->touch_mask, touch_idx);
-
       switch(desc->type)
       {
          case OVERLAY_TYPE_BUTTONS:
-            out->buttons |= desc->key_mask;
+            if (desc->key_mask & META_KEY_MASK)
+            {
+               /* Don't trigger meta keys with sliding input */
+               if (old_touch_idx != -1 && !use_range_mod)
+                  continue;
+               if (BIT64_GET(desc->key_mask, RARCH_OVERLAY_NEXT))
+                  ol->next_index = desc->next_index;
+            }
 
-            if (BIT64_GET(desc->key_mask, RARCH_OVERLAY_NEXT))
-               ol->next_index = desc->next_index;
+            out->buttons |= desc->key_mask;
             break;
          case OVERLAY_TYPE_DPAD_AREA:
          case OVERLAY_TYPE_ABXY_AREA:
@@ -1994,6 +1996,9 @@ static INLINE bool input_overlay_poll_descs(
                   ol->active->scale_w, ol->active->scale_h);
             break;
       }
+
+      any_desc_hit = true;
+      BIT16_SET(desc->touch_mask, touch_idx);
    }
 
    return any_desc_hit;
