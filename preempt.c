@@ -44,8 +44,9 @@ struct preempt_data
    /* Mask of analog states requested */
    uint32_t analog_mask[MAX_USERS];
    /* Pointing device requested */
-   /* TODO: handle multiple devices per port */
-   uint8_t ptr_dev[MAX_USERS];
+   uint8_t ptr_dev_needed[MAX_USERS];
+   /* Pointing device ID of ptrdev_state */
+   uint8_t ptr_dev_polled[MAX_USERS];
 
    bool in_replay;
    bool in_preframe;
@@ -185,12 +186,14 @@ static INLINE void preempt_input_poll(preempt_t *preempt)
       }
 
       /* Check requested pointing device */
-      if (preempt->ptr_dev[p])
+      if (preempt->ptr_dev_needed[p])
       {
          if (preempt_ptr_input_dirty(
-               preempt, state_cb, preempt->ptr_dev[p], p))
+               preempt, state_cb, preempt->ptr_dev_needed[p], p))
             preempt->in_replay = true;
-         preempt->ptr_dev[p] = RETRO_DEVICE_NONE;
+
+         preempt->ptr_dev_polled[p] = preempt->ptr_dev_needed[p];
+         preempt->ptr_dev_needed[p] = RETRO_DEVICE_NONE;
       }
    }
 }
@@ -217,14 +220,15 @@ int16_t input_state_preempt(unsigned port, unsigned device,
       case RETRO_DEVICE_LIGHTGUN:
       case RETRO_DEVICE_POINTER:
          /* Set pointing device for this port */
-         preempt->ptr_dev[port] = dev_class;
+         preempt->ptr_dev_needed[port] = dev_class;
          break;
       case RETRO_DEVICE_MOUSE:
          /* Return stored x,y */
-         if (id < 2)
+         if (id <= RETRO_DEVICE_ID_MOUSE_Y)
          {
-            preempt->ptr_dev[port] = dev_class;
-            return preempt->ptrdev_state[port][id];
+            preempt->ptr_dev_needed[port] = dev_class;
+            if (preempt->ptr_dev_polled[port] == dev_class)
+               return preempt->ptrdev_state[port][id];
          }
          break;
       default:
