@@ -1783,10 +1783,17 @@ static void setting_get_string_representation_overlay_bisect(void *data,
       char *s, size_t len)
 {
    rarch_setting_t *setting = (rarch_setting_t*)data;
+   float disp_aspect;
+   unsigned disp_width, disp_height;
+
    if (!setting)
       return;
 
-   if (*setting->value.fraction >= OVERLAY_MAX_BISECT)
+   video_driver_get_size(&disp_width, &disp_height);
+   disp_aspect = (float)disp_width / disp_height;
+
+   if (*setting->value.fraction >= disp_aspect
+         || *setting->value.fraction >= OVERLAY_MAX_BISECT)
       strlcpy(s, "Max", len);
    else
       sprintf(s, "%.2f", *setting->value.fraction);
@@ -4228,10 +4235,37 @@ static void menu_swap_ok_cancel_toggle_change_handler(void *data)
    }
 }
 
+#ifdef HAVE_OVERLAY
 static void overlay_mouse_change_handler(void *data)
 {
    input_overlay_update_mouse_scale();
 }
+
+static void overlay_bisect_aspect_ratio_change_handler(void *data)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   float disp_aspect, val;
+   unsigned disp_width, disp_height;
+
+   if (!setting)
+      return;
+
+   video_driver_get_size(&disp_width, &disp_height);
+   disp_aspect = (float)disp_width / disp_height;
+
+   /* Skip values between display aspect and max */
+   val = *setting->value.fraction;
+   if (val >= disp_aspect && val < OVERLAY_MAX_BISECT)
+   {
+      if ((val - disp_aspect) < (OVERLAY_MAX_BISECT - val))
+         *setting->value.fraction = OVERLAY_MAX_BISECT;
+      else
+         *setting->value.fraction = disp_aspect - setting->step;
+   }
+
+   event_command(EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
+}
+#endif
 
 static bool setting_append_list_main_menu_options(
       rarch_setting_t **list,
@@ -6959,7 +6993,7 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0.5f, OVERLAY_MAX_BISECT, 0.01, true, true);
-   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_OVERLAY_UPDATE_ASPECT_AND_SHIFT);
+   (*list)[list_info->index - 1].change_handler = overlay_bisect_aspect_ratio_change_handler;
    (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_overlay_bisect;
 
