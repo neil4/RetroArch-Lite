@@ -229,7 +229,7 @@ static const char *menu_hash_to_str_english(uint32_t hash)
       case MENU_LABEL_CORE_HISTORY_ENTRY:
          return "core_history_entry";
       case MENU_LABEL_VALUE_CORE_HISTORY:
-         return "ROM History";
+         return "History";
       case MENU_LABEL_VALUE_LOAD_CONTENT:
          return "Load ROM";
       case MENU_LABEL_UNLOAD_CORE:

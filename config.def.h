@@ -515,7 +515,7 @@ static bool show_hotkey_menu = true;
 #endif
 static bool show_rewind_menu = false;
 
-static unsigned core_history_size = 20;
+static unsigned core_history_size = 30;
 static bool core_history_show_always = false;
 
 static bool default_sort_savefiles_enable = true;

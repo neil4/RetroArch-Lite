@@ -3778,7 +3778,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
             break;
       case MENU_LABEL_HISTORY_SHOW_ALWAYS:
          snprintf(s, len,
-                     " -- Shows or hides 'ROM History'\n"
+                     " -- Shows or hides ROM History\n"
                      "in the Main Menu.\n"
                      " \n"
                      "'Default' hides history while\n"
