@@ -433,10 +433,14 @@ static bool menu_input_retropad_bind_keyboard_cb(void *data, unsigned code)
    /* Guard against held or repeated keys */
    if (time_since_cb > 100000 || code != last_code)
    {
+      unsigned next_id = input_remapping_next_id(
+            menu_input->binds.target->id, false);
+
       last_code = code;
       menu_input->binds.target->key = (enum retro_key)code;
       menu_input->binds.begin++;
-      menu_input->binds.target++;
+      menu_input->binds.target =
+            &config_get_ptr()->input.binds[menu_input->binds.user][next_id];
       menu_input->binds.timeout_end = rarch_get_time_usec() +
          MENU_KEYBOARD_BIND_TIMEOUT_SECONDS_LONG * 1000000;  
    }
@@ -487,7 +491,7 @@ static int menu_input_set_bind_mode_common(rarch_setting_t  *setting,
          info = menu_displaylist_info_new();
 
          menu_input->binds.target = &settings->input.binds
-            [setting->index_offset][0];
+               [setting->index_offset][input_remapping_btn_order[1]];
          menu_input->binds.begin  = MENU_SETTINGS_BIND_BEGIN;
          menu_input->binds.last   = MENU_SETTINGS_BIND_LAST;
          menu_input->binds.user   = setting->index_offset;
@@ -609,7 +613,7 @@ int menu_input_bind_iterate(uint32_t label_hash)
       strlcpy(fmt, "[%s]\nPress joypad\n \n(RETURN to skip)\n(timeout %d seconds)", 64);
 
    snprintf(msg, sizeof(msg), fmt, input_config_bind_map[
-         menu_input->binds.begin - MENU_SETTINGS_BIND_BEGIN].desc, timeout);
+         menu_input->binds.target->id].desc, timeout);
    menu_driver_render_messagebox(msg);
 
    if ( (bind_mode_kb || hotkey_bind)
@@ -647,7 +651,8 @@ int menu_input_bind_iterate(uint32_t label_hash)
       if (binds.begin > binds.last)
          return 1;
 
-      binds.target++;
+      binds.target = &config_get_ptr()->input.binds[binds.user][
+            input_remapping_next_id(binds.target->id, false)];
       binds.timeout_end = rarch_get_time_usec() +
          MENU_KEYBOARD_BIND_TIMEOUT_SECONDS_LONG * 1000000;
    }
