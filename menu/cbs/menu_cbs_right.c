@@ -22,6 +22,7 @@
 #include "../menu_shader.h"
 #include "../menu_navigation.h"
 #include "../../retroarch.h"
+#include "../../input/input_remapping.h"
 
 extern unsigned input_remapping_scope;
 extern bool input_remapping_touched;
@@ -106,14 +107,8 @@ int action_right_input_desc(unsigned type, const char *label,
    else
       mapped_id = &settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset];
 
-   /* Treat NO_BTN as leftmost value */
    if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
-   {
-      if (*mapped_id < RARCH_FIRST_CUSTOM_BIND - 1)
-         (*mapped_id)++;
-      else if (*mapped_id > RARCH_FIRST_CUSTOM_BIND)
-         *mapped_id = 0;
-   }
+      *mapped_id = input_remapping_next_id(*mapped_id, true);
    else
    {
       if (*mapped_id < 4 - 1)
@@ -140,7 +135,7 @@ int action_r_input_desc(unsigned type, const char *label)
       mapped_id = &settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset];
 
    if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
-      *mapped_id = RARCH_FIRST_CUSTOM_BIND - 1;
+      *mapped_id = input_remapping_last_id(true);
    else
       *mapped_id = 4 - 1;
 
@@ -155,18 +150,9 @@ static int action_right_joykbd_input_desc(unsigned type, const char *label,
    uint16_t joy_btn  = joykbd_bind_list[joykbd_list_offset].btn;
    enum retro_key rk = joykbd_bind_list[joykbd_list_offset].rk;
 
-   /* Treat NO_BTN as leftmost value */
-   if (joy_btn < NUM_JOYKBD_BTNS - 1)
-   {
-      input_joykbd_remove_bind(rk, joy_btn);
-      joy_btn++;
-      input_joykbd_add_bind(rk, joy_btn);
-   }
-   else if (joy_btn > NUM_JOYKBD_BTNS - 1)
-   {
-      joy_btn = 0;
-      input_joykbd_add_bind(rk, joy_btn);
-   }
+   input_joykbd_remove_bind(rk, joy_btn);
+   joy_btn = input_remapping_next_id(joy_btn, false);
+   input_joykbd_add_bind(rk, joy_btn);
 
    input_remapping_touched = true;
    return 0;
@@ -178,13 +164,9 @@ static int action_r_joykbd_input_desc(unsigned type, const char *label)
    uint16_t joy_btn  = joykbd_bind_list[joykbd_list_offset].btn;
    enum retro_key rk = joykbd_bind_list[joykbd_list_offset].rk;
 
-   /* Treat NO_BTN as leftmost value */
-   if (joy_btn != NUM_JOYKBD_BTNS - 1)
-   {
-      input_joykbd_remove_bind(rk, joy_btn);
-      joy_btn = NUM_JOYKBD_BTNS - 1;
-      input_joykbd_add_bind(rk, joy_btn);
-   }
+   input_joykbd_remove_bind(rk, joy_btn);
+   joy_btn = input_remapping_last_id(false);
+   input_joykbd_add_bind(rk, joy_btn);
 
    input_remapping_touched = true;
    return 0;

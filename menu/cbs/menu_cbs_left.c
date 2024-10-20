@@ -22,6 +22,7 @@
 #include "../menu_shader.h"
 #include "../menu_navigation.h"
 
+#include "../../input/input_remapping.h"
 #include "../../input/input_joypad_to_keyboard.h"
 
 #include "../../general.h"
@@ -111,11 +112,14 @@ static int action_left_input_desc(unsigned type, const char *label,
    else
       mapped_id = &settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset];
 
-   (*mapped_id)--;
-
-   /* Treat NO_BTN as leftmost value */
-   if (*mapped_id > RARCH_FIRST_CUSTOM_BIND + 3)
-      *mapped_id = NO_BTN;
+   if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
+      *mapped_id = input_remapping_prev_id(*mapped_id, true);
+   else
+   {
+      (*mapped_id)--;
+      if (*mapped_id > RARCH_FIRST_CUSTOM_BIND + 3)
+         *mapped_id = NO_BTN;
+   }
 
    input_remapping_touched = true;
    return 0;
@@ -134,7 +138,6 @@ static int action_l_input_desc(unsigned type, const char *label)
    else
       mapped_id = &settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset];
 
-   /* Treat NO_BTN as leftmost value */
    *mapped_id = NO_BTN;
 
    input_remapping_touched = true;
@@ -148,13 +151,9 @@ static int action_left_joykbd_input_desc(unsigned type, const char *label,
    uint16_t joy_btn  = joykbd_bind_list[joykbd_list_offset].btn;
    enum retro_key rk = joykbd_bind_list[joykbd_list_offset].rk;
 
-   /* Treat NO_BTN as leftmost value */
-   if (joy_btn < NUM_JOYKBD_BTNS)
-   {
-      input_joykbd_remove_bind(rk, joy_btn);
-      joy_btn--;
-      input_joykbd_add_bind(rk, joy_btn);
-   }
+   input_joykbd_remove_bind(rk, joy_btn);
+   joy_btn = input_remapping_prev_id(joy_btn, false);
+   input_joykbd_add_bind(rk, joy_btn);
 
    input_remapping_touched = true;
    return 0;
@@ -166,9 +165,7 @@ static int action_l_joykbd_input_desc(unsigned type, const char *label)
    uint16_t joy_btn  = joykbd_bind_list[joykbd_list_offset].btn;
    enum retro_key rk = joykbd_bind_list[joykbd_list_offset].rk;
 
-  /* Treat NO_BTN as leftmost value */
-   if (joy_btn < NUM_JOYKBD_BTNS)
-      input_joykbd_remove_bind(rk, joy_btn);
+   input_joykbd_remove_bind(rk, joy_btn);
 
    input_remapping_touched = true;
    return 0;

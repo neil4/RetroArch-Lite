@@ -26,6 +26,7 @@ extern "C" {
 
 extern unsigned input_remapping_scope;
 extern bool input_remapping_touched;
+extern const unsigned input_remapping_btn_order[];
 
 /**
  * input_remapping_load_file:
@@ -70,6 +71,10 @@ void input_remapping_set_default_desc();
  * Sets @path to remapping file path for the @scope given.
  */
 void input_remapping_get_path(char* path, unsigned scope);
+
+unsigned input_remapping_next_id(unsigned id, bool digital_only);
+unsigned input_remapping_prev_id(unsigned id, bool digital_only);
+unsigned input_remapping_last_id(bool digital_only);
 
 #ifdef __cplusplus
 }

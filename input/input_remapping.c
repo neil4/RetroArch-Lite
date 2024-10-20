@@ -54,6 +54,76 @@ const struct retro_input_descriptor default_rid[DEFAULT_NUM_REMAPS] = {
    { 0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, RETRO_DEVICE_ID_ANALOG_Y, "Right Analog Y" }
 };
 
+#define NUM_REMAP_BTNS 25
+#define NUM_DIGITAL_REMAP_BTNS 17
+
+/* Defines the order of selectable buttons */
+const unsigned input_remapping_btn_order[NUM_REMAP_BTNS] = {
+   NO_BTN,
+   RETRO_DEVICE_ID_JOYPAD_A,
+   RETRO_DEVICE_ID_JOYPAD_B,
+   RETRO_DEVICE_ID_JOYPAD_X,
+   RETRO_DEVICE_ID_JOYPAD_Y,
+   RETRO_DEVICE_ID_JOYPAD_SELECT,
+   RETRO_DEVICE_ID_JOYPAD_START,
+   RETRO_DEVICE_ID_JOYPAD_LEFT,
+   RETRO_DEVICE_ID_JOYPAD_RIGHT,
+   RETRO_DEVICE_ID_JOYPAD_UP,
+   RETRO_DEVICE_ID_JOYPAD_DOWN,
+   RETRO_DEVICE_ID_JOYPAD_L,
+   RETRO_DEVICE_ID_JOYPAD_R,
+   RETRO_DEVICE_ID_JOYPAD_L2,
+   RETRO_DEVICE_ID_JOYPAD_R2,
+   RETRO_DEVICE_ID_JOYPAD_L3,
+   RETRO_DEVICE_ID_JOYPAD_R3,
+   RARCH_ANALOG_LEFT_X_MINUS,
+   RARCH_ANALOG_LEFT_X_PLUS,
+   RARCH_ANALOG_LEFT_Y_MINUS,
+   RARCH_ANALOG_LEFT_Y_PLUS,
+   RARCH_ANALOG_RIGHT_X_MINUS,
+   RARCH_ANALOG_RIGHT_X_PLUS,
+   RARCH_ANALOG_RIGHT_Y_MINUS,
+   RARCH_ANALOG_RIGHT_Y_PLUS
+};
+
+unsigned input_remapping_next_id(unsigned id, bool digital_only)
+{
+   const int max_i = digital_only
+         ? NUM_DIGITAL_REMAP_BTNS - 1
+         : NUM_REMAP_BTNS - 1;
+   int i = max_i;
+
+   /* Find index of id. Default to 0 (NO_BTN) */
+   while (i && id != input_remapping_btn_order[i])
+      i--;
+
+   /* Get next */
+   return input_remapping_btn_order[min(i + 1, max_i)];
+}
+
+unsigned input_remapping_prev_id(unsigned id, bool digital_only)
+{
+   int i = digital_only
+         ? NUM_DIGITAL_REMAP_BTNS - 1
+         : NUM_REMAP_BTNS - 1;
+
+   /* Find index of id. Default to 0 (NO_BTN) */
+   while (i && id != input_remapping_btn_order[i])
+      i--;
+
+   /* Get previous */
+   return input_remapping_btn_order[max(i - 1, 0)];
+}
+
+unsigned input_remapping_last_id(bool digital_only)
+{
+   const int num_btns = digital_only
+         ? NUM_DIGITAL_REMAP_BTNS
+         : NUM_REMAP_BTNS;
+
+   return input_remapping_btn_order[num_btns - 1];
+}
+
 /**
  * input_remapping_load_file:
  * @path                    : Path to remapping file (absolute path).
