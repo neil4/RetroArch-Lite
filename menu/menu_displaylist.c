@@ -933,7 +933,7 @@ static INLINE bool menu_displaylist_push_turbo_input(
    char desc_label[64];
    const char *description;
 
-   snprintf(desc_label, sizeof(desc_label), "Port %u Turbo ID: ", user);
+   snprintf(desc_label, sizeof(desc_label), "Port %u Turbo Input: ", user);
    menu_list_push(info->list, desc_label,
          menu_hash_to_str(MENU_LABEL_INPUT_TURBO_ID), p, 0, 0);
 
@@ -1127,7 +1127,7 @@ static int menu_displaylist_parse_generic(menu_displaylist_info_t *info, bool *n
 
    path_is_compressed = path_is_compressed_file(info->path);
    push_dir           = (info->setting
-                         && info->setting->browser_selection_type == ST_DIR);
+         && info->setting->browser_selection_type == ST_DIR);
 
    if (path_is_compressed)
       str_list = compressed_file_list_new(info->path, info->exts);

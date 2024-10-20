@@ -3178,7 +3178,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_INPUT_TURBO_BIND_ENABLE:
          snprintf(s, len,
-               " -- Adds a selectable turbo ID to each\n"
+               " -- Adds a turbo button to each\n"
                "port in Input Remapping.\n");
          break;
       case MENU_LABEL_INPUT_TURBO_ID:
@@ -6567,7 +6567,7 @@ static bool setting_append_list_input_options(
    CONFIG_BOOL(
          settings->input.turbo_binds_enable,
          menu_hash_to_str(MENU_LABEL_INPUT_TURBO_BIND_ENABLE),
-         "Add Turbo ID to Remapping",
+         "Add Turbo Input to Remapping",
          show_turbo_id,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
