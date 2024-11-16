@@ -54,9 +54,8 @@ struct preempt_data
    /* Number of latency frames to remove */
    uint8_t frames;
 
-   /* Buffer indexes for replays */
+   /* Buffer start index for replays */
    uint8_t start_ptr;
-   uint8_t replay_ptr;
 };
 
 static bool preempt_allocating_mem;
@@ -334,6 +333,7 @@ void preempt_pre_frame(preempt_t *preempt)
    preempt->in_preframe = true;
    preempt_input_poll(preempt);
    const char *failed_str;
+   uint8_t replay_ptr;
    
    if (preempt->in_replay
          && preempt->states_saved >= preempt->frames)
@@ -350,19 +350,19 @@ void preempt_pre_frame(preempt_t *preempt)
       }
 
       pretro_run();
-      preempt->replay_ptr = PREEMPT_NEXT_PTR(preempt->start_ptr);
+      replay_ptr = PREEMPT_NEXT_PTR(preempt->start_ptr);
 
-      while (preempt->replay_ptr != preempt->start_ptr)
+      while (replay_ptr != preempt->start_ptr)
       {
          if (!pretro_serialize(
-               preempt->buffer[preempt->replay_ptr], preempt->state_size))
+               preempt->buffer[replay_ptr], preempt->state_size))
          {
             failed_str = "Failed to Save State for Preemptive Frames.";
             goto error;
          }
 
          pretro_run();
-         preempt->replay_ptr = PREEMPT_NEXT_PTR(preempt->replay_ptr);
+         replay_ptr = PREEMPT_NEXT_PTR(replay_ptr);
       }
 
       preempt->in_replay      = false;

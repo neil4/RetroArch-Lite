@@ -540,7 +540,7 @@ static INLINE int time_to_exit(event_cmd_state_t *cmd)
       if (msg && !strcmp(msg, QUIT_CONFIRM_MSG))
          quit_key_confirmed = true;
       else
-         rarch_main_msg_queue_push(QUIT_CONFIRM_MSG, 1, 120, true);
+         rarch_main_msg_queue_push(QUIT_CONFIRM_MSG, 10, 120, true);
    }
 
    if (shutdown_pressed || quit_key_confirmed || frame_count_end
@@ -598,7 +598,7 @@ static void rarch_limit_frame_time(void)
    driver_t *driver                     = driver_get_ptr();
    retro_time_t current                 = rarch_get_time_usec();
    double mft_f;
-   
+
    double throttled_fps = settings->throttle_using_core_fps ?
                           video_viewport_get_system_av_info()->timing.fps
                           : settings->video.refresh_rate;
@@ -630,9 +630,9 @@ static void rarch_limit_frame_time(void)
       runloop->frames.limit.last_time = rarch_get_time_usec();
       return;
    }
-   
+
    rarch_sleep((unsigned int)to_sleep_ms);
-   
+
    runloop->frames.limit.last_time = target;
 }
 
