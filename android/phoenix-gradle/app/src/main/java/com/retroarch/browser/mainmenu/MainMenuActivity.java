@@ -60,6 +60,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
    private String libretroPath = "";
    private String libretroName = "";
    public static Intent retro = null;
+   public static boolean needRefresh = false;
 
    @Override
    public void onCreate(Bundle savedInstanceState)
@@ -520,8 +521,11 @@ public final class MainMenuActivity extends FragmentActivity implements Director
          startActivity(retro);
          finish();
       }
-      else
-         createList();  // assume a core was added/updated/removed
+      else if (needRefresh)
+      {
+         createList();
+         needRefresh = false;
+      }
    }
 
 }

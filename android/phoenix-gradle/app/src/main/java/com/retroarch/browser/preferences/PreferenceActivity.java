@@ -16,6 +16,7 @@ import androidx.appcompat.app.ActionBar.Tab;
 import androidx.appcompat.app.ActionBar.TabListener;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.retroarch.browser.mainmenu.MainMenuActivity;
 import com.retroarch.browser.preferences.fragments.AudioVideoPreferenceFragment;
 import com.retroarch.browser.preferences.fragments.GeneralPreferenceFragment;
 import com.retroarch.browser.preferences.fragments.PathPreferenceFragment;
@@ -73,6 +74,14 @@ public final class PreferenceActivity extends AppCompatActivity implements TabLi
             actionBar.setSelectedNavigationItem(position);
          }
       } );
+   }
+
+   @Override
+   public void onResume()
+   {
+      super.onResume();
+      // Assume something will affect the launcher menu
+      MainMenuActivity.needRefresh = true;
    }
 
    @Override
