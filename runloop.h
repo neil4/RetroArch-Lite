@@ -95,7 +95,6 @@ typedef struct global
    bool has_set_netplay_mode;
    bool has_set_username;
    bool has_set_netplay_ip_address;
-   bool has_set_netplay_delay_frames;
    bool has_set_netplay_ip_port;
 
    bool has_set_ups_pref;
@@ -226,7 +225,6 @@ typedef struct global
    char netplay_server[46];
    bool netplay_enable;
    bool netplay_is_client;
-   unsigned netplay_sync_frames;
    unsigned netplay_port;
 #endif
 

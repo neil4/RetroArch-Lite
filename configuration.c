@@ -1015,8 +1015,8 @@ static void config_set_defaults(void)
             g_defaults.content_dir, PATH_MAX_LENGTH);
 
 #ifdef HAVE_NETPLAY
-   global->netplay_sync_frames = netplay_sync_frames;
-   global->netplay_port        = RARCH_DEFAULT_PORT;
+   global->netplay_port              = RARCH_DEFAULT_PORT;
+   settings->netplay_periodic_resync = true;
 #endif
 
    if (*g_defaults.config_path)
@@ -1726,6 +1726,12 @@ static bool config_load_file(const char *path, bool set_defaults)
          sizeof(settings->network.buildbot_assets_url));
    config_get_bool(conf, "core_updater_auto_extract_archive",
          &settings->network.buildbot_auto_extract_archive);
+   config_get_bool(conf, "netplay_periodic_resync",
+         &settings->netplay_periodic_resync);
+   config_get_bool(conf, "netplay_show_crc_checks",
+         &settings->netplay_show_crc_checks);
+   config_get_bool(conf, "netplay_show_rollback",
+         &settings->netplay_show_rollback);
 
    for (i = 0; i < settings->input.max_users; i++)
    {
@@ -2085,9 +2091,6 @@ static bool config_load_file(const char *path, bool set_defaults)
    if (!global->has_set_netplay_ip_address)
       config_get_path(conf, "netplay_ip_address",
             global->netplay_server, PATH_MAX_LENGTH);
-   if (!global->has_set_netplay_delay_frames)
-      config_get_uint(conf, "netplay_delay_frames",
-            &global->netplay_sync_frames);
    if (!global->has_set_netplay_ip_port)
       config_get_uint(conf, "netplay_ip_port",
             &global->netplay_port);
@@ -2672,6 +2675,12 @@ bool main_config_file_save(const char *path)
          settings->network.buildbot_assets_url);
    config_set_bool(conf, "core_updater_auto_extract_archive",
          settings->network.buildbot_auto_extract_archive);
+   config_set_bool(conf, "netplay_periodic_resync",
+         settings->netplay_periodic_resync);
+   config_set_bool(conf, "netplay_show_crc_checks",
+         settings->netplay_show_crc_checks);
+   config_set_bool(conf, "netplay_show_rollback",
+         settings->netplay_show_rollback);
 
    config_set_string(conf, "camera_device", settings->camera.device);
    config_set_bool(conf, "camera_allow", settings->camera.allow);
@@ -2901,7 +2910,6 @@ bool main_config_file_save(const char *path)
    config_set_bool(conf, "netplay_mode", global->netplay_is_client);
    config_set_string(conf, "netplay_ip_address", global->netplay_server);
    config_set_int(conf, "netplay_ip_port", global->netplay_port);
-   config_set_int(conf, "netplay_delay_frames", global->netplay_sync_frames);
    config_set_bool(conf, "netplay_client_swap_input",
          settings->input.netplay_client_swap_input);
 #endif

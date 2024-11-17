@@ -3757,13 +3757,6 @@ static int setting_get_description_compare_label(uint32_t label_hash,
       case MENU_LABEL_JOYPAD_TO_KEYBOARD_BIND:
          input_joykbd_get_info(s, len);
          break;
-      case MENU_LABEL_NETPLAY_DELAY_FRAMES:
-         snprintf(s, len,
-                     " -- Netplay's rewind buffer size, in frames. \n"
-                     " \n"
-                     "Higher values can reduce stalling at the \n"
-                     "cost of higher CPU usage and jitter. \n");
-            break;
       case MENU_LABEL_PREEMPTIVE_FRAMES:
          snprintf(s, len,
                      " -- On joypad updates, recent frames are \n"
@@ -3791,6 +3784,17 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                      "'Default' hides history while\n"
                      "content is running or if\n"
                      "file updates are disabled.");
+            break;
+      case MENU_LABEL_NETPLAY_PERIODIC_RESYNC:
+         snprintf(s, len,
+                     " -- Send a savestate over the network\n"
+                     "when peer state CRC does not match.\n"
+                     " \n"
+                     "Needed for nondeterministic cores,\n"
+                     "but can cause stalls if states are\n"
+                     "not Netplay-friendly.\n"
+                     " \n"
+                     "Can be toggled during Netplay.");
             break;
       case MENU_LABEL_SAVESTATE:
       case MENU_LABEL_LOADSTATE:
@@ -4062,11 +4066,6 @@ static void general_write_handler(void *data)
       case MENU_LABEL_NETPLAY_MODE:
 #ifdef HAVE_NETPLAY
          global->has_set_netplay_mode = true;
-#endif
-         break;
-      case MENU_LABEL_NETPLAY_DELAY_FRAMES:
-#ifdef HAVE_NETPLAY
-         global->has_set_netplay_delay_frames = (global->netplay_sync_frames > 0);
 #endif
          break;
    }
@@ -8547,6 +8546,38 @@ static bool setting_append_list_netplay_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_ENTRIES_REFRESH);
+
+   if (global->netplay_is_client || settings->menu.show_advanced_settings)
+   {
+      CONFIG_STRING(
+            global->netplay_server,
+            "netplay_ip_address",
+            "Host IP Address",
+            "192.168.43.1",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
+   }
+
+   if (!global->netplay_is_client || settings->menu.show_advanced_settings)
+   {
+      CONFIG_BOOL(
+            settings->netplay_periodic_resync,
+            menu_hash_to_str(MENU_LABEL_NETPLAY_PERIODIC_RESYNC),
+            "Resync on state mismatch",
+            true,
+            menu_hash_to_str(MENU_VALUE_OFF),
+            menu_hash_to_str(MENU_VALUE_ON),
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+   }
 
    CONFIG_BOOL(
          settings->input.netplay_client_swap_input,
@@ -8561,23 +8592,11 @@ static bool setting_append_list_netplay_options(
          general_write_handler,
          general_read_handler);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_STRING(
-         global->netplay_server,
-         "netplay_ip_address",
-         "Host IP Address",
-         "192.168.43.1",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
    
    CONFIG_UINT(
          global->netplay_port,
-         "netplay_tcp_udp_port",
-         "Port",
+         "netplay_ip_port",
+         "Netplay Port",
          RARCH_DEFAULT_PORT,
          group_info.name,
          subgroup_info.name,
@@ -8586,18 +8605,32 @@ static bool setting_append_list_netplay_options(
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 1, 99999, 1, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-   
-   CONFIG_UINT(
-         global->netplay_sync_frames,
-         "netplay_delay_frames",
-         "Allowed Latency (frames)",
-         netplay_sync_frames,
+
+   CONFIG_BOOL(
+         settings->netplay_show_rollback,
+         "netplay_show_rollback",
+         "Show rollback count",
+         false,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 10, 1, true, true);
+
+   CONFIG_BOOL(
+         settings->netplay_show_crc_checks,
+         "netplay_show_crc_checks",
+         "Show state checks",
+         false,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
 
    END_SUB_GROUP(list, list_info, parent_group);
 

@@ -1222,14 +1222,6 @@ bool rarch_environment_cb(unsigned cmd, void *data)
             result |= 1;
          if (preempt_in_preframe(driver->preempt_data))
             result |= 4;
-#ifdef HAVE_NETPLAY
-         else if (driver->netplay_data)
-         {
-            if (netplay_is_replaying(driver->netplay_data))
-               result &= ~(1|2);
-            result |= 4;
-         }
-#endif
          if (data != NULL)
          {
             int* result_p = (int*)data;
@@ -1245,9 +1237,8 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          if (preempt_in_preframe(driver->preempt_data))
             result = RETRO_SAVESTATE_CONTEXT_RUNAHEAD_SAME_INSTANCE;
 #ifdef HAVE_NETPLAY
-         else if (driver->netplay_data)
+         else if (netplay_use_rollback_states(driver->netplay_data))
             result = RETRO_SAVESTATE_CONTEXT_ROLLBACK_NETPLAY;
-            /* TODO: not when saving from menu */
 #endif
          if (data != NULL)
          {

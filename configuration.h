@@ -414,6 +414,9 @@ typedef struct settings
    bool network_cmd_enable;
    unsigned network_cmd_port;
    bool stdin_cmd_enable;
+   bool netplay_periodic_resync;
+   bool netplay_show_crc_checks;
+   bool netplay_show_rollback;
 
    char core_assets_directory[PATH_MAX_LENGTH];
    char assets_directory[PATH_MAX_LENGTH];

@@ -474,7 +474,6 @@ static void parse_input(int argc, char *argv[])
    global->has_set_netplay_mode          = false;
    global->has_set_username              = false;
    global->has_set_netplay_ip_address    = false;
-   global->has_set_netplay_delay_frames  = false;
    global->has_set_netplay_ip_port       = false;
 
    global->has_set_ups_pref              = false;
@@ -711,11 +710,6 @@ static void parse_input(int argc, char *argv[])
             global->netplay_enable = true;
             strlcpy(global->netplay_server, optarg,
                   sizeof(global->netplay_server));
-            break;
-
-         case 'F':
-            global->netplay_sync_frames = strtol(optarg, NULL, 0);
-            global->has_set_netplay_delay_frames = true;
             break;
 #endif
 

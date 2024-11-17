@@ -483,8 +483,7 @@ static const unsigned overlay_mouse_tap_and_drag_ms = 200;
 #endif
 static bool show_frame_throttle_menu = true;
 #ifdef HAVE_NETPLAY
-static bool show_netplay_menu = false;
-static unsigned netplay_sync_frames = 3;
+static bool show_netplay_menu = true;
 #endif
 static bool show_saving_menu = false;
 static bool show_core_menu = true;

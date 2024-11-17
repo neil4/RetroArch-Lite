@@ -780,6 +780,7 @@ bool event_command(enum event_command cmd)
 #endif
          break;
       case EVENT_CMD_LOAD_CORE_DEINIT:
+         global->content_crc = 0;
 #ifdef HAVE_DYNAMIC
          libretro_free_system_info(&global->menu.info);
 #endif
@@ -818,7 +819,7 @@ bool event_command(enum event_command cmd)
       case EVENT_CMD_LOAD_STATE:
          event_main_state(cmd);
 #ifdef HAVE_NETPLAY
-         if (driver->netplay_data && !netplay_send_savestate())
+         if (driver->netplay_data && !netplay_send_savestate(false))
             netplay_disconnect();
          else
 #endif
@@ -859,7 +860,7 @@ bool event_command(enum event_command cmd)
             rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
 
 #ifdef HAVE_NETPLAY
-         if (driver->netplay_data && !netplay_send_savestate())
+         if (driver->netplay_data && !netplay_send_savestate(false))
             netplay_disconnect();
          else
 #endif

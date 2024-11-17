@@ -109,19 +109,19 @@ bool init_netplay(void);
 
 void deinit_netplay(void);
 
-void netplay_disconnect();
+void netplay_disconnect(void);
 
 /**
  * netplay_mask_config
  * 
  * Mask certain settings for Netplay.
  */
-void netplay_mask_config();
-void netplay_unmask_config();
+void netplay_mask_config(void);
+void netplay_unmask_config(void);
 
-bool netplay_send_savestate();
+bool netplay_send_savestate(bool silent);
 
-bool netplay_is_replaying(netplay_t *netplay);
+bool netplay_use_rollback_states(netplay_t *netplay);
 
 #endif
 

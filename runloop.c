@@ -385,14 +385,10 @@ static int do_pre_state_checks(event_cmd_state_t *cmd)
 
 #ifdef HAVE_NETPLAY
 static int do_netplay_state_checks(
-      bool netplay_flip_pressed,
-      bool fullscreen_toggle)
+      bool netplay_flip_pressed)
 {
    if (netplay_flip_pressed)
       event_command(EVENT_CMD_NETPLAY_FLIP_PLAYERS);
-
-   if (fullscreen_toggle)
-      event_command(EVENT_CMD_FULLSCREEN_TOGGLE);
    return 0;
 }
 #endif
@@ -457,7 +453,7 @@ static int do_state_checks(event_cmd_state_t *cmd)
 
 #ifdef HAVE_NETPLAY
    if (driver->netplay_data)
-      return do_netplay_state_checks(cmd->netplay_flip_pressed, cmd->fullscreen_toggle);
+      return do_netplay_state_checks(cmd->netplay_flip_pressed);
 #endif
 
    if (!menu_driver_alive())
