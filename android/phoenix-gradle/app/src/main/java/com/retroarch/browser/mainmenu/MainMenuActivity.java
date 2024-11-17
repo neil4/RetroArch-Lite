@@ -49,6 +49,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.retroarch.browser.coremanager.CoreManagerActivity.sanitizedLibretroName;
+
 /**
  * {@link FragmentActivity} subclass that provides all of the
  * functionality of the main menu screen.
@@ -249,7 +251,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
    {
       final ModuleWrapper item = adapter.getItem(position);
       libretroPath = item.getUnderlyingFile().getAbsolutePath();
-      libretroName = InstalledCoresFragment.sanitizedLibretroName(libretroPath);
+      libretroName = sanitizedLibretroName(libretroPath);
 
       // Show Content Directory
       //
@@ -285,7 +287,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
    {
       final ModuleWrapper item = adapter.getItem(position);
       libretroPath = item.getUnderlyingFile().getAbsolutePath();
-      libretroName = InstalledCoresFragment.sanitizedLibretroName(libretroPath);
+      libretroName = sanitizedLibretroName(libretroPath);
 
       // Show Content History
       //

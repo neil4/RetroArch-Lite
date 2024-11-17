@@ -42,6 +42,7 @@ import java.util.zip.ZipOutputStream;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LOCKED;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 import static com.retroarch.browser.preferences.util.UserPreferences.getPreferences;
+import static com.retroarch.browser.coremanager.CoreManagerActivity.sanitizedLibretroName;
 
 /**
  * {@link ListFragment} that displays all of the currently installed cores
@@ -272,21 +273,6 @@ public final class InstalledCoresFragment extends ListFragment
       alert.show();
 
       return true;
-   }
-   
-
-   /**
-    * @param path (not modified) relative or absolute core file path
-    * @return path without directory or "_libretro_android.so"
-    */
-   public static String sanitizedLibretroName(String path)
-   {
-      int startIndex = path.lastIndexOf('/') + 1;
-      int endIndex = path.indexOf("_libretro", startIndex);
-      if (endIndex < 0)
-         endIndex = path.indexOf('.');
-
-      return path.substring(startIndex, endIndex);
    }
 
    /**

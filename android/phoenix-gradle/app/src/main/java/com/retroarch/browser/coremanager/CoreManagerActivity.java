@@ -154,7 +154,43 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
       }
    }
 
-   // Returns best core title and mfr+system title
+   /**
+    * @param coreBasename core file basename
+    * @return best info filename
+    */
+   static public String InfoBasename(String coreBasename)
+   {
+      int endIndex = coreBasename.lastIndexOf("_android");
+      if (endIndex < 0)
+         endIndex = coreBasename.lastIndexOf("_libretro") + 9;
+      if (endIndex < 9)
+         endIndex = coreBasename.indexOf('.');
+      if (endIndex < 0)
+         endIndex = coreBasename.length();
+
+      return coreBasename.substring(0, endIndex) + ".info";
+   }
+
+   /**
+    * @param path (not modified) relative or absolute core file path
+    * @return path without directory or "_libretro_android.so"
+    */
+   public static String sanitizedLibretroName(String path)
+   {
+      int startIndex = path.lastIndexOf('/') + 1;
+      int endIndex = path.lastIndexOf("_libretro");
+      if (endIndex < 0)
+         endIndex = path.indexOf('.', startIndex);
+      if (endIndex < 0)
+         return new String(path);
+
+      return path.substring(startIndex, endIndex);
+   }
+
+   /**
+    * @param infoFilePath path to core info file
+    * @return best core title and mfr+system title
+    */
    public static Pair<String,String> getTitlePair(String infoFilePath)
    {
       String name = "";
