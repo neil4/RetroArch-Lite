@@ -2532,6 +2532,9 @@ void input_overlay_poll(input_overlay_t *overlay_device)
        || OVERLAY_GET_KEY(state, RETROK_RMETA))
       key_mod |= RETROKMOD_META;
 
+   if (menu_driver_alive())
+      key_mod |= RETROKMOD_NUMLOCK;
+
    for (i = (int)ARRAY_SIZE(state->keys); i-- > 0;)
    {
       if (state->keys[i] != old_state->keys[i])
