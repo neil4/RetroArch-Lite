@@ -20,8 +20,8 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <net/net_compat.h>
 #include <zlib.h>
+#include <net/net_compat.h>
 #include "netplay.h"
 #include "general.h"
 #include "autosave.h"
@@ -197,6 +197,7 @@ static void netplay_resync(netplay_t *netplay)
    netplay->self_ptr = netplay->other_ptr;
    netplay->read_ptr = netplay->other_ptr;
 
+   netplay->buffer[netplay->other_ptr].self_crc = 0;
    netplay->buffer[NETPLAY_PREV_PTR(netplay->other_ptr)].self_crc = 0;
    netplay->buffer[NETPLAY_PREV_PTR(netplay->read_ptr)].peer_input_state
          = last_peer_input;
@@ -526,7 +527,7 @@ static void netplay_simulate_input(netplay_t *netplay)
    }
    else
    {
-      /* Ensure current frame is simulated if read_ptr is ahead */
+      /* If read_ptr is ahead, consider upcoming frame correctly simulated */
       ptr = &netplay->buffer[netplay->self_ptr];
       ptr->sim_peer_input_state = ptr->peer_input_state;
    }
@@ -977,7 +978,6 @@ end:
    if (netplay->udp_fd < 0)
       return false;
 
-   /* Check UDP */
    return true;
 }
 
@@ -1577,7 +1577,7 @@ void netplay_post_frame(netplay_t *netplay)
       {
          char msg[32];
          snprintf(msg, sizeof(msg), mismatch ?
-            "CRC mismatch at frame %d" : "CRCs equal at frame %d",
+            "CRC mismatch\nFrame: %d" : "CRCs equal\nFrame: %d",
                netplay->other_frame_count - 1);
          rarch_main_msg_queue_push(msg, 1, 120, true);
       }
