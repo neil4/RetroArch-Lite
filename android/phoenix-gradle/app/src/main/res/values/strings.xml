@@ -47,7 +47,7 @@
     <string name="downloadable_cores_ctx_title">Actions</string>
     <string name="downloadable_cores_ctx_view_core_info">View Core Information</string>
     <string name="downloadable_cores_ctx_sort_by_name">Sort by Name</string>
-    <string name="downloadable_cores_ctx_sort_by_system">Sort by Make &#38; System</string>
+    <string name="downloadable_cores_ctx_sort_by_system">Sort by System</string>
     
     <!-- Installed Cores Context Menu -->
     <string name="installed_cores_ctx_title">Actions</string>

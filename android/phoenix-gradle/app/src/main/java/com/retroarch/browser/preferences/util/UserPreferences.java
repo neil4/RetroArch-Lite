@@ -83,7 +83,7 @@ public final class UserPreferences
 
       final SharedPreferences prefs = getPreferences(ctx);
 
-      // Default ROM path
+      // Default ROM directory
       config.setString("rgui_browser_directory", prefs.getString("rgui_browser_directory", ""));
       
       // Audio, Video
@@ -119,8 +119,7 @@ public final class UserPreferences
       new File(cfgDir).mkdirs();
       
       // Menu
-      config.setBoolean("mame_titles",
-                        prefs.getBoolean("mame_titles", false));
+      config.setBoolean("mame_titles", prefs.getBoolean("mame_titles", false));
 
       try
       {

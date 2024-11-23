@@ -158,7 +158,7 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
     * @param coreBasename core file basename
     * @return best info filename
     */
-   static public String InfoBasename(String coreBasename)
+   static public String infoBasename(String coreBasename)
    {
       int endIndex = coreBasename.lastIndexOf("_android");
       if (endIndex < 0)
@@ -239,9 +239,9 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
          final int start = infoFilePath.lastIndexOf('/') + 1;
          final int end = infoFilePath.lastIndexOf('.');
          if (end == -1)
-            name = infoFilePath.substring(start);
+            name = system = infoFilePath.substring(start);
          else
-            name = infoFilePath.substring(start, end);
+            name = system = infoFilePath.substring(start, end);
       }
       catch (IOException ioe)
       {

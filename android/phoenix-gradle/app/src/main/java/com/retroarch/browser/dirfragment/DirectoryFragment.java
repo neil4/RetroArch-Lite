@@ -226,7 +226,9 @@ public class DirectoryFragment extends DialogFragment
          extArray[i++] = ext.toLowerCase();
       }
       bundle.putStringArray("exts", extArray);
-      
+
+      if (extArray.length > 0)
+         dFrag.addAllowedExts(extArray);
       dFrag.setArguments(bundle);
       onClosedListener = null;
 
@@ -265,14 +267,7 @@ public class DirectoryFragment extends DialogFragment
       else
          getDialog().setTitle(getArguments().getInt("titleResId"));
       
-      // Set supported extensions
-      if (!isDirectoryTarget)
-      {
-         String[] extArray = getArguments().getStringArray("exts");
-         if ( extArray != null && extArray.length > 0 )
-            addAllowedExts(extArray);
-      }
-      else if (pathSettingKey != null && !pathSettingKey.isEmpty())
+      if (pathSettingKey != null && !pathSettingKey.isEmpty())
       {
          DarkToast.makeText(getActivity(), "Current Directory:\n"
                      + UserPreferences.getPreferences(getActivity())
@@ -410,7 +405,7 @@ public class DirectoryFragment extends DialogFragment
    private boolean filterPath(String path)
    {
       path = path.toLowerCase();
-      
+
       if (allowedExt != null)
       {
          for (String ext : allowedExt)
@@ -418,7 +413,7 @@ public class DirectoryFragment extends DialogFragment
             if (path.endsWith(ext))
                return true;
          }
-         
+
          return false;
       }
 

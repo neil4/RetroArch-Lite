@@ -1,5 +1,8 @@
 package com.retroarch.browser;
 
+import static com.retroarch.browser.coremanager.CoreManagerActivity.infoBasename;
+import static com.retroarch.browser.coremanager.CoreManagerActivity.sanitizedLibretroName;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
@@ -7,7 +10,6 @@ import android.os.Environment;
 
 import com.retroarch.browser.preferences.util.ConfigFile;
 import com.retroarch.browser.preferences.util.UserPreferences;
-import com.retroarchlite.R;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -49,29 +51,9 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    public ModuleWrapper(Context context, File file, boolean showAbi, boolean sortBySys)
    {
       this.file = file;
-      SharedPreferences prefs = UserPreferences.getPreferences(context);
+      final String infoFilePath = context.getApplicationInfo().dataDir + "/info/"
+            + infoBasename((file.getName()));
 
-      // Attempt to get the core's info file: dataDir/info/[core name].info
-
-      // Trim platform suffix and extension
-      final boolean isValidCoreName = (file.getName().lastIndexOf("_android.so") != -1); 
-      final String coreName = (isValidCoreName) ? file.getName().substring(0, file.getName().lastIndexOf("_android.so"))
-                                                : file.getName();
-
-      String infoFileDir = context.getApplicationInfo().dataDir + "/info";
-      
-      // Fix info path for shared cores
-      final String sharedId = context.getString(R.string.shared_app_id);
-      if (file.getPath().contains(sharedId+'/'))
-      {
-         if (sharedId.endsWith("64"))
-            infoFileDir = infoFileDir.replaceFirst("retroarchlite/", "retroarchlite64/");
-         else
-            infoFileDir = infoFileDir.replaceFirst("retroarchlite64/", "retroarchlite/");
-      }
-
-      // Based on the trimmed core name, get the core info file. Read as config file
-      final String infoFilePath = infoFileDir + File.separator + coreName + ".info";
       if (new File(infoFilePath).exists())
       {
          final ConfigFile infoFile = new ConfigFile(infoFilePath);
@@ -148,6 +130,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
          }
          else
          {
+            SharedPreferences prefs  = UserPreferences.getPreferences(context);
             final String defaultBase = Environment.getExternalStorageDirectory()
                                                   .getAbsolutePath() + "/RetroArchLite";
             final String defaultSys = defaultBase + "/system";
@@ -177,8 +160,10 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
       }
       else // No info file.
       {
-         this.displayName = "Unknown";
-         this.systemName = "Unknown";
+         final String coreName = sanitizedLibretroName(file.getName());
+
+         this.displayName = coreName;
+         this.systemName = coreName;
          this.manufacturer = new ArrayList<String>();
          this.manufacturer.add("N/A");
          this.license = new ArrayList<String>();
@@ -194,9 +179,9 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
       }
 
       // Set displayed title and subtext
-      boolean is64bit = file.getAbsolutePath().contains("/com.retroarchlite64/");
       coreTitle = bestCoreTitle(this.displayName, this.coreName)
-            + (showAbi ? (is64bit ? " (64b)" : " (32b)") : "");
+            + (!showAbi ? ""
+            : (file.getAbsolutePath().contains("/com.retroarchlite64/") ? " (64b)" : " (32b)"));
       systemTitle  = bestSystemTitle(this.displayName, this.systemName);
 
       titleText = sortBySys ? systemTitle : coreTitle;

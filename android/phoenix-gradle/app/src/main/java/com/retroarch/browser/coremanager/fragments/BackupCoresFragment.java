@@ -37,7 +37,7 @@ import java.util.Collections;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LOCKED;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 import static com.retroarch.browser.coremanager.CoreManagerActivity.getTitlePair;
-import static com.retroarch.browser.coremanager.CoreManagerActivity.InfoBasename;
+import static com.retroarch.browser.coremanager.CoreManagerActivity.infoBasename;
 
 /**
  * {@link ListFragment} that is responsible for showing local backup
@@ -181,7 +181,7 @@ public final class BackupCoresFragment extends ListFragment
             if (!isZip && !fileName.endsWith(".so"))
                continue;
 
-            String infoName = InfoBasename(fileName);
+            String infoName = infoBasename(fileName);
             String infoPath = getContext().getApplicationInfo().dataDir + "/info/" + infoName;
             if (!isZip && !new File(infoPath).exists())
                infoPath = backupCoresDir + '/' + infoName;
@@ -271,7 +271,7 @@ public final class BackupCoresFragment extends ListFragment
             }
 
             // Copy info file if there is one
-            String infoName = InfoBasename((fileName));
+            String infoName = infoBasename((fileName));
             inFile = new File(backupCoresDir, infoName);
             if (infoName.endsWith(".info") && inFile.exists())
             {

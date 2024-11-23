@@ -48,7 +48,7 @@ import java.util.zip.ZipInputStream;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LOCKED;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 import static com.retroarch.browser.coremanager.CoreManagerActivity.getTitlePair;
-import static com.retroarch.browser.coremanager.CoreManagerActivity.InfoBasename;
+import static com.retroarch.browser.coremanager.CoreManagerActivity.infoBasename;
 
 /**
  * {@link ListFragment} that is responsible for showing
@@ -232,7 +232,7 @@ public final class DownloadableCoresFragment extends ListFragment
          DownloadableCore item = sAdapter.getItem(i);
          String fileName = item.getShortURLName();
          String infoPath = getContext().getApplicationInfo().dataDir + "/info/"
-               + InfoBasename((fileName));
+               + infoBasename((fileName));
 
          Pair<String,String> pair = getTitlePair(infoPath); // (name,mfr+system)
          cores.add(new DownloadableCore(pair.first, pair.second, item.getCoreURL(), sortBySys));
@@ -293,7 +293,7 @@ public final class DownloadableCoresFragment extends ListFragment
             {
                String coreURL  = buildbotURL + fileName;
                String infoPath = getContext().getApplicationInfo().dataDir + "/info/"
-                     + InfoBasename((fileName));
+                     + infoBasename((fileName));
 
                Pair<String,String> pair = getTitlePair(infoPath); // (name, mfr+system)
                if (!new File(infoPath).exists())

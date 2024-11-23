@@ -53,9 +53,11 @@ final class DownloadableCoresAdapter extends ArrayAdapter<DownloadableCore>
          {
             if (title != null)
                title.setText(core.getTitle());
-            if (subtitle != null)
-               subtitle.setText(core.getSubTitle()
-                     + (core.getCoreURL().startsWith("file") ? '\n' + core.getShortURLName() : ""));
+
+            if (!core.getCoreURL().startsWith("file"))
+               subtitle.setText(core.getSubTitle());
+            else
+               subtitle.setText(core.getSubTitle() + '\n' + core.getShortURLName());
          }
       }
 

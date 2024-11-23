@@ -84,7 +84,7 @@ public final class CoreInfoFragment extends DialogFragment
 
       return infoView;
    }
-   
+
    @Override
    public void onResume()
    {

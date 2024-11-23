@@ -32,7 +32,6 @@ import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.IconAdapter;
 import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.NativeInterface;
-import com.retroarch.browser.coremanager.fragments.InstalledCoresFragment;
 import com.retroarch.browser.dirfragment.DirectoryFragment;
 import com.retroarch.browser.preferences.PreferenceActivity;
 import com.retroarch.browser.preferences.util.UserPreferences;
@@ -259,9 +258,9 @@ public final class MainMenuActivity extends FragmentActivity implements Director
 
       if (!new File(libretroPath).isDirectory())
       {
-         DirectoryFragment contentBrowser = DirectoryFragment.newInstance(item.getCoreTitle(),
-               item.getSupportedExtensions());
-         
+         List<String> exts = item.getSupportedExtensions();
+         DirectoryFragment contentBrowser = DirectoryFragment.newInstance(item.getCoreTitle(), exts);
+
          // Assume no content if no file extensions
          if (contentBrowser == null)
          {
@@ -269,7 +268,8 @@ public final class MainMenuActivity extends FragmentActivity implements Director
             return;
          }
 
-         contentBrowser.addAllowedExts("zip");
+         if (exts.size() > 0 && !exts.contains("zip"))
+            contentBrowser.addAllowedExts("zip");
          contentBrowser.setShowMameTitles(prefs.getBoolean("mame_titles", false));
          contentBrowser.setOnDirectoryFragmentClosedListener(this);
 
