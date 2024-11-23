@@ -22,7 +22,7 @@
 
 #include "../configuration.h"
 
-static const char *menu_hash_to_str_english(uint32_t hash)
+const char *menu_hash_to_str(uint32_t hash)
 {
    switch (hash)
    {
@@ -419,30 +419,6 @@ static const char *menu_hash_to_str_english(uint32_t hash)
    }
 
    return "null";
-}
-
-const char *menu_hash_to_str(uint32_t hash)
-{
-#if 0
-   const char *ret = NULL;
-#endif
-   settings_t *settings = config_get_ptr();
-
-   if (!settings)
-      return "null";
-
-#if 0
-   switch (settings->user_language)
-   {
-      default:
-         break;
-   }
-
-   if (ret && strcmp(ret, "null") != 0)
-      return ret;
-#endif
-
-   return menu_hash_to_str_english(hash);
 }
 
 uint32_t menu_hash_calculate(const char *s)

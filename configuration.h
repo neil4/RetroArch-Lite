@@ -442,7 +442,6 @@ typedef struct settings
    unsigned menu_info_btn;
 
    char username[32];
-   unsigned int user_language;
 
    bool config_save_on_exit;
 } settings_t;

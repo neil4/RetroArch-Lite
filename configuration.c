@@ -922,8 +922,6 @@ static void config_set_defaults(void)
    settings->menu_default_btn     = default_menu_btn_default;
    settings->menu_info_btn        = default_menu_btn_info;
 
-   settings->user_language = 0;
-
    global->console.sound.system_bgm_enable = false;
 #ifdef RARCH_CONSOLE
    global->console.screen.gamma_correction = DEFAULT_GAMMA;
@@ -2082,8 +2080,6 @@ static bool config_load_file(const char *path, bool set_defaults)
    if (!global->has_set_username)
       config_get_path(conf, "netplay_nickname",
             settings->username, PATH_MAX_LENGTH);
-   config_get_uint(conf, "user_language",
-         &settings->user_language);
 #ifdef HAVE_NETPLAY
    if (!global->has_set_netplay_mode)
       config_get_bool(conf, "netplay_mode",
@@ -2914,7 +2910,6 @@ bool main_config_file_save(const char *path)
          settings->input.netplay_client_swap_input);
 #endif
    config_set_string(conf, "netplay_nickname", settings->username);
-   config_set_int(conf, "user_language", settings->user_language);
 
    config_set_int(conf, "libretro_log_level", settings->libretro_log_level);
    config_set_bool(conf, "log_verbosity", global->verbosity);

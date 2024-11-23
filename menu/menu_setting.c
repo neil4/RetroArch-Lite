@@ -2052,18 +2052,6 @@ static void setting_get_string_representation_uint_autosave_interval(void *data,
       strlcpy(s, menu_hash_to_str(MENU_VALUE_OFF), len);
 }
 
-static void setting_get_string_representation_uint_user_language(void *data,
-      char *s, size_t len)
-{
-   static const char *modes[] = {
-      "English"
-   };
-   settings_t      *settings = config_get_ptr();
-
-   if (settings)
-      strlcpy(s, modes[settings->user_language], len);
-}
-
 static void setting_get_string_representation_uint_libretro_log_level(void *data,
       char *s, size_t len)
 {
@@ -8579,6 +8567,19 @@ static bool setting_append_list_netplay_options(
             general_read_handler);
    }
 
+   CONFIG_UINT(
+         global->netplay_port,
+         "netplay_ip_port",
+         "Netplay Port",
+         RARCH_DEFAULT_PORT,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 1, 99999, 1, true, true);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
+
    CONFIG_BOOL(
          settings->input.netplay_client_swap_input,
          "netplay_client_swap_input",
@@ -8592,18 +8593,17 @@ static bool setting_append_list_netplay_options(
          general_write_handler,
          general_read_handler);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   
-   CONFIG_UINT(
-         global->netplay_port,
-         "netplay_ip_port",
-         "Netplay Port",
-         RARCH_DEFAULT_PORT,
+
+   CONFIG_STRING(
+         settings->username,
+         "netplay_nickname",
+         "Username",
+         "",
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 1, 99999, 1, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
 
    CONFIG_BOOL(
@@ -8687,65 +8687,6 @@ static bool setting_append_list_netplay_options(
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
 #endif
-
-   return true;
-}
-
-static bool setting_append_list_user_options(
-      rarch_setting_t **list,
-      rarch_setting_info_t *list_info,
-      const char *parent_group)
-{
-   rarch_setting_group_info_t group_info    = {0};
-   rarch_setting_group_info_t subgroup_info = {0};
-   settings_t *settings = config_get_ptr();
-   
-   if (!settings->menu.show_user_menu)
-      return true;
-
-   START_GROUP(group_info, "User Settings", parent_group);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
-
-   START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-
-   CONFIG_STRING(
-         settings->username,
-         "netplay_nickname",
-         "Username",
-         "",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-
-   CONFIG_UINT(
-         settings->user_language,
-         "user_language",
-         "Language",
-         def_user_language,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(
-         list,
-         list_info,
-         0,
-         RETRO_LANGUAGE_LAST-1,
-         1,
-         true,
-         true);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_user_language;
-
-   END_SUB_GROUP(list, list_info, parent_group);
-   END_GROUP(list, list_info, parent_group);
 
    return true;
 }
@@ -9372,12 +9313,6 @@ rarch_setting_t *menu_setting_new(unsigned mask)
    if (mask & SL_FLAG_UI_OPTIONS)
    {
       if (!setting_append_list_ui_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_USER_OPTIONS)
-   {
-      if (!setting_append_list_user_options(&list, list_info, root))
          goto error;
    }
 
