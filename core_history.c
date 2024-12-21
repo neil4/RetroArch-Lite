@@ -167,6 +167,10 @@ static void core_history_read()
          }
       }
 
+      /* Trim any CR */
+      if (line[c-1] == '\r')
+         c--;
+
       /* Add to history */
       line[c] = '\0';
       global->history[global->history_size - 1] = strdup(line);
