@@ -79,3 +79,4 @@ apple/iOS/modules/
 
 obj-unix/
 .vagrant/
+.vscode/

@@ -3247,12 +3247,13 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " -- Sets the aspect ratio of the\n"
                "active overlay.\n"
                " \n"
+               "'Auto (Config)' uses the overlay-\n"
+               "provided aspect ratio if it exists,\n"
+               "and 'Auto (Free)' as a fallback.\n"
+               " \n"
                "'Auto (Free)' finds the aspect ratio\n"
                "that best preserves the image aspect\n"
-               "ratios.\n"
-               " \n"
-               "'Auto (Index)' is similar but chooses\n"
-               "from a set of typical aspect ratios.\n");
+               "ratios.\n");
          break;
       case MENU_LABEL_OVERLAY_BISECT_TO_ASPECT:
          snprintf(s, len,

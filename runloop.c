@@ -1050,7 +1050,7 @@ int rarch_main_iterate(void)
       driver_camera_poll();
 
    if ((settings->video.frame_delay > 0) && !driver->nonblock_state)
-         rarch_sleep(settings->video.frame_delay);
+      rarch_sleep(settings->video.frame_delay);
 
    if (driver->preempt_data)
       preempt_pre_frame((preempt_t*)driver->preempt_data);

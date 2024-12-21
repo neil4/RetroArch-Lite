@@ -53,10 +53,18 @@ public class DirectoryFragment extends DialogFragment
 {
    protected IconAdapter<FileWrapper> adapter;
    protected File listedDirectory;
-   
-   public static ConfigFile mameListFile = null;
+
+   protected ArrayList<BackStackItem> backStack;
+   protected String startDirectory;
+   protected String pathSettingKey;
+   protected boolean isDirectoryTarget;
+   private ArrayList<String> allowedExt;
+   protected static OnDirectoryFragmentClosedListener onClosedListener;
+
    private boolean showMameTitles;
    private String fileListPath = null;
+
+   public static ConfigFile mameListFile = null;
 
    public static final class BackStackItem implements Parcelable
    {
@@ -114,14 +122,6 @@ public class DirectoryFragment extends DialogFragment
        */
       void onDirectoryFragmentClosed(String path);
    }
-
-
-   protected ArrayList<BackStackItem> backStack;
-   protected String startDirectory;
-   protected String pathSettingKey;
-   protected boolean isDirectoryTarget;
-   private ArrayList<String> allowedExt;
-   protected static OnDirectoryFragmentClosedListener onClosedListener;
 
    /**
     * Sets the starting directory for this DirectoryFragment
@@ -189,7 +189,7 @@ public class DirectoryFragment extends DialogFragment
 
       return dFrag;
    }
-   
+
    /**
     * Retrieves a new instance of a DirectoryFragment
     * with a title specified by the given string.
@@ -209,7 +209,7 @@ public class DirectoryFragment extends DialogFragment
 
       return dFrag;
    }
-   
+
    public static DirectoryFragment newInstance(String title, List<String> exts)
    {
       final DirectoryFragment dFrag = new DirectoryFragment();

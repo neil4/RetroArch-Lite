@@ -914,7 +914,7 @@ static void config_set_defaults(void)
    settings->sort_savestates_enable = default_sort_savestates_enable;
 
    settings->savestate_file_compression = true;
-   settings->sram_file_compression = true;
+   settings->sram_file_compression = false;
 
    settings->menu_ok_btn          = default_menu_btn_ok;
    settings->menu_cancel_btn      = default_menu_btn_cancel;

@@ -62,7 +62,7 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
       else if (parentItem)
          return "[Parent Directory]";
       else if (nameMap != null)
-         return MapName(file.getName());
+         return mapName(file.getName());
       else
          return file.getName();
    }
@@ -134,7 +134,7 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
       return -1;
    }
 
-   private String MapName(String filename)
+   private String mapName(String filename)
    {
       int dot = filename.lastIndexOf('.');
       String basename = dot > 0 ? filename.substring(0, dot) : filename;

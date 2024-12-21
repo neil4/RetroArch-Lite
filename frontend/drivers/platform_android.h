@@ -162,7 +162,9 @@ enum
     */
    APP_CMD_DESTROY,
 
-   // Set by thread when it will no longer reply to commands.
+   /**
+    * Set by thread when it will no longer reply to commands.
+    */
    APP_CMD_DEAD,
 };
 

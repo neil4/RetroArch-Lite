@@ -515,7 +515,11 @@ static bool show_hotkey_menu = true;
 static bool show_rewind_menu = false;
 
 static unsigned core_history_size = 30;
+#ifdef EXTERNAL_LAUNCHER
+static bool core_history_show_always = true;
+#else
 static bool core_history_show_always = false;
+#endif
 
 static bool default_sort_savefiles_enable = true;
 static bool default_sort_savestates_enable = true;
