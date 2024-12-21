@@ -27,10 +27,13 @@
 
 #include "../frontend.h"
 #include "../../general.h"
+#include "../../retroarch.h"
 #include <retro_inline.h>
 
 struct android_app *g_android;
 static pthread_key_t thread_key;
+
+static retro_time_t onstop_usec;
 
 static INLINE void android_app_write_cmd(void *data, int8_t cmd)
 {
@@ -100,23 +103,24 @@ static void android_app_set_activity_state(void *data, int8_t cmd)
       RARCH_LOG("RetroArch native thread is dead.\n");
 }
 
+/*
+ * Note: not called on normal exit
+ */
 static void onDestroy(ANativeActivity* activity)
 {
-   struct android_app *android_app = (struct android_app*)activity->instance;
+   global_t *global  = global_get_ptr();
+   bool save_configs = (rarch_get_time_usec() - onstop_usec > 10000000);
 
-   if (!android_app)
-      return;
+   RARCH_LOG("Destroy: %p\n", activity);
 
-   RARCH_LOG("onDestroy: %p\n", activity);
-   sthread_join(android_app->thread);
-   RARCH_LOG("Joined with RetroArch native thread.\n");
+   /* TODO: Want to save only when OS kills app, not when user force closes */
+   if (global && save_configs)
+   {
+      global->system.shutdown = true;
+      rarch_update_configs();
+   }
 
-   close(android_app->msgread);
-   close(android_app->msgwrite);
-   scond_free(android_app->cond);
-   slock_free(android_app->mutex);
-
-   free(android_app);
+   exit(0);
 }
 
 static void onStart(ANativeActivity* activity)
@@ -145,6 +149,7 @@ static void onStop(ANativeActivity* activity)
    RARCH_LOG("Stop: %p\n", activity);
    android_app_set_activity_state((struct android_app*)
          activity->instance, APP_CMD_STOP);
+   onstop_usec = rarch_get_time_usec();
 }
 
 static void onConfigurationChanged(ANativeActivity *activity)
