@@ -669,12 +669,13 @@ static void parse_input(int argc, char *argv[])
                      sizeof(settings->libretro_directory));
                global->has_set_libretro = true;
                global->has_set_libretro_directory = true;
-               RARCH_WARN("Using old --libretro behavior. Setting libretro_directory to \"%s\" instead.\n", optarg);
+               RARCH_WARN("Using old --libretro behavior. "
+                     "Setting libretro_directory to \"%s\" instead.\n", optarg);
             }
             else
             {
-               strlcpy(settings->libretro, optarg,
-                     sizeof(settings->libretro));
+               strlcpy(settings->libretro, optarg, sizeof(settings->libretro));
+               path_libretro_name(global->libretro_name, settings->libretro);
                global->has_set_libretro = true;
             }
             break;
@@ -702,12 +703,15 @@ static void parse_input(int argc, char *argv[])
          case 'H':
             global->has_set_netplay_ip_address = true;
             global->netplay_enable = true;
-            *global->netplay_server = '\0';
+            global->netplay_is_client = false;
+            global->has_set_netplay_mode = true;
             break;
 
          case 'C':
             global->has_set_netplay_ip_address = true;
             global->netplay_enable = true;
+            global->netplay_is_client = true;
+            global->has_set_netplay_mode = true;
             strlcpy(global->netplay_server, optarg,
                   sizeof(global->netplay_server));
             break;

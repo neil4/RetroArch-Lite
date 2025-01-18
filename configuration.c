@@ -1017,7 +1017,8 @@ static void config_set_defaults(void)
             g_defaults.content_dir, PATH_MAX_LENGTH);
 
 #ifdef HAVE_NETPLAY
-   global->netplay_port              = RARCH_DEFAULT_PORT;
+   if (!global->has_set_netplay_ip_port)
+      global->netplay_port = RARCH_DEFAULT_PORT;
    settings->netplay_periodic_resync = true;
 #endif
 
