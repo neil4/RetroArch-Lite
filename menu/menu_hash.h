@@ -122,6 +122,7 @@ extern "C" {
 #define MENU_LABEL_VALUE_OVERLAY_OPACITY                                       0x98605740U
 #define MENU_LABEL_OSK_OPACITY                                                 0x03a22bb9U
 #define MENU_LABEL_VALUE_OSK_OPACITY                                           0x850837efU
+#define MENU_LABEL_OVERLAY_ANALOG_RECENTER_ZONE                                0x6e807eb9U
 
 #define MENU_LABEL_MENU_THEME                                                  0x7bf56e4cU
 #define MENU_LABEL_VALUE_MENU_THEME                                            0x656b3a6dU

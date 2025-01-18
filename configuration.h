@@ -320,6 +320,8 @@ typedef struct settings
       unsigned overlay_abxy_method;
       unsigned overlay_dpad_abxy_config_scope;
       float touch_ellipse_magnify;   /* hack for inaccurate touchscreens */
+      unsigned overlay_analog_recenter_zone;
+      unsigned overlay_analog_recenter_zone_scope;
 
       char osk_overlay[PATH_MAX_LENGTH];
       unsigned osk_scope;

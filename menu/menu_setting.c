@@ -3222,6 +3222,11 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "Only applies to 'Contact Area' and\n"
                "'Vector + Area' methods.\n");
          break;
+      case MENU_LABEL_OVERLAY_ANALOG_RECENTER_ZONE:
+         snprintf(s, len,
+               " -- Analog stick input will be relative to\n"
+               "first touch if pressed within this zone.");
+         break;
       case MENU_LABEL_LIGHTGUN_TRIGGER_DELAY:
          snprintf(s, len,
                   " -- Delays lightgun trigger input to\n"
@@ -7099,6 +7104,37 @@ static bool setting_append_list_overlay_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.1f, true, true);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+   CONFIG_UINT(
+         settings->input.overlay_analog_recenter_zone,
+         menu_hash_to_str(MENU_LABEL_OVERLAY_ANALOG_RECENTER_ZONE),
+         "Analog Recentering Zone",
+         overlay_analog_recenter_zone,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_percentage;
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+
+   CONFIG_UINT(
+         settings->input.overlay_analog_recenter_zone_scope,
+         "input_overlay_analog_recenter_zone_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_scope_index;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    if (driver->input && driver->input->overlay_haptic_feedback)

@@ -167,6 +167,9 @@ static void config_populate_scoped_setting_list(void)
       settings->input.overlay_dpad_abxy_config_scope);
    SCOPED_LIST_ADD_FLOAT("input_overlay_adjust_vertical",
       settings->input.overlay_shift_y, settings->input.overlay_shift_xy_scope);
+   SCOPED_LIST_ADD_UINT("input_overlay_analog_recenter_zone",
+      settings->input.overlay_analog_recenter_zone,
+      settings->input.overlay_analog_recenter_zone_scope);
    SCOPED_LIST_ADD_BOOL("input_overlay_adjust_vertical_lock_edges",
       settings->input.overlay_shift_y_lock_edges,
       settings->input.overlay_shift_xy_scope);
@@ -824,6 +827,7 @@ static void config_set_defaults(void)
    settings->input.overlay_abxy_diag_sens          = overlay_abxy_diag_sens;
    settings->input.overlay_dpad_method             = VECTOR;
    settings->input.overlay_abxy_method             = VECTOR;
+   settings->input.overlay_analog_recenter_zone    = overlay_analog_recenter_zone;
    settings->input.touch_ellipse_magnify           = 1.0f;
    settings->input.overlay_vibrate_time            = OVERLAY_DEFAULT_VIBE;
    settings->input.overlay_scale                   = 1.0f;
@@ -1975,6 +1979,8 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->input.overlay_abxy_diag_sens);
    config_get_float(conf, "input_touch_ellipse_magnify",
          &settings->input.touch_ellipse_magnify);
+   config_get_uint(conf, "input_overlay_analog_recenter_zone",
+         &settings->input.overlay_analog_recenter_zone);
    
    config_get_bool(conf, "input_overlay_adjust_aspect",
          &settings->input.overlay_adjust_aspect);
@@ -2819,6 +2825,9 @@ bool main_config_file_save(const char *path)
    if (settings->input.osk_opacity_scope == GLOBAL)
       config_set_float(conf, "input_osk_opacity",
             settings->input.osk_opacity);
+   if (settings->input.overlay_analog_recenter_zone_scope == GLOBAL)
+      config_set_int(conf, "input_overlay_analog_recenter_zone",
+            settings->input.overlay_analog_recenter_zone);
 
    if (settings->input.overlay_dpad_abxy_config_scope == GLOBAL)
    {

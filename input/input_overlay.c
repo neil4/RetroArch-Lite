@@ -1591,33 +1591,66 @@ void input_overlay_enable(input_overlay_t *ol, bool enable)
 
 /**
  * input_overlay_get_analog_state:
- * @out : Current overlay button state for this pointer.
- * @desc : Overlay descriptor handle.
- * @base : Analog index base into @out->analog
- * @x : X coordinate value.
- * @y : Y coordinate value.
- * @scale_w : Overlay width scaling factor (0,1]
- * @scale_h : Overlay height scaling factor (0,1]
- * 
- * Gets the analog area's current input state based on @x and @y.
+ * @out : Overlay input state to be modified
+ * @desc : Overlay descriptor handle
+ * @base : 0 or 2 for analog_left or analog_right
+ * @x : X coordinate
+ * @y : Y coordinate
+ * @scale_w : Overlay width scale
+ * @scale_h : Overlay height scale
+ * @first_touch : Set true if analog was not controlled in previous poll
+ *
+ * Gets the analog input state based on @x and @y, and applies to @out.
  */
-static INLINE void input_overlay_get_analog_state(
-      input_overlay_button_state_t *out,
-      struct overlay_desc *desc,
+static void input_overlay_get_analog_state(
+      input_overlay_button_state_t *out, struct overlay_desc *desc,
       const unsigned base, const float x, const float y,
-      const float scale_w, const float scale_h)
+      const float scale_w, const float scale_h,
+      bool first_touch)
 {
-   float x_dist    = x - desc->x;
-   float y_dist    = y - desc->y;
-   float x_val     = x_dist / desc->range_x;
-   float y_val     = y_dist / desc->range_y;
-   float x_val_sat = x_val  / desc->analog_saturate_pct;
-   float y_val_sat = y_val  / desc->analog_saturate_pct;
+   float x_dist, y_dist;
+   float x_val, y_val;
+   float x_val_sat, y_val_sat;
+   const int b = base / 2;
 
-   out->analog[base + 0] =
-         clamp_float(x_val_sat, -1.0f, 1.0f) * 32767.0f;
-   out->analog[base + 1] =
-         clamp_float(y_val_sat, -1.0f, 1.0f) * 32767.0f;
+   static float x_center[2];
+   static float y_center[2];
+
+   if (first_touch)
+   {
+      unsigned recenter_zone =
+            config_get_ptr()->input.overlay_analog_recenter_zone;
+
+      /* Reset analog center */
+      x_center[b] = desc->x;
+      y_center[b] = desc->y;
+
+      if (recenter_zone)
+      {
+         /* Get analog state without adjusting center or saturation */
+         x_val = (x - desc->x) / desc->range_x;
+         y_val = (y - desc->y) / desc->range_y;
+
+         /* Recenter if within zone */
+         if ((x_val * x_val + y_val * y_val) * 1e4
+                  < (recenter_zone * recenter_zone)
+               || recenter_zone >= 100)
+         {
+            x_center[b] = x;
+            y_center[b] = y;
+         }
+      }
+   }
+
+   x_dist    = x - x_center[b];
+   y_dist    = y - y_center[b];
+   x_val     = x_dist / desc->range_x;
+   y_val     = y_dist / desc->range_y;
+   x_val_sat = x_val  / desc->analog_saturate_pct;
+   y_val_sat = y_val  / desc->analog_saturate_pct;
+
+   out->analog[base + 0] = clamp_float(x_val_sat, -1.0f, 1.0f) * 32767.0f;
+   out->analog[base + 1] = clamp_float(y_val_sat, -1.0f, 1.0f) * 32767.0f;
 
    if (desc->movable)
    {
@@ -1908,10 +1941,11 @@ static INLINE bool input_overlay_poll_descs(
 {
    size_t i, j;
    float x, y;
-   struct overlay_desc *descs = ol->active->descs;
-   unsigned int highest_prio  = 0;
-   int old_touch_idx          = old_touch_index_lut[touch_idx];
-   bool any_desc_hit          = false;
+   const struct overlay *active = ol->active;
+   struct overlay_desc *descs   = active->descs;
+   unsigned int highest_prio    = 0;
+   int old_touch_idx            = old_touch_index_lut[touch_idx];
+   bool any_desc_hit            = false;
    bool use_range_mod;
 
    memset(out, 0, sizeof(*out));
@@ -1929,12 +1963,12 @@ static INLINE bool input_overlay_poll_descs(
    x = (float)(norm_x + 0x7fff) / 0xffff;
    y = (float)(norm_y + 0x7fff) / 0xffff;
 
-   x -= ol->active->scale_x;
-   y -= ol->active->scale_y;
-   x /= ol->active->scale_w;
-   y /= ol->active->scale_h;
+   x -= active->scale_x;
+   y -= active->scale_y;
+   x /= active->scale_w;
+   y /= active->scale_h;
 
-   for (i = 0; i < ol->active->size; i++)
+   for (i = 0; i < active->size; i++)
    {
       unsigned int base         = 0;
       unsigned int desc_prio    = 0;
@@ -1993,7 +2027,7 @@ static INLINE bool input_overlay_poll_descs(
                /* fall-through */
          case OVERLAY_TYPE_ANALOG_LEFT:
             input_overlay_get_analog_state(out, desc, base, x, y,
-                  ol->active->scale_w, ol->active->scale_h);
+                  active->scale_w, active->scale_h, !use_range_mod);
             break;
       }
 

@@ -288,6 +288,8 @@ const char *menu_hash_to_str(uint32_t hash)
          return "input_osk_opacity";
       case MENU_LABEL_VALUE_OSK_OPACITY:
          return "Keyboard Opacity";
+      case MENU_LABEL_OVERLAY_ANALOG_RECENTER_ZONE:
+         return "input_overlay_analog_recenter_zone";
       case MENU_LABEL_MENU_THEME:
          return "menu_theme";
       case MENU_LABEL_VALUE_MENU_THEME:

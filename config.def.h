@@ -480,6 +480,7 @@ static const float overlay_mouse_swipe_thres = 1.0f;
 static const unsigned overlay_mouse_hold_ms = 200;
 static const bool overlay_mouse_tap_and_drag = false;
 static const unsigned overlay_mouse_tap_and_drag_ms = 200;
+static const unsigned overlay_analog_recenter_zone = 0;
 #endif
 static bool show_frame_throttle_menu = true;
 #ifdef HAVE_NETPLAY
