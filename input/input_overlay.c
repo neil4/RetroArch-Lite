@@ -2665,6 +2665,7 @@ static int16_t overlay_lightgun_state(unsigned id)
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
          return ol_ptr_st.ptr[0].y;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
+         ol_ptr_st.device_mask |= (1 << RETRO_DEVICE_LIGHTGUN);
          return (config_get_ptr()->input.lightgun_allow_oob
                  && (abs(ol_ptr_st.ptr[0].x) >= 0x7fff ||
                      abs(ol_ptr_st.ptr[0].y) >= 0x7fff));
