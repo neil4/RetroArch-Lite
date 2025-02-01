@@ -155,21 +155,21 @@ static void config_populate_scoped_setting_list(void)
       settings->input.overlay_scale, settings->input.overlay_scope);
    SCOPED_LIST_ADD_UINT("input_dpad_method",
       settings->input.overlay_dpad_method,
-      settings->input.overlay_dpad_abxy_config_scope);
+      settings->input.overlay_dpad_abxy_analog_config_scope);
    SCOPED_LIST_ADD_UINT("input_dpad_diagonal_sensitivity",
       settings->input.overlay_dpad_diag_sens,
-      settings->input.overlay_dpad_abxy_config_scope);
+      settings->input.overlay_dpad_abxy_analog_config_scope);
    SCOPED_LIST_ADD_UINT("input_abxy_method",
       settings->input.overlay_abxy_method,
-      settings->input.overlay_dpad_abxy_config_scope);
+      settings->input.overlay_dpad_abxy_analog_config_scope);
    SCOPED_LIST_ADD_UINT("input_abxy_diagonal_sensitivity",
       settings->input.overlay_abxy_diag_sens,
-      settings->input.overlay_dpad_abxy_config_scope);
+      settings->input.overlay_dpad_abxy_analog_config_scope);
    SCOPED_LIST_ADD_FLOAT("input_overlay_adjust_vertical",
       settings->input.overlay_shift_y, settings->input.overlay_shift_xy_scope);
    SCOPED_LIST_ADD_UINT("input_overlay_analog_recenter_zone",
       settings->input.overlay_analog_recenter_zone,
-      settings->input.overlay_analog_recenter_zone_scope);
+      settings->input.overlay_dpad_abxy_analog_config_scope);
    SCOPED_LIST_ADD_BOOL("input_overlay_adjust_vertical_lock_edges",
       settings->input.overlay_shift_y_lock_edges,
       settings->input.overlay_shift_xy_scope);
@@ -2826,20 +2826,19 @@ bool main_config_file_save(const char *path)
    if (settings->input.osk_opacity_scope == GLOBAL)
       config_set_float(conf, "input_osk_opacity",
             settings->input.osk_opacity);
-   if (settings->input.overlay_analog_recenter_zone_scope == GLOBAL)
-      config_set_int(conf, "input_overlay_analog_recenter_zone",
-            settings->input.overlay_analog_recenter_zone);
 
-   if (settings->input.overlay_dpad_abxy_config_scope == GLOBAL)
+   if (settings->input.overlay_dpad_abxy_analog_config_scope == GLOBAL)
    {
       config_set_int(conf, "input_dpad_method",
-                     settings->input.overlay_dpad_method);
+            settings->input.overlay_dpad_method);
       config_set_int(conf, "input_dpad_diagonal_sensitivity",
-                     settings->input.overlay_dpad_diag_sens);
+            settings->input.overlay_dpad_diag_sens);
       config_set_int(conf, "input_abxy_method",
-                     settings->input.overlay_abxy_method);
+            settings->input.overlay_abxy_method);
       config_set_int(conf, "input_abxy_diagonal_sensitivity",
-                     settings->input.overlay_abxy_diag_sens);
+            settings->input.overlay_abxy_diag_sens);
+      config_set_int(conf, "input_overlay_analog_recenter_zone",
+            settings->input.overlay_analog_recenter_zone);
    }
 
    config_set_float(conf, "input_touch_ellipse_magnify",

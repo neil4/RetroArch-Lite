@@ -263,6 +263,7 @@ struct input_overlay
 
    bool has_osk_key;
    bool has_lightgun;
+   bool has_movable_analog;
 
    struct
    {

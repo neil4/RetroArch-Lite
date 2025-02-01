@@ -6790,11 +6790,17 @@ static bool setting_append_list_overlay_options(
    bool auto_show_lightgun =  ol && ol->has_lightgun;
 
    bool show_osk_settings = auto_show_osk
-         || settings->menu.show_osk_menu;
+         || settings->menu.show_osk_menu
+         || settings->menu.show_advanced_settings;
    bool show_mouse_settings = auto_show_osk
-         || settings->menu.show_overlay_mouse_menu;
+         || settings->menu.show_overlay_mouse_menu
+         || settings->menu.show_advanced_settings;
    bool show_lightgun_settings = auto_show_lightgun
-         || settings->menu.show_overlay_lightgun_menu;
+         || settings->menu.show_overlay_lightgun_menu
+         || settings->menu.show_advanced_settings;
+   bool show_analog_recenter_zone = (ol && ol->has_movable_analog)
+         || settings->menu.show_advanced_settings
+         || settings->input.overlay_analog_recenter_zone;
 
    if (!settings->menu.show_overlay_menu)
       return true;
@@ -7026,8 +7032,7 @@ static bool setting_append_list_overlay_options(
          settings->input.overlay_dpad_diag_sens,
          menu_hash_to_str(MENU_LABEL_OVERLAY_DPAD_DIAGONAL_SENS),
          settings->menu.show_advanced_settings ?
-            "  Diagonal Sensitivity" :
-            "D-Pad Diagonal Sensitivity",
+            "  Diagonal Sensitivity" : "D-Pad Diagonal Sensitivity",
          overlay_dpad_diag_sens,
          group_info.name,
          subgroup_info.name,
@@ -7062,8 +7067,7 @@ static bool setting_append_list_overlay_options(
          settings->input.overlay_abxy_diag_sens,
          menu_hash_to_str(MENU_LABEL_OVERLAY_ABXY_DIAGONAL_SENS),
          settings->menu.show_advanced_settings ?
-            "  Overlap Sensitivity" :
-            "ABXY Overlap Sensitivity",
+            "  Overlap Sensitivity" : "ABXY Overlap Sensitivity",
          overlay_abxy_diag_sens,
          group_info.name,
          subgroup_info.name,
@@ -7077,10 +7081,28 @@ static bool setting_append_list_overlay_options(
       &setting_get_string_representation_uint_percentage;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
 
+   if (show_analog_recenter_zone)
+   {
+      CONFIG_UINT(
+            settings->input.overlay_analog_recenter_zone,
+            menu_hash_to_str(MENU_LABEL_OVERLAY_ANALOG_RECENTER_ZONE),
+            "Analog Recentering Zone",
+            overlay_analog_recenter_zone,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
+      (*list)[list_info->index - 1].get_string_representation = 
+            &setting_get_string_representation_uint_percentage;
+   }
+
    CONFIG_UINT(
-         settings->input.overlay_dpad_abxy_config_scope,
+         settings->input.overlay_dpad_abxy_analog_config_scope,
          "input_overlay_dpad_abxy_config_scope",
-         "  Scope (D-Pad & ABXY)",
+         show_analog_recenter_zone ?
+            "  Scope (D-Pad, ABXY, Analog)" : "  Scope (D-Pad & ABXY)",
          GLOBAL,
          group_info.name,
          subgroup_info.name,
@@ -7106,37 +7128,6 @@ static bool setting_append_list_overlay_options(
    menu_settings_list_current_add_range(list, list_info, 0.5f, 50.0f, 0.1f, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
-   CONFIG_UINT(
-         settings->input.overlay_analog_recenter_zone,
-         menu_hash_to_str(MENU_LABEL_OVERLAY_ANALOG_RECENTER_ZONE),
-         "Analog Recentering Zone",
-         overlay_analog_recenter_zone,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 0, 100, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_uint_percentage;
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_UINT(
-         settings->input.overlay_analog_recenter_zone_scope,
-         "input_overlay_analog_recenter_zone_scope",
-         "  Scope",
-         GLOBAL,
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(
-         list, list_info, 0, global->max_scope, 1, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-         &setting_get_string_representation_uint_scope_index;
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
    if (driver->input && driver->input->overlay_haptic_feedback)
    {
       CONFIG_INT(
@@ -7155,7 +7146,7 @@ static bool setting_append_list_overlay_options(
          &setting_get_string_representation_overlay_haptic_feedback;
    }
 
-   if (show_osk_settings || settings->menu.show_advanced_settings)
+   if (show_osk_settings)
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_OVERLAY_KEYBOARD_SETTINGS),
@@ -7165,7 +7156,7 @@ static bool setting_append_list_overlay_options(
             parent_group);
    }
 
-   if (show_mouse_settings || settings->menu.show_advanced_settings)
+   if (show_mouse_settings)
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_SETTINGS),
@@ -7175,7 +7166,7 @@ static bool setting_append_list_overlay_options(
             parent_group);
    }
 
-   if (show_lightgun_settings || settings->menu.show_advanced_settings)
+   if (show_lightgun_settings)
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_OVERLAY_LIGHTGUN_SETTINGS),

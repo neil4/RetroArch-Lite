@@ -890,16 +890,21 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
          || desc->type == OVERLAY_TYPE_ABXY_AREA)
       input_overlay_desc_populate_eightway(ol->conf, desc, ol_idx, desc_idx);
 
-   /* show keyboard menu */
+   /* show keyboard menu? */
    if (desc->key_mask & (UINT64_C(1) << RARCH_OSK))
       ol->has_osk_key = true;
 
-   /* show lightgun menu and enable auto-connect */
+   /* show lightgun menu and enable auto-connect? */
    if (desc->key_mask & LIGHTGUN_ID_MASK)
    {
       ol->has_lightgun = true;
       input_overlay->lightgun_overlay = true;
    }
+
+   /* show analog recentering? */
+   if (desc->movable && (desc->type == OVERLAY_TYPE_ANALOG_LEFT
+         || desc->type == OVERLAY_TYPE_ANALOG_RIGHT))
+      ol->has_movable_analog = true;
 
    input_overlay->pos++;
 
@@ -1618,27 +1623,31 @@ static void input_overlay_get_analog_state(
 
    if (first_touch)
    {
-      unsigned recenter_zone =
+      unsigned recenter_zone =  /* [0,100] */
             config_get_ptr()->input.overlay_analog_recenter_zone;
-
-      /* Reset analog center */
-      x_center[b] = desc->x;
-      y_center[b] = desc->y;
 
       if (recenter_zone)
       {
-         /* Get analog state without adjusting center or saturation */
-         x_val = (x - desc->x) / desc->range_x;
-         y_val = (y - desc->y) / desc->range_y;
+         float touch_dist, w;
 
-         /* Recenter if within zone */
-         if ((x_val * x_val + y_val * y_val) * 1e4
-                  < (recenter_zone * recenter_zone)
-               || recenter_zone >= 100)
-         {
-            x_center[b] = x;
-            y_center[b] = y;
-         }
+         x_val      = (x - desc->x) / desc->range_x;
+         y_val      = (y - desc->y) / desc->range_y;
+         touch_dist = sqrt((x_val * x_val + y_val * y_val) * 1e4);
+
+         /* Inside zone, recenter to first touch.
+          * Outside zone, recenter to zone perimeter. */
+         if (touch_dist <= recenter_zone || recenter_zone >= 100)
+            w = 0.0f;
+         else
+            w = (touch_dist - recenter_zone) / touch_dist;
+
+         x_center[b] = x * (1.0f - w) + desc->x * w;
+         y_center[b] = y * (1.0f - w) + desc->y * w;
+      }
+      else
+      {
+         x_center[b] = desc->x;
+         y_center[b] = desc->y;
       }
    }
 

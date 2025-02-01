@@ -318,10 +318,9 @@ typedef struct settings
       unsigned overlay_abxy_diag_sens;  /* diagonal-to-normal ratio (percent) */
       unsigned overlay_dpad_method;
       unsigned overlay_abxy_method;
-      unsigned overlay_dpad_abxy_config_scope;
+      unsigned overlay_dpad_abxy_analog_config_scope;
       float touch_ellipse_magnify;   /* hack for inaccurate touchscreens */
       unsigned overlay_analog_recenter_zone;
-      unsigned overlay_analog_recenter_zone_scope;
 
       char osk_overlay[PATH_MAX_LENGTH];
       unsigned osk_scope;
