@@ -2750,52 +2750,44 @@ int16_t input_overlay_state(unsigned port, unsigned device_class,
    int16_t res      = 0;
    driver_t *driver = driver_get_ptr();
 
-   if (port == 0)
+   switch (device_class)
    {
-      switch (device_class)
-      {
-         case RETRO_DEVICE_JOYPAD:
-            if (*id < RARCH_CUSTOM_BIND_LIST_END &&
-                  (driver->overlay_state->buttons & (UINT64_C(1) << *id)))
-               res = 1;
-            break;
-         case RETRO_DEVICE_KEYBOARD:
-            if (*id < RETROK_LAST)
-            {
-               if (OVERLAY_GET_KEY(driver->overlay_state, *id))
-                  res = 1;
-            }
-            break;
-         case RETRO_DEVICE_ANALOG:
-            if (idx < 2 && *id < 2)  /* sticks only */
-            {
-               unsigned base = 0;
+      case RETRO_DEVICE_JOYPAD:
+         if (port == 0
+               && *id < RARCH_CUSTOM_BIND_LIST_END
+               && (driver->overlay_state->buttons & (UINT64_C(1) << *id)))
+            res = 1;
+         break;
+      case RETRO_DEVICE_ANALOG:
+         if (port == 0
+               && idx < 2 && *id < 2)  /* sticks only */
+         {
+            unsigned base = 0;
 
-               if (idx == RETRO_DEVICE_INDEX_ANALOG_RIGHT)
-                  base = 2;
-               if (*id == RETRO_DEVICE_ID_ANALOG_Y)
-                  base += 1;
-               res = driver->overlay_state->analog[base];
-            }
-            break;
-         case RETRO_DEVICE_MOUSE:
-            res = overlay_mouse_state(*id);
-            *id = NO_BTN;
-            break;
-         case RETRO_DEVICE_LIGHTGUN:
-            res = overlay_lightgun_state(*id);
-            *id = NO_BTN;
-            break;
-         case RETRO_DEVICE_POINTER:
-            res = overlay_pointer_state(idx, *id);
-            *id = NO_BTN;
-            break;
-      }
-   }
-   else if (device_class == RETRO_DEVICE_LIGHTGUN)
-   {
-      res = overlay_lightgun_state(*id);
-      *id = NO_BTN;
+            if (idx == RETRO_DEVICE_INDEX_ANALOG_RIGHT)
+               base = 2;
+            if (*id == RETRO_DEVICE_ID_ANALOG_Y)
+               base += 1;
+            res = driver->overlay_state->analog[base];
+         }
+         break;
+      case RETRO_DEVICE_KEYBOARD:
+         if (*id < RETROK_LAST
+               && OVERLAY_GET_KEY(driver->overlay_state, *id))
+            res = 1;
+         break;
+      case RETRO_DEVICE_MOUSE:
+         res = overlay_mouse_state(*id);
+         *id = NO_BTN;
+         break;
+      case RETRO_DEVICE_LIGHTGUN:
+         res = overlay_lightgun_state(*id);
+         *id = NO_BTN;
+         break;
+      case RETRO_DEVICE_POINTER:
+         res = overlay_pointer_state(idx, *id);
+         *id = NO_BTN;
+         break;
    }
 
    return res;
