@@ -4796,7 +4796,7 @@ static bool setting_append_list_saving_options(
          settings->sram_file_compression,
          "sram_file_compression",
          "SRAM Compression",
-         true,
+         false,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,

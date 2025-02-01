@@ -414,7 +414,7 @@ static bool fake_swap_interval = false;
 static const bool video_threaded = false;
 
 /* Set to true if HW render cores should get their private context. */
-static const bool video_shared_context = false;
+static const bool video_shared_context = true;
 
 /* Sets GC/Wii screen width. */
 static const unsigned video_viwidth = 640;
