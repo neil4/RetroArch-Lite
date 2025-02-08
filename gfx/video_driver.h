@@ -41,7 +41,6 @@ typedef struct video_info
    unsigned height;
    bool fullscreen;
    bool vsync;
-   bool force_aspect;
 #ifdef GEKKO
    /* TODO - we can't really have driver system-specific
     * variables in here. There should be some

@@ -355,8 +355,7 @@ bool recording_init(void)
       params.fb_width   = next_pow2(vp.width);
       params.fb_height  = next_pow2(vp.height);
 
-      if (settings->video.force_aspect &&
-            (video_driver_get_aspect_ratio() > 0.0f))
+      if (video_driver_get_aspect_ratio() > 0.0f)
          params.aspect_ratio  = video_driver_get_aspect_ratio();
       else
          params.aspect_ratio  = (float)vp.width / vp.height;
@@ -383,8 +382,7 @@ bool recording_init(void)
          params.out_height = global->record.height;
       }
 
-      if (settings->video.force_aspect &&
-            (video_driver_get_aspect_ratio() > 0.0f))
+      if (video_driver_get_aspect_ratio() > 0.0f)
          params.aspect_ratio = video_driver_get_aspect_ratio();
       else
          params.aspect_ratio = (float)params.out_width / params.out_height;

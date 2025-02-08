@@ -60,7 +60,6 @@ typedef struct xv
 
    unsigned width;
    unsigned height;
-   bool keep_aspect;
    struct video_viewport vp;
 
    uint8_t *ytable;
@@ -354,7 +353,7 @@ static bool adaptor_set_format(xv_t *xv, Display *dpy,
    return false;
 }
 
-static void calc_out_rect(bool keep_aspect, struct video_viewport *vp,
+static void calc_out_rect(struct video_viewport *vp,
       unsigned vp_width, unsigned vp_height)
 {
    settings_t *settings = config_get_ptr();
@@ -363,13 +362,8 @@ static void calc_out_rect(bool keep_aspect, struct video_viewport *vp,
    vp->full_height = vp_height;
 
    if (settings->video.scale_integer)
-      video_viewport_get_scaled_integer(vp, vp_width, vp_height, video_driver_get_aspect_ratio(), keep_aspect);
-   else if (!keep_aspect)
-   {
-      vp->x = 0; vp->y = 0;
-      vp->width = vp_width;
-      vp->height = vp_height;
-   }
+      video_viewport_get_scaled_integer(
+            vp, vp_width, vp_height, video_driver_get_aspect_ratio());
    else
    {
       float desired_aspect = video_driver_get_aspect_ratio();
@@ -443,8 +437,6 @@ static void *xv_init(const video_info_t *video,
       RARCH_ERR("XVideo: XShm extension not found.\n");
       goto error;
    }
-
-   xv->keep_aspect = video->force_aspect;
 
    /* Find an appropriate Xv port. */
    xv->port = 0;
@@ -595,7 +587,7 @@ static void *xv_init(const video_info_t *video,
 
    XWindowAttributes target;
    XGetWindowAttributes(xv->display, xv->window, &target);
-   calc_out_rect(xv->keep_aspect, &xv->vp, target.width, target.height);
+   calc_out_rect(&xv->vp, target.width, target.height);
    xv->vp.full_width = target.width;
    xv->vp.full_height = target.height;
 
@@ -778,7 +770,7 @@ static bool xv_frame(void *data, const void *frame, unsigned width,
    XGetWindowAttributes(xv->display, xv->window, &target);
    xv->render_func(xv, frame, width, height, pitch);
 
-   calc_out_rect(xv->keep_aspect, &xv->vp, target.width, target.height);
+   calc_out_rect(&xv->vp, target.width, target.height);
    xv->vp.full_width  = target.width;
    xv->vp.full_height = target.height;
 

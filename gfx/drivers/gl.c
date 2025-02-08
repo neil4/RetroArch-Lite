@@ -805,11 +805,11 @@ static void gl_set_viewport(void *data, unsigned viewport_width,
    {
       video_viewport_get_scaled_integer(&gl->vp,
             viewport_width, viewport_height,
-            video_driver_get_aspect_ratio(), gl->keep_aspect);
+            video_driver_get_aspect_ratio());
       viewport_width  = gl->vp.width;
       viewport_height = gl->vp.height;
    }
-   else if (gl->keep_aspect && !force_full)
+   else if (!force_full)
    {
       float delta;
       float desired_aspect = video_driver_get_aspect_ratio();
@@ -2408,7 +2408,6 @@ static void *gl_init(const video_info_t *video, const input_driver_t **input, vo
    RARCH_LOG("[GL]: Loaded %u program(s).\n", gl->shader->num_shaders());
 
    gl->tex_w = gl->tex_h = (RARCH_SCALE_BASE * video->input_scale);
-   gl->keep_aspect     = video->force_aspect;
 
    /* Apparently need to set viewport for passes 
     * when we aren't using FBOs. */
@@ -3141,7 +3140,6 @@ static void gl_set_aspect_ratio(void *data, unsigned aspect_ratio_idx)
    if (!gl)
       return;
 
-   gl->keep_aspect = true;
    gl->should_resize = true;
 }
 

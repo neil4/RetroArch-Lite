@@ -273,8 +273,8 @@ static void sdl_refresh_viewport(sdl2_video_t *vid)
    vid->vp.full_height = win_h;
 
    if (settings->video.scale_integer)
-      video_viewport_get_scaled_integer(&vid->vp, win_w, win_h, video_driver_get_aspect_ratio(),
-                        vid->video.force_aspect);
+      video_viewport_get_scaled_integer(&vid->vp, win_w, win_h,
+            video_driver_get_aspect_ratio());
    else if (settings->video.aspect_ratio_idx == ASPECT_RATIO_CUSTOM)
    {
       const struct video_viewport *custom = (const struct video_viewport*)video_viewport_get_custom();
@@ -287,7 +287,7 @@ static void sdl_refresh_viewport(sdl2_video_t *vid)
          vid->vp.height = custom->height;
       }
    }
-   else if (vid->video.force_aspect)
+   else
    {
       float delta;
       float device_aspect  = (float)win_w / win_h;
@@ -649,7 +649,6 @@ static void sdl2_poke_set_aspect_ratio(void *data, unsigned aspectratio_index)
    video_driver_set_aspect_ratio_value(
          aspectratio_lut[aspectratio_index].value);
 
-   vid->video.force_aspect = true;
    vid->should_resize = true;
 }
 

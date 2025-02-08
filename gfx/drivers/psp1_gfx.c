@@ -103,7 +103,6 @@ typedef struct psp1_video
 
    unsigned rotation;
    bool vblank_not_reached;
-   bool keep_aspect;
    bool should_resize;
    bool hw_render;
 } psp1_video_t;
@@ -451,7 +450,6 @@ static void *psp_init(const video_info_t *video,
    sceKernelRegisterSubIntrHandler(PSP_VBLANK_INT, 0, psp_on_vblank, psp);
    sceKernelEnableSubIntr(PSP_VBLANK_INT, 0);
 
-   psp->keep_aspect        = true;
    psp->should_resize      = true;
    psp->hw_render          = false;
 
@@ -697,11 +695,11 @@ static void psp_update_viewport(psp1_video_t* psp)
    if (settings->video.scale_integer)
    {
       video_viewport_get_scaled_integer(&psp->vp, SCEGU_SCR_WIDTH,
-            SCEGU_SCR_HEIGHT, video_driver_get_aspect_ratio(), psp->keep_aspect);
+            SCEGU_SCR_HEIGHT, video_driver_get_aspect_ratio());
       width  = psp->vp.width;
       height = psp->vp.height;
    }
-   else if (psp->keep_aspect)
+   else
    {
       float delta;
       float desired_aspect = video_driver_get_aspect_ratio();
@@ -747,12 +745,6 @@ static void psp_update_viewport(psp1_video_t* psp)
       psp->vp.x      = x;
       psp->vp.y      = y;
       psp->vp.width  = width;
-      psp->vp.height = height;
-   }
-   else
-   {
-      psp->vp.x = psp->vp.y = 0;
-      psp->vp.width = width;
       psp->vp.height = height;
    }
 
@@ -811,7 +803,6 @@ static void psp_set_aspect_ratio(void *data, unsigned aspectratio_index)
 
    video_driver_set_aspect_ratio_value(aspectratio_lut[aspectratio_index].value);
 
-   psp->keep_aspect = true;
    psp->should_resize = true;
 }
 

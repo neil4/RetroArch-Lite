@@ -49,7 +49,6 @@ typedef struct gx_video
 {
    uint64_t frame_count;
    bool should_resize;
-   bool keep_aspect;
    bool double_strike;
    bool rgb32;
    uint32_t *menu_data; /* FIXME: Should be const uint16_t*. */
@@ -451,7 +450,6 @@ static void gx_set_aspect_ratio(void *data, unsigned aspect_ratio_idx)
    if (!gx)
       return;
 
-   gx->keep_aspect = true;
    gx->should_resize = true;
 }
 
@@ -844,7 +842,7 @@ static void gx_resize(void *data)
 #endif
    GX_SetDispCopyGamma(global->console.screen.gamma_correction);
 
-   if (gx->keep_aspect && gx_mode.efbHeight >= 240) /* ignore this for custom resolutions */
+   if (gx_mode.efbHeight >= 240) /* ignore this for custom resolutions */
    {
       float desired_aspect = video_driver_get_aspect_ratio();
       if (desired_aspect == 0.0)

@@ -121,22 +121,16 @@ void video_viewport_set_config(void)
    if (settings->video.aspect_ratio < 0.0f)
    {
       struct retro_game_geometry *geom = &av_info->geometry;
+      unsigned base_width  = geom->base_width;
+      unsigned base_height = geom->base_height;
 
-      if (geom && geom->aspect_ratio > 0.0f && settings->video.aspect_ratio_auto)
-         aspectratio_lut[ASPECT_RATIO_CONFIG].value = geom->aspect_ratio;
-      else
-      {
-         unsigned base_width  = geom->base_width;
-         unsigned base_height = geom->base_height;
-
-         /* Get around division by zero errors */
-         if (base_width == 0)
-            base_width = 1;
-         if (base_height == 0)
-            base_height = 1;
-         aspectratio_lut[ASPECT_RATIO_CONFIG].value = 
-            (float)base_width / base_height; /* 1:1 PAR. */
-      }
+      /* Get around division by zero errors */
+      if (base_width == 0)
+         base_width = 1;
+      if (base_height == 0)
+         base_height = 1;
+      aspectratio_lut[ASPECT_RATIO_CONFIG].value = 
+         (float)base_width / base_height; /* 1:1 PAR. */
    }
    else
       aspectratio_lut[ASPECT_RATIO_CONFIG].value = 
@@ -149,14 +143,13 @@ void video_viewport_set_config(void)
  * @width         : Width.
  * @height        : Height.
  * @aspect_ratio  : Aspect ratio (in float).
- * @keep_aspect   : Preserve aspect ratio?
  *
  * Gets viewport scaling dimensions based on 
  * scaled integer aspect ratio.
  **/
 void video_viewport_get_scaled_integer(struct video_viewport *vp,
       unsigned width, unsigned height,
-      float aspect_ratio, bool keep_aspect)
+      float aspect_ratio)
 {
    int padding_x = 0, padding_y = 0;
    settings_t *settings = config_get_ptr();
@@ -198,19 +191,10 @@ void video_viewport_get_scaled_integer(struct video_viewport *vp,
       /* Make sure that we don't get 0x scale ... */
       if (width >= base_width && height >= base_height)
       {
-         if (keep_aspect)
-         {
-            /* X/Y scale must be same. */
-            unsigned max_scale = min(width / base_width, height / base_height);
-            padding_x = width - base_width * max_scale;
-            padding_y = height - base_height * max_scale;
-         }
-         else
-         {
-            /* X/Y can be independent, each scaled as much as possible. */
-            padding_x = width % base_width;
-            padding_y = height % base_height;
-         }
+         /* X/Y scale must be same. */
+         unsigned max_scale = min(width / base_width, height / base_height);
+         padding_x = width - base_width * max_scale;
+         padding_y = height - base_height * max_scale;
       }
 
       width     -= padding_x;

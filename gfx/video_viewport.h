@@ -127,14 +127,12 @@ void video_viewport_set_config(void);
  * @width         : Width.
  * @height        : Height.
  * @aspect_ratio  : Aspect ratio (in float).
- * @keep_aspect   : Preserve aspect ratio?
  *
  * Gets viewport scaling dimensions based on 
  * scaled integer aspect ratio.
  **/
 void video_viewport_get_scaled_integer(struct video_viewport *vp,
-      unsigned width, unsigned height,
-      float aspect_ratio, bool keep_aspect);
+      unsigned width, unsigned height, float aspect_ratio);
 
 struct retro_system_av_info *video_viewport_get_system_av_info(void);
 

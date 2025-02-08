@@ -425,9 +425,6 @@ static const bool video_vfilter = true;
 /* Smooths picture. */
 static const bool video_smooth = true;
 
-/* On resize and fullscreen, rendering area will stay 4:3 */
-static const bool force_aspect = true; 
-
 /* Only scale in integer steps.
  * The base size depends on system-reported geometry and aspect ratio.
  * If video_force_aspect is not set, X/Y will be integer scaled independently.
@@ -591,9 +588,6 @@ static const bool audio_enable = true;
 
 /* Output samplerate. */
 static const unsigned out_rate = 48000;
-
-/* Audio device (e.g. hw:0,0 or /dev/audio). If NULL, will use defaults. */
-static const char *audio_device = NULL;
 
 /* Desired audio latency in milliseconds. Might not be honored 
  * if driver can't provide given latency. */

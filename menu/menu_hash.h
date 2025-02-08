@@ -157,9 +157,6 @@ extern "C" {
 
 #define MENU_LABEL_LIBRETRO_DIR_PATH                                           0x1af1eb72U
 
-#define MENU_LABEL_AUDIO_DEVICE                                                0x2574eac6U
-#define MENU_LABEL_VALUE_AUDIO_DEVICE                                          0xcacf3707U
-
 #define MENU_LABEL_REWIND_ENABLE                                               0x9761e074U
 #define MENU_LABEL_VALUE_REWIND_ENABLE                                         0xce8cc18eU
 #define MENU_LABEL_ENABLE_HOTKEY                                               0xc04037bfU

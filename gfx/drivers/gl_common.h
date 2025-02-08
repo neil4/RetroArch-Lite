@@ -289,7 +289,6 @@ typedef struct gl
    bool should_resize;
    bool quitting;
    bool fullscreen;
-   bool keep_aspect;
    unsigned rotation;
 
    unsigned full_x, full_y;

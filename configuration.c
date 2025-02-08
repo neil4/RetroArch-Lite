@@ -652,11 +652,9 @@ static void config_set_defaults(void)
    settings->video.vfilter                     = video_vfilter;
 #endif
    settings->video.smooth                      = video_smooth;
-   settings->video.force_aspect                = force_aspect;
    settings->video.scale_integer               = scale_integer;
    settings->video.crop_overscan               = crop_overscan;
    settings->video.aspect_ratio                = aspect_ratio;
-   settings->video.aspect_ratio_auto           = aspect_ratio_auto; /* Let implementation decide if automatic, or 1:1 PAR. */
    settings->video.aspect_ratio_idx            = aspect_ratio_idx;
    settings->video.allow_rotate                = allow_rotate;
 
@@ -684,9 +682,6 @@ static void config_set_defaults(void)
    settings->audio.mute_enable                 = false;
    settings->audio.out_rate                    = out_rate;
    settings->audio.block_frames                = 0;
-   if (audio_device)
-      strlcpy(settings->audio.device,
-            audio_device, sizeof(settings->audio.device));
 
    if (!g_defaults.settings.out_latency)
       g_defaults.settings.out_latency          = out_latency;
@@ -1573,8 +1568,6 @@ static bool config_load_file(const char *path, bool set_defaults)
 #endif
    config_get_bool(conf, "video_smooth",
          &settings->video.smooth);
-   config_get_bool(conf, "video_force_aspect",
-         &settings->video.force_aspect);
    config_get_bool(conf, "video_scale_integer",
          &settings->video.scale_integer);
    config_get_bool(conf, "video_crop_overscan",
@@ -1585,8 +1578,6 @@ static bool config_load_file(const char *path, bool set_defaults)
    config_get_uint(conf, "aspect_ratio_index",
          &settings->video.aspect_ratio_idx);
    
-   config_get_bool(conf, "video_aspect_ratio_auto",
-         &settings->video.aspect_ratio_auto);
    config_get_float(conf, "video_refresh_rate",
          &settings->video.refresh_rate);
 
@@ -1772,8 +1763,6 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->audio.out_rate);
    config_get_uint(conf, "audio_block_frames",
          &settings->audio.block_frames);
-   config_get_array(conf, "audio_device",
-         settings->audio.device, sizeof(settings->audio.device));
    config_get_uint(conf, "audio_latency",
          &settings->audio.latency);
    config_get_bool(conf, "audio_sync",
@@ -2482,8 +2471,6 @@ bool main_config_file_save(const char *path)
          settings->video.fake_swap_interval);
    config_set_float(conf, "video_aspect_ratio",
          settings->video.aspect_ratio);
-   config_set_bool(conf, "video_aspect_ratio_auto",
-         settings->video.aspect_ratio_auto);
 
    if (settings->video.aspect_ratio_idx_scope == GLOBAL)
    {
@@ -2702,7 +2689,6 @@ bool main_config_file_save(const char *path)
       config_set_float(conf, "audio_volume", settings->audio.volume);
    config_set_bool(conf,  "audio_mute_enable", settings->audio.mute_enable);
    config_set_int(conf,   "audio_out_rate", settings->audio.out_rate);
-   config_set_string(conf,"audio_device", settings->audio.device);
    config_set_int(conf,   "audio_latency", settings->audio.latency);
    config_set_int(conf,   "audio_block_frames", settings->audio.block_frames);
    if (settings->audio.dsp_scope == GLOBAL)

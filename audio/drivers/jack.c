@@ -91,14 +91,6 @@ static int parse_ports(char **dest_ports, const char **jports)
    int i;
    char *save = NULL;
    int parsed = 0;
-   settings_t *settings = config_get_ptr();
-   const char *con = strtok_r(settings->audio.device, ",", &save);
-
-   if (con)
-      dest_ports[parsed++] = strdup(con);
-   con = strtok_r(NULL, ",", &save);
-   if (con)
-      dest_ports[parsed++] = strdup(con);
 
    for (i = parsed; i < 2; i++)
       dest_ports[i] = strdup(jports[i]);

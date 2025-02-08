@@ -3004,31 +3004,6 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " -- Adjust parameters for the current \n"
                "shader preset, or set up a new preset.\n");
          break;
-      case MENU_LABEL_AUDIO_DEVICE:
-         snprintf(s, len,
-               " -- Override the default audio device \n"
-               "the audio driver uses.\n"
-               "This is driver dependent. E.g.\n"
-#ifdef HAVE_ALSA
-               " \n"
-               "ALSA wants a PCM device."
-#endif
-#ifdef HAVE_OSS
-               " \n"
-               "OSS wants a path (e.g. /dev/dsp)."
-#endif
-#ifdef HAVE_JACK
-               " \n"
-               "JACK wants portnames (e.g. system:playback1\n"
-               ",system:playback_2)."
-#endif
-#ifdef HAVE_RSOUND
-               " \n"
-               "RSound wants an IP address to an RSound \n"
-               "server."
-#endif
-               );
-         break;
       case MENU_LABEL_DISK_EJECT_TOGGLE:
          snprintf(s, len,
                " -- Toggles eject for discs.\n"
@@ -5352,34 +5327,6 @@ static bool setting_append_list_video_options(
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Aspect", group_info.name, subgroup_info, parent_group);
 
-   CONFIG_BOOL(
-         settings->video.force_aspect,
-         "video_force_aspect",
-         "Force aspect ratio",
-         force_aspect,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_BOOL(
-         settings->video.aspect_ratio_auto,
-         "video_aspect_ratio_auto",
-         "Auto Aspect Ratio",
-         aspect_ratio_auto,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
    CONFIG_UINT(
          settings->video.aspect_ratio_idx,
          "aspect_ratio_index",
@@ -6105,18 +6052,6 @@ static bool setting_append_list_audio_options(
 
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Miscellaneous", group_info.name, subgroup_info, parent_group);
-
-   CONFIG_STRING(
-         settings->audio.device,
-         menu_hash_to_str(MENU_LABEL_AUDIO_DEVICE),
-         menu_hash_to_str(MENU_LABEL_VALUE_AUDIO_DEVICE),
-         "",
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_INPUT | SD_FLAG_ADVANCED);
 
    CONFIG_UINT(
          settings->audio.out_rate,

@@ -81,10 +81,8 @@ typedef struct settings
       bool vfilter;
 #endif
       bool smooth;
-      bool force_aspect;
       bool crop_overscan;
       float aspect_ratio;
-      bool aspect_ratio_auto;
       bool scale_integer;
       unsigned aspect_ratio_idx;
       unsigned aspect_ratio_idx_scope;
@@ -237,7 +235,6 @@ typedef struct settings
    struct
    {
       char driver[32];
-      char device[PATH_MAX_LENGTH];
       bool enable;
       bool mute_enable;
       bool sync;
