@@ -673,6 +673,40 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          break;
       }
 
+      case RETRO_ENVIRONMENT_SET_MESSAGE_EXT:
+      {
+         const struct retro_message_ext *msg
+               = (const struct retro_message_ext*)data;
+
+         /* Log message, if required */
+         if (msg->target != RETRO_MESSAGE_TARGET_OSD)
+         {
+            switch (msg->level)
+            {
+               case RETRO_LOG_WARN:
+                  RARCH_WARN("Environ SET_MESSAGE_EXT: %s\n", msg->msg);
+                  break;
+               case RETRO_LOG_ERROR:
+                  RARCH_ERR("Environ SET_MESSAGE_EXT: %s\n", msg->msg);
+                  break;
+               default:
+                  RARCH_LOG("Environ SET_MESSAGE_EXT: %s\n", msg->msg);
+                  break;
+            }
+         }
+
+         /* Display message via OSD, if required */
+         if (msg->target != RETRO_MESSAGE_TARGET_LOG)
+         {
+            double fps = video_viewport_get_system_av_info()->timing.fps;
+            unsigned frames = round(((fps > 0.0 ? fps : 60.0)
+                  * msg->duration * 0.001));
+            rarch_main_msg_queue_push(msg->msg, msg->priority, frames, false);
+         }
+
+         break;
+      }
+
       case RETRO_ENVIRONMENT_SET_ROTATION:
       {
          unsigned rotation = *(const unsigned*)data;
