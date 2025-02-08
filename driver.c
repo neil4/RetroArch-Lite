@@ -61,8 +61,6 @@ driver_t *driver_get_ptr(void)
    return g_driver;
 }
 
-#define HASH_LOCATION_DRIVER           0x09189689U
-#define HASH_CAMERA_DRIVER             0xf25db959U
 #define HASH_MENU_DRIVER               0xd607fb05U
 #define HASH_INPUT_DRIVER              0x4c087840U
 #define HASH_INPUT_JOYPAD_DRIVER       0xab124146U
@@ -91,16 +89,6 @@ static const void *find_driver_nonempty(const char *label, int i,
 
    switch (hash)
    {
-      case HASH_CAMERA_DRIVER:
-         drv = camera_driver_find_handle(i);
-         if (drv)
-            strlcpy(s, camera_driver_find_ident(i), len);
-         break;
-      case HASH_LOCATION_DRIVER:
-         drv = location_driver_find_handle(i);
-         if (drv)
-            strlcpy(s, location_driver_find_ident(i), len);
-         break;
       case HASH_MENU_DRIVER:
          drv = menu_driver_find_handle(i);
          if (drv)
@@ -234,8 +222,6 @@ void init_drivers_pre(void)
    find_audio_driver();
    find_video_driver();
    find_input_driver();
-   find_camera_driver();
-   find_location_driver();
    find_menu_driver();
 }
 
@@ -395,14 +381,6 @@ void init_drivers(int flags)
    if (flags & DRIVER_AUDIO)
       init_audio();
 
-   /* Only initialize camera driver if we're ever going to use it. */
-   if ((flags & DRIVER_CAMERA) && driver->camera_active)
-      init_camera();
-
-   /* Only initialize location driver if we're ever going to use it. */
-   if ((flags & DRIVER_LOCATION) && driver->location_active)
-      init_location();
-
    if (flags & DRIVER_MENU)
    {
       init_menu();
@@ -440,18 +418,6 @@ void uninit_drivers(int flags)
          menu_free(driver->menu);
          driver->menu = NULL;
       }
-   }
-
-   if (flags & DRIVER_LOCATION)
-   {
-      uninit_location();
-      driver->location_data = NULL;
-   }
-
-   if (flags & DRIVER_CAMERA)
-   {
-      uninit_camera();
-      driver->camera_data = NULL;
    }
 
    if (flags & DRIVERS_VIDEO_INPUT)

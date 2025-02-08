@@ -488,7 +488,6 @@ void init_libretro_sym(bool dummy)
  **/
 void uninit_libretro_sym(void)
 {
-   driver_t *driver = driver_get_ptr();
    global_t *global = global_get_ptr();
 
 #ifdef HAVE_DYNAMIC
@@ -507,8 +506,6 @@ void uninit_libretro_sym(void)
    free(global->system.special);
    free(global->system.ports);
    memset(&global->system, 0, sizeof(global->system));
-   driver->camera_active = false;
-   driver->location_active = false;
    core_set_shared_context = false;
    global->frontend_key_event = NULL;
 
@@ -1062,34 +1059,6 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          RARCH_LOG("Environ GET_SENSOR_INTERFACE.\n");
          iface->set_sensor_state = input_sensor_set_state;
          iface->get_sensor_input = input_sensor_get_input;
-         break;
-      }
-
-      case RETRO_ENVIRONMENT_GET_CAMERA_INTERFACE:
-      {
-         struct retro_camera_callback *cb =
-            (struct retro_camera_callback*)data;
-
-         RARCH_LOG("Environ GET_CAMERA_INTERFACE.\n");
-         cb->start                      = driver_camera_start;
-         cb->stop                       = driver_camera_stop;
-         global->system.camera_callback = *cb;
-         driver->camera_active = cb->caps != 0;
-         break;
-      }
-
-      case RETRO_ENVIRONMENT_GET_LOCATION_INTERFACE:
-      {
-         struct retro_location_callback *cb =
-            (struct retro_location_callback*)data;
-
-         RARCH_LOG("Environ GET_LOCATION_INTERFACE.\n");
-         cb->start = driver_location_start;
-         cb->stop = driver_location_stop;
-         cb->get_position = driver_location_get_position;
-         cb->set_interval = driver_location_set_interval;
-         global->system.location_callback = *cb;
-         driver->location_active = true;
          break;
       }
 

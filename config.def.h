@@ -108,16 +108,6 @@ enum
    JOYPAD_QNX,
    JOYPAD_NULL,
 
-   CAMERA_V4L2,
-   CAMERA_RWEBCAM,
-   CAMERA_ANDROID,
-   CAMERA_AVFOUNDATION,
-   CAMERA_NULL,
-
-   LOCATION_ANDROID,
-   LOCATION_CORELOCATION,
-   LOCATION_NULL,
-
    OSK_PS3,
    OSK_NULL,
 
@@ -283,26 +273,6 @@ enum
 #define JOYPAD_DEFAULT_DRIVER JOYPAD_QNX
 #else
 #define JOYPAD_DEFAULT_DRIVER JOYPAD_NULL
-#endif
-
-#if defined(HAVE_V4L2)
-#define CAMERA_DEFAULT_DRIVER CAMERA_V4L2
-#elif defined(EMSCRIPTEN)
-#define CAMERA_DEFAULT_DRIVER CAMERA_RWEBCAM
-#elif defined(ANDROID)
-#define CAMERA_DEFAULT_DRIVER CAMERA_ANDROID
-#elif defined(HAVE_AVFOUNDATION) && (defined(HAVE_COCOA) || defined(HAVE_COCOATOUCH))
-#define CAMERA_DEFAULT_DRIVER CAMERA_AVFOUNDATION
-#else
-#define CAMERA_DEFAULT_DRIVER CAMERA_NULL
-#endif
-
-#if defined(ANDROID)
-#define LOCATION_DEFAULT_DRIVER LOCATION_ANDROID
-#elif defined(HAVE_CORELOCATION) && (defined(HAVE_COCOA) || defined(HAVE_COCOATOUCH))
-#define LOCATION_DEFAULT_DRIVER LOCATION_CORELOCATION
-#else
-#define LOCATION_DEFAULT_DRIVER LOCATION_NULL
 #endif
 
 #if defined(__CELLOS_LV2__)
@@ -501,7 +471,6 @@ static bool show_core_updater = false;
 static bool show_directory_menu = true;
 static bool show_core_updater = true;
 #endif
-static bool show_privacy_menu = false;
 static bool show_recording_menu = false;
 static bool show_core_updater_menu = false;
 static bool show_font_menu = false;

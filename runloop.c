@@ -1046,9 +1046,6 @@ int rarch_main_iterate(void)
    lock_autosave();
 #endif
 
-   if (global->system.camera_callback.caps)
-      driver_camera_poll();
-
    if ((settings->video.frame_delay > 0) && !driver->nonblock_state)
       rarch_sleep(settings->video.frame_delay);
 

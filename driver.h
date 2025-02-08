@@ -32,8 +32,6 @@
 #include "gfx/font_renderer_driver.h"
 #include "audio/audio_driver.h"
 
-#include "camera/camera_driver.h"
-#include "location/location_driver.h"
 #include "audio/audio_resampler_driver.h"
 #include "record/record_driver.h"
 
@@ -235,10 +233,8 @@ enum
    DRIVER_AUDIO        = 1 << 0,
    DRIVER_VIDEO        = 1 << 1,
    DRIVER_INPUT        = 1 << 2,
-   DRIVER_CAMERA       = 1 << 3,
-   DRIVER_LOCATION     = 1 << 4,
-   DRIVER_MENU         = 1 << 5,
-   DRIVERS_VIDEO_INPUT = 1 << 6
+   DRIVER_MENU         = 1 << 3,
+   DRIVERS_VIDEO_INPUT = 1 << 4
 };
 
 /* Drivers for EVENT_CMD_DRIVERS_DEINIT and EVENT_CMD_DRIVERS_INIT */
@@ -246,8 +242,6 @@ enum
       ( DRIVER_AUDIO \
       | DRIVER_VIDEO \
       | DRIVER_INPUT \
-      | DRIVER_CAMERA \
-      | DRIVER_LOCATION \
       | DRIVER_MENU \
       | DRIVERS_VIDEO_INPUT )
 
@@ -259,8 +253,6 @@ typedef struct driver
    const video_driver_t *video;
    const void           *video_context;
    const input_driver_t *input;
-   const camera_driver_t *camera;
-   const location_driver_t *location;
    const rarch_resampler_t *resampler;
    const record_driver_t *recording;
    struct retro_callbacks retro_ctx;
@@ -273,8 +265,6 @@ typedef struct driver
    void *video_shader_data;
    void *input_data;
    void *hid_data;
-   void *camera_data;
-   void *location_data;
    void *resampler_data;
    void *recording_data;
    void *netplay_data;
@@ -284,8 +274,6 @@ typedef struct driver
    bool audio_active;
    bool audio_suspended;
    bool video_active;
-   bool camera_active;
-   bool location_active;
    bool osk_enable;
    bool keyboard_linefeed_enable;
 

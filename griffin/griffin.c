@@ -426,30 +426,6 @@ AUDIO RESAMPLER
 #include "../audio/drivers_resampler/cc_resampler.c"
 
 /*============================================================
-CAMERA
-============================================================ */
-#if defined(ANDROID)
-#include "../camera/drivers/android.c"
-#elif defined(EMSCRIPTEN)
-#include "../camera/drivers/rwebcam.c"
-#endif
-
-#ifdef HAVE_V4L2
-#include "../camera/drivers/video4linux2.c"
-#endif
-
-#include "../camera/drivers/nullcamera.c"
-
-/*============================================================
-LOCATION
-============================================================ */
-#if defined(ANDROID)
-#include "../location/drivers/android.c"
-#endif
-
-#include "../location/drivers/nulllocation.c"
-
-/*============================================================
 RSOUND
 ============================================================ */
 #ifdef HAVE_RSOUND
@@ -509,8 +485,6 @@ DRIVERS
 #include "../gfx/video_viewport.c"
 #include "../input/input_driver.c"
 #include "../audio/audio_driver.c"
-#include "../camera/camera_driver.c"
-#include "../location/location_driver.c"
 #include "../menu/menu_driver.c"
 #include "../driver.c"
 

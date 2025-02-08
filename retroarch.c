@@ -132,8 +132,6 @@ static void print_features(void)
    _PSUPP(libusb, "Libusb", "Libusb support");
    _PSUPP(cocoa, "Cocoa", "Cocoa UI companion support (for OSX and/or iOS)");
    _PSUPP(qt, "QT", "QT UI companion support");
-   _PSUPP(avfoundation, "AVFoundation", "Camera driver");
-   _PSUPP(v4l2, "Video4Linux2", "Camera driver");
 }
 #undef _PSUPP
 

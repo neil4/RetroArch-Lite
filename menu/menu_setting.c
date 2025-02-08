@@ -3576,16 +3576,6 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "Will attempt to auto-configure \n"
                "joypads, Plug-and-Play style.");
          break;
-      case MENU_LABEL_CAMERA_ALLOW:
-         snprintf(s, len,
-               " -- Allow or disallow camera access by \n"
-               "cores.");
-         break;
-      case MENU_LABEL_LOCATION_ALLOW:
-         snprintf(s, len,
-               " -- Allow or disallow location services \n"
-               "access by cores.");
-         break;
       case MENU_LABEL_OSK_ENABLE:
          snprintf(s, len,
                " -- Enable/disable on-screen keyboard.");
@@ -4520,32 +4510,6 @@ static bool setting_append_list_driver_options(
          "Audio Resampler Driver",
          config_get_default_audio_resampler(),
          config_get_audio_resampler_driver_options(),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         NULL,
-         NULL);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_IS_DRIVER);
-
-   CONFIG_STRING_OPTIONS(
-         settings->camera.driver,
-         "camera_driver",
-         "Camera Driver",
-         config_get_default_camera(),
-         config_get_camera_driver_options(),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         NULL,
-         NULL);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_IS_DRIVER);
-
-   CONFIG_STRING_OPTIONS(
-         settings->location.driver,
-         "location_driver",
-         "Location Driver",
-         config_get_default_location(),
-         config_get_location_driver_options(),
          group_info.name,
          subgroup_info.name,
          parent_group,
@@ -7765,19 +7729,6 @@ CONFIG_BOOL(
          general_write_handler,
          general_read_handler);
    CONFIG_BOOL(
-         settings->menu.show_privacy_menu,
-         "show_privacy_menu",
-         "Show Privacy menu",
-         show_privacy_menu,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   CONFIG_BOOL(
          settings->menu.show_recording_menu,
          "show_recording_menu",
          "Show Recording menu",
@@ -9079,58 +9030,6 @@ CONFIG_DIR(
    return true;
 }
 
-static bool setting_append_list_privacy_options(
-      rarch_setting_t **list,
-      rarch_setting_info_t *list_info,
-      const char *parent_group)
-{
-   rarch_setting_group_info_t group_info    = {0};
-   rarch_setting_group_info_t subgroup_info = {0};
-   settings_t *settings = config_get_ptr();
-   
-   if (!settings->menu.show_privacy_menu)
-      return true;
-
-   START_GROUP(group_info, "Privacy Settings", parent_group);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
-
-   START_SUB_GROUP(list, list_info, "State",
-         group_info.name, subgroup_info, parent_group);
-
-   CONFIG_BOOL(
-         settings->camera.allow,
-         "camera_allow",
-         "Allow Camera",
-         false,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-
-   CONFIG_BOOL(
-         settings->location.allow,
-         "location_allow",
-         "Allow Location",
-         false,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-
-   END_SUB_GROUP(list, list_info, parent_group);
-   END_GROUP(list, list_info, parent_group);
-
-   return true;
-}
-
 void menu_setting_free(rarch_setting_t *list)
 {
    if (!list)
@@ -9275,12 +9174,6 @@ rarch_setting_t *menu_setting_new(unsigned mask)
    if (mask & SL_FLAG_UI_OPTIONS)
    {
       if (!setting_append_list_ui_options(&list, list_info, root))
-         goto error;
-   }
-
-   if (mask & SL_FLAG_PRIVACY_OPTIONS)
-   {
-      if (!setting_append_list_privacy_options(&list, list_info, root))
          goto error;
    }
 

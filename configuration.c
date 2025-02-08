@@ -518,54 +518,6 @@ const char *config_get_default_menu(void)
    return "null";
 }
 
-/**
- * config_get_default_camera:
- *
- * Gets default camera driver.
- *
- * Returns: Default camera driver.
- **/
-const char *config_get_default_camera(void)
-{
-   switch (CAMERA_DEFAULT_DRIVER)
-   {
-      case CAMERA_V4L2:
-         return "video4linux2";
-      case CAMERA_RWEBCAM:
-         return "rwebcam";
-      case CAMERA_ANDROID:
-         return "android";
-      case CAMERA_AVFOUNDATION:
-         return "avfoundation";
-      default:
-         break;
-   }
-
-   return "null";
-}
-
-/**
- * config_get_default_location:
- *
- * Gets default location driver.
- *
- * Returns: Default location driver.
- **/
-const char *config_get_default_location(void)
-{
-   switch (LOCATION_DEFAULT_DRIVER)
-   {
-      case LOCATION_ANDROID:
-         return "android";
-      case LOCATION_CORELOCATION:
-         return "corelocation";
-      default:
-         break;
-   }
-
-   return "null";
-}
-
 static void config_check_overlay_preset(void)
 {
    settings_t* settings = config_get_ptr();
@@ -592,16 +544,8 @@ static void config_set_defaults(void)
    const char *def_input           = config_get_default_input();
    const char *def_joypad          = config_get_default_joypad();
    const char *def_menu            = config_get_default_menu();
-   const char *def_camera          = config_get_default_camera();
-   const char *def_location        = config_get_default_location();
    const char *def_record          = config_get_default_record();
 
-   if (def_camera)
-      strlcpy(settings->camera.driver,
-            def_camera, sizeof(settings->camera.driver));
-   if (def_location)
-      strlcpy(settings->location.driver,
-            def_location, sizeof(settings->location.driver));
    if (def_video)
       strlcpy(settings->video.driver,
             def_video, sizeof(settings->video.driver));
@@ -756,7 +700,6 @@ static void config_set_defaults(void)
    settings->menu.show_configuration_menu      = show_configuration_menu;
    settings->menu.show_user_menu               = show_user_menu;
    settings->menu.show_directory_menu          = show_directory_menu;
-   settings->menu.show_privacy_menu            = show_privacy_menu;
    settings->menu.show_recording_menu          = show_recording_menu;
    settings->menu.show_core_updater_menu       = show_core_updater_menu;
 
@@ -767,9 +710,6 @@ static void config_set_defaults(void)
    settings->ui.companion_start_on_boot             = true;
    settings->ui.menubar_enable                      = true;
    settings->ui.suspend_screensaver_enable          = true;
-
-   settings->location.allow                         = false;
-   settings->camera.allow                           = false;
 
    settings->input.autoconfig_descriptor_label_show = true;
    settings->input.remap_binds_enable               = true;
@@ -1522,8 +1462,6 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->menu.show_user_menu);
    config_get_bool(conf, "show_directory_menu",
          &settings->menu.show_directory_menu);
-   config_get_bool(conf, "show_privacy_menu",
-         &settings->menu.show_privacy_menu);
    config_get_bool(conf, "show_recording_menu",
          &settings->menu.show_recording_menu);
    config_get_bool(conf, "show_core_updater_menu",
@@ -1779,13 +1717,6 @@ static bool config_load_file(const char *path, bool set_defaults)
          settings->audio.resampler, sizeof(settings->audio.resampler));
    audio_driver_set_volume_gain(db_to_gain(settings->audio.volume));
 
-   config_get_array(conf, "camera_device",
-         settings->camera.device, sizeof(settings->camera.device));
-   config_get_bool(conf, "camera_allow",
-         &settings->camera.allow);
-
-   config_get_bool(conf, "location_allow",
-         &settings->location.allow);
    config_get_array(conf, "video_driver",
          settings->video.driver, sizeof(settings->video.driver));
    config_get_array(conf, "menu_driver",
@@ -2648,8 +2579,6 @@ bool main_config_file_save(const char *path)
          settings->menu.show_user_menu);
    config_set_bool(conf, "show_directory_menu",
          settings->menu.show_directory_menu);
-   config_set_bool(conf, "show_privacy_menu",
-         settings->menu.show_privacy_menu);
    config_set_bool(conf, "show_recording_menu",
          settings->menu.show_recording_menu);
    config_set_bool(conf, "show_core_updater_menu",
@@ -2672,9 +2601,6 @@ bool main_config_file_save(const char *path)
    config_set_bool(conf, "netplay_show_rollback",
          settings->netplay_show_rollback);
 
-   config_set_string(conf, "camera_device", settings->camera.device);
-   config_set_bool(conf, "camera_allow", settings->camera.allow);
-
    config_set_string(conf, "audio_driver", settings->audio.driver);
    config_set_bool(conf,   "audio_enable", settings->audio.enable);
    if (settings->audio.sync_scope == GLOBAL)
@@ -2696,8 +2622,6 @@ bool main_config_file_save(const char *path)
    config_set_string(conf, "audio_resampler", settings->audio.resampler);
    config_set_path(conf, "audio_filter_dir",
          *settings->audio.filter_dir ? settings->audio.filter_dir : "default");
-
-   config_set_bool(conf, "location_allow", settings->location.allow);
 
    if (!global->has_set_ups_pref)
       config_set_bool(conf, "ups_pref", global->ups_pref);

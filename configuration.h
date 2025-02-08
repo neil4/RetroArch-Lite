@@ -205,7 +205,6 @@ typedef struct settings
       bool show_configuration_menu;
       bool show_user_menu;
       bool show_directory_menu;
-      bool show_privacy_menu;
       bool show_recording_menu;
       bool show_core_updater_menu;
       bool show_font_menu;
@@ -214,23 +213,6 @@ typedef struct settings
       bool show_core_updater;
       bool swap_ok_cancel;
    } menu;
-
-   struct
-   {
-      char driver[32];
-      char device[PATH_MAX_LENGTH];
-      unsigned width;
-      unsigned height;
-      bool allow;
-   } camera;
-
-   struct
-   {
-      char driver[32];
-      int update_interval_ms;
-      int update_interval_distance;
-      bool allow;
-   } location;
 
    struct
    {
@@ -460,24 +442,6 @@ struct setting_desc
    void* ptr;
    unsigned* scope_ptr;
 };
-
-/**
- * config_get_default_camera:
- *
- * Gets default camera driver.
- *
- * Returns: Default camera driver.
- **/
-const char *config_get_default_camera(void);
-
-/**
- * config_get_default_location:
- *
- * Gets default location driver.
- *
- * Returns: Default location driver.
- **/
-const char *config_get_default_location(void);
 
 /**
  * config_get_default_osk:

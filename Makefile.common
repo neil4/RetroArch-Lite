@@ -109,9 +109,7 @@ OBJ += frontend/frontend.o \
 		gfx/video_driver.o \
 		gfx/video_pixel_converter.o \
 		gfx/video_viewport.o \
-		camera/camera_driver.o \
 		menu/menu_driver.o \
-		location/location_driver.o \
 		driver.o \
 		configuration.o \
 		libretro-common/dynamic/dylib.o \
@@ -161,8 +159,6 @@ OBJ += patch.o \
 		audio/drivers_resampler/sinc.o \
 		audio/drivers_resampler/nearest.o \
 		audio/drivers_resampler/cc_resampler.o \
-		location/drivers/nulllocation.o \
-		camera/drivers/nullcamera.o \
 		gfx/drivers/nullgfx.o \
 		audio/drivers/nullaudio.o \
 		input/drivers/nullinput.o \
@@ -199,8 +195,7 @@ endif
 ifeq ($(HAVE_EMSCRIPTEN), 1)
 OBJ += frontend/drivers/platform_emscripten.o \
 		input/drivers/rwebinput_input.o \
-		audio/drivers/rwebaudio.o \
-		camera/drivers/rwebcam.o
+		audio/drivers/rwebaudio.o
 endif
 
 # Audio
@@ -714,13 +709,6 @@ endif
 
 ifeq ($(HAVE_ZLIB_DEFLATE),1)
 DEFINES += -DHAVE_ZLIB_DEFLATE
-endif
-
-# Camera
-
-ifeq ($(HAVE_V4L2),1)
-   OBJ += camera/drivers/video4linux2.o
-   DEFINES += -DHAVE_V4L2
 endif
 
 # Netplay

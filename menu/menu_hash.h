@@ -217,9 +217,6 @@ extern "C" {
 #define MENU_LABEL_INPUT_LIGHTGUN_ALLOW_OOB                                    0xcda84fb3U
 #define MENU_LABEL_INPUT_AUTO_KEYBOARD_FOCUS                                   0x5425909cU
 
-#define MENU_LABEL_CAMERA_ALLOW                                                0xc14d302cU
-#define MENU_LABEL_LOCATION_ALLOW                                              0xf089275cU
-
 #define MENU_LABEL_VIDEO_SHADER_DEFAULT_FILTER                                 0x4468cb1bU
 #define MENU_LABEL_VIDEO_SHADER_FILTER_PASS                                    0x1906c38dU
 #define MENU_LABEL_VIDEO_SHADER_SCALE_PASS                                     0x18f7b82fU
@@ -416,7 +413,6 @@ extern "C" {
 #define MENU_LABEL_INPUT_USER_15_BINDS                                         0xf1085acaU
 #define MENU_LABEL_INPUT_USER_16_BINDS                                         0x3e02978bU
 #define MENU_LABEL_DIRECTORY_SETTINGS                                          0xb817bd2bU
-#define MENU_LABEL_PRIVACY_SETTINGS                                            0xce106254U
 #define MENU_LABEL_SHADER_APPLY_CHANGES                                        0x4f7306b9U
 #define MENU_LABEL_VALUE_SHADER_APPLY_CHANGES                                  0x5ecf945bU
 #define MENU_LABEL_VALUE_SAVE_NEW_CONFIG                                       0xd49f2c94U
