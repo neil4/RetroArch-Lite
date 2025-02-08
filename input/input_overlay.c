@@ -1417,7 +1417,7 @@ static void input_overlay_set_eightway_anchors(input_overlay_t *ol)
       {
          struct overlay_desc *desc = overlay->descs + j;
          uint64_t mask             = desc->key_mask;
-         if (desc->hitbox != OVERLAY_HITBOX_NONE)
+         if (!mask || desc->hitbox != OVERLAY_HITBOX_NONE)
             continue;
 
          for (k = 0; k < overlay->size; k++)
