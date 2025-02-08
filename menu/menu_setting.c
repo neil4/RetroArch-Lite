@@ -3249,8 +3249,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_OVERLAY_ASPECT_RATIO_INDEX:
          snprintf(s, len,
-               " -- Sets the aspect ratio of the\n"
-               "active overlay.\n"
+               " -- Aspect ratio before bisecting.\n"
                " \n"
                "'Auto (Config)' uses the overlay-\n"
                "provided aspect ratio if it exists,\n"

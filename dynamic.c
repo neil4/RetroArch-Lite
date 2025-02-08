@@ -710,7 +710,8 @@ bool rarch_environment_cb(unsigned cmd, void *data)
       case RETRO_ENVIRONMENT_SET_ROTATION:
       {
          unsigned rotation = *(const unsigned*)data;
-         RARCH_LOG("Environ SET_ROTATION: %u\n", rotation);
+         RARCH_LOG("Environ SET_ROTATION: %u (%u deg)\n",
+               rotation, rotation * 90);
          if (!settings->video.allow_rotate)
             break;
 
