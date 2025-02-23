@@ -998,6 +998,8 @@ int rarch_main_iterate(void)
    settings_t *settings            = config_get_ptr();
    global_t   *global              = global_get_ptr();
 
+   driver->input_polled = false;
+
    if (driver->flushing_input)
       driver->flushing_input = (input) ? input_flush(&input) : false;
 
@@ -1070,6 +1072,9 @@ int rarch_main_iterate(void)
 
 success:
    rarch_limit_frame_time();
+
+   if (!driver->input_polled)
+      driver->retro_ctx.poll_cb();
 
    return ret;
 }

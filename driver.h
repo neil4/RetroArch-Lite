@@ -276,6 +276,7 @@ typedef struct driver
    bool video_active;
    bool osk_enable;
    bool keyboard_linefeed_enable;
+   bool input_polled;
 
    menu_handle_t *menu;
    const menu_ctx_driver_t *menu_ctx;

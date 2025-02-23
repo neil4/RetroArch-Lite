@@ -278,6 +278,8 @@ static void input_poll(void)
    if (driver->command)
       rarch_cmd_poll(driver->command);
 #endif
+
+   driver->input_polled = true;
 }
 
 /**
