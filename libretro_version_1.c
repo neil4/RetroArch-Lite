@@ -338,6 +338,7 @@ void retro_init_libretro_cbs(void *data)
       pretro_set_video_refresh(video_frame_net);
       pretro_set_audio_sample(audio_sample_net);
       pretro_set_audio_sample_batch(audio_sample_batch_net);
+      pretro_set_input_poll(input_poll_net);
       pretro_set_input_state(input_state_net);
    }
    else

@@ -99,8 +99,6 @@ struct netplay
    bool in_replay;
    /* Use netplay-rollback or normal savestates? */
    bool use_rollback_states;
-   /* We don't want to poll several times on a frame. */
-   bool can_poll;
 
    /* To combat UDP packet loss we also send 
     * old data along with the packets. */
@@ -120,7 +118,7 @@ struct netplay
    /* User flipping
     * Flipping state. If ptr >= flip_frame, we apply the flip.
     * If not, we apply the opposite, effectively creating a trigger point.
-    * To avoid collition we need to make sure our client/host is synced up 
+    * To avoid collision we need to make sure our client/host is synced up
     * well after flip_frame before allowing another flip. */
    bool flip;
    uint32_t flip_frame;
@@ -149,16 +147,7 @@ static void warn_hangup(void)
  **/
 static bool netplay_should_skip(netplay_t *netplay)
 {
-   if (!netplay)
-      return false;
    return netplay->in_replay && netplay->has_connection;
-}
-
-static bool netplay_can_poll(netplay_t *netplay)
-{
-   if (!netplay)
-      return false;
-   return netplay->can_poll;
 }
 
 static bool send_chunk(netplay_t *netplay)
@@ -188,6 +177,7 @@ static void netplay_resync(netplay_t *netplay)
 {
    uint16_t last_peer_input =
          netplay->buffer[NETPLAY_PREV_PTR(netplay->read_ptr)].peer_input_state;
+   int16_t i;
 
    /* Load state if we're the recipient */
    if (netplay->buffer[netplay->other_ptr].self_crc == 0xFEED)
@@ -197,14 +187,16 @@ static void netplay_resync(netplay_t *netplay)
    netplay->self_ptr = netplay->other_ptr;
    netplay->read_ptr = netplay->other_ptr;
 
-   netplay->buffer[netplay->other_ptr].self_crc = 0;
-   netplay->buffer[NETPLAY_PREV_PTR(netplay->other_ptr)].self_crc = 0;
+   for (i = 0; i < NETPLAY_BUF_SIZE; i++)
+      netplay->buffer[i].self_crc = 0;
    netplay->buffer[NETPLAY_PREV_PTR(netplay->read_ptr)].peer_input_state
          = last_peer_input;
 
    netplay->other_frame_count = 1;
    netplay->frame_count = 1;
    netplay->read_frame_count = 1;
+
+   netplay->flip_frame = netplay->flip ? 1 : 0;
 
    netplay->need_resync = false;
 }
@@ -559,7 +551,7 @@ static void netplay_poll(netplay_t *netplay)
    size_t end_ptr = NETPLAY_PREV_PTR(netplay->other_ptr);
    int res;
 
-   netplay->can_poll = false;
+   netplay->cbs.poll_cb();
 
    if (!get_self_input_state(netplay))
       return;
@@ -613,10 +605,7 @@ static void netplay_poll(netplay_t *netplay)
 
 void input_poll_net(void)
 {
-   driver_t *driver = driver_get_ptr();
-   netplay_t *netplay = (netplay_t*)driver->netplay_data;
-   if (!netplay_should_skip(netplay) && netplay_can_poll(netplay))
-      netplay_poll(netplay);
+   /* no-op. Polling is done in netplay_poll */
 }
 
 void video_frame_net(const void *data, unsigned width,
@@ -662,13 +651,13 @@ static bool netplay_is_alive(netplay_t *netplay)
 
 static bool netplay_flip_port(netplay_t *netplay, bool port)
 {
-   size_t frame = netplay->frame_count;
+   size_t frame;
 
    if (netplay->flip_frame == 0)
       return port;
 
-   if (netplay->in_replay)
-      frame = netplay->tmp_frame_count;
+   frame = netplay->in_replay ?
+      netplay->tmp_frame_count : netplay->frame_count;
 
    return port ^ netplay->flip ^ (frame < netplay->flip_frame);
 }
@@ -1341,7 +1330,7 @@ static bool netplay_send_cmd(netplay_t *netplay, uint32_t cmd,
  **/
 void netplay_flip_users(netplay_t *netplay)
 {
-   uint32_t flip_frame     = netplay->frame_count + 2 * UDP_FRAME_PACKETS;
+   uint32_t flip_frame     = netplay->frame_count + UDP_FRAME_PACKETS;
    uint32_t flip_frame_net = htonl(flip_frame);
    const char *msg         = NULL;
 
@@ -1352,7 +1341,7 @@ void netplay_flip_users(netplay_t *netplay)
    }
 
    /* Make sure both clients are definitely synced up. */
-   if (netplay->frame_count < (netplay->flip_frame + 2 * UDP_FRAME_PACKETS))
+   if (netplay->frame_count < (netplay->flip_frame + UDP_FRAME_PACKETS))
    {
       msg = "Cannot flip users yet. Wait a second or two before attempting flip.";
       goto error;
@@ -1521,8 +1510,7 @@ void netplay_pre_frame(netplay_t *netplay)
 
    /* Update input buffer and simulate missing input */
    do {
-      netplay->can_poll = true;
-      input_poll_net();
+      netplay_poll(netplay);
    } while (netplay->need_resync);
 
    /* Skip ahead if we predicted correctly.
@@ -1555,15 +1543,15 @@ void netplay_pre_frame(netplay_t *netplay)
  **/
 void netplay_post_frame(netplay_t *netplay)
 {
-   global_t *global = global_get_ptr();
-   settings_t *settings = config_get_ptr();
-   struct delta_frame *ptr =
-         &netplay->buffer[NETPLAY_PREV_PTR(netplay->other_ptr)];
+   global_t *global        = global_get_ptr();
+   settings_t *settings    = config_get_ptr();
+   size_t end_ptr          = NETPLAY_NEXT_PTR(netplay->self_ptr);
+   struct delta_frame *ptr = &netplay->buffer[end_ptr];
 
    if (netplay->has_connection)
    {
       netplay->frame_count++;
-      netplay->self_ptr = NETPLAY_NEXT_PTR(netplay->self_ptr);
+      netplay->self_ptr = end_ptr;
    }
    else if (!global->netplay_is_client)
       rarch_main_msg_queue_push("Waiting for client", 0, 1, false);
@@ -1578,7 +1566,7 @@ void netplay_post_frame(netplay_t *netplay)
          char msg[32];
          snprintf(msg, sizeof(msg), mismatch ?
             "CRC mismatch\nFrame: %d" : "CRCs equal\nFrame: %d",
-               netplay->other_frame_count - 1);
+               netplay->frame_count - NETPLAY_BUF_SIZE);
          rarch_main_msg_queue_push(msg, 1, 120, true);
       }
 
@@ -1658,10 +1646,9 @@ void deinit_netplay(void)
       if (netplay->udp_fd >= 0)
          socket_close(netplay->udp_fd);
 
+      retro_init_libretro_cbs(&driver->retro_ctx);
       netplay_free(netplay);
       driver->netplay_data = NULL;
-
-      retro_init_libretro_cbs(&driver->retro_ctx);
       netplay_unmask_config();
    }
 }
