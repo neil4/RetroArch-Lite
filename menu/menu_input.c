@@ -1098,8 +1098,6 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
    if (!menu || !driver || !nav || !menu_input)
       return 0;
 
-   driver->retro_ctx.poll_cb();
-
    if (settings->menu.mouse.enable)
       menu_input_mouse(&ret, &input, &trigger_input);
 
