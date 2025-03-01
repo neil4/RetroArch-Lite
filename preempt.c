@@ -357,8 +357,13 @@ void preempt_pre_frame(preempt_t *preempt)
          if (!pretro_serialize(
                preempt->buffer[replay_ptr], preempt->state_size))
          {
-            failed_str = "Failed to Save State for Preemptive Frames.";
-            goto error;
+            if (preempt->state_size < pretro_serialize_size())
+               preempt->states_saved = 0;
+            else
+            {
+               failed_str = "Failed to Save State for Preemptive Frames.";
+               goto error;
+            }
          }
 
          pretro_run();
