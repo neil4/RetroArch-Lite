@@ -1,7 +1,15 @@
 package com.retroarch.browser;
 
+import android.content.Context;
+import android.os.Build;
+import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
+import android.util.Log;
+
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Helper class which calls into JNI for various tasks.
@@ -55,5 +63,43 @@ public final class NativeInterface
       }
 
       return topDir.delete();
+   }
+
+   /**
+    * Gets storage volume paths, delimited by {@code delim}
+    * @param ctx Context
+    * @param delim char between paths
+    * @return storage volume paths
+    */
+   public static String getVolumePaths(Context ctx, char delim)
+   {
+      String ret = "";
+
+      if (Build.VERSION.SDK_INT >= 24)
+      {
+         StorageManager sm = (StorageManager) ctx.getSystemService(Context.STORAGE_SERVICE);
+         List<StorageVolume> volList = sm.getStorageVolumes();
+
+         for (StorageVolume vol : volList)
+         {
+            if (Build.VERSION.SDK_INT >= 30)
+               ret += String.valueOf(vol.getDirectory()) + delim;
+            else
+            {
+               try
+               {
+                  Method getPathMethod = StorageVolume.class.getDeclaredMethod("getPath");
+                  ret += ((String) getPathMethod.invoke(vol)) + delim;
+               }
+               catch (Exception e)
+               {
+                  Log.e("getVolumePaths", e.toString());
+                  break;
+               }
+            }
+         }
+      }
+
+      return ret;
    }
 }

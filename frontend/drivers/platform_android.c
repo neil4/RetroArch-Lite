@@ -750,6 +750,8 @@ static void frontend_android_init(void *data)
          "hapticFeedback", "(I)V");
    GET_METHOD_ID(env, vol_control_id, class,
          "setVolumeControlStream", "(I)V" );
+   GET_METHOD_ID(env, android_app->getVolumePaths, class,
+         "getVolumePaths", "(C)Ljava/lang/String;");
    CALL_OBJ_METHOD(env, obj, android_app->activity->clazz,
          android_app->getIntent);
 
@@ -807,16 +809,44 @@ static enum frontend_architecture frontend_android_get_architecture(void)
 static int frontend_android_parse_drive_list(void *data)
 {
    file_list_t *list = (file_list_t*)data;
+   JNIEnv *env       = NULL;
+   jstring jstr      = NULL;
+   const char *cstr  = NULL;
+   char *paths       = NULL;
 
-   menu_list_push(list, "/storage/emulated/0",
-         "", MENU_FILE_DIRECTORY, 0, 0);
-   menu_list_push(list, "/storage",
-         "", MENU_FILE_DIRECTORY, 0, 0);
+   env = jni_thread_getenv();
+   if (!env)
+      return 0;
+
+   /* Get storage volume list, delimited by '|' */
+   CALL_OBJ_METHOD_PARAM(env, jstr, g_android->activity->clazz,
+         g_android->getVolumePaths, '|');
+   paths = strdup(cstr = (*env)->GetStringUTFChars(env, jstr, 0));
+   (*env)->ReleaseStringUTFChars(env, jstr, cstr);
+
+   /* Push list to menu if not empty */
+   if (*paths)
+   {
+      char *tok;
+      char *save = NULL;
+
+      for (tok = strtok_r(paths, "|", &save); tok;
+            tok = strtok_r(NULL, "|", &save))
+         menu_list_push(list, tok, "", MENU_FILE_DIRECTORY, 0, 0);
+   }
+   else  /* Fall back to hardcoded list */
+   {
+      menu_list_push(list, "/storage/emulated/0",
+            "", MENU_FILE_DIRECTORY, 0, 0);
+      menu_list_push(list, "/storage",
+            "", MENU_FILE_DIRECTORY, 0, 0);
+   }
 
    if (*g_android->app_data_dir)
       menu_list_push(list, g_android->app_data_dir,
             "", MENU_FILE_DIRECTORY, 0, 0);
 
+   free(paths);
    return 0;
 }
 

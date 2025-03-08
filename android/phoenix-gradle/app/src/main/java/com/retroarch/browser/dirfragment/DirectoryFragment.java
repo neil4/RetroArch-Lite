@@ -20,6 +20,7 @@ import android.widget.ListView;
 import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.FileWrapper;
 import com.retroarch.browser.IconAdapter;
+import com.retroarch.browser.NativeInterface;
 import com.retroarch.browser.preferences.PreferenceActivity;
 import com.retroarch.browser.preferences.util.ConfigFile;
 import com.retroarch.browser.preferences.util.UserPreferences;
@@ -440,6 +441,7 @@ public class DirectoryFragment extends DialogFragment
    protected void wrapFiles()
    {
       listedDirectory = new File(backStack.get(backStack.size() - 1).path);
+      String volList;
 
       if (!listedDirectory.isDirectory())
       {
@@ -454,7 +456,7 @@ public class DirectoryFragment extends DialogFragment
       if (listedDirectory.getParentFile() != null)
          adapter.add(new FileWrapper(null, FileWrapper.PARENT, true));
 
-      // Copy new items
+      // Copy new items. If none, list storage volumes.
       final File[] files = listedDirectory.listFiles();
       if (files != null)
       {
@@ -471,6 +473,13 @@ public class DirectoryFragment extends DialogFragment
                      showMameTitle ? mameListFile : null));
             }
          }
+      }
+      else if (!(volList = NativeInterface.getVolumePaths(getContext(), '|')).isEmpty())
+      {
+         adapter.clear();
+         String[] tokens = volList.split("\\|");
+         for (String token : tokens)
+            adapter.add(new FileWrapper(new File(token), FileWrapper.FILE, true));
       }
 
       // Sort items

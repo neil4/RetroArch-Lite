@@ -24,7 +24,7 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
    {
       this.file = file;
       this.parentItem    = (type == PARENT);
-      this.dirSelectItem = (type == DIRSELECT);      
+      this.dirSelectItem = (type == DIRSELECT);
       this.typeIndex     = (type == FILE) ? (FILE + (file.isDirectory() ? 0 : 1)) : type;
       this.enabled = parentItem || dirSelectItem || isEnabled;
       this.nameMap = nameMap;
