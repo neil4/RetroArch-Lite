@@ -233,9 +233,6 @@ static bool get_self_input_state(netplay_t *netplay)
    else if (netplay->frame_count == 0 && !netplay_connect(netplay))
       return false;
 
-   if (netplay->need_resync)
-      netplay_resync(netplay);
-
    memmove(netplay->packet_buffer, netplay->packet_buffer + 3,
          sizeof(netplay->packet_buffer) - 3 * sizeof(uint32_t));
    netplay->packet_buffer[(UDP_FRAME_PACKETS - 1) * 3]
@@ -1510,6 +1507,8 @@ void netplay_pre_frame(netplay_t *netplay)
 
    /* Update input buffer and simulate missing input */
    do {
+      if (netplay->need_resync)
+         netplay_resync(netplay);
       netplay_poll(netplay);
    } while (netplay->need_resync);
 
