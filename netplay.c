@@ -76,6 +76,7 @@ struct netplay
    /* Which port is governed by netplay (other user)? */
    unsigned port;
    bool has_connection;
+   bool is_host;
 
    /* Buffer of savestates and retropad input states.
     * Each savestate represents the frame start.
@@ -1244,10 +1245,11 @@ netplay_t *netplay_new(const char *server, const char *nick,
    if (!netplay)
       return NULL;
 
-   netplay->tcp_fd              = -1;
-   netplay->udp_fd          = -1;
-   netplay->cbs             = *cb;
-   netplay->port            = server ? 0 : 1;
+   netplay->tcp_fd  = -1;
+   netplay->udp_fd  = -1;
+   netplay->cbs     = *cb;
+   netplay->is_host = server ? false : true;
+   netplay->port    = server ? 0 : 1;
    strlcpy(netplay->nick, nick, sizeof(netplay->nick));
 
    if (!netplay_init_buffers(netplay))
@@ -1264,12 +1266,9 @@ netplay_t *netplay_new(const char *server, const char *nick,
 bool netplay_connect(netplay_t *netplay)
 {
    global_t *global = global_get_ptr();
-   char* server = global->netplay_is_client ? global->netplay_server : NULL;
+   char* server = netplay->is_host ? NULL : global->netplay_server;
    uint16_t port = global->netplay_port ? global->netplay_port : RARCH_DEFAULT_PORT;
    int ret = 0;
-
-   if (!netplay)
-      return false;
 
    ret = init_socket(netplay, server, port);
 
@@ -1542,7 +1541,6 @@ void netplay_pre_frame(netplay_t *netplay)
  **/
 void netplay_post_frame(netplay_t *netplay)
 {
-   global_t *global        = global_get_ptr();
    settings_t *settings    = config_get_ptr();
    size_t end_ptr          = NETPLAY_NEXT_PTR(netplay->self_ptr);
    struct delta_frame *ptr = &netplay->buffer[end_ptr];
@@ -1552,7 +1550,7 @@ void netplay_post_frame(netplay_t *netplay)
       netplay->frame_count++;
       netplay->self_ptr = end_ptr;
    }
-   else if (!global->netplay_is_client)
+   else if (netplay->is_host)
       rarch_main_msg_queue_push("Waiting for client", 0, 1, false);
 
    /* Resync if peer state doesn't match */
@@ -1569,7 +1567,7 @@ void netplay_post_frame(netplay_t *netplay)
          rarch_main_msg_queue_push(msg, 1, 120, true);
       }
 
-      if (mismatch && !global->netplay_is_client
+      if (mismatch && netplay->is_host
             && settings->netplay_periodic_resync)
          netplay_send_savestate(true);
    }
