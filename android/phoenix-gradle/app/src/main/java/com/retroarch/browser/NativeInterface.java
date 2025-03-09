@@ -35,13 +35,7 @@ public final class NativeInterface
       boolean success;
       try
       {
-         File dir = new File(destDir);
-         if (dir.isDirectory())
-         {
-            String[] names = dir.list();
-            for (String name : names)
-               DeleteDirTree(new File(dir, name));
-         }
+         DeleteDirTree(new File(destDir), false);
 
          success = extractArchiveTo(zipPath, zipSubDir, destDir);
          if (!success)
@@ -53,21 +47,22 @@ public final class NativeInterface
       return success;
    }
 
-   public static boolean DeleteDirTree(File topDir)
+   public static void DeleteDirTree(File topDir, boolean deleteTop)
    {
       if (topDir.isDirectory())
       {
          String[] names = topDir.list();
          for (String name : names)
-            DeleteDirTree(new File(topDir, name));
+            DeleteDirTree(new File(topDir, name), true);
       }
 
-      return topDir.delete();
+      if (deleteTop)
+         topDir.delete();
    }
 
    /**
     * Gets storage volume paths, delimited by {@code delim}
-    * @param ctx Context
+    * @param ctx current {@link Context}
     * @param delim char between paths
     * @return storage volume paths
     */

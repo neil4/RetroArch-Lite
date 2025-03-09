@@ -280,25 +280,4 @@ public final class ConfigFile
       else
          throw new IllegalArgumentException("Config key '" + key + "' is invalid.");
    }
-   
-   public boolean removeKeysWithPrefix(String s)
-   {
-      boolean rv = false;
-      boolean found;
-      do
-      {
-         found = false;
-         for (Map.Entry<String,String> entry : map.entrySet())
-         {
-            if ( entry.getKey().startsWith(s) )
-            {
-               map.remove(entry.getKey());
-               found = true;
-               rv = true;
-               break;
-            }
-         }
-      } while (found);
-      return rv;
-   }
 }

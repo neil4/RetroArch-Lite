@@ -456,7 +456,7 @@ public class DirectoryFragment extends DialogFragment
       if (listedDirectory.getParentFile() != null)
          adapter.add(new FileWrapper(null, FileWrapper.PARENT, true));
 
-      // Copy new items. If none, list storage volumes.
+      // List files. If not accessible, list storage volumes.
       final File[] files = listedDirectory.listFiles();
       if (files != null)
       {
@@ -491,7 +491,7 @@ public class DirectoryFragment extends DialogFragment
             return left.compareTo(right);
          }
       });
-      
+
       // Update
       adapter.notifyDataSetChanged();
    }

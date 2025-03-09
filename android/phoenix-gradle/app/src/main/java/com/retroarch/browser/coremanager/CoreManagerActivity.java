@@ -172,7 +172,7 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
    }
 
    /**
-    * @param path (not modified) relative or absolute core file path
+    * @param path relative or absolute core file path
     * @return path without directory or "_libretro_android.so"
     */
    public static String sanitizedLibretroName(String path)

@@ -451,12 +451,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
    public static void clearTemporaryStorage(Context ctx)
    {
       File tmpDir = new File(ctx.getApplicationInfo().dataDir, "tmp");
-      if (tmpDir.isDirectory())
-      {
-         String[] names = tmpDir.list();
-         for (String name : names)
-            NativeInterface.DeleteDirTree(new File(tmpDir, name));
-      }
+      NativeInterface.DeleteDirTree(tmpDir, false);
    }
 
    @Override
