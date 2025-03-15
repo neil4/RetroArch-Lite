@@ -1641,7 +1641,9 @@ static bool d3d_frame(void *data, const void *frame,
 
       d3d->should_resize = false;
 
+#ifdef HAVE_OVERLAY
       input_overlay_notify_video_updated();
+#endif
    }
 
    /* render_chain() only clears out viewport,

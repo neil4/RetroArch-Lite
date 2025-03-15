@@ -154,10 +154,8 @@ static void input_overlay_scale(struct overlay *ol, float scale)
    ol->scale   = scale;
    ol->scale_w = ol->w * scale;
    ol->scale_h = ol->h * scale;
-   ol->scale_x = ol->center_x +
-      (ol->x - ol->center_x) * scale;
-   ol->scale_y = ol->center_y +
-      (ol->y - ol->center_y) * scale;
+   ol->scale_x = ol->center_x + (ol->x - ol->center_x) * scale;
+   ol->scale_y = ol->center_y + (ol->y - ol->center_y) * scale;
 
    for (i = 0; i < ol->size; i++)
    {
@@ -167,14 +165,13 @@ static void input_overlay_scale(struct overlay *ol, float scale)
       if (!desc)
          continue;
 
-      adj_range_x = ol->scale_w * desc->range_x;
-      adj_range_y = ol->scale_h * desc->range_y;
+      adj_range_x  = ol->scale_w * desc->range_x;
+      adj_range_y  = ol->scale_h * desc->range_y;
+      adj_center_x = ol->scale_x + desc->x * ol->scale_w;
+      adj_center_y = ol->scale_y + desc->y * ol->scale_h;
 
       desc->image_w = 2.0f * adj_range_x;
       desc->image_h = 2.0f * adj_range_y;
-
-      adj_center_x = ol->scale_x + desc->x * ol->scale_w;
-      adj_center_y = ol->scale_y + desc->y * ol->scale_h;
       desc->image_x = adj_center_x - adj_range_x;
       desc->image_y = adj_center_y - adj_range_y;
    }

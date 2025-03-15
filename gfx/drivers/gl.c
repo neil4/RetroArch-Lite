@@ -1562,7 +1562,9 @@ static bool gl_frame(void *data, const void *frame,
 #endif
          gl_set_viewport(gl, width, height, false, true);
 
+#ifdef HAVE_OVERLAY
       input_overlay_notify_video_updated();
+#endif
    }
 
    gl->tex_index = frame ?

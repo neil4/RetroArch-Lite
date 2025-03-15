@@ -16,7 +16,10 @@
 #include <retro_miscellaneous.h>
 #include "runloop_data.h"
 #include "general.h"
+
+#ifdef HAVE_OVERLAY
 #include "input/input_overlay.h"
+#endif
 
 #ifdef HAVE_THREADS
 #include <rthreads/rthreads.h>

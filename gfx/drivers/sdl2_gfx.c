@@ -481,7 +481,9 @@ static bool sdl2_gfx_frame(void *data, const void *frame, unsigned width,
    if (vid->should_resize)
    {
       sdl_refresh_viewport(vid);
+#ifdef HAVE_OVERLAY
       input_overlay_notify_video_updated();
+#endif
    }
 
    if (frame)

@@ -332,7 +332,9 @@ static bool vg_frame(void *data, const void *frame,
       vgLoadMatrix(vg->mTransformMatrix.data);
 
       vg->should_resize = false;
+#ifdef HAVE_OVERLAY
       input_overlay_notify_video_updated();
+#endif
    }
 
    vgSeti(VG_SCISSORING, VG_FALSE);
