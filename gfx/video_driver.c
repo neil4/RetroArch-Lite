@@ -631,6 +631,9 @@ void init_video(void)
 #if defined(PSP)
    video_driver_set_texture_frame(&dummy_pixels, false, 1, 1, 1.0f);
 #endif
+#ifdef HAVE_OVERLAY
+   input_overlay_notify_video_updated();
+#endif
 }
 
 bool video_driver_suppress_screensaver(bool enable)
