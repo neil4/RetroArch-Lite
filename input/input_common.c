@@ -337,7 +337,7 @@ void input_config_parse_joy_axis(config_file_t *conf, const char *prefix,
 }
 
 #if !defined(IS_JOYCONFIG)
-static void input_get_bind_string_joykey(char *buf, const char *prefix,
+static void input_get_bind_string_joykey(char *buf,
       const struct retro_keybind *bind, size_t size)
 {
    settings_t *settings = config_get_ptr();
@@ -365,22 +365,24 @@ static void input_get_bind_string_joykey(char *buf, const char *prefix,
             break;
       }
 
-      if (bind->joykey_label[0] != '\0' && settings->input.autoconfig_descriptor_label_show)
-         snprintf(buf, size, "%s %s ", prefix, bind->joykey_label);
+      if (bind->joykey_label[0] != '\0'
+            && settings->input.autoconfig_descriptor_label_show)
+         snprintf(buf, size, "(Hat: %s) ", bind->joykey_label);
       else
-         snprintf(buf, size, "%sHat #%u %s ", prefix,
+         snprintf(buf, size, "(Hat #%u %s) ",
                (unsigned)GET_HAT(bind->joykey), dir);
    }
    else
    {
-      if (bind->joykey_label[0] != '\0' && settings->input.autoconfig_descriptor_label_show)
-         snprintf(buf, size, "%s%s (btn) ", prefix, bind->joykey_label);
+      if (bind->joykey_label[0] != '\0'
+            && settings->input.autoconfig_descriptor_label_show)
+         snprintf(buf, size, "(Btn: %s) ", bind->joykey_label);
       else
-         snprintf(buf, size, "%s%u (btn) ", prefix, (unsigned)bind->joykey);
+         snprintf(buf, size, "(Btn: %u) ", (unsigned)bind->joykey);
    }
 }
 
-static void input_get_bind_string_joyaxis(char *buf, const char *prefix,
+static void input_get_bind_string_joyaxis(char *buf,
       const struct retro_keybind *bind, size_t size)
 {
    unsigned axis        = 0;
@@ -397,10 +399,11 @@ static void input_get_bind_string_joyaxis(char *buf, const char *prefix,
       dir = '+';
       axis = AXIS_POS_GET(bind->joyaxis);
    }
-   if (bind->joyaxis_label[0] != '\0' && settings->input.autoconfig_descriptor_label_show)
-      snprintf(buf, size, "%s%s (axis) ", prefix, bind->joyaxis_label);
+   if (bind->joyaxis_label[0] != '\0'
+         && settings->input.autoconfig_descriptor_label_show)
+      snprintf(buf, size, "(Axis: %s) ", bind->joyaxis_label);
    else
-      snprintf(buf, size, "%s%c%u (axis) ", prefix, dir, axis);
+      snprintf(buf, size, "(Axis: %c%u) ", dir, axis);
 }
 
 void input_get_bind_string(char *buf, const struct retro_keybind *bind,
@@ -414,13 +417,13 @@ void input_get_bind_string(char *buf, const struct retro_keybind *bind,
 
    *buf = '\0';
    if (bind->joykey != NO_BTN)
-      input_get_bind_string_joykey(buf, "", bind, size);
+      input_get_bind_string_joykey(buf, bind, size);
    else if (bind->joyaxis != AXIS_NONE)
-      input_get_bind_string_joyaxis(buf, "", bind, size);
+      input_get_bind_string_joyaxis(buf, bind, size);
    else if (auto_bind && auto_bind->joykey != NO_BTN)
-      input_get_bind_string_joykey(buf, "Auto: ", auto_bind, size);
+      input_get_bind_string_joykey(buf, auto_bind, size);
    else if (auto_bind && auto_bind->joyaxis != AXIS_NONE)
-      input_get_bind_string_joyaxis(buf, "Auto: ", auto_bind, size);
+      input_get_bind_string_joyaxis(buf, auto_bind, size);
 
 #ifndef RARCH_CONSOLE
    input_keymaps_translate_rk_to_str(bind->key, key, sizeof(key));
@@ -462,7 +465,6 @@ void input_set_keyboard_focus_auto(void)
    }
 
 finish:
-   if ((want_kb_focus && !global->keyboard_focus)
-         || (!want_kb_focus && global->keyboard_focus))
+   if (want_kb_focus != global->keyboard_focus)
       event_command(EVENT_CMD_KEYBOARD_FOCUS_TOGGLE);
 }
