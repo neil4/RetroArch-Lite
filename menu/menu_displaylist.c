@@ -1093,7 +1093,8 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
    return 0;
 }
 
-static int menu_displaylist_parse_generic(menu_displaylist_info_t *info, bool *need_sort)
+static int menu_displaylist_parse_generic(menu_displaylist_info_t *info,
+      bool *need_sort)
 {
    bool path_is_compressed, push_dir;
    size_t i, list_size;
@@ -1134,6 +1135,7 @@ static int menu_displaylist_parse_generic(menu_displaylist_info_t *info, bool *n
    else
       str_list = dir_list_new(info->path,
             settings->menu.navigation.browser.filter.supported_extensions_enable
+            || info->type_default != MENU_FILE_PLAIN
             ? info->exts : NULL, true);
 
    if (push_dir)
