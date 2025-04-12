@@ -222,7 +222,7 @@ struct overlay
 
    bool full_screen;
    
-   bool lightgun_overlay;
+   bool is_lightgun;
 
    char name[64];
 

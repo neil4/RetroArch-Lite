@@ -895,7 +895,7 @@ static bool input_overlay_load_desc(input_overlay_t *ol,
    if (desc->key_mask & LIGHTGUN_ID_MASK)
    {
       ol->has_lightgun = true;
-      input_overlay->lightgun_overlay = true;
+      input_overlay->is_lightgun = true;
    }
 
    /* show analog recentering? */
@@ -978,14 +978,10 @@ static void input_overlay_load_active(input_overlay_t *ol)
 
 bool input_overlay_load_overlays_resolve_iterate(input_overlay_t *ol)
 {
-   bool not_done = true;
-
    if (!ol)
       return false;
 
-   not_done = ol->resolve_pos < ol->size;
-
-   if (!not_done)
+   if (ol->resolve_pos >= ol->size)
    {
       ol->state = OVERLAY_STATUS_DEFERRED_DONE;
       return true;
@@ -998,9 +994,9 @@ bool input_overlay_load_overlays_resolve_iterate(input_overlay_t *ol)
    }
 
    if (ol->resolve_pos == ol->index)
-   {  
+   {
       ol->active = &ol->overlays[ol->index];
-      
+
       input_overlay_load_active(ol);
       input_overlay_enable(ol, ol->deferred.enable);
    }
@@ -1032,7 +1028,6 @@ static bool input_overlay_load_overlay_image_done(struct overlay *overlay)
 bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
 {
    size_t i                = 0;
-   bool not_done           = true;
    struct overlay *overlay = NULL;
    
    if (!ol)
@@ -1040,9 +1035,7 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
 
    overlay = &ol->overlays[ol->pos];
 
-   not_done = ol->pos < ol->size;
-
-   if (!not_done)
+   if (ol->pos >= ol->size)
    {
       ol->state = OVERLAY_STATUS_DEFERRED_LOADING_RESOLVE;
       return true;
@@ -1074,7 +1067,6 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
                ol->loading_status = OVERLAY_IMAGE_TRANSFER_DESC_ITERATE;
                break;
             }
-
          }
          break;
       case OVERLAY_IMAGE_TRANSFER_DESC_ITERATE:
@@ -1292,7 +1284,7 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
       overlay_lightgun_active = false;
    }
 
-   if (ol->active->lightgun_overlay)
+   if (ol->active->is_lightgun)
    {
       /* Search available ports. If a lightgun device is selected, use it. */
       for (port = 0; port < global->system.num_ports; port++)
@@ -1337,6 +1329,9 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
          overlay_lightgun_active = true;
       }
    }
+   else
+      /* If not a lightgun overlay, enable auto trigger */
+      ol_ptr_st.lightgun.autotrigger = true;
 
    if (overlay_lightgun_active)
    {
@@ -2125,14 +2120,9 @@ static INLINE void input_overlay_poll_mouse(int8_t old_ptr_count)
       mouse->click  = 0;
       pending_click = false;
 
-      if (ptr_count)
-      {
-         /* Assume main pointer changed. Reset deltas */
-         mouse->prev_x = x_start = ol_ptr_st.screen_x;
-         mouse->prev_y = y_start = ol_ptr_st.screen_y;
-      }
-      else
-         old_peak_ptr_count = peak_ptr_count;
+      /* Assume main pointer changed. Reset deltas */
+      mouse->prev_x = x_start = ol_ptr_st.screen_x;
+      mouse->prev_y = y_start = ol_ptr_st.screen_y;
 
       if (ptr_count > old_ptr_count)
       {
@@ -2141,8 +2131,12 @@ static INLINE void input_overlay_poll_mouse(int8_t old_ptr_count)
          start_usec     = now_usec;
       }
       else
+      {
          /* pointer removed */
          mouse->hold = 0x0;
+         if (!ptr_count)
+            old_peak_ptr_count = peak_ptr_count;
+      }
    }
 
    /* Action type */
@@ -2407,9 +2401,11 @@ static INLINE void input_overlay_update_pointer_coords(unsigned idx)
    if (!ol_ptr_st.count
          && ol_ptr_st.device_mask & (1 << RETRO_DEVICE_MOUSE))
    {
+      ol_ptr_st.mouse.prev_x = ol_ptr_st.screen_x;
       ol_ptr_st.screen_x = input_driver_state(
             NULL, 0, RARCH_DEVICE_POINTER_SCREEN, idx,
             RETRO_DEVICE_ID_POINTER_X);
+      ol_ptr_st.mouse.prev_y = ol_ptr_st.screen_y;
       ol_ptr_st.screen_y = input_driver_state(
             NULL, 0, RARCH_DEVICE_POINTER_SCREEN, idx,
             RETRO_DEVICE_ID_POINTER_Y);
@@ -2637,12 +2633,10 @@ static INLINE int16_t overlay_mouse_state(unsigned id)
          ol_ptr_st.device_mask |= (1 << RETRO_DEVICE_MOUSE);
          res = ol_ptr_st.mouse.scale_x
                * (ol_ptr_st.screen_x - ol_ptr_st.mouse.prev_x);
-         ol_ptr_st.mouse.prev_x = ol_ptr_st.screen_x;
          return res;
       case RETRO_DEVICE_ID_MOUSE_Y:
          res = ol_ptr_st.mouse.scale_y
                * (ol_ptr_st.screen_y - ol_ptr_st.mouse.prev_y);
-         ol_ptr_st.mouse.prev_y = ol_ptr_st.screen_y;
          return res;
       case RETRO_DEVICE_ID_MOUSE_LEFT:
          return (ol_ptr_st.mouse.click & 0x1) ||
@@ -2747,8 +2741,8 @@ static int16_t overlay_pointer_state(unsigned idx, unsigned id)
  * Overlay Input state callback function. Sets @id to NO_BTN if overlay
  * input should override lower level input.
  *
- * Returns: Non-zero if the given key (identified by @id) was pressed by the user
- * (assigned to @port).
+ * Returns: Non-zero if the given key (identified by @id) was pressed by
+ * the user (assigned to @port).
  **/
 int16_t input_overlay_state(unsigned port, unsigned device_class,
                             unsigned idx, unsigned *id)
