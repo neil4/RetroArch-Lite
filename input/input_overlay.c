@@ -42,6 +42,10 @@
 #define KEY_DPAD_AREA    0xea88f076U
 #define KEY_ABXY_AREA    0xbcf1c3b1U
 
+#define OL_IMG_POS_INCREMENT 4
+#define DESC_IMG_POS_INCREMENT 16
+#define DESC_POS_INCREMENT 128
+
 static bool overlay_lightgun_active;
 static bool overlay_adjust_needed;
 
@@ -577,14 +581,12 @@ static void input_overlay_free_overlay(struct overlay *overlay)
 
    for (i = 0; i < overlay->size; i++)
    {
-      texture_image_free(&overlay->descs[i].image);
       if (overlay->descs[i].eightway_vals)
          free(overlay->descs[i].eightway_vals);
    }
 
    free(overlay->load_images);
    free(overlay->descs);
-   texture_image_free(&overlay->image);
 }
 
 static void input_overlay_free_overlays(input_overlay_t *ol)
@@ -600,46 +602,57 @@ static void input_overlay_free_overlays(input_overlay_t *ol)
    free(ol->overlays);
 }
 
-static bool input_overlay_load_texture_image(struct overlay *overlay,
-      struct texture_image *image, const char *path)
+static bool input_overlay_load_texture_image(input_overlay_t *ol,
+      struct overlay *overlay, struct texture_image *image,
+      const char *full_path, const char *short_path)
 {
-   struct texture_image img = {0};
+   int img_idx = string_list_find_elem(ol->image_list, short_path) - 1;
 
-   if (!texture_image_load(&img, path))
-      return false;
+   /* Load image if unique. Copy existing texture_image if not */
+   if (img_idx == -1)
+   {
+      union string_list_elem_attr attr;
 
-   *image = img;
+      if (!texture_image_load(image, full_path))
+         return false;
+
+      attr.p = (void*)image;
+      string_list_append(ol->image_list, short_path, attr);
+   }
+   else
+      *image = *((struct texture_image*)ol->image_list->elems[img_idx].attr.p);
+
    overlay->load_images[overlay->load_images_size++] = *image;
-   
+
    return true;
 }
 
 static bool input_overlay_load_desc_image(input_overlay_t *ol,
-      struct overlay_desc *desc,
-      struct overlay *input_overlay,
+      struct overlay_desc *desc, struct overlay *overlay,
       unsigned ol_idx, unsigned desc_idx)
 {
    char overlay_desc_image_key[64];
-   char image_path[PATH_MAX_LENGTH];
+   char rel_path[PATH_MAX_LENGTH];
 
    overlay_desc_image_key[0] = '\0';
-   image_path[0] = '\0';
+   rel_path[0] = '\0';
 
    snprintf(overlay_desc_image_key, sizeof(overlay_desc_image_key),
          "overlay%u_desc%u_overlay", ol_idx, desc_idx);
 
    if (config_get_path(ol->conf, overlay_desc_image_key,
-            image_path, sizeof(image_path)))
+            rel_path, sizeof(rel_path)))
    {
-      char path[PATH_MAX_LENGTH];
-      fill_pathname_resolve_relative(path, ol->path,
-            image_path, sizeof(path));
+      char res_path[PATH_MAX_LENGTH];
+      fill_pathname_resolve_relative(res_path, ol->path,
+            rel_path, sizeof(res_path));
 
-      if (input_overlay_load_texture_image(input_overlay, &desc->image, path))
-         desc->image_index = input_overlay->load_images_size - 1;
+      if (input_overlay_load_texture_image(ol, overlay,
+            &desc->image, res_path, rel_path))
+         desc->image_index = overlay->load_images_size - 1;
    }
 
-   input_overlay->pos ++;
+   overlay->pos++;
 
    return true;
 }
@@ -1010,25 +1023,10 @@ error:
    return false;
 }
 
-
-static bool input_overlay_load_overlay_image_done(struct overlay *overlay)
-{
-   overlay->pos = 0;
-   /* Divide iteration steps by half of total descs if size is even,
-    * otherwise default to 8 (arbitrary value for now to speed things up). */
-   overlay->pos_increment = (overlay->size / 2) ? (overlay->size / 2) : 8;
-
-#if 0
-   RARCH_LOG("pos increment: %u\n", overlay->pos_increment);
-#endif
-
-   return true;
-}
-
 bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
 {
-   size_t i                = 0;
    struct overlay *overlay = NULL;
+   size_t n;
    
    if (!ol)
       return false;
@@ -1044,16 +1042,12 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
    switch (ol->loading_status)
    {
       case OVERLAY_IMAGE_TRANSFER_NONE:
-      case OVERLAY_IMAGE_TRANSFER_BUSY:
-         ol->loading_status = OVERLAY_IMAGE_TRANSFER_DONE;
-         break;
-      case OVERLAY_IMAGE_TRANSFER_DONE:
-         input_overlay_load_overlay_image_done(&ol->overlays[ol->pos]);
          ol->loading_status = OVERLAY_IMAGE_TRANSFER_DESC_IMAGE_ITERATE;
          ol->overlays[ol->pos].pos = 0;
-         break;
+         /* fall-through */
       case OVERLAY_IMAGE_TRANSFER_DESC_IMAGE_ITERATE:
-         for (i = 0; i < overlay->pos_increment; i++)
+         for (n = ol->image_list->size + DESC_IMG_POS_INCREMENT;
+               ol->image_list->size < n;)
          {
             if (overlay->pos < overlay->size)
             {
@@ -1070,7 +1064,7 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
          }
          break;
       case OVERLAY_IMAGE_TRANSFER_DESC_ITERATE:
-         for (i = 0; i < overlay->pos_increment; i++)
+         for (n = 0; n < DESC_POS_INCREMENT; n++)
          {
             if (overlay->pos < overlay->size)
             {
@@ -1117,19 +1111,19 @@ error:
 
 bool input_overlay_load_overlays(input_overlay_t *ol)
 {
-   unsigned i;
-   unsigned descs_size = 0;
-   char rect_array[256] = {0};
+   char rect_array[256];
    char *rel_path = string_alloc(PATH_MAX_LENGTH);
    char *res_path = string_alloc(PATH_MAX_LENGTH);
+   unsigned descs_size = 0;
+   unsigned n;
 
-   for (i = 0; i < ol->pos_increment; i++, ol->pos++)
+   for (n = ol->image_list->size + OL_IMG_POS_INCREMENT;
+         ol->image_list->size < n; ol->pos++)
    {
       char conf_key[64];
       struct overlay *overlay = NULL;
-      bool            to_cont = ol->pos < ol->size;
-      
-      if (!to_cont)
+
+      if (ol->pos >= ol->size)
       {
          ol->pos   = 0;
          ol->state = OVERLAY_STATUS_DEFERRED_LOADING;
@@ -1199,8 +1193,8 @@ bool input_overlay_load_overlays(input_overlay_t *ol)
          fill_pathname_resolve_relative(res_path, ol->path,
                rel_path, PATH_MAX_LENGTH);
 
-         if (!input_overlay_load_texture_image(
-               overlay, &overlay->image, res_path))
+         if (!input_overlay_load_texture_image(ol, overlay,
+               &overlay->image, res_path, rel_path))
          {
             RARCH_ERR("[Overlay]: Failed to load image: %s.\n", res_path);
             ol->loading_status = OVERLAY_IMAGE_TRANSFER_ERROR;
@@ -1469,7 +1463,6 @@ static bool input_overlay_load_overlays_init(input_overlay_t *ol)
 
    ol->pos           = 0;
    ol->resolve_pos   = 0;
-   ol->pos_increment = (ol->size / 4) ? (ol->size / 4) : 4;
 
    return true;
 
@@ -1518,6 +1511,10 @@ input_overlay_t *input_overlay_new(const char *path, bool enable)
    ol->iface_data = driver->video_data;
 
    if (!ol->iface)
+      goto error;
+
+   ol->image_list = string_list_new();
+   if (!ol->image_list)
       goto error;
 
    ol->state                 = OVERLAY_STATUS_DEFERRED_LOAD;
@@ -2825,17 +2822,23 @@ void input_overlay_next(input_overlay_t *ol)
  **/
 void input_overlay_free(input_overlay_t *ol)
 {
+   struct string_list *image_list = ol->image_list;
+   int i;
+
    if (!ol)
       return;
 
-   input_overlay_free_overlays(ol);
+   if (ol->iface)
+      ol->iface->enable(ol->iface_data, false);
 
    if (ol->conf)
       config_file_free(ol->conf);
-   ol->conf = NULL;
 
-   if (ol->iface)
-      ol->iface->enable(ol->iface_data, false);
+   for (i = 0; i < image_list->size; i++)
+      texture_image_free(image_list->elems[i].attr.p);
+   string_list_free(image_list);
+
+   input_overlay_free_overlays(ol);
 
    free(ol->path);
    free(ol);

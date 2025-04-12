@@ -151,8 +151,6 @@ enum overlay_status
 enum overlay_image_transfer_status
 {
    OVERLAY_IMAGE_TRANSFER_NONE = 0,
-   OVERLAY_IMAGE_TRANSFER_BUSY,
-   OVERLAY_IMAGE_TRANSFER_DONE,
    OVERLAY_IMAGE_TRANSFER_DESC_IMAGE_ITERATE,
    OVERLAY_IMAGE_TRANSFER_DESC_ITERATE,
    OVERLAY_IMAGE_TRANSFER_DESC_DONE,
@@ -210,7 +208,6 @@ struct overlay
    struct overlay_desc *descs;
    size_t size;
    size_t pos;
-   unsigned pos_increment;
 
    struct texture_image image;
 
@@ -221,7 +218,6 @@ struct overlay
    float center_x, center_y;
 
    bool full_screen;
-   
    bool is_lightgun;
 
    char name[64];
@@ -253,11 +249,14 @@ struct input_overlay
    unsigned size;
    unsigned pos;
    unsigned resolve_pos;
-   unsigned pos_increment;
 
    unsigned next_index;
    char *path;
    config_file_t *conf;
+
+   /* List of unique image paths and texture_image pointers.
+    * Must be freed before overlays. */
+   struct string_list *image_list;
 
    enum overlay_status state;
 
