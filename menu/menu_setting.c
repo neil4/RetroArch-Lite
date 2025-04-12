@@ -2610,7 +2610,7 @@ static INLINE void setting_get_dl_core_info(char *s, size_t len,
 
 static void setting_get_savestate_info(char *s, size_t len)
 {
-   char       *path     = string_alloc(PATH_MAX_LENGTH);
+   char path[PATH_MAX_LENGTH];
    settings_t *settings = config_get_ptr();
 
    get_savestate_path(path);
@@ -2626,8 +2626,6 @@ static void setting_get_savestate_info(char *s, size_t len)
    }
    else
       snprintf(s, len, "State %i is empty", settings->state_slot);
-
-   free(path);
 }
 
 static int setting_get_description_compare_label(uint32_t label_hash,

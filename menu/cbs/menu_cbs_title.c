@@ -220,9 +220,12 @@ static int action_get_title_default(const char *path, const char *label,
 static int action_get_title_group_settings(const char *path, const char *label, 
       unsigned menu_type, char *s, size_t len)
 {
+   char elem0[NAME_MAX_LENGTH];
+   char elem1[NAME_MAX_LENGTH];
    struct string_list *list_label = string_split(label, "|");
-   char *elem0                    = string_alloc(PATH_MAX_LENGTH);
-   char *elem1                    = string_alloc(PATH_MAX_LENGTH);
+
+   elem0[0] = '\0';
+   elem1[0] = '\0';
 
    if (list_label)
    {
@@ -243,8 +246,6 @@ static int action_get_title_group_settings(const char *path, const char *label,
       strlcat(s, string_to_upper(elem1), len);
    }
 
-   free(elem0);
-   free(elem1);
    return 0;
 }
 

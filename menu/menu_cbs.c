@@ -50,8 +50,8 @@ void menu_cbs_init(void *data,
       const char *path, const char *label,
       unsigned type, size_t idx)
 {
-   char *elem0                  = string_alloc(PATH_MAX_LENGTH);
-   char *elem1                  = string_alloc(PATH_MAX_LENGTH);
+   char elem0[NAME_MAX_LENGTH];
+   char elem1[NAME_MAX_LENGTH];
    struct string_list *str_list = NULL;
    const char *menu_label       = NULL;
    menu_file_list_cbs_t *cbs    = NULL;
@@ -61,18 +61,20 @@ void menu_cbs_init(void *data,
    file_list_t *list            = (file_list_t*)data;
    menu_list_t *menu_list       = menu_list_get_ptr();
    if (!menu_list || !list)
-      goto end;
+      return;
 
    cbs = (menu_file_list_cbs_t*)menu_list_get_actiondata_at_offset(list, idx);
 
    if (!cbs)
-      goto end;
+      return;
 
    menu_list_get_last_stack(menu_list, NULL, &menu_label, NULL, NULL);
 
    if (label)
       str_list = string_split(label, "|");
 
+   elem0[0] = '\0';
+   elem1[0] = '\0';
    if (str_list && str_list->size > 0)
       strlcpy(elem0, str_list->elems[0].data, PATH_MAX_LENGTH);
    if (str_list && str_list->size > 1)
@@ -148,8 +150,4 @@ void menu_cbs_init(void *data,
    menu_cbs_init_log(ret, "TITLE", label, elem0, elem1, type);
 
    ret = menu_driver_bind_init(cbs, path, label, type, idx, elem0, elem1, label_hash, menu_label_hash);
-
-end:
-   free(elem0);
-   free(elem1);
 }

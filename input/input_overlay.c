@@ -1111,9 +1111,9 @@ error:
 
 bool input_overlay_load_overlays(input_overlay_t *ol)
 {
+   char rel_path[PATH_MAX_LENGTH];
+   char res_path[PATH_MAX_LENGTH];
    char rect_array[256];
-   char *rel_path = string_alloc(PATH_MAX_LENGTH);
-   char *res_path = string_alloc(PATH_MAX_LENGTH);
    unsigned descs_size = 0;
    unsigned n;
 
@@ -1185,6 +1185,9 @@ bool input_overlay_load_overlays(input_overlay_t *ol)
          goto error;
       }
 
+      rel_path[0] = '\0';
+      res_path[0] = '\0';
+
       snprintf(conf_key, sizeof(conf_key), "overlay%u_overlay", ol->pos);
       config_get_path(ol->conf, conf_key, rel_path, PATH_MAX_LENGTH);
 
@@ -1239,15 +1242,11 @@ bool input_overlay_load_overlays(input_overlay_t *ol)
       overlay->center_y = overlay->y + 0.5f * overlay->h;
    }
 
-   free(rel_path);
-   free(res_path);
    return true;
 
 error:
    ol->pos   = 0;
    ol->state = OVERLAY_STATUS_DEFERRED_ERROR;
-   free(rel_path);
-   free(res_path);
 
    return false;
 }
@@ -2822,9 +2821,6 @@ void input_overlay_next(input_overlay_t *ol)
  **/
 void input_overlay_free(input_overlay_t *ol)
 {
-   struct string_list *image_list = ol->image_list;
-   int i;
-
    if (!ol)
       return;
 
@@ -2834,9 +2830,15 @@ void input_overlay_free(input_overlay_t *ol)
    if (ol->conf)
       config_file_free(ol->conf);
 
-   for (i = 0; i < image_list->size; i++)
-      texture_image_free(image_list->elems[i].attr.p);
-   string_list_free(image_list);
+   if (ol->image_list)
+   {
+      struct string_list *image_list = ol->image_list;
+      int i;
+
+      for (i = 0; i < image_list->size; i++)
+         texture_image_free(image_list->elems[i].attr.p);
+      string_list_free(image_list);
+   }
 
    input_overlay_free_overlays(ol);
 
