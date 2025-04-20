@@ -1448,10 +1448,8 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->menu.show_cheat_options);
    config_get_bool(conf, "menu_swap_ok_cancel",
          &settings->menu.swap_ok_cancel);
-#ifndef EXTERNAL_LAUNCHER
    config_get_bool(conf, "show_core_updater",
          &settings->menu.show_core_updater);
-#endif
    config_get_bool(conf, "menu_show_core_info",
          &settings->menu.show_core_info);
    config_get_bool(conf, "menu_show_system_info",

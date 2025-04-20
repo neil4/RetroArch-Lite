@@ -66,9 +66,6 @@ struct http_connection_t
 static int net_http_new_socket(const char *domain, int port)
 {
    int fd;
-#ifndef _WIN32
-   struct timeval timeout;
-#endif
    struct addrinfo hints, *addr = NULL;
    char portstr[16] = {0};
 
@@ -85,14 +82,7 @@ static int net_http_new_socket(const char *domain, int port)
       return -1;
 
    fd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-
-#ifndef _WIN32
-   timeout.tv_sec=4;
-   timeout.tv_usec=0;
-   setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof timeout);
-#endif
-
-   if (connect(fd, addr->ai_addr, addr->ai_addrlen) != 0)
+   if (socket_connect(fd, addr->ai_addr, addr->ai_addrlen, false, 4) != 0)
    {
       freeaddrinfo_rarch(addr);
       socket_close(fd);
@@ -100,12 +90,6 @@ static int net_http_new_socket(const char *domain, int port)
    }
 
    freeaddrinfo_rarch(addr);
-
-   if (!socket_nonblock(fd))
-   {
-      socket_close(fd);
-      return -1;
-   }
 
    return fd;
 }

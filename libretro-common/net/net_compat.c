@@ -84,18 +84,57 @@ void freeaddrinfo_rarch(struct addrinfo *res)
 #endif
 }
 
-bool socket_nonblock(int fd)
+bool socket_set_block(int fd, bool block)
 {
 #if defined(__CELLOS_LV2__)
-   int i = 1;
-   setsockopt(fd, SOL_SOCKET, SO_NBIO, &i, sizeof(int));
-   return true;
+   int i = !block;
+
+   return setsockopt(fd, SOL_SOCKET, SO_NBIO, &i, sizeof(i)) == 0;
 #elif defined(_WIN32)
-   u_long mode = 1;
+   u_long mode = !block;
+
    return ioctlsocket(fd, FIONBIO, &mode) == 0;
 #else
-   return fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK) == 0;
+   int flags = fcntl(fd, F_GETFL);
+
+   if (block)
+      flags &= ~O_NONBLOCK;
+   else
+      flags |= O_NONBLOCK;
+
+   return fcntl(fd, F_SETFL, flags) == 0;
 #endif
+}
+
+int socket_connect(int fd, struct sockaddr* addr, int addrlen,
+      bool blocking_state, int timeout_sec)
+{
+#ifdef _WIN32
+   int so_timeout = timeout_sec * 1000;
+#else
+   struct timeval so_timeout = {timeout_sec, 0};
+#endif
+   struct timeval sel_timeout = {timeout_sec, 0};
+   fd_set fds;
+
+   setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO,
+         (const char*)&so_timeout, sizeof(so_timeout));
+
+   socket_set_block(fd, false);
+   connect(fd, addr, addrlen);
+   socket_set_block(fd, blocking_state);
+
+   FD_ZERO(&fds);
+   FD_SET(fd, &fds);
+   if (select(fd + 1, NULL, &fds, NULL, &sel_timeout) > 0)
+   {
+      int ret;
+      socklen_t ret_len = sizeof(ret);
+      getsockopt(fd, SOL_SOCKET, SO_ERROR, (char*)&ret, &ret_len);
+      return ret;
+   }
+
+   return -1;
 }
 
 int socket_close(int fd)

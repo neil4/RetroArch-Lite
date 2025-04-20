@@ -422,44 +422,40 @@ static bool rarch_main_data_http_iterate_cancel(http_handle_t *http)
  **/
 static int rarch_main_data_http_iterate_transfer(void *data)
 {
+   char msg[NAME_MAX_LENGTH];
    http_handle_t *http  = (http_handle_t*)data;
    size_t pos = 0, tot = 0;
-   int percent = 0;
-   char msg[NAME_MAX_LENGTH];
-   int64_t now_usec;
+   bool done;
+
    static int64_t start_usec;
-   
-   if (!net_http_update(http->handle, &pos, &tot))
+
+   done = net_http_update(http->handle, &pos, &tot);
+
+   if (tot > 0)
    {
-      if (tot != 0)
-         percent = (pos * 100) / tot;
-         
-      if (tot > 0)
-      {
-         snprintf(msg, sizeof(msg), "Download progress: %d%%", percent);
-         rarch_main_msg_queue_push(msg, 1, 100, true);
-         start_usec = 0;
-      }
+      int percent = tot != 0 ? (pos * 100) / tot : 0;
+
+      snprintf(msg, sizeof(msg), "Download progress: %d%%", percent);
+      rarch_main_msg_queue_push(msg, 1, 100, true);
+      start_usec = 0;
+   }
+   else
+   {
+      int64_t now_usec = rarch_get_time_usec();
+
+      if (!start_usec)
+         start_usec = now_usec;
+
+      if (now_usec - start_usec < 8000000)
+         rarch_main_msg_queue_push("Download waiting...", 1, 1, true);
       else
       {
-         now_usec = rarch_get_time_usec();
-         if (!start_usec)
-            start_usec = now_usec;
-
-         if (now_usec - start_usec < 8000000)
-            rarch_main_msg_queue_push("Download waiting...", 1, 1, true);
-         else
-         {
-            rarch_main_data_http_cancel_transfer(http, "Download timed out");
-            start_usec = 0;
-         }
+         rarch_main_data_http_cancel_transfer(http, "Download timed out");
+         start_usec = 0;
       }
-
-      return -1;
    }
 
-   start_usec = 0;
-   return 0;
+   return done ? 0 : -1;
 }
 
 void rarch_main_data_http_iterate(void *data)

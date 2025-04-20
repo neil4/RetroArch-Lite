@@ -145,7 +145,10 @@ int getaddrinfo_rarch(const char *node, const char *service,
 
 void freeaddrinfo_rarch(struct addrinfo *res);
 
-bool socket_nonblock(int fd);
+bool socket_set_block(int fd, bool block);
+
+int socket_connect(int fd, struct sockaddr* addr, int addrlen,
+      bool blocking_state, int timeout_sec);
 
 int socket_close(int fd);
 

@@ -791,13 +791,9 @@ static int init_tcp_connection(const struct addrinfo *res,
 
    if (server)  /* Client */
    {
-      struct timeval timeout;
       const int retries = 2;
       int i;
 
-      timeout.tv_sec  = 1;
-      timeout.tv_usec = 0;
-      setsockopt(*tcp_fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof timeout);
       set_tcp_nodelay(*tcp_fd);
 
       for (i = 0;;)
@@ -807,10 +803,16 @@ static int init_tcp_connection(const struct addrinfo *res,
          rarch_main_msg_queue_push(msg, 2, 1, true);
          video_driver_cached_frame();
 
-         if (connect(*tcp_fd, res->ai_addr, res->ai_addrlen) < 0)
+         if (socket_connect(*tcp_fd, res->ai_addr, res->ai_addrlen,
+               true, 2) != 0)
          {
             if (i++ < retries)
+            {
+               socket_close(*tcp_fd);
+               *tcp_fd = socket(res->ai_family,
+                     res->ai_socktype, res->ai_protocol);
                continue;
+            }
             rarch_main_msg_queue_push("TCP failed to connect", 3, 240, true);
             goto fail;
          }
@@ -825,7 +827,8 @@ static int init_tcp_connection(const struct addrinfo *res,
          setsockopt(*tcp_fd, SOL_SOCKET, SO_REUSEADDR,
                (const char*)&yes, sizeof(int));
 
-         if (bind(*tcp_fd, res->ai_addr, res->ai_addrlen) < 0 || listen(*tcp_fd, 1) < 0)
+         if (bind(*tcp_fd, res->ai_addr, res->ai_addrlen) < 0
+               || listen(*tcp_fd, 1) < 0)
          {
             rarch_main_msg_queue_push("TCP failed to bind", 2, 240, true);
             *tcp_fd = -1;
@@ -837,15 +840,14 @@ static int init_tcp_connection(const struct addrinfo *res,
       {
          int new_fd = accept(*tcp_fd, other_addr, &addr_size);
          socket_close(*tcp_fd);
-         *tcp_fd = -1;
+         *tcp_fd = new_fd;
 
          if (new_fd < 0)
          {
             rarch_main_msg_queue_push("TCP failed to accept", 2, 240, true);
             goto fail;
          }
-         *tcp_fd = new_fd;
-         set_tcp_nodelay(*tcp_fd);
+         set_tcp_nodelay(new_fd);
          return 1;
       }
 

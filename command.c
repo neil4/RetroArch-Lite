@@ -90,7 +90,7 @@ static bool cmd_init_network(rarch_cmd_t *handle, uint16_t port)
    if (handle->net_fd < 0)
       goto error;
 
-   if (!socket_nonblock(handle->net_fd))
+   if (!socket_set_block(handle->net_fd, false))
       goto error;
 
    setsockopt(handle->net_fd, SOL_SOCKET,
