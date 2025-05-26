@@ -717,18 +717,27 @@ void audio_driver_sample(int16_t left, int16_t right)
  *
  * Batched audio sample render callback function.
  *
- * Returns: amount of frames sampled. Will be equal to @frames
- * unless @frames exceeds (AUDIO_CHUNK_SIZE_NONBLOCKING / 2).
+ * Returns: number of frames sampled
  **/
 size_t audio_driver_sample_batch(const int16_t *data, size_t frames)
 {
+   size_t frames_remaining = frames;
+   size_t frames_to_write;
+
    if (driver_get_ptr()->audio_suspended)
       return frames;
 
-   if (frames > (AUDIO_CHUNK_SIZE_NONBLOCKING >> 1))
-      frames = AUDIO_CHUNK_SIZE_NONBLOCKING >> 1;
+   do {
+      if (frames_remaining > (AUDIO_CHUNK_SIZE_NONBLOCKING >> 1))
+         frames_to_write = AUDIO_CHUNK_SIZE_NONBLOCKING >> 1;
+      else
+         frames_to_write = frames_remaining;
 
-   audio_driver_flush(data, frames << 1);
+      audio_driver_flush(data, frames_to_write << 1);
+
+      frames_remaining -= frames_to_write;
+      data             += frames_to_write << 1;
+   } while (frames_remaining > 0);
 
    return frames;
 }
