@@ -46,6 +46,7 @@ static driver_t *driver_new(void)
       return NULL;
 
    driver->overlay_state = driver->overlay_states;
+   driver->overlay_touch_state = driver->overlay_touch_states;
 
    return driver;
 }
@@ -444,7 +445,8 @@ void driver_swap_overlay_state(void)
 {
    static int state_index;
 
-   state_index            ^= 1;
-   g_driver->overlay_state = g_driver->overlay_states + state_index;
+   state_index                  ^= 1;
+   g_driver->overlay_touch_state = g_driver->overlay_touch_states + state_index;
+   g_driver->overlay_state       = g_driver->overlay_states + state_index;
 }
 #endif

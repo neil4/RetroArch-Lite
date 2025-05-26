@@ -65,16 +65,7 @@ typedef struct ellipse_px
    float minor_px[OVERLAY_MAX_TOUCH];
 } ellipse_px_t;
 
-/* truncated overlay state for hitbox polling only */
-typedef struct input_overlay_button_state
-{
-   uint64_t buttons;
-   int16_t analog[4];
-   uint32_t keys[RETROK_LAST / 32 + 1];
-} input_overlay_button_state_t;
-
 static overlay_aspect_mod_vals_t ol_ar_mod;
-static input_overlay_pointer_state_t ol_ptr_st;
 static ellipse_px_t ol_ellipse;
 
 const struct overlay_eightway_vals menu_analog_vals = {
@@ -1264,6 +1255,8 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
 {
    global_t*   global   = global_get_ptr();
    settings_t* settings = config_get_ptr();
+   input_overlay_pointer_state_t *ptr_st =
+         &driver_get_ptr()->overlay_pointer_state;
    struct retro_controller_info rci;
    static int old_port;
    int port, i;
@@ -1324,20 +1317,20 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
    }
    else
       /* If not a lightgun overlay, enable auto trigger */
-      ol_ptr_st.lightgun.autotrigger = true;
+      ptr_st->lightgun.autotrigger = true;
 
    if (overlay_lightgun_active)
    {
       old_port = port;
 
       /* Set autotrigger if no trigger descriptor found */
-      ol_ptr_st.lightgun.autotrigger = true;
+      ptr_st->lightgun.autotrigger = true;
       for (i = 0; i < ol->active->size; i++)
       {
          if (ol->active->descs[i].key_mask
              & (UINT64_C(1) << RARCH_LIGHTGUN_TRIGGER))
          {
-            ol_ptr_st.lightgun.autotrigger = false;
+            ptr_st->lightgun.autotrigger = false;
             break;
          }
       }
@@ -1347,7 +1340,8 @@ static void input_overlay_connect_lightgun(input_overlay_t *ol)
 void input_overlay_update_mouse_scale(void)
 {
    settings_t *settings                 = config_get_ptr();
-   struct ol_mouse_st* mouse            = &ol_ptr_st.mouse;
+   struct ol_mouse_st* mouse            =
+         &driver_get_ptr()->overlay_pointer_state.mouse;
    struct retro_system_av_info* av_info = video_viewport_get_system_av_info();
    const struct retro_game_geometry *geom;
    unsigned disp_width, disp_height;
@@ -2035,11 +2029,12 @@ static INLINE bool input_overlay_poll_descs(
    return any_desc_hit;
 }
 
-static void input_overlay_poll_lightgun(int8_t old_ptr_count)
+static void input_overlay_poll_lightgun(
+      input_overlay_pointer_state_t *ptr_st, int8_t old_ptr_count)
 {
    settings_t *settings            = config_get_ptr();
-   struct ol_lightgun_st *lightgun = &ol_ptr_st.lightgun;
-   const uint8_t ptr_count         = ol_ptr_st.count;
+   struct ol_lightgun_st *lightgun = &ptr_st->lightgun;
+   const uint8_t ptr_count         = ptr_st->count;
    int8_t trig_delay               = settings->input.lightgun_trigger_delay;
    int8_t delay_idx;
 
@@ -2092,14 +2087,15 @@ static void input_overlay_poll_lightgun(int8_t old_ptr_count)
       lightgun->multitouch_id = RARCH_BIND_LIST_END;
 }
 
-static INLINE void input_overlay_poll_mouse(int8_t old_ptr_count)
+static INLINE void input_overlay_poll_mouse(
+      input_overlay_pointer_state_t *ptr_st, int8_t old_ptr_count)
 {
    settings_t*     settings  = config_get_ptr();
-   struct ol_mouse_st* mouse = &ol_ptr_st.mouse;
+   struct ol_mouse_st* mouse = &ptr_st->mouse;
    retro_time_t     now_usec = rarch_get_time_usec();
    retro_time_t    hold_usec = settings->input.overlay_mouse_hold_ms * 1000;
    retro_time_t    dtap_usec = settings->input.overlay_mouse_tap_and_drag_ms * 1000;
-   const uint8_t   ptr_count = ol_ptr_st.count;
+   const uint8_t   ptr_count = ptr_st->count;
    bool         hold_to_drag = settings->input.overlay_mouse_hold_to_drag;
    bool         dtap_to_drag = settings->input.overlay_mouse_tap_and_drag;
    bool            feedback  = false;
@@ -2117,8 +2113,8 @@ static INLINE void input_overlay_poll_mouse(int8_t old_ptr_count)
       pending_click = false;
 
       /* Assume main pointer changed. Reset deltas */
-      mouse->prev_x = x_start = ol_ptr_st.screen_x;
-      mouse->prev_y = y_start = ol_ptr_st.screen_y;
+      mouse->prev_x = x_start = mouse->x;
+      mouse->prev_y = y_start = mouse->y;
 
       if (ptr_count > old_ptr_count)
       {
@@ -2136,8 +2132,8 @@ static INLINE void input_overlay_poll_mouse(int8_t old_ptr_count)
    }
 
    /* Action type */
-   is_swipe = abs(ol_ptr_st.screen_x - x_start) > mouse->swipe_thres_x ||
-              abs(ol_ptr_st.screen_y - y_start) > mouse->swipe_thres_y;
+   is_swipe = abs(mouse->x - x_start) > mouse->swipe_thres_x ||
+              abs(mouse->y - y_start) > mouse->swipe_thres_y;
    is_brief = (now_usec - start_usec) < 200000;
    is_long  = (now_usec - start_usec) > (hold_to_drag ? hold_usec : 250000);
 
@@ -2254,7 +2250,7 @@ static void input_overlay_update_desc_geom(input_overlay_t *ol,
  * @return true if range_mod and alpha_mod should be applied to @desc
  */
 static INLINE bool input_overlay_desc_active(struct overlay_desc *desc,
-      input_overlay_state_t *state)
+      input_overlay_button_state_t *state)
 {
    size_t base = 0;
 
@@ -2285,7 +2281,7 @@ static INLINE bool input_overlay_desc_active(struct overlay_desc *desc,
  * update alpha mods for pressed/unpressed controls.
  **/
 static INLINE void input_overlay_post_poll(input_overlay_t *ol,
-      input_overlay_state_t *state)
+      input_overlay_button_state_t *state)
 {
    settings_t *settings = config_get_ptr();
    size_t i;
@@ -2374,41 +2370,44 @@ static INLINE uint64_t menu_analog_dpad_state(const int16_t analog_x,
       return 0;
 }
 
-static INLINE void input_overlay_update_pointer_coords(unsigned idx)
+static INLINE void input_overlay_update_pointer_coords(
+      input_overlay_pointer_state_t *ptr_st, unsigned idx)
 {
    /* Need multi-touch coordinates for pointer only */
-   if (ol_ptr_st.count
-         && !(ol_ptr_st.device_mask & (1 << RETRO_DEVICE_POINTER)))
+   if (ptr_st->count
+         && !(ptr_st->device_mask & (1 << RETRO_DEVICE_POINTER)))
       goto finish;
 
    /* Need viewport pointers for lightgun and pointer */
-   if (ol_ptr_st.device_mask &
+   if (ptr_st->device_mask &
          ((1 << RETRO_DEVICE_LIGHTGUN) | (1 << RETRO_DEVICE_POINTER)))
    {
-      ol_ptr_st.ptr[ol_ptr_st.count].x = input_driver_state(
+      ptr_st->ptr[ptr_st->count].x = input_driver_state(
             NULL, 0, RETRO_DEVICE_POINTER, idx,
             RETRO_DEVICE_ID_POINTER_X);
-      ol_ptr_st.ptr[ol_ptr_st.count].y = input_driver_state(
+      ptr_st->ptr[ptr_st->count].y = input_driver_state(
             NULL, 0, RETRO_DEVICE_POINTER, idx,
             RETRO_DEVICE_ID_POINTER_Y);
    }
 
    /* Need fullscreen pointer for mouse only */
-   if (!ol_ptr_st.count
-         && ol_ptr_st.device_mask & (1 << RETRO_DEVICE_MOUSE))
+   if (!ptr_st->count
+         && ptr_st->device_mask & (1 << RETRO_DEVICE_MOUSE))
    {
-      ol_ptr_st.mouse.prev_x = ol_ptr_st.screen_x;
-      ol_ptr_st.screen_x = input_driver_state(
+      struct ol_mouse_st* mouse = &ptr_st->mouse;
+
+      mouse->prev_x = mouse->x;
+      mouse->x      = input_driver_state(
             NULL, 0, RARCH_DEVICE_POINTER_SCREEN, idx,
             RETRO_DEVICE_ID_POINTER_X);
-      ol_ptr_st.mouse.prev_y = ol_ptr_st.screen_y;
-      ol_ptr_st.screen_y = input_driver_state(
+      mouse->prev_y = mouse->y;
+      mouse->y      = input_driver_state(
             NULL, 0, RARCH_DEVICE_POINTER_SCREEN, idx,
             RETRO_DEVICE_ID_POINTER_Y);
    }
 
 finish:
-   ol_ptr_st.count++;
+   ptr_st->count++;
 }
 
 /**
@@ -2420,7 +2419,8 @@ finish:
  * Updates old_touch_index_lut and assigns -1 to any new inputs.
  */
 static void input_overlay_track_touch_inputs(
-      input_overlay_state_t *state, input_overlay_state_t *old_state)
+      input_overlay_touch_state_t *state,
+      input_overlay_touch_state_t *old_state)
 {
    int *const old_index_lut = old_touch_index_lut;
    int i, j, t, new_idx;
@@ -2436,8 +2436,8 @@ static void input_overlay_track_touch_inputs(
 
       for (j = 0; j < old_state->touch_count; j++)
       {
-         x_dist = state->touch[i].x - old_state->touch[j].x;
-         y_dist = state->touch[i].y - old_state->touch[j].y;
+         x_dist = state->x[i] - old_state->x[j];
+         y_dist = state->y[i] - old_state->y[j];
 
          sq_dist = x_dist * x_dist + y_dist * y_dist;
 
@@ -2475,12 +2475,15 @@ static void input_overlay_track_touch_inputs(
  **/
 void input_overlay_poll(input_overlay_t *overlay_device)
 {
+   driver_t *driver = driver_get_ptr();
+   input_overlay_button_state_t *btn_st;
+   input_overlay_button_state_t *old_btn_st;
+   input_overlay_touch_state_t *touch_st;
+   input_overlay_touch_state_t *old_touch_st;
+   input_overlay_pointer_state_t *ptr_st;
    int i, j, device;
-   input_overlay_state_t *state;
-   input_overlay_state_t *old_state;
-   driver_t *driver                 = driver_get_ptr();
-   bool osk_state_changed           = false;
-   uint16_t key_mod                 = 0;
+   bool osk_state_changed = false;
+   uint16_t key_mod       = 0;
 
    static uint8_t old_ptr_count;
 
@@ -2488,13 +2491,16 @@ void input_overlay_poll(input_overlay_t *overlay_device)
       return;
 
    /* Swap new & old states */
-   old_state = driver->overlay_state;
+   old_btn_st   = driver->overlay_state;
+   old_touch_st = driver->overlay_touch_state;
    driver_swap_overlay_state();
-   state     = driver->overlay_state;
+   btn_st       = driver->overlay_state;
+   touch_st     = driver->overlay_touch_state;
 
-   memset(state, 0, sizeof(input_overlay_state_t));
-   old_ptr_count   = ol_ptr_st.count;
-   ol_ptr_st.count = 0;
+   memset(btn_st, 0, sizeof(input_overlay_button_state_t));
+   ptr_st        = &driver->overlay_pointer_state;
+   old_ptr_count = ptr_st->count;
+   ptr_st->count = 0;
 
    device = overlay_device->active->full_screen ?
          RARCH_DEVICE_POINTER_SCREEN : RETRO_DEVICE_POINTER;
@@ -2505,74 +2511,74 @@ void input_overlay_poll(input_overlay_t *overlay_device)
             && i < OVERLAY_MAX_TOUCH;
          i++)
    {
-      state->touch[i].x = input_driver_state(NULL, 0,
+      touch_st->x[i] = input_driver_state(NULL, 0,
             device, i, RETRO_DEVICE_ID_POINTER_X);
-      state->touch[i].y = input_driver_state(NULL, 0,
+      touch_st->y[i] = input_driver_state(NULL, 0,
             device, i, RETRO_DEVICE_ID_POINTER_Y);
    }
-   state->touch_count = i;
+   touch_st->touch_count = i;
 
    /* Update lookup table of new to old touch indexes */
-   input_overlay_track_touch_inputs(state, old_state);
+   input_overlay_track_touch_inputs(touch_st, old_touch_st);
 
    /* Poll descriptors */
-   for (i = 0; i < state->touch_count; i++)
+   for (i = 0; i < touch_st->touch_count; i++)
    {
       input_overlay_button_state_t polled_data;
 
       if (input_overlay_poll_descs(overlay_device, &polled_data,
-            i, state->touch[i].x, state->touch[i].y))
+            i, touch_st->x[i], touch_st->y[i]))
       {
-         state->buttons |= polled_data.buttons;
+         btn_st->buttons |= polled_data.buttons;
 
-         for (j = 0; j < ARRAY_SIZE(state->keys); j++)
-            state->keys[j] |= polled_data.keys[j];
+         for (j = 0; j < ARRAY_SIZE(btn_st->keys); j++)
+            btn_st->keys[j] |= polled_data.keys[j];
 
          for (j = 0; j < 4; j++)
             if (polled_data.analog[j])
-               state->analog[j] = polled_data.analog[j];
+               btn_st->analog[j] = polled_data.analog[j];
       }
-      else if (ol_ptr_st.device_mask && !overlay_device->blocked)
-         input_overlay_update_pointer_coords(i);
+      else if (ptr_st->device_mask && !overlay_device->blocked)
+         input_overlay_update_pointer_coords(ptr_st, i);
    }
 
    /* Lightgun & Mouse */
-   if (ol_ptr_st.device_mask)
+   if (ptr_st->device_mask)
    {
-      if (ol_ptr_st.device_mask & (1 << RETRO_DEVICE_LIGHTGUN))
-         input_overlay_poll_lightgun(old_ptr_count);
-      else if (ol_ptr_st.device_mask & (1 << RETRO_DEVICE_MOUSE))
-         input_overlay_poll_mouse(old_ptr_count);
+      if (ptr_st->device_mask & (1 << RETRO_DEVICE_LIGHTGUN))
+         input_overlay_poll_lightgun(ptr_st, old_ptr_count);
+      else if (ptr_st->device_mask & (1 << RETRO_DEVICE_MOUSE))
+         input_overlay_poll_mouse(ptr_st, old_ptr_count);
 
-      ol_ptr_st.device_mask = 0;
+      ptr_st->device_mask = 0;
    }
 
    /* Keyboard */
-   if (OVERLAY_GET_KEY(state, RETROK_LSHIFT)
-       || OVERLAY_GET_KEY(state, RETROK_RSHIFT))
+   if (OVERLAY_GET_KEY(btn_st, RETROK_LSHIFT)
+       || OVERLAY_GET_KEY(btn_st, RETROK_RSHIFT))
       key_mod |= RETROKMOD_SHIFT;
 
-   if (OVERLAY_GET_KEY(state, RETROK_LCTRL)
-       || OVERLAY_GET_KEY(state, RETROK_RCTRL))
+   if (OVERLAY_GET_KEY(btn_st, RETROK_LCTRL)
+       || OVERLAY_GET_KEY(btn_st, RETROK_RCTRL))
       key_mod |= RETROKMOD_CTRL;
 
-   if (OVERLAY_GET_KEY(state, RETROK_LALT)
-       || OVERLAY_GET_KEY(state, RETROK_RALT))
+   if (OVERLAY_GET_KEY(btn_st, RETROK_LALT)
+       || OVERLAY_GET_KEY(btn_st, RETROK_RALT))
       key_mod |= RETROKMOD_ALT;
 
-   if (OVERLAY_GET_KEY(state, RETROK_LMETA)
-       || OVERLAY_GET_KEY(state, RETROK_RMETA))
+   if (OVERLAY_GET_KEY(btn_st, RETROK_LMETA)
+       || OVERLAY_GET_KEY(btn_st, RETROK_RMETA))
       key_mod |= RETROKMOD_META;
 
    if (menu_driver_alive())
       key_mod |= RETROKMOD_NUMLOCK;
 
-   for (i = (int)ARRAY_SIZE(state->keys); i-- > 0;)
+   for (i = (int)ARRAY_SIZE(btn_st->keys); i-- > 0;)
    {
-      if (state->keys[i] != old_state->keys[i])
+      if (btn_st->keys[i] != old_btn_st->keys[i])
       {
-         uint32_t orig_bits = old_state->keys[i];
-         uint32_t new_bits  = state->keys[i];
+         uint32_t orig_bits = old_btn_st->keys[i];
+         uint32_t new_bits  = btn_st->keys[i];
          osk_state_changed  = true;
 
          for (j = 0; j < 32; j++)
@@ -2591,80 +2597,81 @@ void input_overlay_poll(input_overlay_t *overlay_device)
       unsigned bind_plus  = RARCH_ANALOG_LEFT_X_PLUS + 2 * j;
       unsigned bind_minus = bind_plus + 1;
 
-      if (state->analog[j])
+      if (btn_st->analog[j])
          continue;
 
-      if (BIT64_GET(state->buttons, bind_plus))
-         state->analog[j] += 0x7fff;
-      if (BIT64_GET(state->buttons, bind_minus))
-         state->analog[j] -= 0x7fff;
+      if (BIT64_GET(btn_st->buttons, bind_plus))
+         btn_st->analog[j] += 0x7fff;
+      if (BIT64_GET(btn_st->buttons, bind_minus))
+         btn_st->analog[j] -= 0x7fff;
    }
 
    if (menu_driver_alive())
-      state->buttons |= menu_analog_dpad_state(
-            state->analog[0], state->analog[1]);
+      btn_st->buttons |= menu_analog_dpad_state(
+            btn_st->analog[0], btn_st->analog[1]);
 
-   if (state->touch_count)
-      input_overlay_post_poll(overlay_device, state);
+   if (touch_st->touch_count)
+      input_overlay_post_poll(overlay_device, btn_st);
    else
       input_overlay_poll_clear(overlay_device);
 
    /* haptic feedback on button presses or direction changes */
    if ( driver->input->overlay_haptic_feedback
-        && (state->buttons != old_state->buttons || osk_state_changed)
-        && state->touch_count >= old_state->touch_count
+        && (btn_st->buttons != old_btn_st->buttons || osk_state_changed)
+        && touch_st->touch_count >= old_touch_st->touch_count
         && !overlay_device->blocked )
    {
       driver->input->overlay_haptic_feedback();
    }
 }
 
-static INLINE int16_t overlay_mouse_state(unsigned id)
+static INLINE int16_t overlay_mouse_state(driver_t *driver, unsigned id)
 {
+   input_overlay_pointer_state_t *ptr_st = &driver->overlay_pointer_state;
    int16_t res;
 
    switch(id)
    {
       case RETRO_DEVICE_ID_MOUSE_X:
-         ol_ptr_st.device_mask |= (1 << RETRO_DEVICE_MOUSE);
-         res = ol_ptr_st.mouse.scale_x
-               * (ol_ptr_st.screen_x - ol_ptr_st.mouse.prev_x);
+         ptr_st->device_mask |= (1 << RETRO_DEVICE_MOUSE);
+         res = ptr_st->mouse.scale_x
+               * (ptr_st->mouse.x - ptr_st->mouse.prev_x);
          return res;
       case RETRO_DEVICE_ID_MOUSE_Y:
-         res = ol_ptr_st.mouse.scale_y
-               * (ol_ptr_st.screen_y - ol_ptr_st.mouse.prev_y);
+         res = ptr_st->mouse.scale_y
+               * (ptr_st->mouse.y - ptr_st->mouse.prev_y);
          return res;
       case RETRO_DEVICE_ID_MOUSE_LEFT:
-         return (ol_ptr_st.mouse.click & 0x1) ||
-                (ol_ptr_st.mouse.hold  & 0x1);
+         return (ptr_st->mouse.click & 0x1) ||
+                (ptr_st->mouse.hold  & 0x1);
       case RETRO_DEVICE_ID_MOUSE_RIGHT:
-         return (ol_ptr_st.mouse.click & 0x2) ||
-                (ol_ptr_st.mouse.hold  & 0x2);
+         return (ptr_st->mouse.click & 0x2) ||
+                (ptr_st->mouse.hold  & 0x2);
       case RETRO_DEVICE_ID_MOUSE_MIDDLE:
-         return (ol_ptr_st.mouse.click & 0x4) ||
-                (ol_ptr_st.mouse.hold  & 0x4);
+         return (ptr_st->mouse.click & 0x4) ||
+                (ptr_st->mouse.hold  & 0x4);
    }
 
    return 0;
 }
 
-static int16_t overlay_lightgun_state(unsigned id)
+static int16_t overlay_lightgun_state(driver_t *driver, unsigned id)
 {
-   driver_t *driver = driver_get_ptr();
+   input_overlay_pointer_state_t *ptr_st = &driver->overlay_pointer_state;
    unsigned rarch_id;
 
    switch(id)
    {
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X:
-         ol_ptr_st.device_mask |= (1 << RETRO_DEVICE_LIGHTGUN);
-         return ol_ptr_st.ptr[0].x;
+         ptr_st->device_mask |= (1 << RETRO_DEVICE_LIGHTGUN);
+         return ptr_st->ptr[0].x;
       case RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y:
-         return ol_ptr_st.ptr[0].y;
+         return ptr_st->ptr[0].y;
       case RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN:
-         ol_ptr_st.device_mask |= (1 << RETRO_DEVICE_LIGHTGUN);
+         ptr_st->device_mask |= (1 << RETRO_DEVICE_LIGHTGUN);
          return (config_get_ptr()->input.lightgun_allow_oob
-                 && (abs(ol_ptr_st.ptr[0].x) >= 0x7fff ||
-                     abs(ol_ptr_st.ptr[0].y) >= 0x7fff));
+                 && (abs(ptr_st->ptr[0].x) >= 0x7fff ||
+                     abs(ptr_st->ptr[0].y) >= 0x7fff));
       case RETRO_DEVICE_ID_LIGHTGUN_AUX_A:
          rarch_id = RARCH_LIGHTGUN_AUX_A;
          break;
@@ -2705,23 +2712,26 @@ static int16_t overlay_lightgun_state(unsigned id)
    }
 
    return (rarch_id < RARCH_BIND_LIST_END
-           && (ol_ptr_st.lightgun.multitouch_id == rarch_id
+           && (ptr_st->lightgun.multitouch_id == rarch_id
                || BIT64_GET(driver->overlay_state->buttons, rarch_id)));
 }
 
-static int16_t overlay_pointer_state(unsigned idx, unsigned id)
+static int16_t overlay_pointer_state(driver_t *driver,
+      unsigned idx, unsigned id)
 {
-   ol_ptr_st.device_mask |= (1 << RETRO_DEVICE_POINTER);
+   input_overlay_pointer_state_t *ptr_st = &driver->overlay_pointer_state;
+
+   ptr_st->device_mask |= (1 << RETRO_DEVICE_POINTER);
    switch (id)
    {
       case RETRO_DEVICE_ID_POINTER_X:
-         return ol_ptr_st.ptr[idx].x;
+         return ptr_st->ptr[idx].x;
       case RETRO_DEVICE_ID_POINTER_Y:
-         return ol_ptr_st.ptr[idx].y;
+         return ptr_st->ptr[idx].y;
       case RETRO_DEVICE_ID_POINTER_PRESSED:
-         return idx < ol_ptr_st.count;
+         return idx < ptr_st->count;
       case RETRO_DEVICE_ID_POINTER_COUNT:
-         return ol_ptr_st.count;
+         return ptr_st->count;
    }
 
    return 0;
@@ -2773,15 +2783,15 @@ int16_t input_overlay_state(unsigned port, unsigned device_class,
             res = 1;
          break;
       case RETRO_DEVICE_MOUSE:
-         res = overlay_mouse_state(*id);
+         res = overlay_mouse_state(driver, *id);
          *id = NO_BTN;
          break;
       case RETRO_DEVICE_LIGHTGUN:
-         res = overlay_lightgun_state(*id);
+         res = overlay_lightgun_state(driver, *id);
          *id = NO_BTN;
          break;
       case RETRO_DEVICE_POINTER:
-         res = overlay_pointer_state(idx, *id);
+         res = overlay_pointer_state(driver, idx, *id);
          *id = NO_BTN;
          break;
    }
