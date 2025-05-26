@@ -90,7 +90,6 @@ struct enum_lut rgui_particle_effect_lut[NUM_RGUI_PARTICLE_EFFECTS] = {
 
 static wallpaper_t rgui_wallpaper = {NULL, {0}};
 static uint8_t rgui_wallpaper_orig_alpha[RGUI_WIDTH * RGUI_HEIGHT];
-static char rgui_loaded_theme[PATH_MAX_LENGTH];
 static bool rgui_wallpaper_valid;
 
 /* theme colors (argb32)*/
@@ -563,13 +562,13 @@ static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
 {
    global_t *global           = global_get_ptr();
    config_file_t *conf        = NULL;
-   char wallpaper_file[PATH_MAX_LENGTH];
+   char wallpaper_file[NAME_MAX_LENGTH];
    
    global->menu.wallpaper[0] = '\0';
    wallpaper_file[0] = '\0';
    rgui_wallpaper_valid = false;
    rgui_set_default_colors();
-   
+
    /* Open config file */
    conf = config_file_new(settings->menu.theme);
    if (!conf)
@@ -584,7 +583,7 @@ static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
    config_get_hex(conf, "rgui_border_dark_color", &rgui_border_dark_32b);
    config_get_hex(conf, "rgui_border_light_color", &rgui_border_light_32b);
    config_get_hex(conf, "rgui_particle_color", &rgui_particle_32b);
-   config_get_array(conf, "rgui_wallpaper", wallpaper_file, PATH_MAX_LENGTH);
+   config_get_array(conf, "rgui_wallpaper", wallpaper_file, NAME_MAX_LENGTH);
 
    rgui_update_colors();
 
@@ -592,16 +591,15 @@ static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
    if (wallpaper_file[0] != '\0')
    {
       fill_pathname_resolve_relative(global->menu.wallpaper,
-                                     settings->menu.theme, wallpaper_file,
-                                     PATH_MAX_LENGTH);
+            settings->menu.theme, wallpaper_file, PATH_MAX_LENGTH);
       rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, global->menu.wallpaper,
-                                     "cb_menu_wallpaper", 0, 1,true);
+            "cb_menu_wallpaper", 0, 1,true);
    }
    else
       fill_rect(frame_buf, 0, frame_buf->height, frame_buf->width, 4,
                 rgui_bg_filler);
 
-   strlcpy(rgui_loaded_theme, settings->menu.theme, PATH_MAX_LENGTH);
+   strlcpy(global->menu.theme, settings->menu.theme, PATH_MAX_LENGTH);
    
    if (conf)
       config_file_free(conf);
@@ -636,10 +634,10 @@ static INLINE void rgui_check_update(settings_t *settings,
       thick_bg_pattern = settings->menu.rgui_thick_bg_checkerboard ? 1 : 0;
       thick_bd_pattern = settings->menu.rgui_thick_bd_checkerboard ? 1 : 0;
       
-      if (strncmp(rgui_loaded_theme, settings->menu.theme, PATH_MAX_LENGTH))
+      if (strncmp(global->menu.theme, settings->menu.theme, PATH_MAX_LENGTH))
       {
          rgui_load_theme(settings, frame_buf);
-         strlcpy(rgui_loaded_theme, settings->menu.theme, PATH_MAX_LENGTH);
+         strlcpy(global->menu.theme, settings->menu.theme, PATH_MAX_LENGTH);
       }
       else
       {

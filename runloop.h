@@ -188,9 +188,10 @@ typedef struct global
    struct
    {
       struct retro_system_info info;
+      char theme[PATH_MAX_LENGTH];
+      char wallpaper[PATH_MAX_LENGTH];
       bool bind_mode_keyboard;
       bool theme_update_flag;
-      char wallpaper[PATH_MAX_LENGTH];
       bool force_dirty;
       bool block_push;
       unsigned msg_box_width;

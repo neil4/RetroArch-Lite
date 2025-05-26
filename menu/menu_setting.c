@@ -2615,7 +2615,7 @@ static void setting_get_savestate_info(char *s, size_t len)
 
    get_savestate_path(path);
 
-   if (path_exists(path))
+   if (path_file_exists(path))
    {
       time_t mtime = path_modified_time(path);
       char buf[32];

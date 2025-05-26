@@ -126,7 +126,7 @@ int socket_connect(int fd, struct sockaddr* addr, int addrlen,
 
    FD_ZERO(&fds);
    FD_SET(fd, &fds);
-   if (select(fd + 1, NULL, &fds, NULL, &sel_timeout) > 0)
+   if (socket_select(fd + 1, NULL, &fds, NULL, &sel_timeout) > 0)
    {
       int ret;
       socklen_t ret_len = sizeof(ret);
