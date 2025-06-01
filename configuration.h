@@ -283,7 +283,6 @@ typedef struct settings
       char overlay[PATH_MAX_LENGTH];
       unsigned overlay_scope;
       float overlay_opacity;
-      unsigned overlay_opacity_scope;
       float overlay_scale;
       bool overlay_adjust_aspect;
       uint32_t overlay_aspect_ratio_index;

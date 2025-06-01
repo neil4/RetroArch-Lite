@@ -153,6 +153,8 @@ static void config_populate_scoped_setting_list(void)
       settings->input.overlay, settings->input.overlay_scope);
    SCOPED_LIST_ADD_FLOAT("input_overlay_scale",
       settings->input.overlay_scale, settings->input.overlay_scope);
+   SCOPED_LIST_ADD_FLOAT("input_overlay_opacity",
+      settings->input.overlay_opacity, settings->input.overlay_scope);
    SCOPED_LIST_ADD_UINT("input_dpad_method",
       settings->input.overlay_dpad_method,
       settings->input.overlay_dpad_abxy_analog_config_scope);
@@ -185,8 +187,6 @@ static void config_populate_scoped_setting_list(void)
    SCOPED_LIST_ADD_FLOAT("input_overlay_bisect_aspect_ratio",
       settings->input.overlay_bisect_aspect_ratio,
       settings->input.overlay_aspect_scope);
-   SCOPED_LIST_ADD_FLOAT("input_overlay_opacity",
-      settings->input.overlay_opacity, settings->input.overlay_opacity_scope);
    SCOPED_LIST_ADD_PATH("input_osk_overlay",
       settings->input.osk_overlay, settings->input.osk_scope);
    SCOPED_LIST_ADD_FLOAT("input_osk_opacity",
@@ -2720,6 +2720,8 @@ bool main_config_file_save(const char *path)
             settings->input.overlay);
       config_set_float(conf, "input_overlay_scale",
             settings->input.overlay_scale);
+      config_set_float(conf, "input_overlay_opacity",
+            settings->input.overlay_opacity);
    }
 
    config_set_path(conf, "osk_overlay_directory",
@@ -2727,10 +2729,6 @@ bool main_config_file_save(const char *path)
    if (settings->input.osk_scope == GLOBAL)
       config_set_path(conf, "input_osk_overlay",
             settings->input.osk_overlay);
-
-   if (settings->input.overlay_opacity_scope == GLOBAL)
-      config_set_float(conf, "input_overlay_opacity",
-            settings->input.overlay_opacity);
    if (settings->input.osk_opacity_scope == GLOBAL)
       config_set_float(conf, "input_osk_opacity",
             settings->input.osk_opacity);

@@ -185,7 +185,7 @@ const char *menu_hash_to_str(uint32_t hash)
       case MENU_LABEL_VIDEO_SETTINGS:
          return "Video Settings";
       case MENU_LABEL_VALUE_OVERLAY_KEYBOARD_SETTINGS:
-         return "Overlay Keyboard Settings";
+         return "Onscreen Keyboard Settings";
       case MENU_LABEL_VALUE_OVERLAY_MOUSE_SETTINGS:
          return "Overlay Mouse Settings";
       case MENU_LABEL_VALUE_OVERLAY_LIGHTGUN_SETTINGS:
@@ -263,7 +263,7 @@ const char *menu_hash_to_str(uint32_t hash)
       case MENU_LABEL_OVERLAY_SCALE:
          return "input_overlay_scale";
       case MENU_LABEL_VALUE_OVERLAY_SCALE:
-         return "  Scaling Factor";
+         return "  Scale Factor";
       case MENU_LABEL_VALUE_OVERLAY_PRESET:
          return "Overlay Preset";
       case MENU_LABEL_OVERLAY_PRESET:
@@ -279,7 +279,7 @@ const char *menu_hash_to_str(uint32_t hash)
       case MENU_LABEL_OVERLAY_OPACITY:
          return "input_overlay_opacity";
       case MENU_LABEL_VALUE_OVERLAY_OPACITY:
-         return "Overlay Opacity";
+         return "  Opacity";
       case MENU_LABEL_OSK_OPACITY:
          return "input_osk_opacity";
       case MENU_LABEL_VALUE_OSK_OPACITY:
