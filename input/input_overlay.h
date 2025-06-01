@@ -274,7 +274,7 @@ struct input_overlay
 typedef struct input_overlay input_overlay_t;
 
 /* Input state from overlay elements */
-typedef struct input_overlay_button_state
+typedef struct input_overlay_state
 {
    /* This is a bitmask of (1 << key_bind_id). */
    uint64_t buttons;
@@ -282,16 +282,24 @@ typedef struct input_overlay_button_state
    int16_t analog[4]; 
    
    uint32_t keys[RETROK_LAST / 32 + 1];
-} input_overlay_button_state_t;
 
-/* Raw touch pointers used for overlay input */
-typedef struct input_overlay_touch_state
-{
-   int16_t x[OVERLAY_MAX_TOUCH];
-   int16_t y[OVERLAY_MAX_TOUCH];
-
+   /* Raw touch pointers used for overlay input */
+   struct
+   {
+      int16_t x;
+      int16_t y;
+   } touch[OVERLAY_MAX_TOUCH];
    int touch_count;
-} input_overlay_touch_state_t;
+} input_overlay_state_t;
+
+/* Truncated overlay state for hitbox polling only */
+typedef struct input_overlay_button_state
+{
+   uint64_t buttons;
+   int16_t analog[4];
+
+   uint32_t keys[RETROK_LAST / 32 + 1];
+} input_overlay_button_state_t;
 
 /* Non-hitbox input state for pointer, mouse, and lightgun */
 typedef struct input_overlay_pointer_state

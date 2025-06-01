@@ -337,10 +337,8 @@ typedef struct driver
 #ifdef HAVE_OVERLAY
    input_overlay_t *overlay;
    input_overlay_t *overlay_cache;
-   input_overlay_button_state_t *overlay_state;
-   input_overlay_touch_state_t *overlay_touch_state;
-   input_overlay_button_state_t overlay_states[2];
-   input_overlay_touch_state_t overlay_touch_states[2];
+   input_overlay_state_t *overlay_state, *old_overlay_state;
+   input_overlay_state_t overlay_states[2];
    input_overlay_pointer_state_t overlay_pointer_state;
 #endif
 

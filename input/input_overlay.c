@@ -2250,7 +2250,7 @@ static void input_overlay_update_desc_geom(input_overlay_t *ol,
  * @return true if range_mod and alpha_mod should be applied to @desc
  */
 static INLINE bool input_overlay_desc_active(struct overlay_desc *desc,
-      input_overlay_button_state_t *state)
+      input_overlay_state_t *state)
 {
    size_t base = 0;
 
@@ -2281,7 +2281,7 @@ static INLINE bool input_overlay_desc_active(struct overlay_desc *desc,
  * update alpha mods for pressed/unpressed controls.
  **/
 static INLINE void input_overlay_post_poll(input_overlay_t *ol,
-      input_overlay_button_state_t *state)
+      input_overlay_state_t *state)
 {
    settings_t *settings = config_get_ptr();
    size_t i;
@@ -2419,8 +2419,8 @@ finish:
  * Updates old_touch_index_lut and assigns -1 to any new inputs.
  */
 static void input_overlay_track_touch_inputs(
-      input_overlay_touch_state_t *state,
-      input_overlay_touch_state_t *old_state)
+      input_overlay_state_t *state,
+      input_overlay_state_t *old_state)
 {
    int *const old_index_lut = old_touch_index_lut;
    int i, j, t, new_idx;
@@ -2436,8 +2436,8 @@ static void input_overlay_track_touch_inputs(
 
       for (j = 0; j < old_state->touch_count; j++)
       {
-         x_dist = state->x[i] - old_state->x[j];
-         y_dist = state->y[i] - old_state->y[j];
+         x_dist = state->touch[i].x - old_state->touch[j].x;
+         y_dist = state->touch[i].y - old_state->touch[j].y;
 
          sq_dist = x_dist * x_dist + y_dist * y_dist;
 
@@ -2476,10 +2476,8 @@ static void input_overlay_track_touch_inputs(
 void input_overlay_poll(input_overlay_t *overlay_device)
 {
    driver_t *driver = driver_get_ptr();
-   input_overlay_button_state_t *btn_st;
-   input_overlay_button_state_t *old_btn_st;
-   input_overlay_touch_state_t *touch_st;
-   input_overlay_touch_state_t *old_touch_st;
+   input_overlay_state_t *ol_st;
+   input_overlay_state_t *old_ol_st;
    input_overlay_pointer_state_t *ptr_st;
    int i, j, device;
    bool osk_state_changed = false;
@@ -2491,13 +2489,11 @@ void input_overlay_poll(input_overlay_t *overlay_device)
       return;
 
    /* Swap new & old states */
-   old_btn_st   = driver->overlay_state;
-   old_touch_st = driver->overlay_touch_state;
    driver_swap_overlay_state();
-   btn_st       = driver->overlay_state;
-   touch_st     = driver->overlay_touch_state;
+   ol_st     = driver->overlay_state;
+   old_ol_st = driver->old_overlay_state;
 
-   memset(btn_st, 0, sizeof(input_overlay_button_state_t));
+   memset(ol_st, 0, sizeof(input_overlay_button_state_t));
    ptr_st        = &driver->overlay_pointer_state;
    old_ptr_count = ptr_st->count;
    ptr_st->count = 0;
@@ -2511,32 +2507,32 @@ void input_overlay_poll(input_overlay_t *overlay_device)
             && i < OVERLAY_MAX_TOUCH;
          i++)
    {
-      touch_st->x[i] = input_driver_state(NULL, 0,
+      ol_st->touch[i].x = input_driver_state(NULL, 0,
             device, i, RETRO_DEVICE_ID_POINTER_X);
-      touch_st->y[i] = input_driver_state(NULL, 0,
+      ol_st->touch[i].y = input_driver_state(NULL, 0,
             device, i, RETRO_DEVICE_ID_POINTER_Y);
    }
-   touch_st->touch_count = i;
+   ol_st->touch_count = i;
 
    /* Update lookup table of new to old touch indexes */
-   input_overlay_track_touch_inputs(touch_st, old_touch_st);
+   input_overlay_track_touch_inputs(ol_st, old_ol_st);
 
    /* Poll descriptors */
-   for (i = 0; i < touch_st->touch_count; i++)
+   for (i = 0; i < ol_st->touch_count; i++)
    {
       input_overlay_button_state_t polled_data;
 
       if (input_overlay_poll_descs(overlay_device, &polled_data,
-            i, touch_st->x[i], touch_st->y[i]))
+            i, ol_st->touch[i].x, ol_st->touch[i].y))
       {
-         btn_st->buttons |= polled_data.buttons;
+         ol_st->buttons |= polled_data.buttons;
 
-         for (j = 0; j < ARRAY_SIZE(btn_st->keys); j++)
-            btn_st->keys[j] |= polled_data.keys[j];
+         for (j = 0; j < ARRAY_SIZE(ol_st->keys); j++)
+            ol_st->keys[j] |= polled_data.keys[j];
 
          for (j = 0; j < 4; j++)
             if (polled_data.analog[j])
-               btn_st->analog[j] = polled_data.analog[j];
+               ol_st->analog[j] = polled_data.analog[j];
       }
       else if (ptr_st->device_mask && !overlay_device->blocked)
          input_overlay_update_pointer_coords(ptr_st, i);
@@ -2554,31 +2550,31 @@ void input_overlay_poll(input_overlay_t *overlay_device)
    }
 
    /* Keyboard */
-   if (OVERLAY_GET_KEY(btn_st, RETROK_LSHIFT)
-       || OVERLAY_GET_KEY(btn_st, RETROK_RSHIFT))
+   if (OVERLAY_GET_KEY(ol_st, RETROK_LSHIFT)
+       || OVERLAY_GET_KEY(ol_st, RETROK_RSHIFT))
       key_mod |= RETROKMOD_SHIFT;
 
-   if (OVERLAY_GET_KEY(btn_st, RETROK_LCTRL)
-       || OVERLAY_GET_KEY(btn_st, RETROK_RCTRL))
+   if (OVERLAY_GET_KEY(ol_st, RETROK_LCTRL)
+       || OVERLAY_GET_KEY(ol_st, RETROK_RCTRL))
       key_mod |= RETROKMOD_CTRL;
 
-   if (OVERLAY_GET_KEY(btn_st, RETROK_LALT)
-       || OVERLAY_GET_KEY(btn_st, RETROK_RALT))
+   if (OVERLAY_GET_KEY(ol_st, RETROK_LALT)
+       || OVERLAY_GET_KEY(ol_st, RETROK_RALT))
       key_mod |= RETROKMOD_ALT;
 
-   if (OVERLAY_GET_KEY(btn_st, RETROK_LMETA)
-       || OVERLAY_GET_KEY(btn_st, RETROK_RMETA))
+   if (OVERLAY_GET_KEY(ol_st, RETROK_LMETA)
+       || OVERLAY_GET_KEY(ol_st, RETROK_RMETA))
       key_mod |= RETROKMOD_META;
 
    if (menu_driver_alive())
       key_mod |= RETROKMOD_NUMLOCK;
 
-   for (i = (int)ARRAY_SIZE(btn_st->keys); i-- > 0;)
+   for (i = (int)ARRAY_SIZE(ol_st->keys); i-- > 0;)
    {
-      if (btn_st->keys[i] != old_btn_st->keys[i])
+      if (ol_st->keys[i] != old_ol_st->keys[i])
       {
-         uint32_t orig_bits = old_btn_st->keys[i];
-         uint32_t new_bits  = btn_st->keys[i];
+         uint32_t orig_bits = old_ol_st->keys[i];
+         uint32_t new_bits  = ol_st->keys[i];
          osk_state_changed  = true;
 
          for (j = 0; j < 32; j++)
@@ -2597,28 +2593,28 @@ void input_overlay_poll(input_overlay_t *overlay_device)
       unsigned bind_plus  = RARCH_ANALOG_LEFT_X_PLUS + 2 * j;
       unsigned bind_minus = bind_plus + 1;
 
-      if (btn_st->analog[j])
+      if (ol_st->analog[j])
          continue;
 
-      if (BIT64_GET(btn_st->buttons, bind_plus))
-         btn_st->analog[j] += 0x7fff;
-      if (BIT64_GET(btn_st->buttons, bind_minus))
-         btn_st->analog[j] -= 0x7fff;
+      if (BIT64_GET(ol_st->buttons, bind_plus))
+         ol_st->analog[j] += 0x7fff;
+      if (BIT64_GET(ol_st->buttons, bind_minus))
+         ol_st->analog[j] -= 0x7fff;
    }
 
    if (menu_driver_alive())
-      btn_st->buttons |= menu_analog_dpad_state(
-            btn_st->analog[0], btn_st->analog[1]);
+      ol_st->buttons |= menu_analog_dpad_state(
+            ol_st->analog[0], ol_st->analog[1]);
 
-   if (touch_st->touch_count)
-      input_overlay_post_poll(overlay_device, btn_st);
+   if (ol_st->touch_count)
+      input_overlay_post_poll(overlay_device, ol_st);
    else
       input_overlay_poll_clear(overlay_device);
 
    /* haptic feedback on button presses or direction changes */
    if ( driver->input->overlay_haptic_feedback
-        && (btn_st->buttons != old_btn_st->buttons || osk_state_changed)
-        && touch_st->touch_count >= old_touch_st->touch_count
+        && (ol_st->buttons != old_ol_st->buttons || osk_state_changed)
+        && ol_st->touch_count >= old_ol_st->touch_count
         && !overlay_device->blocked )
    {
       driver->input->overlay_haptic_feedback();
