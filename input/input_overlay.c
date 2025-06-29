@@ -1997,7 +1997,7 @@ static INLINE bool input_overlay_poll_descs(
             if (desc->key_mask & META_KEY_MASK)
             {
                /* Don't trigger meta keys with sliding input */
-               if (old_touch_idx != -1 && !use_range_mod)
+               if (!use_range_mod && old_touch_idx != -1)
                   continue;
                if (BIT64_GET(desc->key_mask, RARCH_OVERLAY_NEXT))
                   ol->next_index = desc->next_index;
