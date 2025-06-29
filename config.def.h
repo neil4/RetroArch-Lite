@@ -419,6 +419,10 @@ static unsigned aspect_ratio_idx = ASPECT_RATIO_CORE;
 static unsigned aspect_ratio_idx = ASPECT_RATIO_CORE;
 #endif
 
+/* Set false to request same-binary savestates
+ * instead of same-instance savesates */
+static const bool preempt_fast_savestates = true;
+
 /* Save configuration file on exit. */
 static bool config_save_on_exit = true;
 

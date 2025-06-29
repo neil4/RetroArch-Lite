@@ -311,6 +311,7 @@ typedef struct global
    bool libretro_dummy;
    
    unsigned max_scope;
+   unsigned savestate_context;
    bool keyboard_focus;
    bool grab_mouse_state;
 

@@ -91,6 +91,7 @@ extern "C" {
 #define MENU_LABEL_AUDIO_LATENCY                                               0x32695386U
 #define MENU_LABEL_VALUE_AUDIO_LATENCY                                         0x89900e38U
 #define MENU_LABEL_PREEMPTIVE_FRAMES                                           0x823f2a1fU
+#define MENU_LABEL_PREEMPTIVE_FRAMES_FAST_SAVESTATES                           0x0b009231U
 #define MENU_LABEL_NETPLAY_IP_ADDRESS                                          0xac9a53ffU
 #define MENU_LABEL_NETPLAY_MODE                                                0xc1cf6506U
 #define MENU_LABEL_NETPLAY_PERIODIC_RESYNC                                     0xae4edc63U

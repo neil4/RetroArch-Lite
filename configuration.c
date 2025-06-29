@@ -126,6 +126,8 @@ static void config_populate_scoped_setting_list(void)
       settings->video.hard_sync_frames, settings->video.hard_sync_scope);
    SCOPED_LIST_ADD_UINT("preempt_frames",
       settings->preempt_frames, settings->preempt_frames_scope);
+   SCOPED_LIST_ADD_BOOL("preempt_fast_savestates",
+      settings->preempt_fast_savestates, settings->preempt_frames_scope);
    SCOPED_LIST_ADD_UINT("aspect_ratio_index",
       settings->video.aspect_ratio_idx, settings->video.aspect_ratio_idx_scope);
    SCOPED_LIST_ADD_UINT("custom_viewport_width",
@@ -621,6 +623,8 @@ static void config_set_defaults(void)
    settings->video.gpu_record                  = gpu_record;
    settings->video.gpu_screenshot              = gpu_screenshot;
    settings->video.rotation                    = ORIENTATION_NORMAL;
+
+   settings->preempt_fast_savestates           = preempt_fast_savestates;
 
    settings->audio.enable                      = audio_enable;
    settings->audio.mute_enable                 = false;
@@ -1732,6 +1736,8 @@ static bool config_load_file(const char *path, bool set_defaults)
    
    config_get_uint(conf, "preempt_frames",
          &settings->preempt_frames);
+   config_get_bool(conf, "preempt_fast_savestates",
+         &settings->preempt_fast_savestates);
    
    config_get_path(conf, "audio_dsp_plugin",
          settings->audio.dsp_plugin, PATH_MAX_LENGTH);
@@ -2279,6 +2285,7 @@ void config_load(void)
 
    /* Flush out some states that could have been set by core environment variables */
    global->has_set_input_descriptors = false;
+   global->savestate_context = RETRO_SAVESTATE_CONTEXT_UNKNOWN;
 
    if (!global->block_config_read)
    {
@@ -2438,8 +2445,12 @@ bool main_config_file_save(const char *path)
    }
 #endif
    if (settings->preempt_frames_scope == GLOBAL)
+   {
       config_set_int(conf, "preempt_frames",
             settings->preempt_frames);
+      config_set_bool(conf, "preempt_fast_savestates",
+            settings->preempt_fast_savestates);
+   }
    if (settings->video.frame_delay_scope == GLOBAL)
       config_set_int(conf, "video_frame_delay",
             settings->video.frame_delay);

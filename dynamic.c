@@ -1235,18 +1235,22 @@ bool rarch_environment_cb(unsigned cmd, void *data)
 
       case RETRO_ENVIRONMENT_GET_SAVESTATE_CONTEXT:
       {
-         int result = RETRO_SAVESTATE_CONTEXT_NORMAL;
+         global->savestate_context = RETRO_SAVESTATE_CONTEXT_NORMAL;
 
          if (preempt_in_preframe(driver->preempt_data))
-            result = RETRO_SAVESTATE_CONTEXT_RUNAHEAD_SAME_INSTANCE;
+         {
+            global->savestate_context = settings->preempt_fast_savestates
+                  ? RETRO_SAVESTATE_CONTEXT_RUNAHEAD_SAME_INSTANCE
+                  : RETRO_SAVESTATE_CONTEXT_RUNAHEAD_SAME_BINARY;
+         }
 #ifdef HAVE_NETPLAY
          else if (netplay_use_rollback_states(driver->netplay_data))
-            result = RETRO_SAVESTATE_CONTEXT_ROLLBACK_NETPLAY;
+            global->savestate_context = RETRO_SAVESTATE_CONTEXT_ROLLBACK_NETPLAY;
 #endif
          if (data != NULL)
          {
             int* result_p = (int*)data;
-            *result_p = result;
+            *result_p = global->savestate_context;
          }
 
          break;

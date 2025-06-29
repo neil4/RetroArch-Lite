@@ -3720,6 +3720,12 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                      " \n"
                      "Requires savestate support from the core.\n");
             break;
+      case MENU_LABEL_PREEMPTIVE_FRAMES_FAST_SAVESTATES:
+         snprintf(s, len,
+                     " -- Requests fast (same-instance) or safe \n"
+                     "(same-binary) savestates from the core \n"
+                     "for preemptive frames.");
+            break;
       case MENU_LABEL_INPUT_AUTO_KEYBOARD_FOCUS:
          snprintf(s, len,
                      " -- Auto-toggle Keyboard Focus when starting\n"
@@ -6144,6 +6150,23 @@ static bool setting_append_list_latency_options(
          &setting_get_string_representation_preemptive_frames;
       menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_PREEMPT_UPDATE);
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_IS_DEFERRED);
+
+      if (global->savestate_context != RETRO_SAVESTATE_CONTEXT_UNKNOWN
+            || settings->menu.show_advanced_settings)
+      {
+         CONFIG_BOOL(
+            settings->preempt_fast_savestates,
+            "preempt_fast_savestates",
+            "  Savestate Type",
+            preempt_fast_savestates,
+            "Safe",
+            "Fast",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      }
 
       CONFIG_UINT(
             settings->preempt_frames_scope,

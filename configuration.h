@@ -375,6 +375,7 @@ typedef struct settings
 
    unsigned preempt_frames;
    unsigned preempt_frames_scope;
+   bool preempt_fast_savestates;
 
    float slowmotion_ratio;
    float fastforward_ratio;
