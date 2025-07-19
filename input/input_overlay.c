@@ -1913,11 +1913,12 @@ static bool inside_hitbox(const struct overlay_desc *desc,
 
 /**
  * input_overlay_poll_descs:
- * @ol                    : Overlay handle.
- * @out                   : Polled output data.
- * @touch_idx             : Input pointer index.
- * @norm_x                : Normalized X coordinate.
- * @norm_y                : Normalized Y coordinate.
+ * @ol            : Overlay handle.
+ * @out           : Polled output data.
+ * @touch_idx     : Touch pointer index.
+ * @old_touch_idx : Touch pointer index from previous poll, or -1.
+ * @norm_x        : Normalized X coordinate.
+ * @norm_y        : Normalized Y coordinate.
  *
  * Polls overlay descriptors for a single input pointer.
  *
@@ -1927,15 +1928,16 @@ static bool inside_hitbox(const struct overlay_desc *desc,
  * Returns true if pointer is inside any hitbox.
  **/
 static INLINE bool input_overlay_poll_descs(
-      input_overlay_t *ol, input_overlay_button_state_t *out,
-      const int touch_idx, int16_t norm_x, int16_t norm_y)
+      input_overlay_t *ol,
+      input_overlay_button_state_t *out,
+      const int touch_idx, int old_touch_idx,
+      int16_t norm_x, int16_t norm_y)
 {
    size_t i, j;
    float x, y;
    const struct overlay *active = ol->active;
    struct overlay_desc *descs   = active->descs;
    unsigned int highest_prio    = 0;
-   int old_touch_idx            = old_touch_index_lut[touch_idx];
    bool any_desc_hit            = false;
    bool use_range_mod;
 
@@ -1994,16 +1996,10 @@ static INLINE bool input_overlay_poll_descs(
       switch(desc->type)
       {
          case OVERLAY_TYPE_BUTTONS:
-            if (desc->key_mask & META_KEY_MASK)
-            {
-               /* Don't trigger meta keys with sliding input */
-               if (!use_range_mod && old_touch_idx != -1)
-                  continue;
-               if (BIT64_GET(desc->key_mask, RARCH_OVERLAY_NEXT))
-                  ol->next_index = desc->next_index;
-            }
-
             out->buttons |= desc->key_mask;
+
+            if (BIT64_GET(desc->key_mask, RARCH_OVERLAY_NEXT))
+               ol->next_index = desc->next_index;
             break;
          case OVERLAY_TYPE_DPAD_AREA:
          case OVERLAY_TYPE_ABXY_AREA:
@@ -2480,9 +2476,13 @@ void input_overlay_poll(input_overlay_t *overlay_device)
    input_overlay_state_t *old_ol_st;
    input_overlay_pointer_state_t *ptr_st;
    int i, j, device;
-   bool osk_state_changed = false;
-   uint16_t key_mod       = 0;
+   uint16_t ptrdev_touch_mask = 0;
+   uint16_t hitbox_touch_mask = 0;
+   uint16_t key_mod           = 0;
+   bool osk_state_changed     = false;
 
+   static int16_t old_ptrdev_touch_mask;
+   static int16_t old_hitbox_touch_mask;
    static uint8_t old_ptr_count;
 
    if (!overlay_device->active)
@@ -2517,13 +2517,31 @@ void input_overlay_poll(input_overlay_t *overlay_device)
    /* Update lookup table of new to old touch indexes */
    input_overlay_track_touch_inputs(ol_st, old_ol_st);
 
-   /* Poll descriptors */
+   /* Hitbox & pointer input */
    for (i = 0; i < ol_st->touch_count; i++)
    {
       input_overlay_button_state_t polled_data;
+      int old_i           = old_touch_index_lut[i];
+      bool hitbox_pressed = false;
 
-      if (input_overlay_poll_descs(overlay_device, &polled_data,
-            i, ol_st->touch[i].x, ol_st->touch[i].y))
+      /* Keep each touch pointer dedicated to the same input type
+       * (hitbox or pointing device) as in the previous poll */
+      if (old_i != -1)
+      {
+         if (BIT16_GET(old_hitbox_touch_mask, old_i))
+            BIT16_SET(hitbox_touch_mask, i);
+         else if (BIT16_GET(old_ptrdev_touch_mask, old_i))
+            BIT16_SET(ptrdev_touch_mask, i);
+      }
+
+      /* Check hitboxes only if this touch pointer
+       * is not controlling a pointing device */
+      if (!BIT16_GET(ptrdev_touch_mask, i))
+         hitbox_pressed = input_overlay_poll_descs(
+               overlay_device, &polled_data,
+               i, old_i, ol_st->touch[i].x, ol_st->touch[i].y);
+
+      if (hitbox_pressed)
       {
          ol_st->buttons |= polled_data.buttons;
 
@@ -2533,9 +2551,16 @@ void input_overlay_poll(input_overlay_t *overlay_device)
          for (j = 0; j < 4; j++)
             if (polled_data.analog[j])
                ol_st->analog[j] = polled_data.analog[j];
+
+         hitbox_touch_mask |= (1 << i);
       }
-      else if (ptr_st->device_mask && !overlay_device->blocked)
+      else if (ptr_st->device_mask
+         && !BIT16_GET(hitbox_touch_mask, i)
+         && !overlay_device->blocked)
+      {
          input_overlay_update_pointer_coords(ptr_st, i);
+         ptrdev_touch_mask |= (1 << i);
+      }
    }
 
    /* Lightgun & Mouse */
@@ -2619,6 +2644,9 @@ void input_overlay_poll(input_overlay_t *overlay_device)
    {
       driver->input->overlay_haptic_feedback();
    }
+
+   old_hitbox_touch_mask = hitbox_touch_mask;
+   old_ptrdev_touch_mask = ptrdev_touch_mask;
 }
 
 static INLINE int16_t overlay_mouse_state(driver_t *driver, unsigned id)
