@@ -2432,7 +2432,7 @@ static void input_overlay_track_touch_inputs(
    /* Compute (squared) distances and match new indexes to old */
    for (i = 0; i < state->touch_count; i++)
    {
-      min_sq_dist[i] = 1e10f;
+      min_sq_dist[i] = 3e8f;
 
       for (j = 0; j < old_state->touch_count; j++)
       {
@@ -2456,11 +2456,11 @@ static void input_overlay_track_touch_inputs(
       outlier = 0;
 
       for (i = 0; i < state->touch_count; i++)
-         if (min_sq_dist[i] > outlier
-               && old_index_lut[i] != -1)
+         if (min_sq_dist[i] > outlier)
          {
-            outlier = min_sq_dist[i];
-            new_idx = i;
+            outlier        = min_sq_dist[i];
+            new_idx        = i;
+            min_sq_dist[i] = 0;
          }
 
       old_index_lut[new_idx] = -1;
