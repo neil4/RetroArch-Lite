@@ -106,22 +106,26 @@ static int cb_core_updater_download(void *data, size_t len)
 
    if (!write_file(output_path, data, len))
       goto error;
-   
-   snprintf(buf, PATH_MAX_LENGTH, "Download complete: %s.",
-         runloop->http.msg_filename);
-
-   rarch_main_msg_queue_push(buf, 1, 90, true);
 
 #ifdef HAVE_ZLIB
    if (settings->network.buildbot_auto_extract_archive
        && !strcasecmp(path_get_extension(output_path),"zip"))
    {
+      snprintf(buf, PATH_MAX_LENGTH, "Download progress: 100%%\n"
+                                     "Extracting...");
+      rarch_main_msg_queue_push(buf, 1, 1, true);
+      video_driver_cached_frame();
+
       if (!zlib_parse_file(output_path, NULL, zlib_extract_core_callback,
                (void*)settings->libretro_directory))
          RARCH_LOG("Could not process ZIP file.\n");
       remove(output_path);
    }
 #endif
+
+   snprintf(buf, PATH_MAX_LENGTH, "Download complete: %s",
+         runloop->http.msg_filename);
+   rarch_main_msg_queue_push(buf, 1, 90, true);
 
    /* Refresh installed core info */
    core_info_list_free(global->core_info);
