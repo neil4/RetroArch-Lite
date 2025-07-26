@@ -2456,9 +2456,9 @@ static void input_overlay_track_touch_inputs(
          {
             outlier        = min_sq_dist[i];
             new_idx        = i;
-            min_sq_dist[i] = 0;
          }
 
+      min_sq_dist[new_idx]   = 0;
       old_index_lut[new_idx] = -1;
    }
 }
