@@ -606,9 +606,10 @@ void core_info_list_get_missing_firmware(core_info_list_t *core_info_list,
          core_info_firmware_cmp);
 }
 
-char *core_info_lib_path(const char* libretro_name)
+const char *core_info_lib_path(const char* libretro_name)
 {
    global_t* global = global_get_ptr();
+   char buf[NAME_MAX_LENGTH];
    unsigned i;
 
    if (!global->core_info)
@@ -616,8 +617,10 @@ char *core_info_lib_path(const char* libretro_name)
 
    for (i = 0; i < global->core_info->count; i++)
    {
-      char *path = global->core_info->list[i].path;
-      if (strstr(path_basename(path), libretro_name))
+      const char *path = global->core_info->list[i].path;
+      path_libretro_name(buf, path);
+
+      if (!strncmp(libretro_name, buf, NAME_MAX_LENGTH))
          return path;
    }
 

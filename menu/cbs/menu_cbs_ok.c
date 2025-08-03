@@ -1232,8 +1232,8 @@ static int action_ok_core_updater_download(const char *path,
    data_runloop_t *runloop = rarch_main_data_get_ptr();
    menu_list_t *menu_list  = menu_list_get_ptr();
    file_list_t *list       = NULL;
-   char *lib_path;
-   char *crc_str;
+   const char *lib_path;
+   const char *crc_str;
 
    path_libretro_name(libretro_name, path);
    lib_path    = core_info_lib_path(libretro_name);
