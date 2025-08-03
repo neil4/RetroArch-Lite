@@ -81,38 +81,45 @@ public final class DownloadableCoresFragment extends ListFragment
    public static final String INFO_NAME = "Core Info";
    
    protected static OnCoreDownloadedListener coreDownloadedListener = null;
-   public static DownloadableCoresAdapter sAdapter = null;
+   public static ArrayList<DownloadableCore> coreList = null;
+   public static DownloadableCoresAdapter dlcAdapter = null;
    private static int numInfoFilesMissing = 0;
    private static boolean infoDownloadAttempted = false;
-   
+
    @Override
    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
    {
       super.onCreateView(inflater, container, savedInstanceState);
-      final ListView coreList = (ListView) inflater.inflate(R.layout.coremanager_listview, container, false);
-      registerForContextMenu(coreList);
+      final ListView listView = (ListView) inflater.inflate(R.layout.coremanager_listview, container, false);
+      registerForContextMenu(listView);
 
+      dlcAdapter = new DownloadableCoresAdapter(getActivity(), android.R.layout.simple_list_item_2);
+      dlcAdapter.setNotifyOnChange(true);
+      listView.setAdapter(dlcAdapter);
+
+      if (coreList == null)
+         getCoreList(getActivity());
+      else
+      {
+         dlcAdapter.clear();
+         dlcAdapter.addAll(coreList);
+      }
+
+      coreDownloadedListener = (OnCoreDownloadedListener) getActivity();
+
+      return listView;
+   }
+
+   public static void getCoreList(Context ctx)
+   {
       if (BuildConfig.APPLICATION_ID.contains("64"))
       {
          BUILDBOT_CORE_URL_ARM = BUILDBOT_CORE_URL_ARM.replace("armeabi-v7a","arm64-v8a");
          BUILDBOT_CORE_URL_INTEL = BUILDBOT_CORE_URL_INTEL.replace("x86", "x86_64");
       }
 
-      boolean newAdapter = false;
-      if (sAdapter == null)
-      {
-         sAdapter = new DownloadableCoresAdapter(getActivity(), android.R.layout.simple_list_item_2);
-         sAdapter.setNotifyOnChange(true);
-         newAdapter = true;
-      }
-      coreList.setAdapter(sAdapter);
-      
-      if (newAdapter)
-         new PopulateCoresListOperation(sAdapter).execute();
-      
-      coreDownloadedListener = (OnCoreDownloadedListener) getActivity();
-      
-      return coreList;
+      coreList = new ArrayList<>();
+      new PopulateCoresListOperation(ctx).execute();
    }
    
    @Override
@@ -121,6 +128,17 @@ public final class DownloadableCoresFragment extends ListFragment
       super.onListItemClick(lv, v, position, id);
       final DownloadableCore core = (DownloadableCore) lv.getItemAtPosition(position);
       final boolean isInfo = core.getCoreName().isEmpty();
+
+      // Exit with toast if remote crc matches local file
+      String localPath = getContext().getApplicationInfo().dataDir
+            + "/cores/" + core.getShortURLName().replace(".zip", "");
+      if (!isInfo && new File(localPath).exists()
+            && core.getFileCrc32(localPath) == core.getCrc32())
+      {
+         DarkToast.makeText(getActivity(),
+               "Latest version already installed: " + core.getCoreName());
+         return;
+      }
 
       // Prompt the user for confirmation on downloading the core.
       AlertDialog.Builder notification = new AlertDialog.Builder(getActivity());
@@ -139,7 +157,7 @@ public final class DownloadableCoresFragment extends ListFragment
       notification.show();
    }
 
-   protected void DownloadInfoFiles(Context ctx)
+   static protected void DownloadInfoFiles(Context ctx)
    {
       try
       {
@@ -171,7 +189,7 @@ public final class DownloadableCoresFragment extends ListFragment
          case R.id.view_core_info_ctx_item:
          {
             final String fakePath = getActivity().getApplicationInfo().dataDir + "/cores/"
-                  + sAdapter.getItem(info.position).getShortURLName();
+                  + dlcAdapter.getItem(info.position).getShortURLName();
             final ModuleWrapper core = new ModuleWrapper(getActivity(), fakePath,
                   false, false);
 
@@ -197,19 +215,15 @@ public final class DownloadableCoresFragment extends ListFragment
    
    public void reSortCores(boolean sortBySys)
    {
-      if (sAdapter == null || getContext() == null)
+      if (dlcAdapter == null || getContext() == null)
          return;
 
-      final ArrayList<DownloadableCore> cores = new ArrayList<>();
-      for (int i = 0; i < sAdapter.getCount(); i++)
-      {
-         DownloadableCore item = sAdapter.getItem(i);
-         cores.add(new DownloadableCore(item.getCoreName(), item.getSystemName(),
-               item.getCoreURL(), sortBySys));
-      }
-      Collections.sort(cores);
-      sAdapter.clear();
-      sAdapter.addAll(cores);
+      for (DownloadableCore core : coreList)
+         core.setSortBySys(sortBySys);
+
+      Collections.sort(coreList);
+      dlcAdapter.clear();
+      dlcAdapter.addAll(coreList);
       
       SharedPreferences.Editor editor = UserPreferences.getPreferences(getContext()).edit();
       editor.putBoolean("sort_dl_cores_by_system", sortBySys);
@@ -218,70 +232,86 @@ public final class DownloadableCoresFragment extends ListFragment
 
    public void refreshCores()
    {
-      if (sAdapter == null || getContext() == null)
+      if (dlcAdapter == null || getContext() == null)
          return;
 
       SharedPreferences prefs = UserPreferences.getPreferences(getContext());
       boolean sortBySys = prefs.getBoolean("sort_dl_cores_by_system", true);
 
-      final ArrayList<DownloadableCore> cores = new ArrayList<>();
-      cores.add(new DownloadableCore("", "", BUILDBOT_INFO_URL, false));
+      final ArrayList<DownloadableCore> cores = coreList;
+      coreList = new ArrayList<>();
+      coreList.add(new DownloadableCore("", "", BUILDBOT_INFO_URL, false));
 
-      for (int i = 1; i < sAdapter.getCount(); i++)
+      for (DownloadableCore core : cores)
       {
-         DownloadableCore item = sAdapter.getItem(i);
-         String fileName = item.getShortURLName();
+         String fileName = core.getShortURLName();
          String infoPath = getContext().getApplicationInfo().dataDir + "/info/"
                + infoBasename((fileName));
 
          Pair<String,String> pair = getTitlePair(infoPath); // (name,mfr+system)
-         cores.add(new DownloadableCore(pair.first, pair.second, item.getCoreURL(), sortBySys));
+         coreList.add(new DownloadableCore(
+               pair.first, pair.second, core.getCoreURL(), core.getCrc32(), sortBySys));
       }
-      Collections.sort(cores);
-      sAdapter.clear();
-      sAdapter.addAll(cores);
+
+      cores.clear();
+      Collections.sort(coreList);
+      dlcAdapter.clear();
+      dlcAdapter.addAll(coreList);
    }
 
    /**
     * Async event responsible for populating the Downloadable Cores list.
     */
-   private final class PopulateCoresListOperation extends AsyncTask<Void, Void, ArrayList<DownloadableCore>>
+   private static final class PopulateCoresListOperation extends AsyncTask<Void, Void, ArrayList<DownloadableCore>>
    {
-      // Acts as an object reference to an adapter in a list view.
-      private final DownloadableCoresAdapter adapter;
+      private final Context context;
 
       /**
        * Constructor
        *
-       * @param adapter The adapter to asynchronously update.
+       * @param context The current {@link Context}.
        */
-      public PopulateCoresListOperation(DownloadableCoresAdapter adapter)
+      public PopulateCoresListOperation(Context context)
       {
-         this.adapter = adapter;
+         this.context = context;
+      }
+
+      private HttpURLConnection getConnection(String buildbotURL)
+      {
+         HttpURLConnection conn = null;
+         final String[] indexes = {".index-extended", ".index"};
+
+         try
+         {
+            for (String index : indexes)
+            {
+               conn = (HttpURLConnection) new URL(buildbotURL + index).openConnection();
+               conn.connect();
+               if (conn.getResponseCode() == HttpURLConnection.HTTP_OK)
+                  return conn;
+               Log.i("IndexDownload", "HTTP response code not OK. Response code: "
+                     + conn.getResponseCode());
+            }
+         }
+         catch (IOException e) {
+            Log.e("getConnection", e.toString());
+         }
+
+         return conn;
       }
 
       @Override
       protected ArrayList<DownloadableCore> doInBackground(Void... params)
       {
          final ArrayList<DownloadableCore> downloadableCores = new ArrayList<>();
-         SharedPreferences prefs = UserPreferences.getPreferences(getContext());
+         SharedPreferences prefs = UserPreferences.getPreferences(context);
          boolean sortBySys = prefs.getBoolean("sort_dl_cores_by_system", true);
 
          try
          {
             String buildbotURL = (Build.CPU_ABI.startsWith("arm") ?
-                  BUILDBOT_CORE_URL_ARM : BUILDBOT_CORE_URL_INTEL);
-
-            HttpURLConnection conn = (HttpURLConnection) new URL(buildbotURL + ".index")
-                  .openConnection();
-            conn.connect();
-
-            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK)
-            {
-               Log.i("IndexDownload", "HTTP response code not OK. Response code: "
-                     + conn.getResponseCode());
-               return downloadableCores;
-            }
+               BUILDBOT_CORE_URL_ARM : BUILDBOT_CORE_URL_INTEL);
+            HttpURLConnection conn = getConnection(buildbotURL);
 
             // First entry is option to update info files
             downloadableCores.add(new DownloadableCore("", "",
@@ -289,18 +319,31 @@ public final class DownloadableCoresFragment extends ListFragment
 
             BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 
-            for (String fileName; (fileName = br.readLine()) != null;)
+            for (String line; (line = br.readLine()) != null;)
             {
+               if (line.startsWith("."))
+                  continue;
+               String[] tokens = line.split(" ", 3);
+               String fileName = tokens.length < 3 ? line : tokens[2];
+               if (fileName.startsWith("."))
+                  continue;
+
+               String crcStr   = tokens.length < 3 ? "0" : tokens[1];
                String coreURL  = buildbotURL + fileName;
-               String infoPath = getContext().getApplicationInfo().dataDir + "/info/"
-                     + infoBasename((fileName));
+               String infoPath = context.getApplicationInfo().dataDir + "/info/"
+                     + infoBasename(fileName);
 
                Pair<String,String> pair = getTitlePair(infoPath); // (name, mfr+system)
                if (!new File(infoPath).exists())
                   numInfoFilesMissing++;
 
+               long crc;
+               try {
+                  crc = Long.parseLong(crcStr.replaceFirst("^0x", ""), 16);
+               } catch (NumberFormatException e) { crc = 0;}
+
                downloadableCores.add(new DownloadableCore(pair.first, pair.second,
-                     coreURL, sortBySys));
+                     coreURL, crc, sortBySys));
             }
 
             Collections.sort(downloadableCores);
@@ -320,12 +363,18 @@ public final class DownloadableCoresFragment extends ListFragment
          super.onPostExecute(result);
 
          if (result.isEmpty())
-            DarkToast.makeText(getActivity(), R.string.download_core_list_error);
+            DarkToast.makeText(context, R.string.download_core_list_error);
          else
          {
-            adapter.addAll(result);
+            coreList = result;
+            if (dlcAdapter != null)
+            {
+               dlcAdapter.clear();
+               dlcAdapter.addAll(result);
+            }
+
             if (numInfoFilesMissing > result.size()/2 && !infoDownloadAttempted)
-               DownloadInfoFiles(getContext());
+               DownloadInfoFiles(context);
             numInfoFilesMissing = 0;
          }
       }

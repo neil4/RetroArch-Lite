@@ -63,6 +63,8 @@ uint32_t zlib_crc32_calculate(const uint8_t *data, size_t length);
 
 uint32_t zlib_crc32_adjust(uint32_t crc, uint8_t data);
 
+uint32_t zlib_crc32_file(const char *path);
+
 /**
  * zlib_parse_file:
  * @file                        : filename path of archive

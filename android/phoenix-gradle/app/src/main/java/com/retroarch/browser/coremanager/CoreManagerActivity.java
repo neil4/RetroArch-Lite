@@ -103,7 +103,7 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
       super.onDestroy();
 
       if (isFinishing())
-         DownloadableCoresFragment.sAdapter = null;
+         DownloadableCoresFragment.coreList = null;
    }
 
    @Override

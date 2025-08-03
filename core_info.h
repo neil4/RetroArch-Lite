@@ -121,6 +121,8 @@ bool core_info_list_get_core_name(core_info_list_t *core_info_list,
 bool core_info_list_get_description(core_info_list_t *core_info_list,
       const char *path, char *buf, size_t size, bool as_messagebox);
 
+char *core_info_lib_path(const char *libretro_name);
+
 #ifdef __cplusplus
 }
 #endif

@@ -10,6 +10,8 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.fragment.app.ListFragment;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -97,12 +99,15 @@ public final class InstalledCoresFragment extends ListFragment
       adapter = new InstalledCoresAdapter(getActivity(), android.R.layout.simple_list_item_2, getInstalledCoresList());
       setListAdapter(adapter);
 
+      if (DownloadableCoresFragment.coreList == null)
+         DownloadableCoresFragment.getCoreList(getActivity());
+
       // Get the callback. (implemented within InstalledCoresManagerFragment).
       callback = (OnCoreItemClickedListener) getParentFragment();
 
       coreBackupListener = (OnCoreBackupListener) getActivity();
    }
-   
+
    @Override
    public void onViewCreated(View view, Bundle savedInstanceState)
    {
@@ -116,7 +121,7 @@ public final class InstalledCoresFragment extends ListFragment
          BUILDBOT_CORE_URL_INTEL = BUILDBOT_CORE_URL_INTEL.replace("x86", "x86_64");
       }
    }
-   
+
    @Override
    public void onListItemClick(ListView l, View v, int position, long id)
    {
@@ -125,7 +130,7 @@ public final class InstalledCoresFragment extends ListFragment
       // Set the item as checked so it highlights in the two-fragment view.
       getListView().setItemChecked(position, true);
    }
-   
+
    @Override
    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
    {
@@ -181,7 +186,7 @@ public final class InstalledCoresFragment extends ListFragment
 
       SharedPreferences prefs = UserPreferences.getPreferences(getContext());
       boolean sortBySys = prefs.getBoolean("sort_cores_by_system", true);
-      
+
       // Populate the list
       final File[] libs = new File(getActivity().getApplicationInfo().dataDir, "/cores").listFiles();
       for (File lib : libs)
@@ -286,7 +291,7 @@ public final class InstalledCoresFragment extends ListFragment
 
       /**
        * Constructor
-       * 
+       *
        * @param context    The current {@link Context}.
        * @param resourceId The resource ID for a layout file containing a layout to use when instantiating views.
        * @param items      The list of items to represent in this adapter.
@@ -335,7 +340,7 @@ public final class InstalledCoresFragment extends ListFragment
          return convertView;
       }
    }
-   
+
    /**
     * Update core to the latest libretro.com nightly build
     * @param position list position of current core
@@ -343,13 +348,20 @@ public final class InstalledCoresFragment extends ListFragment
     */
    public boolean UpdateCore(int position)
    {
-      final String coreFileName = adapter.getItem(position).getUnderlyingFile().getName();
-      final String coreURL = (Build.CPU_ABI.startsWith("arm") ?
-                              BUILDBOT_CORE_URL_ARM : BUILDBOT_CORE_URL_INTEL)
-                             + coreFileName.concat(".zip");
+      final String localFileName = adapter.getItem(position).getUnderlyingFile().getName();
+      final DownloadableCore core = getDownloadableCore(position);
 
-      final DownloadableCore core = new DownloadableCore(
-            adapter.getItem(position).getCoreTitle(), "", coreURL, false);
+      // Exit with toast if remote crc matches local file
+      if (core.getCrc32() != 0)
+      {
+         String localPath = getContext().getApplicationInfo().dataDir + "/cores/" + localFileName;
+         if (core.getFileCrc32(localPath) == core.getCrc32())
+         {
+            DarkToast.makeText(getActivity(),
+                  "Latest version already installed: " + core.getCoreName());
+            return true;
+         }
+      }
 
       // Prompt the user for confirmation on updating the core.
       AlertDialog.Builder notification = new AlertDialog.Builder(getActivity());
@@ -365,10 +377,41 @@ public final class InstalledCoresFragment extends ListFragment
          }
       });
       notification.show();
-      
+
       return true;
    }
-   
+
+   @NonNull
+   private DownloadableCore getDownloadableCore(int position)
+   {
+      final String shortURL = adapter.getItem(position)
+            .getUnderlyingFile().getName().concat(".zip");
+      final String coreURL = (Build.CPU_ABI.startsWith("arm") ?
+            BUILDBOT_CORE_URL_ARM : BUILDBOT_CORE_URL_INTEL) + shortURL;
+
+      DownloadableCore remoteCore = null;
+
+      // Try to get from downloaded list
+      if (DownloadableCoresFragment.coreList != null)
+      {
+         ArrayList<DownloadableCore> list = DownloadableCoresFragment.coreList;
+         for (DownloadableCore core : list)
+         {
+            if (core.getShortURLName().equalsIgnoreCase(shortURL))
+            {
+               remoteCore = core;
+               break;
+            }
+         }
+      }
+
+      // Fall back to new object with no crc
+      final DownloadableCore core = (remoteCore == null) ?
+              new DownloadableCore(adapter.getItem(position).getCoreTitle(), "", coreURL, false)
+              : remoteCore;
+      return core;
+   }
+
    /**
     * Copy core's .so and .info files to the Backup Core directory
     * @param position list position of current core

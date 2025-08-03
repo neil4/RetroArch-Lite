@@ -605,3 +605,21 @@ void core_info_list_get_missing_firmware(core_info_list_t *core_info_list,
    qsort(info->firmware, info->firmware_count, sizeof(*info->firmware),
          core_info_firmware_cmp);
 }
+
+char *core_info_lib_path(const char* libretro_name)
+{
+   global_t* global = global_get_ptr();
+   unsigned i;
+
+   if (!global->core_info)
+      return NULL;
+
+   for (i = 0; i < global->core_info->count; i++)
+   {
+      char *path = global->core_info->list[i].path;
+      if (strstr(path_basename(path), libretro_name))
+         return path;
+   }
+
+   return NULL;
+}

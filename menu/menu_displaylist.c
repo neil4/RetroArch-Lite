@@ -73,7 +73,8 @@ static void print_buf_lines(file_list_t *list, char *buf, int buf_size,
       if (line_start[ln] == '\n')
          line_start[ln] = '\0';
 
-      menu_list_push(list, line_start, label, type, 0, 0);
+      if (*line_start && *line_start != '.')
+         menu_list_push(list, line_start, label, type, 0, 0);
 
       /* Restore the saved char */
       *(buf + i + 1) = c;
@@ -100,33 +101,14 @@ static void menu_displaylist_push_perfcounter(
                counters[i]->ident, "", id + i, 0, 0);
 }
 
-static bool core_is_installed(const char* libretro_name)
-{
-   global_t* global = global_get_ptr();
-   char buf[NAME_MAX_LENGTH];
-   unsigned i;
-
-   if (!global->core_info)
-      return false;
-
-   for (i = 0; i < global->core_info->count; i += 1)
-   {
-      path_libretro_name(buf, global->core_info->list[i].path);
-
-      if (!strcmp(buf, libretro_name))
-         return true;
-   }
-
-   return false;
-}
-
 static void menu_displaylist_get_downloadable_core_info(file_list_t* list)
 {
    global_t *global  = global_get_ptr();
    unsigned num_missing_info = 0;
    char buf[NAME_MAX_LENGTH];
-   char* path;
-   int i;
+   char *path;
+   char *crc;
+   int i, j;
 
    static uint8_t num_calls;
    static bool need_update;
@@ -139,24 +121,40 @@ static void menu_displaylist_get_downloadable_core_info(file_list_t* list)
 
    for (i = 1; i < list->size; i += 1)  /* info.zip is i == 0 */
    {
+      crc = NULL;
       path = list->list[i].path;
       if (!path)
          return;
 
+      /* index-extended entries: <date> <crc32> <filename>
+       * Find crc32 */
+      for (j = 0; path[j] && path[j] != ' '; j++);
+      if (path[j++] == ' ')
+         crc = path + j;
+
+      /* Put crc32 in userdata if found.
+       * Expect 8 hex chars, or 10 with a radix */
+      if (*crc && (crc[j=8] == ' ' || crc[j=10] == ' '))
+      {
+         crc[j++] = '\0';
+         file_list_set_userdata(list, i, strdup(crc));
+
+         /* Edit path to include just the filename */
+         memmove(path, crc + j, strlen(crc + j) + 1);
+      }
+
+      /* Put core-installed status in entry_idx */
       path_libretro_name(buf, path);
+      list->list[i].entry_idx = !!core_info_lib_path(buf);
 
-      /* mark with [#] if this core is installed */
-      if (core_is_installed(buf))
-         file_list_set_userdata(list, i, strdup("[#]"));
-
-      /* put display_name in 'alt' */
+      /* Put display_name in 'alt' */
       if (!core_info_list_get_display_name(
                global->core_info_dl, buf, buf, NAME_MAX_LENGTH))
           num_missing_info++;
       menu_list_set_alt_at_offset(list, i, buf);
    }
    
-   /* auto download info if too many missing */
+   /* Auto download info if too many missing */
    if (num_missing_info > list->size/2 && num_calls == 0)
    {
       core_info_queue_download();

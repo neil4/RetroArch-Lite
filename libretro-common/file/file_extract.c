@@ -443,6 +443,35 @@ uint32_t zlib_crc32_adjust(uint32_t crc, uint8_t data)
    return ~crc32(~crc, &data, 1);
 }
 
+uint32_t zlib_crc32_file(const char *path)
+{
+   FILE *file = fopen(path, "rb");
+   Bytef *buf = malloc(16384 * sizeof(Bytef));
+
+   if (file)
+   {
+      uLong crc = crc32(0L, Z_NULL, 0 );
+
+      for (;;)
+      {
+         int numread = fread((void*)buf, 1, sizeof(buf), file);
+
+         if (numread > 0)
+            crc = crc32(crc, buf, numread);
+         else
+            break;
+      }
+
+      fclose(file);
+      free(buf);
+
+      return crc;
+   }
+
+   free(buf);
+   return 0;
+}
+
 /**
  * zlib_inflate_data_to_file:
  * @path                        : filename path of archive.

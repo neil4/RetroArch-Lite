@@ -41,6 +41,8 @@ char *string_replace_substring(const char *in, const char *pattern,
 
 char *string_alloc(size_t num_chars);
 
+unsigned string_hex_to_unsigned(const char *str);
+
 #ifdef __cplusplus
 }
 #endif

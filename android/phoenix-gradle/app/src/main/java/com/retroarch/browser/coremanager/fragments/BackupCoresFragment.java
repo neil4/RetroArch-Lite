@@ -73,17 +73,17 @@ public final class BackupCoresFragment extends ListFragment
       backupCoresDir = sharedPrefs.getBoolean("backup_cores_directory_enable", false) ?
             sharedPrefs.getString("backup_cores_directory", defaultBackupCoresDir) : defaultBackupCoresDir;
 
-      ListView coreList = (ListView) inflater.inflate(R.layout.coremanager_listview, container, false);
-      registerForContextMenu(coreList);
+      ListView listView = (ListView) inflater.inflate(R.layout.coremanager_listview, container, false);
+      registerForContextMenu(listView);
 
       adapter = new DownloadableCoresAdapter(getActivity(), android.R.layout.simple_list_item_2);
-      coreList.setAdapter(adapter);
+      listView.setAdapter(adapter);
 
       coreCopiedListener = (OnCoreCopiedListener) getActivity();
 
       PopulateCoresList();
       
-      return coreList;
+      return listView;
    }
 
    public void updateList()

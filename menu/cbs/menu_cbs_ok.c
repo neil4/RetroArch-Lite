@@ -438,10 +438,10 @@ static int action_ok_core_updater_list(const char *path,
    event_command(EVENT_CMD_NETWORK_INIT);
 
    fill_pathname_join(url_path, settings->network.buildbot_url,
-         ".index", sizeof(url_path));
+         ".index-extended", sizeof(url_path));
 
    rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, url_path,
-                                  "cb_core_updater_list", 1, 1, false);
+         "cb_core_updater_list", 1, 1, false);
 #endif
 
    info->list          = menu_list->menu_stack;
@@ -1224,26 +1224,46 @@ static int action_ok_core_updater_download(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
 #ifdef HAVE_NETWORKING
-   char core_path[PATH_MAX_LENGTH];
+   char core_url[PATH_MAX_LENGTH];
+   char libretro_name[NAME_MAX_LENGTH];
    char buf[NAME_MAX_LENGTH];
-   settings_t *settings            = config_get_ptr();
-   global_t *global                = global_get_ptr();
-   data_runloop_t *runloop         = rarch_main_data_get_ptr();
+   settings_t *settings    = config_get_ptr();
+   global_t *global        = global_get_ptr();
+   data_runloop_t *runloop = rarch_main_data_get_ptr();
+   menu_list_t *menu_list  = menu_list_get_ptr();
+   file_list_t *list       = NULL;
+   char *lib_path;
+   char *crc_str;
 
-   core_path[0] = '\0';
-   buf[0]       = '\0';
+   path_libretro_name(libretro_name, path);
+   lib_path    = core_info_lib_path(libretro_name);
+   list        = menu_list->selection_buf;
+   crc_str     = file_list_get_userdata_at_offset(list, idx);
+   core_url[0] = '\0';
 
-   path_libretro_name(buf, path);
-
-   if (!strcmp(buf, global->libretro_name))
+   /* Compare local and remote crc32.
+    * Skip with message if they match */
+   if (crc_str
+         && zlib_crc32_file(lib_path) == string_hex_to_unsigned(crc_str))
    {
-      rarch_main_msg_queue_push("Unload core before updating.",
-                                1, 180, true);
+      const char *name = list->list[idx].alt;
+      if (!name)
+         name = path;
+
+      sprintf(buf, "Latest version already installed: %s", name);
+      rarch_main_msg_queue_push(buf, 1, 180, true);
       return 0;
    }
 
-   fill_pathname_join(core_path, settings->network.buildbot_url,
-         path, sizeof(core_path));
+   if (!strcmp(libretro_name, global->libretro_name))
+   {
+      rarch_main_msg_queue_push("Unload core before updating.",
+            1, 180, true);
+      return 0;
+   }
+
+   fill_pathname_join(core_url, settings->network.buildbot_url,
+         path, sizeof(core_url));
 
    strlcpy(runloop->http.msg_filename, path,
            sizeof(runloop->http.msg_filename));
@@ -1252,7 +1272,7 @@ static int action_ok_core_updater_download(const char *path,
 
    rarch_main_msg_queue_push(buf, 1, 90, true);
 
-   rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, core_path,
+   rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, core_url,
          "cb_core_updater_download", 0, 1, false);
 #endif
    return 0;

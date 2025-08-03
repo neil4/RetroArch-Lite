@@ -187,9 +187,9 @@ public final class MainMenuActivity extends FragmentActivity implements Director
    public boolean onKeyDown (int keyCode,
                              KeyEvent event)
    {
-      ListView coreList = findViewById(R.id.list);
+      ListView listView = findViewById(R.id.list);
 
-      if (coreList.hasFocus()
+      if (listView.hasFocus()
             && event.getAction() == KeyEvent.ACTION_DOWN
             && (keyCode == KeyEvent.KEYCODE_BUTTON_SELECT || keyCode == KeyEvent.KEYCODE_MENU))
       {
@@ -206,8 +206,8 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       boolean sortBySys = prefs.getBoolean("sort_cores_by_system", true);
 
       // Inflate the ListView we're using.
-      ListView coreList = (ListView) findViewById(R.id.list);
-      registerForContextMenu(coreList);
+      ListView listView = (ListView) findViewById(R.id.list);
+      registerForContextMenu(listView);
 
       // Populate local core list
       //
@@ -242,8 +242,8 @@ public final class MainMenuActivity extends FragmentActivity implements Director
 
       // Initialize the IconAdapter with the list of cores.
       adapter = new IconAdapter<ModuleWrapper>(this, R.layout.line_list_item, cores);
-      coreList.setAdapter(adapter);
-      coreList.setOnItemClickListener(onClickListener);
+      listView.setAdapter(adapter);
+      listView.setOnItemClickListener(onClickListener);
    }
   
    public void itemClick(AdapterView<?> parent, View view, int position, long id)

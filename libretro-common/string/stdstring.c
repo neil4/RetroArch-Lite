@@ -102,3 +102,31 @@ char *string_alloc(size_t num_chars)
    s[0] = '\0';
    return s;
 }
+
+unsigned string_hex_to_unsigned(const char *str)
+{
+   const char *hex_str = str;
+   const char *ptr     = NULL;
+
+   /* Remove leading '0x', if required */
+   if (str[0] != '\0' && str[1] != '\0')
+   {
+      if ((str[0] == '0') && ((str[1] == 'x') || (str[1] == 'X')))
+      {
+         hex_str = str + 2;
+         if (string_is_empty(hex_str))
+            return 0;
+      }
+   }
+   else
+      return 0;
+
+   /* Check for valid characters */
+   for (ptr = hex_str; *ptr != '\0'; ptr++)
+   {
+      if (!isxdigit((unsigned char)*ptr))
+         return 0;
+   }
+
+   return (unsigned)strtoul(hex_str, NULL, 16);
+}

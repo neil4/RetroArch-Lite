@@ -1,7 +1,12 @@
 package com.retroarch.browser.coremanager.fragments;
 
+import android.util.Log;
+
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URL;
+import java.util.zip.CRC32;
 
 /**
  * Represents a core that can be downloaded.
@@ -10,10 +15,11 @@ final class DownloadableCore implements Comparable<DownloadableCore>
 {
    private final String coreName;
    private final String systemName;
-   private final String title;
-   private final String subTitle;
+   private String title;
+   private String subTitle;
    private final String coreURL;
    private final String shortURL;
+   private final long crc32;
       
    /**
     * Constructor
@@ -27,10 +33,20 @@ final class DownloadableCore implements Comparable<DownloadableCore>
    {
       this.coreName   = coreName;
       this.systemName = systemName;
-      this.title      = sortBySys ? systemName : coreName;
-      this.subTitle   = sortBySys ? coreName   : systemName;
-      this.coreURL  = coreURL;
-      this.shortURL = coreURL.substring(coreURL.lastIndexOf('/') + 1);
+      this.coreURL    = coreURL;
+      this.shortURL   = coreURL.substring(coreURL.lastIndexOf('/') + 1);
+      this.crc32      = 0;
+      setSortBySys(sortBySys);
+   }
+
+   public DownloadableCore(String coreName, String systemName, String coreURL, long crc32, boolean sortBySys)
+   {
+      this.coreName   = coreName;
+      this.systemName = systemName;
+      this.coreURL    = coreURL;
+      this.shortURL   = coreURL.substring(coreURL.lastIndexOf('/') + 1);
+      this.crc32      = crc32;
+      setSortBySys(sortBySys);
    }
 
    /**
@@ -56,6 +72,25 @@ final class DownloadableCore implements Comparable<DownloadableCore>
    public String getSubTitle()
    {
       return subTitle;
+   }
+
+   public long getCrc32()
+   {
+      return crc32;
+   }
+
+   public void setSortBySys(boolean sortBySys)
+   {
+      if (sortBySys)
+      {
+         title = systemName;
+         subTitle = coreName;
+      }
+      else
+      {
+         title = coreName;
+         subTitle = systemName;
+      }
    }
 
    /**
@@ -95,5 +130,24 @@ final class DownloadableCore implements Comparable<DownloadableCore>
    public int compareTo(DownloadableCore other)
    {
       return title.compareToIgnoreCase(other.title);
+   }
+
+   public static long getFileCrc32(String filePath)
+   {
+      CRC32 crc = new CRC32();
+      byte[] buf = new byte[16384];
+
+      try (FileInputStream fis = new FileInputStream(filePath))
+      {
+         int numRead;
+         while ((numRead = fis.read(buf)) != -1)
+            crc.update(buf, 0, numRead);
+      }
+      catch (IOException e)
+      {
+         Log.e("getFileCrc32", e.toString());
+      }
+
+      return crc.getValue();
    }
 }

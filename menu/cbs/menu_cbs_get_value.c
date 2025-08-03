@@ -810,9 +810,10 @@ static void menu_action_setting_disp_set_label_menu_core_url(
       const char *path,
       char *s2, size_t len2)
 {
-   char* alt = list->list[i].alt;
+   char *alt = list->list[i].alt;
+
    menu_action_setting_generic_disp_set_label(w, s, len,
-         (alt? alt : path), (char*)list->list[i].userdata, s2, len2);
+         (alt? alt : path), list->list[i].entry_idx ? "[#]" : NULL, s2, len2);
 }
 
 static void menu_action_setting_disp_set_label_menu_core_info(
