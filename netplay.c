@@ -364,10 +364,6 @@ static bool hold_back_to_cancel_iterate(const unsigned hold_limit)
    char msg[64];
    static unsigned hold_count;
 
-#ifdef HAVE_OVERLAY
-   rarch_main_data_overlay_finish();
-#endif
-
    netplay->cbs.poll_cb();
    if (input_driver_key_pressed(settings->menu_cancel_btn))
       hold_count--;

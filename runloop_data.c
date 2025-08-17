@@ -130,9 +130,6 @@ void rarch_main_data_iterate(void)
    
    (void)settings;
 
-#ifdef HAVE_OVERLAY
-   rarch_main_data_overlay_image_upload_iterate(runloop);
-#endif
 #ifdef HAVE_RPNG
    rarch_main_data_nbio_image_upload_iterate(runloop);
 #endif

@@ -15,83 +15,74 @@
 
 #include <retro_miscellaneous.h>
 
+#ifdef HAVE_THREADS
+#include <rthreads/rthreads.h>
+#endif
+
+#include "../input/input_overlay.h"
 #include "../configuration.h"
 #include "../runloop.h"
 #include "../runloop_data.h"
 #include "tasks.h"
 
 #ifdef HAVE_OVERLAY
-void rarch_main_data_overlay_image_upload_iterate(void *data)
+static enum overlay_status rarch_main_data_overlay_state(input_overlay_t *ol)
 {
-   data_runloop_t *runloop = (data_runloop_t*)data;
-   driver_t        *driver = driver_get_ptr();
+   enum overlay_status state;
 
-   if (rarch_main_is_idle())
-      return;
-   if (!driver->overlay || !runloop)
-      return;
-
-   switch (driver->overlay->state)
+#ifdef HAVE_THREADS
+   if (ol->loader_thread)
    {
-      case OVERLAY_STATUS_DEFERRED_LOADING:
-         input_overlay_load_overlays_iterate(driver->overlay);
-         break;
-      default:
-         break;
+      slock_lock(ol->loader_mutex);
+      state = ol->state;
+      slock_unlock(ol->loader_mutex);
    }
+   else
+#endif
+      state = ol->state;
+
+   return state;
 }
 
 void rarch_main_data_overlay_iterate(void *data)
 {
    driver_t *driver = NULL;
-   
+   input_overlay_t *ol;
+
    if (rarch_main_is_idle())
       return;
 
    driver = driver_get_ptr();
 
-   if (!driver || !driver->overlay)
-      goto end;
+   if (!driver || !(ol = driver->overlay))
+      return;
 
-   switch (driver->overlay->state)
+   switch (rarch_main_data_overlay_state(ol))
    {
-      case OVERLAY_STATUS_DEFERRED_LOAD:
-         input_overlay_load_overlays(driver->overlay);
-         break;
       case OVERLAY_STATUS_NONE:
       case OVERLAY_STATUS_ALIVE:
          break;
+      case OVERLAY_STATUS_DEFERRED_LOAD:
+         input_overlay_loader_iterate(ol,
+               input_overlay_load_overlays);
+         break;
+      case OVERLAY_STATUS_DEFERRED_LOADING:
+         input_overlay_loader_iterate(ol,
+               input_overlay_load_overlays_iterate);
+         break;
       case OVERLAY_STATUS_DEFERRED_LOADING_RESOLVE:
-         input_overlay_load_overlays_resolve_iterate(driver->overlay);
+         input_overlay_loader_iterate(ol,
+               input_overlay_load_overlays_resolve_iterate);
          break;
       case OVERLAY_STATUS_DEFERRED_DONE:
-         input_overlay_new_done(driver->overlay);
+         input_overlay_new_done(ol);
          break;
       case OVERLAY_STATUS_DEFERRED_ERROR:
-         input_overlay_free(driver->overlay);
+         input_overlay_free(ol);
+         driver->overlay = NULL;
          break;
       default:
          break;
-   }
-
-end: ;
-}
-
-void rarch_main_data_overlay_finish(void)
-{
-   driver_t       *driver  = driver_get_ptr();
-   data_runloop_t *runloop = rarch_main_data_get_ptr();
-
-   if (!driver)
-      return;
-
-   while ( !rarch_main_is_idle()
-           && driver->overlay
-           && driver->overlay->state != OVERLAY_STATUS_ALIVE
-           && driver->overlay->state != OVERLAY_STATUS_NONE )
-   {
-      rarch_main_data_overlay_image_upload_iterate(runloop);
-      rarch_main_data_overlay_iterate(runloop);
    }
 }
 

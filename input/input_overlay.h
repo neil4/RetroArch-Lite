@@ -24,6 +24,10 @@
 #include <retro_miscellaneous.h>
 #include <file/config_file.h>
 
+#ifdef HAVE_THREADS
+#include <rthreads/rthreads.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -266,9 +270,17 @@ struct input_overlay
 
    struct
    {
-      bool enable;
+      const struct overlay *active;
       float scale_factor;
    } deferred;
+
+#ifdef HAVE_THREADS
+   sthread_t *loader_thread;
+   scond_t *loader_cond;
+   slock_t *loader_mutex;
+   void (*load_func)(void *);
+   bool is_loading;
+#endif
 };
 
 typedef struct input_overlay input_overlay_t;
@@ -344,23 +356,25 @@ typedef struct input_overlay_pointer_state
 /**
  * input_overlay_new:
  * @path                  : Path to overlay file.
- * @enable                : Enable the overlay after initializing it?
  *
  * Creates and initializes an overlay handle.
  *
  * Returns: Overlay handle on success, otherwise NULL.
  **/
-input_overlay_t *input_overlay_new(const char *path, bool enable);
+input_overlay_t *input_overlay_new(const char *path);
 
-bool input_overlay_load_overlays(input_overlay_t *ol);
+void input_overlay_load_overlays(void *ol);
 
-bool input_overlay_load_overlays_image_iterate(input_overlay_t *ol);
+void input_overlay_load_overlays_iterate(void *ol);
 
-bool input_overlay_load_overlays_iterate(input_overlay_t *ol);
+void input_overlay_load_overlays_resolve_iterate(void *ol);
 
-bool input_overlay_load_overlays_resolve_iterate(input_overlay_t *ol);
+void input_overlay_load_active(input_overlay_t *ol);
 
 bool input_overlay_new_done(input_overlay_t *ol);
+
+void input_overlay_loader_iterate(input_overlay_t *ol,
+      void (*load_func)(void *));
 
 /**
  * input_overlay_set_ellipse:

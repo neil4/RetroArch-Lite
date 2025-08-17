@@ -1011,6 +1011,17 @@ bool event_command(enum event_command cmd)
          break;
       case EVENT_CMD_OVERLAY_UNLOAD:
 #ifdef HAVE_OVERLAY
+         if (!driver->overlay)
+            break;
+
+         /* Free if loading never finished */
+         if (driver->overlay->state != OVERLAY_STATUS_ALIVE)
+         {
+            input_overlay_free(driver->overlay);
+            driver->overlay = NULL;
+            break;
+         }
+
          /* Disable and move to cache */
          input_overlay_enable(driver->overlay, false);
 
@@ -1090,7 +1101,7 @@ bool event_command(enum event_command cmd)
          }
 
          event_command(EVENT_CMD_OVERLAY_UNLOAD);
-         driver->overlay = input_overlay_new(path, true);
+         driver->overlay = input_overlay_new(path);
          if (!driver->overlay)
             RARCH_ERR("Failed to load overlay.\n");
       }

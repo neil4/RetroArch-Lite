@@ -42,9 +42,15 @@
 #define KEY_DPAD_AREA    0xea88f076U
 #define KEY_ABXY_AREA    0xbcf1c3b1U
 
+#ifdef HAVE_THREADS
+#define OL_IMG_POS_INCREMENT 16
+#define DESC_IMG_POS_INCREMENT 64
+#define DESC_POS_INCREMENT 512
+#else
 #define OL_IMG_POS_INCREMENT 4
 #define DESC_IMG_POS_INCREMENT 16
 #define DESC_POS_INCREMENT 128
+#endif
 
 static bool overlay_lightgun_active;
 static bool overlay_adjust_needed;
@@ -967,7 +973,7 @@ static bool input_overlay_resolve_targets(struct overlay *ol,
    return true;
 }
 
-static void input_overlay_load_active(input_overlay_t *ol)
+void input_overlay_load_active(input_overlay_t *ol)
 {
    if (!ol)
       return;
@@ -980,15 +986,17 @@ static void input_overlay_load_active(input_overlay_t *ol)
    ol->iface->full_screen(ol->iface_data, ol->active->full_screen);
 }
 
-bool input_overlay_load_overlays_resolve_iterate(input_overlay_t *ol)
+void input_overlay_load_overlays_resolve_iterate(void *data)
 {
+   input_overlay_t *ol = (input_overlay_t *)data;
+
    if (!ol)
-      return false;
+      return;
 
    if (ol->resolve_pos >= ol->size)
    {
       ol->state = OVERLAY_STATUS_DEFERRED_DONE;
-      return true;
+      return;
    }
 
    if (!input_overlay_resolve_targets(ol->overlays, ol->resolve_pos, ol->size))
@@ -998,36 +1006,30 @@ bool input_overlay_load_overlays_resolve_iterate(input_overlay_t *ol)
    }
 
    if (ol->resolve_pos == ol->index)
-   {
-      ol->active = &ol->overlays[ol->index];
-
-      input_overlay_load_active(ol);
-      input_overlay_enable(ol, ol->deferred.enable);
-   }
+      ol->deferred.active = &ol->overlays[ol->index];
 
    ol->resolve_pos += 1;
 
-   return true;
+   return;
 error:
    ol->state = OVERLAY_STATUS_DEFERRED_ERROR;
-
-   return false;
 }
 
-bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
+void input_overlay_load_overlays_iterate(void *data)
 {
+   input_overlay_t *ol = (input_overlay_t *)data;
    struct overlay *overlay = NULL;
    size_t n;
    
    if (!ol)
-      return false;
+      return;
 
    overlay = &ol->overlays[ol->pos];
 
    if (ol->pos >= ol->size)
    {
       ol->state = OVERLAY_STATUS_DEFERRED_LOADING_RESOLVE;
-      return true;
+      return;
    }
 
    switch (ol->loading_status)
@@ -1091,17 +1093,16 @@ bool input_overlay_load_overlays_iterate(input_overlay_t *ol)
          goto error;
    }
 
-   return true;
+   return;
 
 error:
    ol->state = OVERLAY_STATUS_DEFERRED_ERROR;
-
-   return false;
 }
 
 
-bool input_overlay_load_overlays(input_overlay_t *ol)
+void input_overlay_load_overlays(void *data)
 {
+   input_overlay_t *ol = (input_overlay_t *)data;
    char rel_path[PATH_MAX_LENGTH];
    char res_path[PATH_MAX_LENGTH];
    char rect_array[256];
@@ -1233,13 +1234,13 @@ bool input_overlay_load_overlays(input_overlay_t *ol)
       overlay->center_y = overlay->y + 0.5f * overlay->h;
    }
 
-   return true;
+   return;
 
 error:
    ol->pos   = 0;
    ol->state = OVERLAY_STATUS_DEFERRED_ERROR;
 
-   return false;
+   return;
 }
 
 /**
@@ -1418,11 +1419,84 @@ static void input_overlay_set_eightway_anchors(input_overlay_t *ol)
    }
 }
 
+#ifdef HAVE_THREADS
+static void input_overlay_loader_thread(void *data)
+{
+   input_overlay_t *ol = (input_overlay_t *)data;
+
+   while (ol->is_loading)
+   {
+      slock_lock(ol->loader_mutex);
+      scond_wait(ol->loader_cond, ol->loader_mutex);
+      if (ol->load_func)
+         ol->load_func(data);
+      slock_unlock(ol->loader_mutex);
+   }
+}
+#endif
+
+static INLINE void input_overlay_enable_deferred(input_overlay_t *ol)
+{
+   if (ol->deferred.active)
+   {
+      ol->active          = ol->deferred.active;
+      ol->deferred.active = NULL;
+
+      input_overlay_load_active(ol);
+      input_overlay_enable(ol, true);
+   }
+}
+
+void input_overlay_loader_iterate(input_overlay_t *ol,
+      void (*load_func)(void*))
+{
+#ifdef HAVE_THREADS
+   if (ol->loader_thread)
+   {
+      slock_lock(ol->loader_mutex);
+
+      /* Enable if ready */
+      input_overlay_enable_deferred(ol);
+
+      /* Signal next loader step */
+      ol->load_func = load_func;
+      scond_signal(ol->loader_cond);
+      slock_unlock(ol->loader_mutex);
+   }
+   else
+#endif
+   {
+      if (load_func)
+         load_func(ol);
+      input_overlay_enable_deferred(ol);
+   }
+}
+
+static void input_overlay_free_loader(input_overlay_t *ol)
+{
+#ifdef HAVE_THREADS
+   if (ol->loader_thread)
+   {
+      /* Signal loader exit */
+      ol->is_loading = false;
+      input_overlay_loader_iterate(ol, NULL);
+
+      /* Free */
+      sthread_join(ol->loader_thread);
+      ol->loader_thread = NULL;
+
+      scond_free(ol->loader_cond);
+      slock_free(ol->loader_mutex);
+   }
+#endif
+}
+
 bool input_overlay_new_done(input_overlay_t *ol)
 {
    if (!ol)
       return false;
 
+   input_overlay_free_loader(ol);
    input_overlay_set_alpha(ol);
    ol->next_index = (ol->index + 1) % ol->size;
 
@@ -1468,13 +1542,12 @@ error:
 /**
  * input_overlay_new:
  * @path            : Path to overlay file.
- * @enable          : Enable the overlay after initializing it?
  *
  * Creates and initializes an overlay handle.
  *
  * Returns: Overlay handle on success, otherwise NULL.
  **/
-input_overlay_t *input_overlay_new(const char *path, bool enable)
+input_overlay_t *input_overlay_new(const char *path)
 {
    input_overlay_t  *ol = (input_overlay_t*)calloc(1, sizeof(*ol));
    driver_t     *driver = driver_get_ptr();
@@ -1511,8 +1584,14 @@ input_overlay_t *input_overlay_new(const char *path, bool enable)
       goto error;
 
    ol->state                 = OVERLAY_STATUS_DEFERRED_LOAD;
-   ol->deferred.enable       = enable;
    ol->deferred.scale_factor = settings->input.overlay_scale;
+
+#ifdef HAVE_THREADS
+   ol->loader_cond   = scond_new();
+   ol->loader_mutex  = slock_new();
+   ol->loader_thread = sthread_create(input_overlay_loader_thread, ol);
+   ol->is_loading    = true;
+#endif
 
    input_overlay_load_overlays_init(ol);
    input_overlay_update_eightway_diag_sens();
@@ -2857,6 +2936,8 @@ void input_overlay_free(input_overlay_t *ol)
 {
    if (!ol)
       return;
+
+   input_overlay_free_loader(ol);
 
    if (ol->iface)
       ol->iface->enable(ol->iface_data, false);
