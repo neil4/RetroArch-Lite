@@ -114,17 +114,14 @@ size_t core_len;
 
 int cb_core_updater_list(void *data_, size_t len)
 {
-   char             *data = (char*)data_;
+   char *data = (char*)data_;
 
    menu_entries_unset_nonblocking_refresh();
    
    if (!data)
       return -1;
 
-   if (core_buf)
-      free(core_buf);
-
-   core_buf = (char*)malloc((len+1) * sizeof(char));
+   core_buf = (char*)realloc(core_buf, (len+1) * sizeof(char));
 
    if (!core_buf)
       return -1;

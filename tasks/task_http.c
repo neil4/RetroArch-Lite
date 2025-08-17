@@ -93,7 +93,7 @@ error:
 static int cb_core_updater_download(void *data, size_t len)
 {
    char *output_path        = string_alloc(PATH_MAX_LENGTH);
-   char *buf                = string_alloc(PATH_MAX_LENGTH);
+   char buf[NAME_MAX_LENGTH];
    global_t       *global   = global_get_ptr();
    settings_t     *settings = config_get_ptr();
    data_runloop_t *runloop  = rarch_main_data_get_ptr();
@@ -111,8 +111,8 @@ static int cb_core_updater_download(void *data, size_t len)
    if (settings->network.buildbot_auto_extract_archive
        && !strcasecmp(path_get_extension(output_path),"zip"))
    {
-      snprintf(buf, PATH_MAX_LENGTH, "Download progress: 100%%\n"
-                                     "Extracting...");
+      snprintf(buf, sizeof(buf), "Download progress: 100%%\n"
+                                 "Extracting...");
       rarch_main_msg_queue_push(buf, 1, 1, true);
       video_driver_cached_frame();
 
@@ -123,7 +123,7 @@ static int cb_core_updater_download(void *data, size_t len)
    }
 #endif
 
-   snprintf(buf, PATH_MAX_LENGTH, "Download complete: %s",
+   snprintf(buf, sizeof(buf), "Download complete: %s",
          runloop->http.msg_filename);
    rarch_main_msg_queue_push(buf, 1, 90, true);
 
@@ -137,18 +137,15 @@ static int cb_core_updater_download(void *data, size_t len)
    event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
 
    free(output_path);
-   free(buf);
    return 0;
 
 error:
    free(output_path);
-   free(buf);
    return -1;
 }
 
 static int cb_core_info_download(void *data, size_t len)
 {
-   const char *file_ext              = NULL;
    char output_path[PATH_MAX_LENGTH];
    char buf[NAME_MAX_LENGTH];
    settings_t *settings              = config_get_ptr();
@@ -164,26 +161,24 @@ static int cb_core_info_download(void *data, size_t len)
 
    if (!write_file(output_path, data, len))
       goto end;
-   
-   snprintf(buf, sizeof(buf), "Download complete: %s.",
-         runloop->http.msg_filename);
-
-   rarch_main_msg_queue_push(buf, 1, 90, true);
 
 #ifdef HAVE_ZLIB
-   file_ext = path_get_extension(runloop->http.msg_filename);
-
    if (settings->network.buildbot_auto_extract_archive
-       && !strcasecmp(file_ext,"zip"))
+       && !strcasecmp(path_get_extension(output_path),"zip")
+       && !zlib_parse_file(output_path, NULL, zlib_extract_core_callback,
+         (void*)settings->libretro_info_path))
    {
-      if (!zlib_parse_file(output_path, NULL, zlib_extract_core_callback,
-               (void*)settings->libretro_info_path))
-         RARCH_LOG("Could not process ZIP file.\n");
+      RARCH_LOG("Could not process ZIP file.\n");
       remove(output_path);
    }
 #endif
 
+   snprintf(buf, sizeof(buf), "Download complete: %s.",
+         runloop->http.msg_filename);
+   rarch_main_msg_queue_push(buf, 1, 90, true);
+
    ret = 0;
+
 end:
    /* Refresh installed core info */
    core_info_list_free(global->core_info);
