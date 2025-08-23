@@ -57,6 +57,11 @@ void rarch_main_data_overlay_iterate(void *data)
    if (!driver || !(ol = driver->overlay))
       return;
 
+#ifdef HAVE_THREADS
+   if (ol->loader_busy)
+      return;
+#endif
+
    switch (rarch_main_data_overlay_state(ol))
    {
       case OVERLAY_STATUS_NONE:

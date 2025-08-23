@@ -43,13 +43,15 @@
 #define KEY_ABXY_AREA    0xbcf1c3b1U
 
 #ifdef HAVE_THREADS
-#define OL_IMG_POS_INCREMENT 16
-#define DESC_IMG_POS_INCREMENT 64
-#define DESC_POS_INCREMENT 512
+#define OL_IMG_POS_INCREMENT 32
+#define DESC_IMG_POS_INCREMENT 128
+#define DESC_POS_INCREMENT 1024
+#define ol_loader_adjoin_steps true
 #else
 #define OL_IMG_POS_INCREMENT 4
 #define DESC_IMG_POS_INCREMENT 16
 #define DESC_POS_INCREMENT 128
+#define ol_loader_adjoin_steps false
 #endif
 
 static bool overlay_lightgun_active;
@@ -1015,12 +1017,41 @@ error:
    ol->state = OVERLAY_STATUS_DEFERRED_ERROR;
 }
 
+static void input_overlay_set_eightway_anchors(struct overlay *overlay)
+{
+   int i, j;
+
+   for (i = 0; i < overlay->size; i++)
+   {
+      struct overlay_desc *desc = overlay->descs + i;
+      uint64_t mask             = desc->key_mask;
+      if (!mask || desc->hitbox != OVERLAY_HITBOX_NONE)
+         continue;
+
+      for (j = 0; j < overlay->size; j++)
+      {
+         struct overlay_desc *desc2 = overlay->descs + j;
+         if (!desc2->eightway_vals)
+            continue;
+
+         if (((mask & desc2->eightway_vals->up) == mask)
+               || ((mask & desc2->eightway_vals->down) == mask)
+               || ((mask & desc2->eightway_vals->left) == mask)
+               || ((mask & desc2->eightway_vals->right) == mask))
+         {
+            desc->anchor = desc2;
+            break;
+         }
+      }
+   }
+}
+
 void input_overlay_load_overlays_iterate(void *data)
 {
    input_overlay_t *ol = (input_overlay_t *)data;
    struct overlay *overlay = NULL;
    size_t n;
-   
+
    if (!ol)
       return;
 
@@ -1052,23 +1083,27 @@ void input_overlay_load_overlays_iterate(void *data)
             {
                overlay->pos       = 0;
                ol->loading_status = OVERLAY_IMAGE_TRANSFER_DESC_ITERATE;
+               if (ol_loader_adjoin_steps)
+                  goto desc_iterate;
                break;
             }
          }
          break;
+      desc_iterate:
       case OVERLAY_IMAGE_TRANSFER_DESC_ITERATE:
          for (n = 0; n < DESC_POS_INCREMENT; n++)
          {
             if (overlay->pos < overlay->size)
             {
-               if (!input_overlay_load_desc(ol, &overlay->descs[overlay->pos], overlay,
-                        ol->pos, overlay->pos,
+               if (!input_overlay_load_desc(ol,
+                        &overlay->descs[overlay->pos],
+                        overlay, ol->pos, overlay->pos,
                         overlay->image.width, overlay->image.height,
                         overlay->config.normalized,
                         overlay->config.alpha_mod, overlay->config.range_mod))
                {
-                  RARCH_ERR("[Overlay]: Failed to load overlay descs for overlay #%u.\n",
-                        (unsigned)overlay->pos);
+                  RARCH_ERR("[Overlay]: Failed to load overlay descs "
+                        "for overlay #%u.\n", (unsigned)overlay->pos);
                   goto error;
                }
             }
@@ -1076,11 +1111,15 @@ void input_overlay_load_overlays_iterate(void *data)
             {
                overlay->pos       = 0;
                ol->loading_status = OVERLAY_IMAGE_TRANSFER_DESC_DONE;
+               if (ol_loader_adjoin_steps)
+                  goto desc_done;
                break;
             }
          }
          break;
+      desc_done:
       case OVERLAY_IMAGE_TRANSFER_DESC_DONE:
+         input_overlay_set_eightway_anchors(&ol->overlays[ol->pos]);
          input_overlay_update_aspect_and_shift(&ol->overlays[ol->pos]);
          input_overlay_scale(&ol->overlays[ol->pos], ol->deferred.scale_factor);
 
@@ -1386,39 +1425,6 @@ void input_overlay_update_mouse_scale(void)
    }
 }
 
-static void input_overlay_set_eightway_anchors(input_overlay_t *ol)
-{
-   int i, j, k;
-   for (i = 0; i < ol->size; i++)
-   {
-      struct overlay *overlay = ol->overlays + i;
-
-      for (j = 0; j < overlay->size; j++)
-      {
-         struct overlay_desc *desc = overlay->descs + j;
-         uint64_t mask             = desc->key_mask;
-         if (!mask || desc->hitbox != OVERLAY_HITBOX_NONE)
-            continue;
-
-         for (k = 0; k < overlay->size; k++)
-         {
-            struct overlay_desc *desc2 = overlay->descs + k;
-            if (!desc2->eightway_vals)
-               continue;
-
-            if (((mask & desc2->eightway_vals->up) == mask)
-                || ((mask & desc2->eightway_vals->down) == mask)
-                || ((mask & desc2->eightway_vals->left) == mask)
-                || ((mask & desc2->eightway_vals->right) == mask))
-            {
-               desc->anchor = desc2;
-               break;
-            }
-         }
-      }
-   }
-}
-
 #ifdef HAVE_THREADS
 static void input_overlay_loader_thread(void *data)
 {
@@ -1429,7 +1435,11 @@ static void input_overlay_loader_thread(void *data)
       slock_lock(ol->loader_mutex);
       scond_wait(ol->loader_cond, ol->loader_mutex);
       if (ol->load_func)
+      {
+         ol->loader_busy = true;
          ol->load_func(data);
+         ol->loader_busy = false;
+      }
       slock_unlock(ol->loader_mutex);
    }
 }
@@ -1508,7 +1518,6 @@ bool input_overlay_new_done(input_overlay_t *ol)
 
    menu_entries_set_refresh();
    input_overlay_update_mouse_scale();
-   input_overlay_set_eightway_anchors(ol);
 
    return true;
 }

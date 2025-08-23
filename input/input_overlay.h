@@ -280,6 +280,7 @@ struct input_overlay
    slock_t *loader_mutex;
    void (*load_func)(void *);
    bool is_loading;
+   bool loader_busy;
 #endif
 };
 
