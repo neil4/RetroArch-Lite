@@ -133,7 +133,7 @@ void rarch_main_data_iterate(void)
 #ifdef HAVE_RPNG
    rarch_main_data_nbio_image_upload_iterate(runloop);
 #endif
-   menu_entries_refresh(MENU_ACTION_REFRESH);
+   menu_entries_refresh();
    
    data_runloop_iterate(runloop);
 }

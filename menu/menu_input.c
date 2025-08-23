@@ -676,12 +676,8 @@ static void menu_input_mouse(unsigned *action,
    static retro_time_t input_usec;
 
 #ifdef HAVE_OVERLAY
-   if (driver && driver->overlay
-         && (driver->osk_enable || *settings->input.overlay))
-   {
-      memset(&menu_input->mouse, 0, sizeof(menu_input->mouse));
+   if (driver->overlay && (driver->osk_enable || *settings->input.overlay))
       return;
-   }
 #endif
 
    if (!menu_driver_viewport_info(&vp))
@@ -774,11 +770,15 @@ static void menu_input_pointer(unsigned *action)
    menu_framebuf_t *frame_buf = menu_display_fb_get_ptr();
    settings_t *settings       = config_get_ptr();
 
-   if (settings->menu.mouse.enable && menu_input->mouse.show)
-   {
-      memset(&menu_input->pointer, 0, sizeof(menu_input->pointer));
-      return;
-   }
+#ifdef HAVE_OVERLAY
+   driver_t *driver           = driver_get_ptr();
+   if (driver->overlay && (driver->osk_enable || *settings->input.overlay))
+      goto reset_ptr_input;
+#endif
+
+   if ((settings->menu.mouse.enable && menu_input->mouse.show)
+         || *action != MENU_ACTION_NOOP)
+      goto reset_ptr_input;
 
    if (!menu_driver_viewport_info(&vp))
       return;
@@ -813,8 +813,13 @@ static void menu_input_pointer(unsigned *action)
    if (menu_input->pointer.pressed || menu_input->pointer.oldpressed)
       anim->is_active = true;
 
-   if (*action == MENU_ACTION_NOOP)
-      *action = menu_input_pointer_action();
+   *action = menu_input_pointer_action();
+   return;
+
+reset_ptr_input:
+   menu_input->pointer.oldpressed = 0;
+   menu_input->pointer.dragging   = false;
+   return;
 }
 
 static bool menu_input_value_can_step(size_t selected)
@@ -1014,22 +1019,10 @@ static unsigned menu_input_pointer_action(void)
 {
    unsigned ret               = MENU_ACTION_NOOP;
    menu_input_t *menu_input   = menu_input_get_ptr();
-   driver_t *driver           = driver_get_ptr();
-   settings_t *settings       = config_get_ptr();
    menu_framebuf_t *frame_buf = menu_display_fb_get_ptr();
 
    if (!menu_input)
       return ret;
-
-#ifdef HAVE_OVERLAY
-   if (driver && driver->overlay
-         && (driver->osk_enable || *settings->input.overlay))
-   {
-      menu_input->pointer.oldpressed = 0;
-      menu_input->pointer.dragging   = false;
-      return ret;
-   }
-#endif
 
    if (menu_input->pointer.pressed)
    {
