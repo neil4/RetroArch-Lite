@@ -244,8 +244,9 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       adapter = new IconAdapter<ModuleWrapper>(this, R.layout.line_list_item, cores);
       listView.setAdapter(adapter);
       listView.setOnItemClickListener(onClickListener);
+      listView.setOnItemLongClickListener(onItemLongClickListener);
    }
-  
+
    public void itemClick(AdapterView<?> parent, View view, int position, long id)
    {
       final ModuleWrapper item = adapter.getItem(position);
@@ -325,32 +326,16 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       }
    };
 
-   @Override
-   public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
+   private final AdapterView.OnItemLongClickListener onItemLongClickListener = new AdapterView.OnItemLongClickListener()
    {
-      super.onCreateContextMenu(menu, v, menuInfo);
-
-      MenuInflater inflater = this.getMenuInflater();
-      inflater.inflate(R.menu.launcher_context_menu, menu);
-   }
-
-   @Override
-   public boolean onContextItemSelected(MenuItem item)
-   {
-      final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
-
-      switch (item.getItemId())
+      @Override
+      public boolean onItemLongClick(AdapterView<?> listView, View view, int position, long id)
       {
-         case R.id.show_history:
-         {
-            itemHistoryClick(null, null, info.position, 0);
-            return true;
-         }
-         default:
-            return super.onContextItemSelected(item);
+         itemHistoryClick(listView, view, position,id);
+         return true;
       }
-   }
-   
+   };
+
    private void extractAssets()
    {
       if (areAssetsExtracted())

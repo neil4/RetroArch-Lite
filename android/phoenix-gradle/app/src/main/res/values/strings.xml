@@ -6,7 +6,6 @@
     <string name="extracting_assets_please_wait_">Extracting assets, please wait …</string>
 
     <!-- Launcher -->
-    <string name="launcher_ctx_show_history">History</string>
     <string name="file_dne">%1$s does not exist.</string>
     <string name="contentless_core">%1$s is a contentless core.</string>
     <string name="loading_data">Loading %1$s…</string>
