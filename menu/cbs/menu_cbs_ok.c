@@ -417,6 +417,7 @@ static int action_ok_core_updater_list(const char *path,
    menu_list_t       *menu_list   = menu_list_get_ptr();
    settings_t *settings           = config_get_ptr();
    global_t   *global             = global_get_ptr();
+   data_runloop_t *runloop        = rarch_main_data_get_ptr();
    menu_displaylist_info_t *info;
 
    if (!menu_list)
@@ -425,8 +426,6 @@ static int action_ok_core_updater_list(const char *path,
    (void)url_path;
 
    info = menu_displaylist_info_new();
-
-   menu_entries_set_nonblocking_refresh();
 
    if (settings->network.buildbot_url[0] == '\0')
    {
@@ -439,6 +438,8 @@ static int action_ok_core_updater_list(const char *path,
 
    fill_pathname_join(url_path, settings->network.buildbot_url,
          ".index-extended", sizeof(url_path));
+
+   strlcpy(runloop->http.msg_title, "Core Index", NAME_MAX_LENGTH);
 
    rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, url_path,
          "cb_core_updater_list", 1, 1, false);
@@ -1265,10 +1266,12 @@ static int action_ok_core_updater_download(const char *path,
    fill_pathname_join(core_url, settings->network.buildbot_url,
          path, sizeof(core_url));
 
-   strlcpy(runloop->http.msg_filename, path,
-           sizeof(runloop->http.msg_filename));
-   snprintf(buf, sizeof(buf), "%s %s.",
-         menu_hash_to_str(MENU_LABEL_VALUE_STARTING_DOWNLOAD), path);
+   if (!core_info_list_get_display_name(global->core_info_dl,
+         libretro_name, runloop->http.msg_title, NAME_MAX_LENGTH))
+      strlcpy(runloop->http.msg_title, libretro_name, NAME_MAX_LENGTH);
+
+   snprintf(buf, sizeof(buf), "%s\n%s", runloop->http.msg_title,
+         menu_hash_to_str(MENU_LABEL_VALUE_STARTING_DOWNLOAD));
 
    rarch_main_msg_queue_push(buf, 1, 90, true);
 
@@ -1282,9 +1285,13 @@ static int action_ok_core_info_download(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    char buf[NAME_MAX_LENGTH];
+   data_runloop_t *runloop = rarch_main_data_get_ptr();
 
-   snprintf(buf, sizeof(buf), "%s %s.",
-         menu_hash_to_str(MENU_LABEL_VALUE_STARTING_DOWNLOAD), "info.zip");
+   strlcpy(runloop->http.msg_title,
+         menu_hash_to_str(MENU_LABEL_VALUE_CORE_INFORMATION), NAME_MAX_LENGTH);
+
+   snprintf(buf, sizeof(buf), "%s\n%s.", runloop->http.msg_title,
+         menu_hash_to_str(MENU_LABEL_VALUE_STARTING_DOWNLOAD));
    rarch_main_msg_queue_push(buf, 1, 90, true);
 
    core_info_queue_download();

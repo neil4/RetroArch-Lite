@@ -31,7 +31,6 @@ typedef struct menu_entries
 {
    /* Flagged when menu entries need to be refreshed */
    bool need_refresh;
-   bool nonblocking_refresh;
 
    size_t begin;
    menu_list_t *menu_list;
@@ -60,10 +59,6 @@ bool menu_entries_needs_refresh(void);
 void menu_entries_set_refresh(void);
 
 void menu_entries_unset_refresh(void);
-
-void menu_entries_set_nonblocking_refresh(void);
-
-void menu_entries_unset_nonblocking_refresh(void);
 
 #ifdef __cplusplus
 }

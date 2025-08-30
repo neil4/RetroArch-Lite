@@ -116,8 +116,8 @@ int cb_core_updater_list(void *data_, size_t len)
 {
    char *data = (char*)data_;
 
-   menu_entries_unset_nonblocking_refresh();
-   
+   menu_entries_set_refresh();
+
    if (!data)
       return -1;
 

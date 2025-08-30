@@ -282,7 +282,7 @@ struct http_t *net_http_new(struct http_connection_t *conn)
    state->error   = false;
    state->pos     = 0;
    state->len     = 0;
-   state->buflen  = 512;
+   state->buflen  = 128 * 1024;
    state->data    = (char*)malloc(state->buflen);
 
    if (!state->data)
@@ -318,7 +318,7 @@ bool net_http_update(struct http_t *state, size_t* progress, size_t* total)
       if (newlen < 0)
          goto fail;
 
-      if (state->pos + newlen >= state->buflen - 64)
+      if (state->pos + newlen + 8192 >= state->buflen)
       {
          state->buflen *= 2;
          state->data = (char*)realloc(state->data, state->buflen);
@@ -394,7 +394,7 @@ bool net_http_update(struct http_t *state, size_t* progress, size_t* total)
             newlen=0;
          }
 
-         if (state->pos + newlen >= state->buflen - 64)
+         if (state->pos + newlen + 8192 >= state->buflen)
          {
             state->buflen *= 2;
             state->data = (char*)realloc(state->data, state->buflen);

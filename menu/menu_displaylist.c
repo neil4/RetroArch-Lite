@@ -47,9 +47,9 @@ extern size_t core_len;
 static void print_buf_lines(file_list_t *list, char *buf, int buf_size,
       const char* label, unsigned type)
 {
-   int i;
-   char c;
    char *line_start = buf;
+   int i;
+   char c1, c2;
 
    for (i = 0; i < buf_size; i++)
    {
@@ -64,20 +64,21 @@ static void print_buf_lines(file_list_t *list, char *buf, int buf_size,
       /* Found a line ending, print the line and compute new line_start */
 
       /* Save the next char  */
-      c = *(buf + i + 1);
+      c1 = *(buf + i + 1);
       /* replace with \0 */
       *(buf + i + 1) = '\0';
 
       /* We need to strip the newline. */
       ln = strlen(line_start) - 1;
-      if (line_start[ln] == '\n')
+      if ((c2 = line_start[ln]) == '\n')
          line_start[ln] = '\0';
 
       if (*line_start && *line_start != '.')
          menu_list_push(list, line_start, label, type, 0, 0);
 
-      /* Restore the saved char */
-      *(buf + i + 1) = c;
+      /* Restore the saved chars */
+      *(buf + i + 1) = c1;
+      line_start[ln] = c2;
       line_start = buf + i + 1;
    }
    /* If the buffer was completely full, and didn't end with a newline, just
@@ -1395,7 +1396,6 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
    menu_navigation_t *nav   = menu_navigation_get_ptr();
    global_t       *global   = global_get_ptr();
    settings_t   *settings   = config_get_ptr();
-   char *buf;
 
    switch (type)
    {
@@ -1473,17 +1473,18 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
          break;
       case DISPLAYLIST_CORES_UPDATER:
 #ifdef HAVE_NETWORKING
-         buf = core_buf ? strdup(core_buf) : calloc(1,1);
          menu_list_clear(info->list);
 
          /* First entry is option to update info files */
          menu_list_push(info->list, "", "", MENU_FILE_DOWNLOAD_CORE_INFO, 0, 0);
 
+         if (!core_buf)
+            break;
+
          /* Add downloadable core file names */
-         print_buf_lines(info->list, buf, core_len,
+         print_buf_lines(info->list, core_buf, core_len,
                menu_hash_to_str(MENU_LABEL_DOWNLOADABLE_CORE),
                MENU_FILE_DOWNLOAD_CORE);
-         free(buf);
 
          if (info->list->size > 1)
          {
@@ -1493,7 +1494,6 @@ int menu_displaylist_push_list(menu_displaylist_info_t *info, unsigned type)
             need_push    = true;
             need_refresh = true;
          }
-         else menu_reset();
 #endif
          break;
       case DISPLAYLIST_PERFCOUNTER_SELECTION:

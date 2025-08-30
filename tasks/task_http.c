@@ -97,12 +97,13 @@ static int cb_core_updater_download(void *data, size_t len)
    global_t       *global   = global_get_ptr();
    settings_t     *settings = config_get_ptr();
    data_runloop_t *runloop  = rarch_main_data_get_ptr();
+   http_handle_t  *http     = &runloop->http;
 
    if (!data)
       goto error;
 
    fill_pathname_join(output_path, settings->libretro_directory,
-         runloop->http.msg_filename, PATH_MAX_LENGTH);
+         http->connection.filename, PATH_MAX_LENGTH);
 
    if (!write_file(output_path, data, len))
       goto error;
@@ -111,8 +112,7 @@ static int cb_core_updater_download(void *data, size_t len)
    if (settings->network.buildbot_auto_extract_archive
        && !strcasecmp(path_get_extension(output_path),"zip"))
    {
-      snprintf(buf, sizeof(buf), "Download progress: 100%%\n"
-                                 "Extracting...");
+      snprintf(buf, sizeof(buf), "%s\nExtracting...", http->msg_title);
       rarch_main_msg_queue_push(buf, 1, 1, true);
       video_driver_cached_frame();
 
@@ -123,8 +123,7 @@ static int cb_core_updater_download(void *data, size_t len)
    }
 #endif
 
-   snprintf(buf, sizeof(buf), "Download complete: %s",
-         runloop->http.msg_filename);
+   snprintf(buf, sizeof(buf), "%s\nDownload complete", http->msg_title);
    rarch_main_msg_queue_push(buf, 1, 90, true);
 
    /* Refresh installed core info */
@@ -146,35 +145,35 @@ error:
 
 static int cb_core_info_download(void *data, size_t len)
 {
-   char output_path[PATH_MAX_LENGTH];
+   char *output_path        = string_alloc(PATH_MAX_LENGTH);
    char buf[NAME_MAX_LENGTH];
-   settings_t *settings              = config_get_ptr();
-   global_t *global                  = global_get_ptr();
-   data_runloop_t *runloop           = rarch_main_data_get_ptr();
-   int ret                           = -1;
+   settings_t *settings     = config_get_ptr();
+   global_t *global         = global_get_ptr();
+   data_runloop_t *runloop  = rarch_main_data_get_ptr();
+   http_handle_t  *http     = &runloop->http;
+   int ret                  = -1;
 
    if (!data)
       goto end;
    
    fill_pathname_join(output_path, settings->libretro_info_path,
-         runloop->http.msg_filename, sizeof(output_path));
+         http->connection.filename, PATH_MAX_LENGTH);
 
    if (!write_file(output_path, data, len))
       goto end;
 
 #ifdef HAVE_ZLIB
    if (settings->network.buildbot_auto_extract_archive
-       && !strcasecmp(path_get_extension(output_path),"zip")
-       && !zlib_parse_file(output_path, NULL, zlib_extract_core_callback,
-         (void*)settings->libretro_info_path))
+       && !strcasecmp(path_get_extension(output_path),"zip"))
    {
-      RARCH_LOG("Could not process ZIP file.\n");
+      if (!zlib_parse_file(output_path, NULL, zlib_extract_core_callback,
+            (void*)settings->libretro_info_path))
+         RARCH_LOG("Could not process ZIP file.\n");
       remove(output_path);
    }
 #endif
 
-   snprintf(buf, sizeof(buf), "Download complete: %s.",
-         runloop->http.msg_filename);
+   snprintf(buf, sizeof(buf), "%s\nDownload complete", http->msg_title);
    rarch_main_msg_queue_push(buf, 1, 90, true);
 
    ret = 0;
@@ -191,6 +190,7 @@ end:
    global->core_info_dl = NULL;
    event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);
 
+   free(output_path);
    return ret;
 }
 
@@ -200,11 +200,9 @@ void core_info_queue_download(void)
 #ifdef HAVE_NETWORKING
    char *info_path         = string_alloc(PATH_MAX_LENGTH);
    settings_t *settings    = config_get_ptr();
-   data_runloop_t *runloop = rarch_main_data_get_ptr();
 
    fill_pathname_join(info_path, settings->network.buildbot_assets_url,
          "frontend/info.zip", PATH_MAX_LENGTH);
-   strlcpy(runloop->http.msg_filename, "info.zip", NAME_MAX_LENGTH);
 
    rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, info_path,
          "cb_core_info_download", 0, 1, false);
@@ -245,7 +243,7 @@ static void rarch_main_data_http_cancel_transfer(void *data, const char* msg)
 {
    http_handle_t *http = (http_handle_t*)data;
    
-   menu_entries_unset_nonblocking_refresh();
+   menu_entries_set_refresh();
 
    net_http_delete(http->handle);
    http->handle = NULL;
@@ -262,12 +260,11 @@ static bool rarch_main_data_http_iterate_transfer_parse(http_handle_t *http)
    char msg[32];
    char *data = (char*)net_http_data(http->handle, &len, false);
 
-   strlcpy(http->msg_filename, http->connection.filename, NAME_MAX_LENGTH);
    if (!http->cb || http->cb(data, len) < 0)
    {
       rv = false;
-      snprintf(msg, sizeof(msg),
-            "Transfer Failed\nStatus %i", net_http_status(http->handle));
+      snprintf(msg, sizeof(msg), "%s\nTransfer Failed. Status %i",
+            http->msg_title, net_http_status(http->handle));
       rarch_main_data_http_cancel_transfer(http, msg);
    }
 
@@ -348,7 +345,10 @@ static int rarch_main_data_http_iterate_poll(http_handle_t *http)
 
    elem0[0] = '\0';
    if (str_list->size > 0)
+   {
       strlcpy(elem0, str_list->elems[0].data, sizeof(elem0));
+      strlcpy(http->connection.filename, path_basename(elem0), NAME_MAX_LENGTH);
+   }
 
    http->connection.handle = net_http_connection_new(elem0);
 
@@ -361,10 +361,6 @@ static int rarch_main_data_http_iterate_poll(http_handle_t *http)
       strlcpy(http->connection.elem1,
             str_list->elems[1].data,
             sizeof(http->connection.elem1));
-   
-   if (str_list->size > 2)
-      strlcpy(http->connection.filename,
-              str_list->elems[2].data, NAME_MAX_LENGTH);
 
    string_list_free(str_list);
    
@@ -382,7 +378,7 @@ static bool rarch_main_data_http_iterate_cancel(http_handle_t *http)
 {
    settings_t *settings = config_get_ptr();
    int countdown = 0;
-   char msg[32];
+   char msg[NAME_MAX_LENGTH];
    static int64_t end_time;
    const uint8_t countdown_max = 2499999 / 500000;
 
@@ -398,11 +394,16 @@ static bool rarch_main_data_http_iterate_cancel(http_handle_t *http)
 
       if (countdown > 0)
       {
-         snprintf(msg, sizeof(msg), "Canceling download in %i", countdown);
+         snprintf(msg, sizeof(msg), "%s\nCanceling download in %i",
+               http->msg_title, countdown);
          rarch_main_msg_queue_push(msg, 1, 10, true);
       }
       else
-         rarch_main_data_http_cancel_transfer(http, "Download Canceled");
+      {
+         snprintf(msg, sizeof(msg), "%s\nDownload canceled",
+               http->msg_title);
+         rarch_main_data_http_cancel_transfer(http, msg);
+      }
 
       return true;
    }
@@ -434,7 +435,8 @@ static int rarch_main_data_http_iterate_transfer(void *data)
    {
       int percent = tot != 0 ? (pos * 100) / tot : 0;
 
-      snprintf(msg, sizeof(msg), "Download progress: %d%%", percent);
+      snprintf(msg, sizeof(msg), "%s\nDownload progress: %d%%",
+            http->msg_title, percent);
       rarch_main_msg_queue_push(msg, 1, 100, true);
       start_usec = 0;
    }
@@ -446,10 +448,16 @@ static int rarch_main_data_http_iterate_transfer(void *data)
          start_usec = now_usec;
 
       if (now_usec - start_usec < 8000000)
-         rarch_main_msg_queue_push("Download waiting...", 1, 1, true);
+      {
+         snprintf(msg, sizeof(msg), "%s\nDownload waiting...",
+               http->msg_title);
+         rarch_main_msg_queue_push(msg, 1, 1, true);
+      }
       else
       {
-         rarch_main_data_http_cancel_transfer(http, "Download timed out");
+         snprintf(msg, sizeof(msg), "%s\nDownload timed out",
+               http->msg_title);
+         rarch_main_data_http_cancel_transfer(http, msg);
          start_usec = 0;
       }
    }

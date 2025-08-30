@@ -193,8 +193,7 @@ void rarch_main_data_msg_queue_push(unsigned type,
 #ifdef HAVE_NETWORKING
       case DATA_TYPE_HTTP:
          queue = runloop->http.msg_queue;
-         snprintf(new_msg, PATH_MAX_LENGTH, "%s|%s|%s", msg, msg2,
-                  runloop->http.msg_filename);
+         snprintf(new_msg, PATH_MAX_LENGTH, "%s|%s", msg, msg2);
          break;
 #endif
 #ifdef HAVE_OVERLAY

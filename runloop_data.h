@@ -58,7 +58,7 @@ typedef struct http_handle
    transfer_cb_t  cb;
    unsigned status;
 
-   char msg_filename[NAME_MAX_LENGTH];
+   char msg_title[NAME_MAX_LENGTH];
 } http_handle_t;
 #endif
 

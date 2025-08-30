@@ -385,7 +385,7 @@ const char *menu_hash_to_str(uint32_t hash)
       case MENU_LABEL_VALUE_AUDIO_DSP_PLUGIN:
          return "Audio DSP Plugin";
       case MENU_LABEL_VALUE_STARTING_DOWNLOAD:
-         return "Starting download: ";
+         return "Starting download";
       case MENU_LABEL_SHARED_CONTEXT:
          return "video_shared_context";
       case MENU_LABEL_DUMMY_ON_CORE_SHUTDOWN:

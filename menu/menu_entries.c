@@ -122,18 +122,8 @@ void menu_entries_get_core_title(char *s, size_t len)
    strlcpy(s + pos, core_version, len - pos);
 }
 
-static bool menu_entries_get_nonblocking_refresh(void)
-{
-   menu_entries_t *entries = menu_entries_get_ptr();
-   if (!entries)
-      return false;
-   return entries->nonblocking_refresh;
-}
-
 int menu_entries_refresh(void)
 {
-   if (menu_entries_get_nonblocking_refresh())
-      return -1;
    if (!menu_entries_needs_refresh())
       return -1;
    return menu_entry_iterate(MENU_ACTION_REFRESH);
@@ -145,22 +135,6 @@ bool menu_entries_needs_refresh(void)
    if (!entries)
       return false;
    return entries->need_refresh;
-}
-
-void menu_entries_set_nonblocking_refresh(void)
-{
-   menu_entries_t *entries = menu_entries_get_ptr();
-   if (!entries)
-      return;
-   entries->nonblocking_refresh = true;
-}
-
-void menu_entries_unset_nonblocking_refresh(void)
-{
-   menu_entries_t *entries = menu_entries_get_ptr();
-   if (!entries)
-      return;
-   entries->nonblocking_refresh = false;
 }
 
 void menu_entries_set_refresh(void)
