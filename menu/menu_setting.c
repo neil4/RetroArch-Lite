@@ -1694,7 +1694,7 @@ static void setting_get_string_representation_st_path_with_default(void *data,
       if (setting->value.string[0] != '\0')
          strlcpy(s, path_basename(setting->value.string), len);
       else
-         strcpy(s, "Default");
+         strcpy(s, menu_hash_to_str(MENU_VALUE_DEFAULT));
    }
 }
 
@@ -1851,7 +1851,7 @@ static void setting_get_string_representation_overlay_haptic_feedback(
    if (setting)
    {
       if (*setting->value.integer == OVERLAY_DEFAULT_VIBE)
-         strcpy(s, "Default");
+         strcpy(s, menu_hash_to_str(MENU_VALUE_DEFAULT));
       else
          setting_get_string_representation_millisec(data, s, len);
    }
