@@ -119,6 +119,8 @@ int socket_connect(int fd, struct sockaddr* addr, int addrlen,
 
    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO,
          (const char*)&so_timeout, sizeof(so_timeout));
+   setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO,
+         (const char*)&so_timeout, sizeof(so_timeout));
 
    socket_set_block(fd, false);
    connect(fd, addr, addrlen);

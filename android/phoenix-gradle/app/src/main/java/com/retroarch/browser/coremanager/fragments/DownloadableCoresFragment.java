@@ -79,6 +79,7 @@ public final class DownloadableCoresFragment extends ListFragment
    public static String BUILDBOT_CORE_URL_INTEL = BUILDBOT_BASE_URL + "/nightly/android/latest/x86/";
    public static final String BUILDBOT_INFO_URL = BUILDBOT_BASE_URL + "/assets/frontend/info.zip";
    public static final String INFO_NAME = "Core Info";
+   public static final int TIMEOUT_MS = 4000;
    
    protected static OnCoreDownloadedListener coreDownloadedListener = null;
    public static ArrayList<DownloadableCore> coreList = null;
@@ -286,6 +287,8 @@ public final class DownloadableCoresFragment extends ListFragment
             for (String index : indexes)
             {
                conn = (HttpURLConnection) new URL(buildbotURL + index).openConnection();
+               conn.setConnectTimeout(TIMEOUT_MS);
+               conn.setReadTimeout(TIMEOUT_MS);
                conn.connect();
                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK)
                   return conn;
@@ -429,24 +432,26 @@ public final class DownloadableCoresFragment extends ListFragment
       {
          InputStream is = null;
          OutputStream os = null;
-         HttpURLConnection connection = null;
+         HttpURLConnection conn = null;
 
          try
          {
             URL url = new URL(urlPath);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.connect();
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(TIMEOUT_MS);
+            conn.setReadTimeout(TIMEOUT_MS);
+            conn.connect();
 
-            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK)
+            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK)
             {
                Log.i("DownloadCoreOperation", "HTTP response code not OK. Response code: "
-                     + connection.getResponseCode());
+                     + conn.getResponseCode());
                return null;
             }
 
             // Set up the streams
-            final int fileLen = connection.getContentLength();
-            is = new BufferedInputStream(connection.getInputStream(), 65536);
+            final int fileLen = conn.getContentLength();
+            is = new BufferedInputStream(conn.getInputStream(), 65536);
             os = new FileOutputStream(destFile);
 
             // Download and write to storage.
@@ -486,8 +491,8 @@ public final class DownloadableCoresFragment extends ListFragment
             {
             }
 
-            if (connection != null)
-               connection.disconnect();
+            if (conn != null)
+               conn.disconnect();
          }
 
          return null;
