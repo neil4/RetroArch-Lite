@@ -198,14 +198,15 @@ end:
 void core_info_queue_download(void)
 {
 #ifdef HAVE_NETWORKING
-   char *info_path         = string_alloc(PATH_MAX_LENGTH);
-   settings_t *settings    = config_get_ptr();
+   char *info_path      = string_alloc(PATH_MAX_LENGTH);
+   settings_t *settings = config_get_ptr();
 
    fill_pathname_join(info_path, settings->network.buildbot_assets_url,
          "frontend/info.zip", PATH_MAX_LENGTH);
 
    rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, info_path,
-         "cb_core_info_download", 0, 1, false);
+         "cb_core_info_download",
+         menu_hash_to_str(MENU_LABEL_VALUE_CORE_INFORMATION), 0, 1, false);
    free(info_path);
 #endif
 }
@@ -358,9 +359,12 @@ static int rarch_main_data_http_iterate_poll(http_handle_t *http)
    http->connection.cb     = &cb_http_conn_default;
 
    if (str_list->size > 1)
-      strlcpy(http->connection.elem1,
-            str_list->elems[1].data,
+      strlcpy(http->connection.elem1, str_list->elems[1].data,
             sizeof(http->connection.elem1));
+
+   if (str_list->size > 2)
+      strlcpy(http->msg_title, str_list->elems[2].data,
+            sizeof(http->msg_title));
 
    string_list_free(str_list);
    

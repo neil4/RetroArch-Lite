@@ -171,7 +171,7 @@ void rarch_main_data_init_queues(void)
 }
 
 void rarch_main_data_msg_queue_push(unsigned type,
-      const char *msg, const char *msg2,
+      const char *msg, const char *msg2, const char *msg3,
       unsigned prio, unsigned duration, bool flush)
 {
    char *new_msg           = string_alloc(PATH_MAX_LENGTH);
@@ -193,7 +193,7 @@ void rarch_main_data_msg_queue_push(unsigned type,
 #ifdef HAVE_NETWORKING
       case DATA_TYPE_HTTP:
          queue = runloop->http.msg_queue;
-         snprintf(new_msg, PATH_MAX_LENGTH, "%s|%s", msg, msg2);
+         snprintf(new_msg, PATH_MAX_LENGTH, "%s|%s|%s", msg, msg2, msg3);
          break;
 #endif
 #ifdef HAVE_OVERLAY

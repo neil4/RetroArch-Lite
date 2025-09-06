@@ -593,7 +593,7 @@ static void rgui_load_theme(settings_t *settings, menu_framebuf_t *frame_buf)
       fill_pathname_resolve_relative(global->menu.wallpaper,
             settings->menu.theme, wallpaper_file, PATH_MAX_LENGTH);
       rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, global->menu.wallpaper,
-            "cb_menu_wallpaper", 0, 1,true);
+            "cb_menu_wallpaper", NULL, 0, 1, true);
    }
    else
       fill_rect(frame_buf, 0, frame_buf->height, frame_buf->width, 4,
@@ -1198,8 +1198,8 @@ static void *rgui_init(void)
    if (*settings->menu.theme)
       rgui_load_theme(settings, frame_buf);
    else if (global->menu.wallpaper[0])
-     rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, global->menu.wallpaper,
-                                    "cb_menu_wallpaper", 0, 1,true);
+      rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, global->menu.wallpaper,
+            "cb_menu_wallpaper", NULL, 0, 1, true);
 
    menu_update_ticker_speed(2 * FONT_WIDTH_STRIDE);
 

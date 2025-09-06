@@ -105,7 +105,7 @@ typedef struct data_runloop
 } data_runloop_t;
 
 void rarch_main_data_msg_queue_push(unsigned type,
-      const char *msg, const char *msg2,
+      const char *msg, const char *msg2, const char *msg3,
       unsigned prio, unsigned duration, bool flush);
 
 void rarch_main_data_clear_state(void);

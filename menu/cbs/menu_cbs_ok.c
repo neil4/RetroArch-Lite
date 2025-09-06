@@ -414,10 +414,9 @@ static int action_ok_core_updater_list(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    char url_path[PATH_MAX_LENGTH];
-   menu_list_t       *menu_list   = menu_list_get_ptr();
-   settings_t *settings           = config_get_ptr();
-   global_t   *global             = global_get_ptr();
-   data_runloop_t *runloop        = rarch_main_data_get_ptr();
+   menu_list_t *menu_list = menu_list_get_ptr();
+   settings_t  *settings  = config_get_ptr();
+   global_t    *global    = global_get_ptr();
    menu_displaylist_info_t *info;
 
    if (!menu_list)
@@ -439,10 +438,8 @@ static int action_ok_core_updater_list(const char *path,
    fill_pathname_join(url_path, settings->network.buildbot_url,
          ".index-extended", sizeof(url_path));
 
-   strlcpy(runloop->http.msg_title, "Core Index", NAME_MAX_LENGTH);
-
    rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, url_path,
-         "cb_core_updater_list", 1, 1, false);
+         "cb_core_updater_list", "Core Index", 1, 1, false);
 #endif
 
    info->list          = menu_list->menu_stack;
@@ -677,8 +674,8 @@ static int action_ok_menu_wallpaper_load(const char *path,
    {
       strlcpy(global->menu.wallpaper, wallpaper_path, sizeof(global->menu.wallpaper));
 
-      rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, wallpaper_path, "cb_menu_wallpaper", 0, 1,
-            true);
+      rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, wallpaper_path,
+         "cb_menu_wallpaper", NULL, 0, 1, true);
    }
 
    menu_list_pop_stack_by_needle(menu_list, setting->name);
@@ -1227,12 +1224,12 @@ static int action_ok_core_updater_download(const char *path,
 #ifdef HAVE_NETWORKING
    char core_url[PATH_MAX_LENGTH];
    char libretro_name[NAME_MAX_LENGTH];
-   char buf[NAME_MAX_LENGTH];
-   settings_t *settings    = config_get_ptr();
-   global_t *global        = global_get_ptr();
-   data_runloop_t *runloop = rarch_main_data_get_ptr();
-   menu_list_t *menu_list  = menu_list_get_ptr();
-   file_list_t *list       = NULL;
+   char msg[NAME_MAX_LENGTH];
+   char title[NAME_MAX_LENGTH];
+   settings_t *settings   = config_get_ptr();
+   global_t *global       = global_get_ptr();
+   menu_list_t *menu_list = menu_list_get_ptr();
+   file_list_t *list      = NULL;
    const char *lib_path;
    const char *crc_str;
 
@@ -1251,8 +1248,8 @@ static int action_ok_core_updater_download(const char *path,
       if (!name)
          name = path;
 
-      sprintf(buf, "Latest version already installed: %s", name);
-      rarch_main_msg_queue_push(buf, 1, 180, true);
+      sprintf(msg, "Latest version already installed: %s", name);
+      rarch_main_msg_queue_push(msg, 1, 180, true);
       return 0;
    }
 
@@ -1267,16 +1264,16 @@ static int action_ok_core_updater_download(const char *path,
          path, sizeof(core_url));
 
    if (!core_info_list_get_display_name(global->core_info_dl,
-         libretro_name, runloop->http.msg_title, NAME_MAX_LENGTH))
-      strlcpy(runloop->http.msg_title, libretro_name, NAME_MAX_LENGTH);
+         libretro_name, title, NAME_MAX_LENGTH))
+      strlcpy(title, libretro_name, NAME_MAX_LENGTH);
 
-   snprintf(buf, sizeof(buf), "%s\n%s", runloop->http.msg_title,
+   snprintf(msg, sizeof(msg), "%s\n%s", title,
          menu_hash_to_str(MENU_LABEL_VALUE_STARTING_DOWNLOAD));
 
-   rarch_main_msg_queue_push(buf, 1, 90, true);
+   rarch_main_msg_queue_push(msg, 1, 90, true);
 
    rarch_main_data_msg_queue_push(DATA_TYPE_HTTP, core_url,
-         "cb_core_updater_download", 0, 1, false);
+         "cb_core_updater_download", title, 0, 1, false);
 #endif
    return 0;
 }
@@ -1285,12 +1282,9 @@ static int action_ok_core_info_download(const char *path,
       const char *label, unsigned type, size_t idx, size_t entry_idx)
 {
    char buf[NAME_MAX_LENGTH];
-   data_runloop_t *runloop = rarch_main_data_get_ptr();
 
-   strlcpy(runloop->http.msg_title,
-         menu_hash_to_str(MENU_LABEL_VALUE_CORE_INFORMATION), NAME_MAX_LENGTH);
-
-   snprintf(buf, sizeof(buf), "%s\n%s.", runloop->http.msg_title,
+   snprintf(buf, sizeof(buf), "%s\n%s.",
+         menu_hash_to_str(MENU_LABEL_VALUE_CORE_INFORMATION),
          menu_hash_to_str(MENU_LABEL_VALUE_STARTING_DOWNLOAD));
    rarch_main_msg_queue_push(buf, 1, 90, true);
 
