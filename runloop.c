@@ -82,14 +82,14 @@ static bool check_pause(bool pause_pressed, bool frameadvance_pressed)
          pause_pressed |= !old_is_paused;
          frame_count = video_state_get_frame_count() + (pause_pressed ? 1:0);
          snprintf(msg, sizeof(msg), "Frame %lu", frame_count);
-         rarch_main_msg_queue_push(msg, 1, 0, true);
+         rarch_main_msg_queue_push(msg, 0, 0, true);
       }
 
       if (pause_pressed)
       {
          cmd = EVENT_CMD_PAUSE_TOGGLE;
          if (!old_is_paused && !frameadvance_pressed)
-            rarch_main_msg_queue_push("Paused", 1, 0, true);
+            rarch_main_msg_queue_push("Paused", 0, 0, true);
       }
       else if (!old_focus)
          cmd = EVENT_CMD_UNPAUSE;
@@ -423,35 +423,34 @@ static int do_pause_state_checks(
  *
  * Returns: 1 if RetroArch is in pause mode, 0 otherwise.
  **/
-static int do_state_checks(event_cmd_state_t *cmd)
+static int do_state_checks(event_cmd_state_t *cmd, retro_input_t trigger_input)
 {
-   driver_t  *driver         = driver_get_ptr();
-   runloop_t *runloop        = rarch_main_get_ptr();
-   global_t  *global         = global_get_ptr();
+   driver_t  *driver  = driver_get_ptr();
+   runloop_t *runloop = rarch_main_get_ptr();
+   global_t  *global  = global_get_ptr();
 
    (void)driver;
 
    if (runloop->is_idle)
       return 1;
 
-   if (cmd->screenshot_pressed)
-      event_command(EVENT_CMD_TAKE_SCREENSHOT);
-
-   if (cmd->mute_pressed)
-      event_command(EVENT_CMD_AUDIO_MUTE_TOGGLE);
-
-   if (cmd->osk_pressed)
+   if (trigger_input)
    {
-      driver_t *driver     = driver_get_ptr();
+      if (cmd->screenshot_pressed)
+         event_command(EVENT_CMD_TAKE_SCREENSHOT);
 
-      if (driver)
+      if (cmd->mute_pressed)
+         event_command(EVENT_CMD_AUDIO_MUTE_TOGGLE);
+
+      if (cmd->osk_pressed)
          driver->keyboard_linefeed_enable = !driver->keyboard_linefeed_enable;
-   }
 
-   if (cmd->advanced_toggle_pressed)
-      event_command(EVENT_CMD_ADVANCED_SETTINGS_TOGGLE);
-   if (cmd->show_fps_toggle)
-      event_command(EVENT_CMD_SHOW_FPS_TOGGLE);
+      if (cmd->advanced_toggle_pressed)
+         event_command(EVENT_CMD_ADVANCED_SETTINGS_TOGGLE);
+
+      if (cmd->show_fps_toggle)
+         event_command(EVENT_CMD_SHOW_FPS_TOGGLE);
+   }
 
 #ifdef HAVE_NETPLAY
    if (driver->netplay_data)
@@ -472,37 +471,40 @@ static int do_state_checks(event_cmd_state_t *cmd)
             cmd->fastforward_pressed, cmd->hold_pressed, cmd->old_hold_pressed);
    }
 
-   check_stateslots(cmd->state_slot_increase, cmd->state_slot_decrease);
+   if (trigger_input)
+   {
+      check_stateslots(cmd->state_slot_increase, cmd->state_slot_decrease);
 
-   if (cmd->save_state_pressed)
-      event_command(EVENT_CMD_SAVE_STATE);
-   else if (cmd->load_state_pressed)
-      event_command(EVENT_CMD_LOAD_STATE);
+      if (cmd->save_state_pressed)
+         event_command(EVENT_CMD_SAVE_STATE);
+      else if (cmd->load_state_pressed)
+         event_command(EVENT_CMD_LOAD_STATE);
+
+      check_shader_dir(cmd->shader_next_pressed, cmd->shader_prev_pressed);
+
+      if (cmd->disk_eject_pressed)
+         event_command(EVENT_CMD_DISK_EJECT_TOGGLE);
+      else if (cmd->disk_next_pressed)
+         event_command(EVENT_CMD_DISK_NEXT);
+      else if (cmd->disk_prev_pressed)
+         event_command(EVENT_CMD_DISK_PREV);
+
+      if (cmd->reset_pressed)
+         event_command(EVENT_CMD_RESET);
+
+      if (global->cheat)
+      {
+         if (cmd->cheat_index_plus_pressed)
+            cheat_manager_index_next(global->cheat);
+         else if (cmd->cheat_index_minus_pressed)
+            cheat_manager_index_prev(global->cheat);
+         else if (cmd->cheat_toggle_pressed)
+            cheat_manager_toggle(global->cheat);
+      }
+   }
 
    check_rewind(cmd->rewind_pressed);
    check_slowmotion(cmd->slowmotion_pressed);
-
-   check_shader_dir(cmd->shader_next_pressed, cmd->shader_prev_pressed);
-
-   if (cmd->disk_eject_pressed)
-      event_command(EVENT_CMD_DISK_EJECT_TOGGLE);
-   else if (cmd->disk_next_pressed)
-      event_command(EVENT_CMD_DISK_NEXT);
-   else if (cmd->disk_prev_pressed)
-      event_command(EVENT_CMD_DISK_PREV);
-
-   if (cmd->reset_pressed)
-      event_command(EVENT_CMD_RESET);
-
-   if (global->cheat)
-   {
-      if (cmd->cheat_index_plus_pressed)
-         cheat_manager_index_next(global->cheat);
-      else if (cmd->cheat_index_minus_pressed)
-         cheat_manager_index_prev(global->cheat);
-      else if (cmd->cheat_toggle_pressed)
-         cheat_manager_toggle(global->cheat);
-   }
 
    return 0;
 }
@@ -1022,7 +1024,7 @@ int rarch_main_iterate(void)
    rarch_main_iterate_linefeed_overlay();
 #endif
    
-   if (do_state_checks(&cmd))
+   if (do_state_checks(&cmd, trigger_input))
    {
       /* RetroArch has been paused */
       driver->retro_ctx.poll_cb();

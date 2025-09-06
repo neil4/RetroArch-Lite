@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
+import android.preference.PreferenceCategory;
 
 import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.NativeInterface;
@@ -31,10 +32,19 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
       ctx = getContext();
 
       // Add general preferences from the XML.
+      addPreferencesFromResource(R.xml.general_preferences);
+
+      // Hide preferences as needed
+      PreferenceCategory catCoreMgr = (PreferenceCategory) findPreference("cat_core_management");
+      PreferenceCategory catUi = (PreferenceCategory) findPreference("cat_ui");
       if (haveSharedCoreManager())
-         addPreferencesFromResource(R.xml.general_preferences_32_64);
+         catCoreMgr.removePreference(findPreference("manage_cores"));
       else
-         addPreferencesFromResource(R.xml.general_preferences);
+      {
+         catCoreMgr.removePreference(findPreference("manage_cores32"));
+         catCoreMgr.removePreference(findPreference("manage_cores64"));
+         catUi.removePreference(findPreference("append_abi_to_corenames"));
+      }
       
       // Set preference listeners
       findPreference("install_assets_pref").setOnPreferenceClickListener(this);

@@ -253,7 +253,7 @@ static bool preempt_alloc_buffer(preempt_t *preempt)
       {
          RARCH_WARN("Failed to allocate memory for Preemptive Frames.\n");
          rarch_main_msg_queue_push("Failed to allocate memory for "
-                                   "Preemptive Frames.", 0, 180, false);
+                                   "Preemptive Frames.", 1, 180, false);
          return false;
       }
    }
@@ -389,7 +389,7 @@ void preempt_pre_frame(preempt_t *preempt)
 error:
    driver->audio_suspended = false;
    driver->video_active    = true;
-   rarch_main_msg_queue_push(failed_str, 0, 180, false);
+   rarch_main_msg_queue_push(failed_str, 1, 180, false);
    preempt_deinit();
 }
 
@@ -440,7 +440,7 @@ bool preempt_init(void)
       RARCH_WARN("Preemptive Frames init failed. "
             "Core does not support savestates.\n");
       rarch_main_msg_queue_push("Preemptive Frames init failed.\n"
-            "Core does not support savestates.", 0, 180, false);
+            "Core does not support savestates.", 1, 180, false);
       return false;
    }
 

@@ -162,11 +162,15 @@ public final class CoreManagerActivity extends AppCompatActivity implements Down
    {
       int endIndex = coreBasename.lastIndexOf("_android");
       if (endIndex < 0)
+      {
          endIndex = coreBasename.lastIndexOf("_libretro") + 9;
-      if (endIndex < 9)
-         endIndex = coreBasename.indexOf('.');
-      if (endIndex < 0)
-         endIndex = coreBasename.length();
+         if (endIndex < 9)
+         {
+            endIndex = coreBasename.indexOf('.');
+            if (endIndex < 0)
+               endIndex = coreBasename.length();
+         }
+      }
 
       return coreBasename.substring(0, endIndex) + ".info";
    }

@@ -178,6 +178,12 @@ public final class DownloadableCoresFragment extends ListFragment
 
       MenuInflater inflater = getActivity().getMenuInflater();
       inflater.inflate(R.menu.downloadable_cores_context_menu, menu);
+
+      SharedPreferences prefs = UserPreferences.getPreferences(getContext());
+      boolean sortBySys = prefs.getBoolean("sort_dl_cores_by_system", true);
+
+      menu.findItem(R.id.sort_by_system_ctx_item).setVisible(!sortBySys);
+      menu.findItem(R.id.sort_by_name_ctx_item).setVisible(sortBySys);
    }
 
    @Override

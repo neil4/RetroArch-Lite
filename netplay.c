@@ -133,7 +133,7 @@ struct netplay
 static void warn_hangup(void)
 {
    RARCH_WARN("Netplay has disconnected. Will continue without connection ...\n");
-   rarch_main_msg_queue_push("Netplay has disconnected. Will continue without connection.", 0, 480, false);
+   rarch_main_msg_queue_push("Netplay has disconnected. Will continue without connection.", 1, 480, false);
 }
 
 /**
@@ -327,7 +327,7 @@ static bool netplay_get_cmd(netplay_t *netplay)
       case NETPLAY_CMD_LOAD_SAVESTATE:
          if (!silent)
          {
-            rarch_main_msg_queue_push("Receiving netplay state...", 0, 1, true);
+            rarch_main_msg_queue_push("Receiving netplay state...", 1, 1, true);
             video_driver_cached_frame();
          }
 
@@ -337,7 +337,7 @@ static bool netplay_get_cmd(netplay_t *netplay)
          {
             RARCH_ERR("Failed to receive netplay state from peer.\n");
             rarch_main_msg_queue_push("Failed to receive netplay state "
-                  "from peer.", 0, 1, true);
+                  "from peer.", 1, 1, true);
             return netplay_cmd_nak(netplay);
          }
 
@@ -809,7 +809,7 @@ static int init_tcp_connection(const struct addrinfo *res,
                      res->ai_socktype, res->ai_protocol);
                continue;
             }
-            rarch_main_msg_queue_push("TCP failed to connect", 3, 240, true);
+            rarch_main_msg_queue_push("TCP failed to connect", 2, 240, true);
             goto fail;
          }
          return 1;
@@ -979,7 +979,7 @@ static int init_socket(netplay_t *netplay, const char *server, uint16_t port)
 
    if (!init_udp_socket(netplay, server, port))
    {
-      rarch_main_msg_queue_push("Failed to init UDP socket.", 1, 240, true);
+      rarch_main_msg_queue_push("Failed to init UDP socket.", 2, 240, true);
       return -1;
    }
 
@@ -1296,7 +1296,7 @@ bool netplay_connect(netplay_t *netplay)
 error:
    deinit_netplay();
    RARCH_WARN(RETRO_LOG_INIT_NETPLAY_FAILED);
-   rarch_main_msg_queue_push(RETRO_MSG_INIT_NETPLAY_FAILED, 0, 180, false);
+   rarch_main_msg_queue_push(RETRO_MSG_INIT_NETPLAY_FAILED, 2, 180, false);
 
    return false;
 }
@@ -1376,7 +1376,7 @@ bool netplay_send_savestate(bool silent)
 
    if (!silent)
    {
-      rarch_main_msg_queue_push("Sending netplay state...", 0, 1, true);
+      rarch_main_msg_queue_push("Sending netplay state...", 1, 1, true);
       video_driver_cached_frame();
    }
 
@@ -1386,12 +1386,12 @@ bool netplay_send_savestate(bool silent)
          || !netplay_get_response(netplay))
    {
       RARCH_LOG("Failed to send netplay state.\n");
-      rarch_main_msg_queue_push("Failed to send netplay state.", 1, 180, true);
+      rarch_main_msg_queue_push("Failed to send netplay state.", 2, 180, true);
       return false;
    }
 
    if (!silent)
-      rarch_main_msg_queue_push("Netplay state sent.", 0, 120, true);
+      rarch_main_msg_queue_push("Netplay state sent.", 1, 120, true);
 
    netplay->need_resync = true;
 
@@ -1530,7 +1530,7 @@ void netplay_pre_frame(netplay_t *netplay)
 }
 
 /**
- * netplay_post_frame:   
+ * netplay_post_frame:
  * @netplay : pointer to netplay object
  *
  * Post-frame for Netplay.
@@ -1688,7 +1688,7 @@ bool init_netplay(void)
 
    rarch_main_msg_queue_push(
          RETRO_MSG_INIT_NETPLAY_FAILED,
-         0, 180, false);
+         2, 180, false);
    return false;
 }
 

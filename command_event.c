@@ -234,7 +234,7 @@ void event_disk_control_append_image(const char *path)
 
    RARCH_LOG("Loaded disc: %s\n", path);
    snprintf(msg, sizeof(msg), "Loaded disc: %s", path_basename(path));
-   rarch_main_msg_queue_push(msg, 0, 180, true);
+   rarch_main_msg_queue_push(msg, 1, 180, true);
 
    event_command(EVENT_CMD_AUTOSAVE_DEINIT);
 
@@ -1363,8 +1363,7 @@ bool event_command(enum event_command cmd)
          {
             event_command(EVENT_CMD_NETPLAY_DEINIT);
             rarch_main_msg_queue_push("Netplay has disconnected."
-                                      " Will continue without connection.",
-                                      0, 480, false);
+                  " Will continue without connection.", 2, 480, false);
          }  /* else, init on next launch */
 #endif
          break;  
@@ -1472,7 +1471,8 @@ bool event_command(enum event_command cmd)
                rarch_main_set_state(RARCH_ACTION_STATE_MENU_RUNNING_FINISHED);
          }
          else
-            rarch_main_msg_queue_push("Core does not support Disc Control.", 1, 120, true);
+            rarch_main_msg_queue_push("Core does not support Disc Control.",
+                  1, 120, true);
          break;
       case EVENT_CMD_DISK_NEXT:
          if (global->system.disk_control.get_num_images)
@@ -1490,7 +1490,8 @@ bool event_command(enum event_command cmd)
             event_check_disk_next(control);
          }
          else
-            rarch_main_msg_queue_push("Core does not support Disc Control.", 1, 120, true);
+            rarch_main_msg_queue_push("Core does not support Disc Control.",
+                  1, 120, true);
          break;
       case EVENT_CMD_DISK_PREV:
          if (global->system.disk_control.get_num_images)
@@ -1508,7 +1509,8 @@ bool event_command(enum event_command cmd)
             event_check_disk_prev(control);
          }
          else
-            rarch_main_msg_queue_push("Core does not support Disk Control.", 1, 120, true);
+            rarch_main_msg_queue_push("Core does not support Disc Control.",
+                  1, 120, true);
          break;
       case EVENT_CMD_RUMBLE_STOP:
          for (i = 0; i < MAX_USERS; i++)

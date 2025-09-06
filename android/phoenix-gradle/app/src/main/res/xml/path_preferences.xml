@@ -4,7 +4,7 @@
     <!-- ROM Paths -->
     <PreferenceCategory android:title="@string/rom_paths">
         <Preference
-            android:key="romDirPref"
+            android:key="rom_dir_pref"
             android:title="@string/rom_directory"
             android:summary="@string/rom_directory_desc"/>
     </PreferenceCategory>
@@ -16,7 +16,7 @@
             android:key="savefile_directory_enable"
             android:defaultValue="false"/>
         <Preference
-            android:key="srmDirPref"
+            android:key="srm_dir_pref"
             android:title="@string/savefile_directory"
             android:summary="@string/savefile_directory_desc"
             android:dependency="savefile_directory_enable"/>
@@ -29,7 +29,7 @@
             android:key="savestate_directory_enable"
             android:defaultValue="false"/>
         <Preference
-            android:key="saveStateDirPref"
+            android:key="save_state_dir_pref"
             android:title="@string/save_state_directory"
             android:summary="@string/save_state_directory_desc"
             android:dependency="savestate_directory_enable"/>
@@ -42,12 +42,12 @@
             android:key="system_directory_enable"
             android:defaultValue="false"/>
         <Preference
-            android:key="systemDirPref"
+            android:key="system_dir_pref"
             android:title="@string/system_directory"
             android:summary="@string/system_directory_desc"
             android:dependency="system_directory_enable"/>
     </PreferenceCategory>
-    
+
     <!-- Config -->
     <PreferenceCategory android:title="@string/config">
         <CheckBoxPreference android:title="@string/enable_custom_dir"
@@ -55,22 +55,33 @@
             android:key="config_directory_enable"
             android:defaultValue="false"/>
         <Preference
-            android:key="configDirPref"
+            android:key="config_dir_pref"
             android:title="@string/config_directory"
             android:summary="@string/config_directory_desc"
             android:dependency="config_directory_enable"/>
     </PreferenceCategory>
-    
+
     <!-- Local/Backup Installable Cores -->
-    <PreferenceCategory android:title="@string/backup_cores_paths">
+    <PreferenceCategory
+        android:title="@string/backup_cores_paths"
+        android:key="cat_backup_cores">
+        <CheckBoxPreference android:title="@string/enable_custom_dir"
+            android:summary="@string/backup_cores64_custom_dir"
+            android:key="backup_cores64_directory_enable"
+            android:defaultValue="false"/>
         <CheckBoxPreference android:title="@string/enable_custom_dir"
             android:summary="@string/backup_cores32_custom_dir"
-            android:key="backup_cores_directory_enable"
+            android:key="backup_cores32_directory_enable"
             android:defaultValue="false"/>
         <Preference
-            android:key="backupCoresDirPref"
+            android:key="backup_cores64_dir_pref"
+            android:title="@string/backup_cores_directory"
+            android:summary="@string/backup_cores64_directory_desc"
+            android:dependency="backup_cores64_directory_enable"/>
+        <Preference
+            android:key="backup_cores32_dir_pref"
             android:title="@string/backup_cores_directory"
             android:summary="@string/backup_cores32_directory_desc"
-            android:dependency="backup_cores_directory_enable"/>
+            android:dependency="backup_cores32_directory_enable"/>
     </PreferenceCategory>
 </PreferenceScreen>
