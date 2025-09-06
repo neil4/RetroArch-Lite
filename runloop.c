@@ -450,6 +450,8 @@ static int do_state_checks(event_cmd_state_t *cmd)
 
    if (cmd->advanced_toggle_pressed)
       event_command(EVENT_CMD_ADVANCED_SETTINGS_TOGGLE);
+   if (cmd->show_fps_toggle)
+      event_command(EVENT_CMD_SHOW_FPS_TOGGLE);
 
 #ifdef HAVE_NETPLAY
    if (driver->netplay_data)
@@ -967,6 +969,7 @@ static void rarch_main_cmd_get_state(event_cmd_state_t *cmd,
    cmd->old_hold_pressed            = BIT64_GET(old_input, RARCH_FAST_FORWARD_HOLD_KEY);
    cmd->state_slot_increase         = BIT64_GET(trigger_input, RARCH_STATE_SLOT_PLUS);
    cmd->state_slot_decrease         = BIT64_GET(trigger_input, RARCH_STATE_SLOT_MINUS);
+   cmd->show_fps_toggle             = BIT64_GET(trigger_input, RARCH_SHOW_FPS_TOGGLE);
    cmd->pause_pressed               = BIT64_GET(trigger_input, RARCH_PAUSE_TOGGLE);
    cmd->frameadvance_pressed        = BIT64_GET(trigger_input, RARCH_FRAMEADVANCE);
    cmd->rewind_pressed              = BIT64_GET(input,         RARCH_REWIND);

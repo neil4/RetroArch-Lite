@@ -55,6 +55,7 @@
 #define RETRO_LBL_QUIT_KEY "Quit Key"
 #define RETRO_LBL_STATE_SLOT_PLUS "State Slot Plus"
 #define RETRO_LBL_STATE_SLOT_MINUS "State Slot Minus"
+#define RETRO_LBL_SHOW_FPS "Show FPS"
 #define RETRO_LBL_REWIND "Rewind"
 #define RETRO_LBL_PAUSE_TOGGLE "Pause Toggle"
 #define RETRO_LBL_FRAMEADVANCE "Frame Advance"

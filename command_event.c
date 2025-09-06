@@ -1419,6 +1419,9 @@ bool event_command(enum event_command cmd)
          settings_touched = true;
          event_command(EVENT_CMD_REINIT);
          break;
+      case EVENT_CMD_SHOW_FPS_TOGGLE:
+         settings->fps_show = !settings->fps_show;
+         break;
       case EVENT_CMD_COMMAND_DEINIT:
 #ifdef HAVE_COMMAND
          if (driver->command)

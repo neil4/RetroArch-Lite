@@ -186,6 +186,8 @@ enum event_command
    EVENT_CMD_DISK_NEXT,
    /* Cycle to previous disk. */
    EVENT_CMD_DISK_PREV,
+   /* Toggles framerate display */
+   EVENT_CMD_SHOW_FPS_TOGGLE,
    /* Stops rumbling. */
    EVENT_CMD_RUMBLE_STOP,
    /* Toggles mouse grab. */
@@ -232,6 +234,7 @@ typedef struct event_cmd_state
    bool cheat_index_minus_pressed;
    bool cheat_toggle_pressed;
    bool kbd_focus_toggle_pressed;
+   bool show_fps_toggle;
 } event_cmd_state_t;
 
 /**

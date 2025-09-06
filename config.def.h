@@ -777,6 +777,7 @@ static const struct retro_keybind retro_keybinds_1[] = {
    { true, RARCH_QUIT_KEY,                RETRO_LBL_QUIT_KEY,              RETROK_q,       NO_BTN, 0, AXIS_NONE },
    { true, RARCH_STATE_SLOT_PLUS,         RETRO_LBL_STATE_SLOT_PLUS,       RETROK_F7,      NO_BTN, 0, AXIS_NONE },
    { true, RARCH_STATE_SLOT_MINUS,        RETRO_LBL_STATE_SLOT_MINUS,      RETROK_F6,      NO_BTN, 0, AXIS_NONE },
+   { true, RARCH_SHOW_FPS_TOGGLE,         RETRO_LBL_SHOW_FPS,              RETROK_F3,      NO_BTN, 0, AXIS_NONE },
    { true, RARCH_REWIND,                  RETRO_LBL_REWIND,                RETROK_UNKNOWN, NO_BTN, 0, AXIS_NONE },
    { true, RARCH_PAUSE_TOGGLE,            RETRO_LBL_PAUSE_TOGGLE,          RETROK_p,       NO_BTN, 0, AXIS_NONE },
    { true, RARCH_FRAMEADVANCE,            RETRO_LBL_FRAMEADVANCE,          RETROK_k,       NO_BTN, 0, AXIS_NONE },

@@ -90,6 +90,7 @@ const struct input_bind_map input_config_bind_map[RARCH_BIND_LIST_END_NULL] = {
       DECLARE_META_BIND(2, exit_emulator,         RARCH_QUIT_KEY, "Quit RetroArch Lite"),
       DECLARE_META_BIND(2, state_slot_increase,   RARCH_STATE_SLOT_PLUS, "Savestate slot +"),
       DECLARE_META_BIND(2, state_slot_decrease,   RARCH_STATE_SLOT_MINUS, "Savestate slot -"),
+      DECLARE_META_BIND(2, fps_toggle,            RARCH_SHOW_FPS_TOGGLE, "FPS toggle"),
       DECLARE_META_BIND(1, rewind,                RARCH_REWIND, "Rewind"),
       DECLARE_META_BIND(2, pause_toggle,          RARCH_PAUSE_TOGGLE, "Pause toggle"),
       DECLARE_META_BIND(2, frame_advance,         RARCH_FRAMEADVANCE, "Frame advance"),
