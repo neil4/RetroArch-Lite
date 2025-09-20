@@ -588,6 +588,22 @@ static void input_overlay_free_overlay(struct overlay *overlay)
    free(overlay->descs);
 }
 
+static void input_overlay_free_images(input_overlay_t *ol)
+{
+   struct string_list *image_list;
+   size_t i;
+
+   if (!ol)
+      return;
+
+   image_list = ol->image_list;
+
+   for (i = 0; i < image_list->size; i++)
+      texture_image_free(image_list->elems[i].attr.p);
+
+   string_list_free(image_list);
+}
+
 static void input_overlay_free_overlays(input_overlay_t *ol)
 {
    size_t i;
@@ -1485,19 +1501,19 @@ void input_overlay_loader_iterate(input_overlay_t *ol,
 static void input_overlay_free_loader(input_overlay_t *ol)
 {
 #ifdef HAVE_THREADS
-   if (ol->loader_thread)
-   {
-      /* Signal loader exit */
-      ol->is_loading = false;
-      input_overlay_loader_iterate(ol, NULL);
+   if (!ol->loader_thread)
+      return;
 
-      /* Free */
-      sthread_join(ol->loader_thread);
-      ol->loader_thread = NULL;
+   /* Signal loader exit */
+   ol->is_loading = false;
+   input_overlay_loader_iterate(ol, NULL);
 
-      scond_free(ol->loader_cond);
-      slock_free(ol->loader_mutex);
-   }
+   /* Free */
+   sthread_join(ol->loader_thread);
+   ol->loader_thread = NULL;
+
+   scond_free(ol->loader_cond);
+   slock_free(ol->loader_mutex);
 #endif
 }
 
@@ -2954,15 +2970,7 @@ void input_overlay_free(input_overlay_t *ol)
    if (ol->conf)
       config_file_free(ol->conf);
 
-   if (ol->image_list)
-   {
-      struct string_list *image_list = ol->image_list;
-      int i;
-
-      for (i = 0; i < image_list->size; i++)
-         texture_image_free(image_list->elems[i].attr.p);
-      string_list_free(image_list);
-   }
+   input_overlay_free_images(ol);
 
    input_overlay_free_overlays(ol);
 
