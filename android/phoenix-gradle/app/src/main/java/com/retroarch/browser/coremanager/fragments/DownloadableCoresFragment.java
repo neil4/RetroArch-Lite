@@ -249,8 +249,10 @@ public final class DownloadableCoresFragment extends ListFragment
       coreList = new ArrayList<>();
       coreList.add(new DownloadableCore("", "", BUILDBOT_INFO_URL, false));
 
-      for (DownloadableCore core : cores)
+      for (int i = 1; i < cores.size(); i++) // Skip info.zip
       {
+         DownloadableCore core = cores.get(i);
+
          String fileName = core.getShortURLName();
          String infoPath = getContext().getApplicationInfo().dataDir + "/info/"
                + infoBasename((fileName));
@@ -330,7 +332,7 @@ public final class DownloadableCoresFragment extends ListFragment
 
             for (String line; (line = br.readLine()) != null;)
             {
-               if (line.startsWith("."))
+               if (line.trim().isEmpty() || line.startsWith("."))
                   continue;
                String[] tokens = line.split(" ", 3);
                String fileName = tokens.length < 3 ? line : tokens[2];
@@ -608,22 +610,27 @@ public final class DownloadableCoresFragment extends ListFragment
 
             while (entry != null)
             {
+               String name = entry.getName();
+
                // Change destination if .info bundled with core
-               if (!isInfo && entry.getName().endsWith(".info"))
-                  file = new File(destDir.replace("/cores", "/info"), entry.getName());
+               if (!isInfo && name.endsWith(".info"))
+                  file = new File(destDir.replaceFirst("/cores", "/info"), name);
                else
                {
-                  file = new File(destDir, entry.getName());
+                  file = new File(destDir, name);
                   isUpdate = isUpdate || file.exists();
                }
 
-               fos = new FileOutputStream(file);
-               while ((readLen = zis.read(buffer)) != -1)
+               if (name.endsWith(".so") || name.endsWith(".info"))
                {
-                  fos.write(buffer, 0, readLen);
-                  publishProgress((int) (fis.getChannel().position() * 100 / zipLen));
+                  fos = new FileOutputStream(file);
+                  while ((readLen = zis.read(buffer)) != -1)
+                  {
+                     fos.write(buffer, 0, readLen);
+                     publishProgress((int) (fis.getChannel().position() * 100 / zipLen));
+                  }
+                  fos.close();
                }
-               fos.close();
 
                zis.closeEntry();
                entry = zis.getNextEntry();
@@ -661,7 +668,7 @@ public final class DownloadableCoresFragment extends ListFragment
       {
          super.onPostExecute(result);
 
-         if (isDownload && zipFile.exists())
+         if (isDownload)
             zipFile.delete();
 
          // Invoke callback to update the installed cores list.
