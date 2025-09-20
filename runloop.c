@@ -945,41 +945,46 @@ static void rarch_main_cmd_get_state(event_cmd_state_t *cmd,
       retro_input_t input, retro_input_t old_input,
       retro_input_t trigger_input)
 {
-   if (!cmd)
-      return;
+   if (trigger_input)
+   {
+      cmd->fullscreen_toggle         = BIT64_GET(trigger_input, RARCH_FULLSCREEN_TOGGLE_KEY);
+      cmd->overlay_next_pressed      = BIT64_GET(trigger_input, RARCH_OVERLAY_NEXT);
+      cmd->grab_mouse_pressed        = BIT64_GET(trigger_input, RARCH_GRAB_MOUSE_TOGGLE);
+      cmd->menu_pressed              = BIT64_GET(trigger_input, RARCH_MENU_TOGGLE);
+      cmd->quit_key_pressed          = BIT64_GET(trigger_input, RARCH_QUIT_KEY);
+      cmd->screenshot_pressed        = BIT64_GET(trigger_input, RARCH_SCREENSHOT);
+      cmd->mute_pressed              = BIT64_GET(trigger_input, RARCH_MUTE);
+      cmd->osk_pressed               = BIT64_GET(trigger_input, RARCH_OSK);
+      cmd->advanced_toggle_pressed   = BIT64_GET(trigger_input, RARCH_ADVANCED_TOGGLE);
+      cmd->reset_pressed             = BIT64_GET(trigger_input, RARCH_RESET);
+      cmd->disk_prev_pressed         = BIT64_GET(trigger_input, RARCH_DISK_PREV);
+      cmd->disk_next_pressed         = BIT64_GET(trigger_input, RARCH_DISK_NEXT);
+      cmd->disk_eject_pressed        = BIT64_GET(trigger_input, RARCH_DISK_EJECT_TOGGLE);
+      cmd->save_state_pressed        = BIT64_GET(trigger_input, RARCH_SAVE_STATE_KEY);
+      cmd->load_state_pressed        = BIT64_GET(trigger_input, RARCH_LOAD_STATE_KEY);
+      cmd->shader_next_pressed       = BIT64_GET(trigger_input, RARCH_SHADER_NEXT);
+      cmd->shader_prev_pressed       = BIT64_GET(trigger_input, RARCH_SHADER_PREV);
+      cmd->fastforward_pressed       = BIT64_GET(trigger_input, RARCH_FAST_FORWARD_KEY);
+      cmd->state_slot_increase       = BIT64_GET(trigger_input, RARCH_STATE_SLOT_PLUS);
+      cmd->state_slot_decrease       = BIT64_GET(trigger_input, RARCH_STATE_SLOT_MINUS);
+      cmd->show_fps_toggle           = BIT64_GET(trigger_input, RARCH_SHOW_FPS_TOGGLE);
+      cmd->pause_pressed             = BIT64_GET(trigger_input, RARCH_PAUSE_TOGGLE);
+      cmd->frameadvance_pressed      = BIT64_GET(trigger_input, RARCH_FRAMEADVANCE);
+      cmd->netplay_flip_pressed      = BIT64_GET(trigger_input, RARCH_NETPLAY_FLIP);
+      cmd->cheat_index_plus_pressed  = BIT64_GET(trigger_input, RARCH_CHEAT_INDEX_PLUS);
+      cmd->cheat_index_minus_pressed = BIT64_GET(trigger_input, RARCH_CHEAT_INDEX_MINUS);
+      cmd->cheat_toggle_pressed      = BIT64_GET(trigger_input, RARCH_CHEAT_TOGGLE);
+      cmd->kbd_focus_toggle_pressed  = BIT64_GET(trigger_input, RARCH_TOGGLE_KEYBOARD_FOCUS);
+   }
 
-   cmd->fullscreen_toggle           = BIT64_GET(trigger_input, RARCH_FULLSCREEN_TOGGLE_KEY);
-   cmd->overlay_next_pressed        = BIT64_GET(trigger_input, RARCH_OVERLAY_NEXT);
-   cmd->grab_mouse_pressed          = BIT64_GET(trigger_input, RARCH_GRAB_MOUSE_TOGGLE);
-   cmd->menu_pressed                = BIT64_GET(trigger_input, RARCH_MENU_TOGGLE);
-   cmd->quit_key_pressed            = BIT64_GET(trigger_input, RARCH_QUIT_KEY);
-   cmd->screenshot_pressed          = BIT64_GET(trigger_input, RARCH_SCREENSHOT);
-   cmd->mute_pressed                = BIT64_GET(trigger_input, RARCH_MUTE);
-   cmd->osk_pressed                 = BIT64_GET(trigger_input, RARCH_OSK);
-   cmd->advanced_toggle_pressed     = BIT64_GET(trigger_input, RARCH_ADVANCED_TOGGLE);
-   cmd->reset_pressed               = BIT64_GET(trigger_input, RARCH_RESET);
-   cmd->disk_prev_pressed           = BIT64_GET(trigger_input, RARCH_DISK_PREV);
-   cmd->disk_next_pressed           = BIT64_GET(trigger_input, RARCH_DISK_NEXT);
-   cmd->disk_eject_pressed          = BIT64_GET(trigger_input, RARCH_DISK_EJECT_TOGGLE);
-   cmd->save_state_pressed          = BIT64_GET(trigger_input, RARCH_SAVE_STATE_KEY);
-   cmd->load_state_pressed          = BIT64_GET(trigger_input, RARCH_LOAD_STATE_KEY);
-   cmd->slowmotion_pressed          = BIT64_GET(input, RARCH_SLOWMOTION);
-   cmd->shader_next_pressed         = BIT64_GET(trigger_input, RARCH_SHADER_NEXT);
-   cmd->shader_prev_pressed         = BIT64_GET(trigger_input, RARCH_SHADER_PREV);
-   cmd->fastforward_pressed         = BIT64_GET(trigger_input, RARCH_FAST_FORWARD_KEY);
-   cmd->hold_pressed                = BIT64_GET(input, RARCH_FAST_FORWARD_HOLD_KEY);
-   cmd->old_hold_pressed            = BIT64_GET(old_input, RARCH_FAST_FORWARD_HOLD_KEY);
-   cmd->state_slot_increase         = BIT64_GET(trigger_input, RARCH_STATE_SLOT_PLUS);
-   cmd->state_slot_decrease         = BIT64_GET(trigger_input, RARCH_STATE_SLOT_MINUS);
-   cmd->show_fps_toggle             = BIT64_GET(trigger_input, RARCH_SHOW_FPS_TOGGLE);
-   cmd->pause_pressed               = BIT64_GET(trigger_input, RARCH_PAUSE_TOGGLE);
-   cmd->frameadvance_pressed        = BIT64_GET(trigger_input, RARCH_FRAMEADVANCE);
-   cmd->rewind_pressed              = BIT64_GET(input,         RARCH_REWIND);
-   cmd->netplay_flip_pressed        = BIT64_GET(trigger_input, RARCH_NETPLAY_FLIP);
-   cmd->cheat_index_plus_pressed    = BIT64_GET(trigger_input, RARCH_CHEAT_INDEX_PLUS);
-   cmd->cheat_index_minus_pressed   = BIT64_GET(trigger_input, RARCH_CHEAT_INDEX_MINUS);
-   cmd->cheat_toggle_pressed        = BIT64_GET(trigger_input, RARCH_CHEAT_TOGGLE);
-   cmd->kbd_focus_toggle_pressed    = BIT64_GET(trigger_input, RARCH_TOGGLE_KEYBOARD_FOCUS);
+   if (input)
+   {
+      cmd->slowmotion_pressed        = BIT64_GET(input, RARCH_SLOWMOTION);
+      cmd->rewind_pressed            = BIT64_GET(input, RARCH_REWIND);
+      cmd->hold_pressed              = BIT64_GET(input, RARCH_FAST_FORWARD_HOLD_KEY);
+   }
+
+   cmd->old_hold_pressed = BIT64_GET(old_input, RARCH_FAST_FORWARD_HOLD_KEY);
 }
 
 /**
