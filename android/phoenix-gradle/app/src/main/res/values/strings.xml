@@ -141,9 +141,9 @@
     <string name="exit_to_launcher_desc">Return to the launcher menu when exiting a core.</string>
     <string name="asset_management">Asset Management</string>
     <string name="install_assets">Install Assets</string>
-    <string name="install_assets_desc">Install/Update assets from a zip file.\nContents are only extracted from these folders:  overlays, info, shaders_glsl, themes_rgui</string>
+    <string name="install_assets_desc">Install/Update assets from a zip file.\nContents are only extracted from these folders:  overlays, info, shaders_glsl, themes_rgui, autoconfig</string>
     <string name="restore_assets">Restore Assets</string>
-    <string name="restore_assets_desc">Reinstalls original assets and removes user-installed overlays, core info, shaders, and themes.</string>
+    <string name="restore_assets_desc">Reinstalls original assets and removes user-installed overlays, core info, shaders, themes, and controller auto-configs.</string>
 
     <!-- Video Settings -->
     <string name="video_options">Video</string>

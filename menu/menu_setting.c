@@ -7933,7 +7933,7 @@ static bool setting_append_list_menu_options(
 
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
-   
+
    if (!driver->netplay_data)
    {
       CONFIG_BOOL(
@@ -7951,6 +7951,9 @@ static bool setting_append_list_menu_options(
       menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_MENU_PAUSE_LIBRETRO);
       settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
    }
+
+   END_SUB_GROUP(list, list_info, parent_group);
+   START_SUB_GROUP(list, list_info, "Navigation", group_info.name, subgroup_info, parent_group);
 
    CONFIG_BOOL(
          settings->menu.mouse.enable,
@@ -7978,9 +7981,21 @@ static bool setting_append_list_menu_options(
          general_write_handler,
          general_read_handler);
 
-   END_SUB_GROUP(list, list_info, parent_group);
-   START_SUB_GROUP(list, list_info, "Navigation", group_info.name, subgroup_info, parent_group);
-   
+#ifdef ANDROID
+   CONFIG_BOOL(
+         settings->input.back_btn_toggles_menu,
+         "input_back_btn_toggles_menu",
+         "Back Button Toggles Menu",
+         back_btn_toggles_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+#endif
+
    CONFIG_BOOL(
          settings->menu.swap_ok_cancel,
          "menu_swap_ok_cancel",
@@ -8024,7 +8039,7 @@ static bool setting_append_list_menu_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   
+
    CONFIG_BOOL(
          settings->menu.mame_titles,
          "mame_titles",
@@ -8051,7 +8066,10 @@ static bool setting_append_list_menu_options(
    menu_settings_list_current_add_range(list, list_info, 0, 2, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_archive_mode;
-   
+
+   END_SUB_GROUP(list, list_info, parent_group);
+   START_SUB_GROUP(list, list_info, "Display", group_info.name, subgroup_info, parent_group);
+
    CONFIG_BOOL(
          settings->menu_show_start_screen,
          "rgui_show_start_screen",
@@ -8108,9 +8126,6 @@ static bool setting_append_list_menu_options(
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 0.5, 6, 0.1, true, true);
    (*list)[list_info->index - 1].change_handler = gui_update_change_handler;
-
-   END_SUB_GROUP(list, list_info, parent_group);
-   START_SUB_GROUP(list, list_info, "Display", group_info.name, subgroup_info, parent_group);
 
    CONFIG_BOOL(
          settings->menu.dpi.override_enable,

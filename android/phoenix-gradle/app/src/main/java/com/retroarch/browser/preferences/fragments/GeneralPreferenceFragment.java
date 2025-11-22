@@ -82,7 +82,7 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
                .setPositiveButton("Yes",
                      new DialogInterface.OnClickListener()
                      {
-                        String folders[] = {"/overlays", "/info", "/shaders_glsl", "/themes_rgui", "/video_filters", "/audio_filters"};
+                        String folders[] = {"/overlays", "/info", "/shaders_glsl", "/themes_rgui", "/video_filters", "/audio_filters", "/autoconfig"};
 
                         public void onClick(DialogInterface dialog, int id)
                         {
@@ -116,7 +116,7 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
    @Override
    public void onDirectoryFragmentClosed(String path)
    {
-      String folders[] = {"overlays", "info", "shaders_glsl", "themes_rgui"};
+      String folders[] = {"overlays", "info", "shaders_glsl", "themes_rgui", "autoconfig"};
       String dataDir = ctx.getApplicationInfo().dataDir;
 
       AlertDialog.Builder builder = new AlertDialog.Builder(ctx);

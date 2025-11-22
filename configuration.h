@@ -324,6 +324,9 @@ typedef struct settings
       int overlay_vibrate_time;
 
       unsigned menu_toggle_btn_combo;
+#ifdef ANDROID
+      bool back_btn_toggles_menu;
+#endif
 
       char autoconfig_dir[PATH_MAX_LENGTH];
       bool autoconfig_descriptor_label_show;

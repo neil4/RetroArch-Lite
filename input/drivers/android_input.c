@@ -671,15 +671,18 @@ static INLINE void android_input_poll_event_type_key(
    else if (action == AKEY_EVENT_ACTION_DOWN && !block_pad)
       BIT_SET(buf, keycode);
 
-   if ((keycode == AKEYCODE_VOLUME_UP || keycode == AKEYCODE_VOLUME_DOWN))
-      *handled = 0;
-   else if (keycode == AKEYCODE_BACK || keycode == AKEYCODE_MENU)
+   if (keycode == AKEYCODE_BACK)
    {
-      if (action == AKEY_EVENT_ACTION_DOWN)
-         global->lifecycle_state |= (1ULL << RARCH_MENU_TOGGLE);
-      else if (action == AKEY_EVENT_ACTION_UP)
-         global->lifecycle_state &= ~(1ULL << RARCH_MENU_TOGGLE);
+      if (config_get_ptr()->input.back_btn_toggles_menu)
+      {
+         if (action == AKEY_EVENT_ACTION_DOWN)
+            global->lifecycle_state |= (1ULL << RARCH_MENU_TOGGLE);
+         else if (action == AKEY_EVENT_ACTION_UP)
+            global->lifecycle_state &= ~(1ULL << RARCH_MENU_TOGGLE);
+      }
    }
+   else if ((keycode == AKEYCODE_VOLUME_UP || keycode == AKEYCODE_VOLUME_DOWN))
+      *handled = 0;
 }
 
 static int android_input_get_id_port(android_input_t *android, int id,

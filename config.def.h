@@ -585,6 +585,12 @@ static const float audio_volume = 0.0;
 
 /* MISC */
 
+#ifdef ANDROID
+/* Toggle menu when device Back button is pressed,
+ * regardless of controller binds. */
+static const bool back_btn_toggles_menu = true;
+#endif
+
 /* Enables displaying the current frames per second. */
 static const bool fps_show = false;
 
