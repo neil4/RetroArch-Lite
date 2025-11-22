@@ -104,12 +104,12 @@ static int16_t sdl_analog_pressed(sdl_input_t *sdl, const struct retro_keybind *
    return pressed_plus + pressed_minus;
 }
 
-static bool sdl_bind_button_pressed(void *data, int key)
+static bool sdl_bind_button_pressed(void *data, int port, int key)
 {
    settings_t *settings = config_get_ptr();
-   const struct retro_keybind *binds = settings->input.binds[0];
+   const struct retro_keybind *binds = settings->input.binds[port];
    if (key >= 0 && key < RARCH_BIND_LIST_END)
-      return sdl_is_pressed((sdl_input_t*)data, 0, binds, key);
+      return sdl_is_pressed((sdl_input_t*)data, port, binds, key);
    return false;
 }
 

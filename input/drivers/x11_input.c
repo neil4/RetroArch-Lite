@@ -117,14 +117,14 @@ static int16_t x_pressed_analog(x11_input_t *x11,
    return pressed_plus + pressed_minus;
 }
 
-static bool x_bind_button_pressed(void *data, int key)
+static bool x_bind_button_pressed(void *data, int port, int key)
 {
    x11_input_t *x11 = (x11_input_t*)data;
    settings_t *settings = config_get_ptr();
    if (!x11)
       return false;
    return x_is_pressed(x11, settings->input.binds[0], key) ||
-      input_joypad_pressed(x11->joypad, 0, settings->input.binds[0], key);
+      input_joypad_pressed(x11->joypad, port, settings->input.binds[port], key);
 }
 
 static int16_t x_mouse_state(x11_input_t *x11, unsigned id)

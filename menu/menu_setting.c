@@ -7981,6 +7981,19 @@ static bool setting_append_list_menu_options(
          general_write_handler,
          general_read_handler);
 
+   CONFIG_BOOL(
+         settings->input.all_users_control_menu,
+         "input_all_users_control_menu",
+         "All Users Control Menu",
+         all_users_control_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+
 #ifdef ANDROID
    CONFIG_BOOL(
          settings->input.back_btn_toggles_menu,

@@ -173,13 +173,13 @@ static int16_t linuxraw_analog_pressed(linuxraw_input_t *linuxraw,
    return pressed_plus + pressed_minus;
 }
 
-static bool linuxraw_bind_button_pressed(void *data, int key)
+static bool linuxraw_bind_button_pressed(void *data, int port, int key)
 {
    linuxraw_input_t *linuxraw = (linuxraw_input_t*)data;
    settings_t *settings       = config_get_ptr();
 
-   return linuxraw_is_pressed(linuxraw, settings->input.binds[0], key) ||
-      input_joypad_pressed(linuxraw->joypad, 0, settings->input.binds[0], key);
+   return linuxraw_is_pressed(linuxraw, settings->input.binds[port], key) ||
+      input_joypad_pressed(linuxraw->joypad, port, settings->input.binds[port], key);
 }
 
 static int16_t linuxraw_input_state(void *data,

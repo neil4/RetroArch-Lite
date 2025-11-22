@@ -278,11 +278,11 @@ static int16_t dinput_pressed_analog(struct dinput_input *di,
    return pressed_plus + pressed_minus;
 }
 
-static bool dinput_key_pressed(void *data, int key)
+static bool dinput_key_pressed(void *data, int port, int key)
 {
    settings_t *settings = config_get_ptr();
    return dinput_is_pressed((struct dinput_input*)data,
-         settings->input.binds[0], 0, key);
+         settings->input.binds[port], port, key);
 }
 
 static int16_t dinput_lightgun_mouse_state(struct dinput_input *di, unsigned id)

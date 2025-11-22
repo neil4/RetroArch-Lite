@@ -87,7 +87,7 @@ static void* xenon360_input_init(void)
    return (void*)-1;
 }
 
-static bool xenon360_input_key_pressed(void *data, int key)
+static bool xenon360_input_key_pressed(void *data, int port, int key)
 {
    global_t *global = global_get_ptr();
    return (global->lifecycle_state & (1ULL << key));

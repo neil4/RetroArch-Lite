@@ -223,34 +223,52 @@ bool input_driver_key_pressed(int key)
 {
    driver_t            *driver = driver_get_ptr();
    const input_driver_t *input = input_get_ptr(driver);
+   struct input_struct *inputs = &config_get_ptr()->input;
+   int              port_limit = inputs->all_users_control_menu ?
+                                 inputs->max_users : 1;
+   int port;
 
    if (!driver || !input)
       return false;
-   return input->key_pressed(driver->input_data, key);
+
+   for (port = 0; port < port_limit; port++)
+      if (input->key_pressed(driver->input_data, port, key))
+         return true;
+
+   return false;
 }
 
 retro_input_t input_driver_keys_pressed(void)
 {
-   int key;
+   int key, port;
    retro_input_t           ret = 0;
    driver_t            *driver = driver_get_ptr();
-   settings_t        *settings = config_get_ptr();
    const input_driver_t *input = input_get_ptr(driver);
+   struct input_struct *inputs = &config_get_ptr()->input;
+   int              port_limit = inputs->all_users_control_menu ?
+                                 inputs->max_users : 1;
 
    if (!driver->block_libretro_input)
    {
-      for (key = 0; key < RARCH_CUSTOM_BIND_LIST_END; key++)
-         if (input->key_pressed(driver->input_data, key))
-            ret |= (1ULL << key);
+      for (key = 0; key < RARCH_FIRST_CUSTOM_BIND; key++)
+         for (port = 0; port < port_limit; port++)
+            if (input->key_pressed(driver->input_data, port, key))
+            {
+               ret |= (1ULL << key);
+               break;
+            }
    }
 
    if (!driver->block_hotkey)
    {
       for (key = RARCH_FIRST_META_KEY; key < RARCH_BIND_LIST_END; key++)
-         if (input->key_pressed(driver->input_data, key))
+         if (input->key_pressed(driver->input_data, 0, key))
+         {
             ret |= (1ULL << key);
+            break;
+         }
 
-      if (ret == button_combo[settings->input.menu_toggle_btn_combo])
+      if (ret == button_combo[inputs->menu_toggle_btn_combo])
          ret = (1ULL << RARCH_MENU_TOGGLE);
    }
 

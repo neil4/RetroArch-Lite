@@ -324,6 +324,7 @@ typedef struct settings
       int overlay_vibrate_time;
 
       unsigned menu_toggle_btn_combo;
+      bool all_users_control_menu;
 #ifdef ANDROID
       bool back_btn_toggles_menu;
 #endif

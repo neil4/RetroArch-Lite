@@ -88,14 +88,14 @@ static void *xdk_input_init(void)
    return xdk;
 }
 
-static bool xdk_input_key_pressed(void *data, int key)
+static bool xdk_input_key_pressed(void *data, int port, int key)
 {
    xdk_input_t *xdk     = (xdk_input_t*)data;
    settings_t *settings = config_get_ptr();
    global_t *global     = global_get_ptr();
 
    return (global->lifecycle_state & (1ULL << key)) ||
-      input_joypad_pressed(xdk->joypad, 0, settings->input.binds[0], key);
+      input_joypad_pressed(xdk->joypad, port, settings->input.binds[port], key);
 }
 
 static uint64_t xdk_input_get_capabilities(void *data)

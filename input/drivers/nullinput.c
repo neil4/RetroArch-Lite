@@ -41,7 +41,7 @@ static int16_t nullinput_input_state(void *data,
    return 0;
 }
 
-static bool nullinput_input_key_pressed(void *data, int key)
+static bool nullinput_input_key_pressed(void *data, int port, int key)
 {
    (void)data;
    (void)key;

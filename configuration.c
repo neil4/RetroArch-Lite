@@ -723,6 +723,7 @@ static void config_set_defaults(void)
    settings->input.rumble_enable                    = false;
    settings->input.lightgun_allow_oob               = lightgun_allow_oob;
    settings->input.auto_keyboard_focus              = true;
+   settings->input.all_users_control_menu           = all_users_control_menu;
 #ifdef ANDROID
    settings->input.back_btn_toggles_menu            = back_btn_toggles_menu;
 #endif
@@ -1680,6 +1681,8 @@ static bool config_load_file(const char *path, bool set_defaults)
 
    config_get_uint(conf, "input_menu_toggle_btn_combo",
          &settings->input.menu_toggle_btn_combo);
+   config_get_bool(conf, "input_all_users_control_menu",
+         &settings->input.all_users_control_menu);
 #ifdef ANDROID
    config_get_bool(conf, "input_back_btn_toggles_menu",
          &settings->input.back_btn_toggles_menu);
@@ -2685,6 +2688,8 @@ bool main_config_file_save(const char *path)
 
    config_set_int(conf, "input_menu_toggle_btn_combo",
          settings->input.menu_toggle_btn_combo);
+   config_set_bool(conf, "input_all_users_control_menu",
+         settings->input.all_users_control_menu);
 #ifdef ANDROID
    config_set_bool(conf, "input_back_btn_toggles_menu",
          settings->input.back_btn_toggles_menu);

@@ -790,14 +790,14 @@ static int16_t qnx_input_state(void *data,
    return 0;
 }
 
-static bool qnx_input_key_pressed(void *data, int key)
+static bool qnx_input_key_pressed(void *data, int port, int key)
 {
    qnx_input_t *qnx     = (qnx_input_t*)data;
    settings_t *settings = config_get_ptr();
    global_t *global     = global_get_ptr();
 
    return ((global->lifecycle_state | driver.overlay_state.buttons ) & (1ULL << key) ||
-         input_joypad_pressed(qnx->joypad, 0, settings->input.binds[0], key));
+         input_joypad_pressed(qnx->joypad, port, settings->input.binds[port], key));
 }
 
 static void qnx_input_free_input(void *data)

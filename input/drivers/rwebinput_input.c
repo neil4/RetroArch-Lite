@@ -93,7 +93,7 @@ static bool rwebinput_is_pressed(rwebinput_input_t *rwebinput, const struct retr
    return false;
 }
 
-static bool rwebinput_bind_button_pressed(void *data, int key)
+static bool rwebinput_bind_button_pressed(void *data, int port, int key)
 {
    rwebinput_input_t *rwebinput = (rwebinput_input_t*)data;
    settings_t *settings = config_get_ptr();

@@ -585,6 +585,9 @@ static const float audio_volume = 0.0;
 
 /* MISC */
 
+/* Gives every port control over the menu */
+static const bool all_users_control_menu = true;
+
 #ifdef ANDROID
 /* Toggle menu when device Back button is pressed,
  * regardless of controller binds. */
