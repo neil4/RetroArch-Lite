@@ -223,7 +223,7 @@ static bool get_self_input_state(netplay_t *netplay)
    if (!driver->block_libretro_input && netplay->frame_count > 0)
    {
       retro_input_state_t cb = netplay->cbs.state_cb;
-      for (i = 0; i < RARCH_CUSTOM_BIND_LIST_END; i++)
+      for (i = 0; i < RARCH_FIRST_CUSTOM_BIND; i++)
       {
          int16_t tmp = cb(settings->input.netplay_client_swap_input ?
                0 : !netplay->port,
