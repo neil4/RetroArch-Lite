@@ -32,6 +32,7 @@
 #include "../../general.h"
 #include "../../configuration.h"
 
+#include "../../gfx/video_context_driver.h"
 
 #define MAX_TOUCH 16
 #define MAX_PADS 8
@@ -362,17 +363,18 @@ static void engine_handle_cmd(void)
          slock_unlock(android_app->mutex);
 
          if (runloop->is_paused)
-            event_command(EVENT_CMD_REINIT);
+         {
+            /* Try to reinit just the surface and reuse the graphics context */
+            const gfx_ctx_driver_t *ctx = gfx_ctx_get_ptr();
+            if (ctx->create_surface == NULL ||
+                  !ctx->create_surface(driver->video_context_data))
+               event_command(EVENT_CMD_REINIT);
+         }
          break;
 
       case APP_CMD_RESUME:
-         slock_lock(android_app->mutex);
-         android_app->activityState = cmd;
-         scond_broadcast(android_app->cond);
-         slock_unlock(android_app->mutex);
-         break;
-
       case APP_CMD_START:
+      case APP_CMD_STOP:
          slock_lock(android_app->mutex);
          android_app->activityState = cmd;
          scond_broadcast(android_app->cond);
@@ -393,13 +395,6 @@ static void engine_handle_cmd(void)
          }
          break;
 
-      case APP_CMD_STOP:
-         slock_lock(android_app->mutex);
-         android_app->activityState = cmd;
-         scond_broadcast(android_app->cond);
-         slock_unlock(android_app->mutex);
-         break;
-
       case APP_CMD_CONFIG_CHANGED:
          break;
       case APP_CMD_TERM_WINDOW:
@@ -407,6 +402,11 @@ static void engine_handle_cmd(void)
 
          /* The window is being hidden or closed, clean it up. */
          /* terminate display/EGL context here */
+         {
+            const gfx_ctx_driver_t *ctx = gfx_ctx_get_ptr();
+            if (ctx->destroy_surface != NULL)
+               ctx->destroy_surface(driver->video_context_data);
+         }
 
          android_app->window = NULL;
          scond_broadcast(android_app->cond);

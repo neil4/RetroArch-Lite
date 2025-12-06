@@ -320,4 +320,6 @@ const gfx_ctx_driver_t gfx_ctx_vivante_fbdev = {
    NULL,
    NULL,
    "vivante-fbdev",
+   NULL, /* create_surface */
+   NULL  /* destroy_surface */
 };

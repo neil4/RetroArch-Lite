@@ -662,4 +662,6 @@ const gfx_ctx_driver_t gfx_ctx_videocore = {
    NULL,
    "videocore",
    gfx_ctx_vc_bind_hw_render,
+   NULL, /* create_surface */
+   NULL  /* destroy_surface */
 };

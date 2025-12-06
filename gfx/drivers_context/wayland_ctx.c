@@ -918,4 +918,6 @@ const gfx_ctx_driver_t gfx_ctx_wayland = {
    NULL,
    "wayland",
    gfx_ctx_wl_bind_hw_render,
+   NULL, /* create_surface */
+   NULL  /* destroy_surface */
 };

@@ -327,4 +327,6 @@ const gfx_ctx_driver_t gfx_ctx_emscripten = {
    gfx_ctx_emscripten_write_egl_image,
    NULL,
    "emscripten",
+   NULL, /* create_surface */
+   NULL  /* destroy_surface */
 };

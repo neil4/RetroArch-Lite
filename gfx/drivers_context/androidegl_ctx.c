@@ -126,6 +126,57 @@ static void android_gfx_ctx_get_video_size(void *data,
    *height = gl_height;
 }
 
+static bool android_gfx_ctx_destroy_surface(void *data)
+{
+   gfx_ctx_android_data_t *android = (gfx_ctx_android_data_t*)data;
+
+   if (android->g_egl_surf == EGL_NO_SURFACE)
+      return true;
+
+   if (!eglMakeCurrent(android->g_egl_dpy,
+            EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT))
+      return false;
+
+   if (!eglDestroySurface(android->g_egl_dpy, android->g_egl_surf))
+      return false;
+
+   android->g_egl_surf = EGL_NO_SURFACE;
+   return true;
+}
+
+static bool android_gfx_ctx_create_surface(void *data)
+{
+   struct android_app *android_app = (struct android_app*)g_android;
+   gfx_ctx_android_data_t *android = (gfx_ctx_android_data_t*)data;
+
+   EGLint window_attribs[] = {
+      EGL_RENDER_BUFFER, EGL_BACK_BUFFER,
+      EGL_NONE,
+   };
+
+   if (!android_gfx_ctx_destroy_surface(android))
+      return false;
+
+   android->g_egl_surf = eglCreateWindowSurface(android->g_egl_dpy,
+         android->g_egl_config, android_app->window, window_attribs);
+
+   if (!android->g_egl_surf)
+      return false;
+
+   if (!eglMakeCurrent(android->g_egl_dpy, android->g_egl_surf,
+            android->g_egl_surf, android->g_egl_ctx))
+   {
+      eglDestroySurface(android->g_egl_dpy, android->g_egl_surf);
+      android->g_egl_surf = EGL_NO_SURFACE;
+      return false;
+   }
+
+   RARCH_LOG("[Android/EGL]: Current context: %p.\n",
+         (void*)eglGetCurrentContext());
+
+   return true;
+}
+
 static bool android_gfx_ctx_init(void *data)
 {
    int var;
@@ -159,7 +210,7 @@ static bool android_gfx_ctx_init(void *data)
    if (!android)
       return false;
 
-   RARCH_LOG("Android EGL: GLES version = %d.\n", g_es3 ? 3 : 2);
+   RARCH_LOG("[Android/EGL]: GLES version = %d.\n", g_es3 ? 3 : 2);
 
    android->g_egl_dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
    android->g_use_hw_ctx = ((gl_t*)data)->shared_context_use;
@@ -194,7 +245,6 @@ static bool android_gfx_ctx_init(void *data)
 
    android->g_egl_ctx = eglCreateContext(android->g_egl_dpy,
          android->g_egl_config, EGL_NO_CONTEXT, context_attributes);
-   RARCH_LOG("[Android/EGL]: EGL context: %p.\n", (void*)android->g_egl_ctx);
 
    if (android->g_egl_ctx == EGL_NO_CONTEXT)
       goto error;
@@ -211,13 +261,7 @@ static bool android_gfx_ctx_init(void *data)
          goto error;
    }
 
-   android->g_egl_surf = eglCreateWindowSurface(android->g_egl_dpy,
-         android->g_egl_config, android_app->window, 0);
-   if (!android->g_egl_surf)
-      goto error;
-
-   if (!eglMakeCurrent(android->g_egl_dpy, android->g_egl_surf,
-            android->g_egl_surf, android->g_egl_ctx))
+   if (!android_gfx_ctx_create_surface(android))
       goto error;
 
    driver->video_context_data = android;
@@ -479,4 +523,6 @@ const gfx_ctx_driver_t gfx_ctx_android = {
    NULL,
    "android",
    android_gfx_ctx_bind_hw_render,
+   android_gfx_ctx_create_surface,
+   android_gfx_ctx_destroy_surface
 };

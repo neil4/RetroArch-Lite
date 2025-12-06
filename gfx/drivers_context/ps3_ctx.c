@@ -404,5 +404,7 @@ const gfx_ctx_driver_t gfx_ctx_ps3 = {
    NULL,
    NULL,
    "ps3",
+   NULL, /* create_surface */
+   NULL  /* destroy_surface */
 };
 

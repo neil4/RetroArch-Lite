@@ -561,4 +561,6 @@ const gfx_ctx_driver_t gfx_ctx_cocoagl = {
    NULL,
    "cocoagl",
    cocoagl_gfx_ctx_bind_hw_render,
+   NULL, /* create_surface */
+   NULL  /* destroy_surface */
 };

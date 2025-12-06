@@ -842,4 +842,6 @@ const gfx_ctx_driver_t gfx_ctx_x_egl =
    gfx_ctx_xegl_show_mouse,
    "x-egl",
    gfx_ctx_xegl_bind_hw_render,
+   NULL, /* create_surface */
+   NULL  /* destroy_surface */
 };

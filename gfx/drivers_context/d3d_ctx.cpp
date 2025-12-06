@@ -406,4 +406,6 @@ const gfx_ctx_driver_t gfx_ctx_d3d = {
    NULL,
    gfx_ctx_d3d_show_mouse,
    "d3d",
+   NULL, /* create_surface */
+   NULL  /* destroy_surface */
 };

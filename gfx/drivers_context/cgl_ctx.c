@@ -361,4 +361,6 @@ const gfx_ctx_driver_t gfx_ctx_cgl = {
    gfx_ctx_cgl_show_mouse,
    "cgl",
    gfx_ctx_cgl_bind_hw_render,
+   NULL, /* create_surface */
+   NULL  /* destroy_surface */
 };

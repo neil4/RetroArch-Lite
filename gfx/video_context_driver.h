@@ -149,6 +149,14 @@ typedef struct gfx_ctx_driver
 
    /* Optional. Binds HW-render offscreen context. */
    void (*bind_hw_render)(void *data, bool enable);
+
+   /* Optional. Creates and binds a new window surface, destroying
+    * the old surface. Returns true on success */
+   bool (*create_surface)(void *data);
+
+   /* Optional. Destroys the current window surface.
+    * Returns true on success */
+   bool (*destroy_surface)(void *data);
 } gfx_ctx_driver_t;
 
 extern const gfx_ctx_driver_t gfx_ctx_sdl_gl;

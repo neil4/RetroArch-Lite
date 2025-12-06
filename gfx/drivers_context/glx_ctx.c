@@ -817,7 +817,8 @@ const gfx_ctx_driver_t gfx_ctx_glx = {
    NULL,
    gfx_ctx_glx_show_mouse,
    "glx",
-
    gfx_ctx_glx_bind_hw_render,
+   NULL, /* create_surface */
+   NULL  /* destroy_surface */
 };
 

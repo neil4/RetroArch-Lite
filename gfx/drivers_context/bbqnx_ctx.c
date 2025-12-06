@@ -470,4 +470,6 @@ const gfx_ctx_driver_t gfx_ctx_bbqnx = {
    NULL,
    "blackberry_qnx",
    gfx_qnx_ctx_bind_hw_render,
+   NULL, /* create_surface */
+   NULL  /* destroy_surface */
 };

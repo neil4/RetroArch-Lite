@@ -452,5 +452,7 @@ const gfx_ctx_driver_t gfx_ctx_sdl_gl =
    NULL,
    sdl_ctx_show_mouse,
    "sdl_gl",
-   NULL /* bind_hw_render */
+   NULL, /* bind_hw_render */
+   NULL, /* create_surface */
+   NULL  /* destroy_surface */
 };
