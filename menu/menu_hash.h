@@ -107,6 +107,7 @@ extern "C" {
 #define MENU_LABEL_OVERLAY_MOUSE_SWIPE_THRESHOLD                               0x46233731U
 #define MENU_LABEL_OVERLAY_MOUSE_TAP_AND_DRAG                                  0xbf415b71U
 #define MENU_LABEL_OVERLAY_MOUSE_TAP_AND_DRAG_MS                               0x35c71470U
+#define MENU_LABEL_OVERLAY_MOUSE_ALT_TWO_TOUCH_INPUT                           0x7bf01d68U
 #define MENU_LABEL_KEYBOARD_OVERLAY_PRESET                                     0x11f1c582U
 #define MENU_LABEL_VALUE_KEYBOARD_OVERLAY_PRESET                               0x93ac8293U
 #define MENU_LABEL_OVERLAY_PRESET                                              0x24e24796U

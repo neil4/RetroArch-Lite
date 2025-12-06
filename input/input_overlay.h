@@ -109,6 +109,16 @@ enum overlay_lightgun_action_type
    OVERLAY_LIGHTGUN_ACTION_END
 };
 
+enum overlay_mouse_btn_type
+{
+   OVERLAY_MOUSE_BTN_NONE = 0,
+   OVERLAY_MOUSE_BTN_LMB,
+   OVERLAY_MOUSE_BTN_RMB,
+   OVERLAY_MOUSE_BTN_MMB,
+
+   OVERLAY_MOUSE_BTN_END
+};
+
 typedef struct video_overlay_interface
 {
    void (*enable)(void *data, bool state);

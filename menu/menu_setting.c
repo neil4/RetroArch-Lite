@@ -1886,6 +1886,30 @@ static void setting_get_string_representation_overlay_lightgun_action(
          break;
    }
 }
+
+static void setting_get_string_representation_overlay_mouse_btn(
+      void *data, char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (!setting)
+      return;
+
+   switch (*setting->value.unsigned_integer)
+   {
+      case OVERLAY_MOUSE_BTN_NONE:
+         strlcpy(s, "None", len);
+         break;
+      case OVERLAY_MOUSE_BTN_LMB:
+         strlcpy(s, "LMB", len);
+         break;
+      case OVERLAY_MOUSE_BTN_RMB:
+         strlcpy(s, "RMB", len);
+         break;
+      case OVERLAY_MOUSE_BTN_MMB:
+         strlcpy(s, "MMB", len);
+         break;
+   }
+}
 #endif
 
 static void setting_get_string_representation_preemptive_frames(void *data,
@@ -3255,10 +3279,10 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_OVERLAY_MOUSE_HOLD_TO_DRAG:
          snprintf(s, len,
-               " -- Long press the screen to\n"
-               "begin holding a mouse button.\n"
+               " -- Long press the screen to begin\n"
+               "holding a mouse button.\n"
                " \n"
-               "Use 1/2/3 fingers for L/R/M.\n");
+               "Use 1/2/3 fingers for LMB/RMB/MMB.");
          break;
       case MENU_LABEL_OVERLAY_MOUSE_HOLD_MS:
          snprintf(s, len,
@@ -3279,7 +3303,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " \n"
                "Adds latency to mouse clicks.\n"
                " \n"
-               "Use 1/2/3 fingers for L/R/M.\n");
+               "Use 1/2/3 fingers for LMB/RMB/MMB.");
          break;
       case MENU_LABEL_OVERLAY_MOUSE_TAP_AND_DRAG_MS:
          snprintf(s, len,
@@ -3287,6 +3311,15 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "when detecting a double tap.\n"
                " \n"
                "Also determines click latency.");
+         break;
+      case MENU_LABEL_OVERLAY_MOUSE_ALT_TWO_TOUCH_INPUT:
+         snprintf(s, len,
+                  " -- Use one finger to move the\n"
+                  "cursor while using the second\n"
+                  "to send button input anytime.\n"
+                  " \n"
+                  "Does not affect 2-finger taps,\n"
+                  "double-taps or long-presses.");
          break;
       case MENU_LABEL_VIDEO_MONITOR_INDEX:
          snprintf(s, len,
@@ -7107,7 +7140,7 @@ static bool setting_append_list_overlay_mouse_options(
    CONFIG_FLOAT(
          settings->input.overlay_mouse_speed,
          menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_SPEED),
-         "Mouse Speed",
+         "Overlay Mouse Speed",
          overlay_mouse_speed,
          "%.1fx",
          group_info.name,
@@ -7190,6 +7223,37 @@ static bool setting_append_list_overlay_mouse_options(
    CONFIG_UINT(
          settings->input.overlay_mouse_tap_and_drag_scope,
          "input_overlay_mouse_tap_and_drag_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, global->max_scope, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_scope_index;
+
+      CONFIG_UINT(
+         settings->input.overlay_mouse_alt_two_touch_input,
+         menu_hash_to_str(MENU_LABEL_OVERLAY_MOUSE_ALT_TWO_TOUCH_INPUT),
+         "Alt 2-Touch Input",
+         OVERLAY_MOUSE_BTN_NONE,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, OVERLAY_MOUSE_BTN_NONE,
+         OVERLAY_MOUSE_BTN_END - 1, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_overlay_mouse_btn;
+
+   CONFIG_UINT(
+         settings->input.overlay_mouse_alt_two_touch_input_scope,
+         "input_overlay_mouse_alt_two_touch_input_scope",
          "  Scope",
          GLOBAL,
          group_info.name,

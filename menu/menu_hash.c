@@ -322,6 +322,8 @@ const char *menu_hash_to_str(uint32_t hash)
          return "input_overlay_bisect_aspect_ratio";
       case MENU_LABEL_OVERLAY_MOUSE_SPEED:
          return "input_overlay_mouse_speed";
+      case MENU_LABEL_OVERLAY_MOUSE_ALT_TWO_TOUCH_INPUT:
+         return "input_overlay_mouse_alt_two_touch_input";
       case MENU_LABEL_OVERLAY_MOUSE_HOLD_TO_DRAG:
          return "input_overlay_mouse_hold_to_drag";
       case MENU_LABEL_OVERLAY_MOUSE_HOLD_MS:

@@ -208,6 +208,9 @@ static void config_populate_scoped_setting_list(void)
    SCOPED_LIST_ADD_FLOAT("input_overlay_mouse_swipe_threshold",
       settings->input.overlay_mouse_swipe_thres,
       settings->input.overlay_mouse_swipe_thres_scope);
+   SCOPED_LIST_ADD_UINT("input_overlay_mouse_alt_two_touch_input",
+      settings->input.overlay_mouse_alt_two_touch_input,
+      settings->input.overlay_mouse_alt_two_touch_input_scope);
    SCOPED_LIST_ADD_UINT("input_lightgun_trigger_delay",
       settings->input.lightgun_trigger_delay,
       settings->input.lightgun_trigger_delay_scope);
@@ -784,6 +787,7 @@ static void config_set_defaults(void)
    settings->input.overlay_mouse_tap_and_drag      = overlay_mouse_tap_and_drag;
    settings->input.overlay_mouse_tap_and_drag_ms   = overlay_mouse_tap_and_drag_ms;
    settings->input.overlay_mouse_hold_ms           = overlay_mouse_hold_ms;
+   settings->input.overlay_mouse_alt_two_touch_input = OVERLAY_MOUSE_BTN_NONE;
    settings->input.lightgun_trigger_delay          = lightgun_trigger_delay;
    settings->input.lightgun_two_touch_input        = OVERLAY_LIGHTGUN_ACTION_TRIGGER;
 #endif
@@ -1956,6 +1960,8 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->input.overlay_mouse_tap_and_drag_ms);
    config_get_float(conf, "input_overlay_mouse_swipe_threshold",
          &settings->input.overlay_mouse_swipe_thres);
+   config_get_uint(conf, "input_overlay_mouse_alt_two_touch_input",
+         &settings->input.overlay_mouse_alt_two_touch_input);
 
    config_get_uint(conf, "input_lightgun_trigger_delay",
          &settings->input.lightgun_trigger_delay);
@@ -2819,6 +2825,10 @@ bool main_config_file_save(const char *path)
    if (settings->input.overlay_mouse_swipe_thres_scope == GLOBAL)
       config_set_float(conf, "input_overlay_mouse_swipe_threshold",
             settings->input.overlay_mouse_swipe_thres);
+
+   if (settings->input.overlay_mouse_alt_two_touch_input_scope)
+      config_set_int(conf, "input_overlay_mouse_alt_two_touch_input",
+           settings->input.overlay_mouse_alt_two_touch_input);
 
    if (settings->input.lightgun_trigger_delay_scope == GLOBAL)
       config_set_int(conf, "input_lightgun_trigger_delay",

@@ -2181,21 +2181,24 @@ static void input_overlay_poll_lightgun(
 static INLINE void input_overlay_poll_mouse(
       input_overlay_pointer_state_t *ptr_st, int8_t old_ptr_count)
 {
-   settings_t*     settings  = config_get_ptr();
-   struct ol_mouse_st* mouse = &ptr_st->mouse;
-   retro_time_t     now_usec = rarch_get_time_usec();
-   retro_time_t    hold_usec = settings->input.overlay_mouse_hold_ms * 1000;
-   retro_time_t    dtap_usec = settings->input.overlay_mouse_tap_and_drag_ms * 1000;
-   const uint8_t   ptr_count = ptr_st->count;
-   bool         hold_to_drag = settings->input.overlay_mouse_hold_to_drag;
-   bool         dtap_to_drag = settings->input.overlay_mouse_tap_and_drag;
-   bool            feedback  = false;
+   struct ol_mouse_st  *mouse = &ptr_st->mouse;
+   struct input_struct *input = &config_get_ptr()->input;
+   retro_time_t      now_usec = rarch_get_time_usec();
+   retro_time_t     hold_usec = input->overlay_mouse_hold_ms * 1000;
+   retro_time_t     dtap_usec = input->overlay_mouse_tap_and_drag_ms * 1000;
+   const uint8_t    ptr_count = ptr_st->count;
+   uint8_t         alt_2touch = input->overlay_mouse_alt_two_touch_input;
+   bool          hold_to_drag = input->overlay_mouse_hold_to_drag;
+   bool          dtap_to_drag = input->overlay_mouse_tap_and_drag;
+   bool             feedback  = false;
    bool is_swipe, is_brief, is_long;
 
    static retro_time_t start_usec, click_dur_usec, click_end_usec;
    static retro_time_t last_down_usec, last_up_usec, pending_click_usec;
    static int16_t x_start, y_start, peak_ptr_count, old_peak_ptr_count;
-   static bool skip_buttons, pending_click;
+   static bool check_gestures, pending_click;
+   static const uint8_t btns[OVERLAY_MAX_TOUCH+1] =
+         {0, 0x1, 0x2, 0x4};  /* none, lmb, rmb, mmb */
 
    /* Check for pointer count changes */
    if (ptr_count != old_ptr_count)
@@ -2229,7 +2232,7 @@ static INLINE void input_overlay_poll_mouse(
    is_long  = (now_usec - start_usec) > (hold_to_drag ? hold_usec : 250000);
 
    /* Check if new button input should be created */
-   if (!skip_buttons)
+   if (check_gestures)
    {
       if (!is_swipe)
       {
@@ -2237,7 +2240,7 @@ static INLINE void input_overlay_poll_mouse(
                && is_long && ptr_count && !mouse->hold)
          {
             /* long press */
-            mouse->hold = (1 << (ptr_count - 1));
+            mouse->hold = btns[ptr_count];
             feedback    = true;
          }
          else if (is_brief)
@@ -2247,7 +2250,7 @@ static INLINE void input_overlay_poll_mouse(
                /* New input. Check for double tap */
                if (dtap_to_drag
                      && now_usec - last_up_usec < dtap_usec)
-                  mouse->hold = (1 << (old_peak_ptr_count - 1));
+                  mouse->hold = btns[old_peak_ptr_count];
 
                last_down_usec = now_usec;
             }
@@ -2263,7 +2266,7 @@ static INLINE void input_overlay_poll_mouse(
                }
                else
                {
-                  mouse->click   = (1 << (peak_ptr_count - 1));
+                  mouse->click   = btns[peak_ptr_count];
                   click_end_usec = now_usec + click_dur_usec;
                }
 
@@ -2271,31 +2274,37 @@ static INLINE void input_overlay_poll_mouse(
             }
          }
       }
-      else
+      else /* Swiping. Stop gesture checks and possibly hold a button */
       {
-         /* If dragging 2+ fingers, hold RMB or MMB */
          if (ptr_count > 1)
          {
-            mouse->hold = (1 << (ptr_count - 1));
-            if (hold_to_drag)
+            if (hold_to_drag && !alt_2touch)
+            {
+               mouse->hold = btns[ptr_count];
                feedback = true;
+            }
+            else if (alt_2touch && !hold_to_drag)
+               mouse->hold = btns[alt_2touch];
          }
-         skip_buttons = true;
+         check_gestures = false;
       }
    }
+   /* Alt 2-touch input */
+   else if (ptr_count > old_ptr_count && ptr_count == 2)
+      mouse->hold = btns[alt_2touch];
 
    /* Check for pending click */
    if (pending_click && now_usec >= pending_click_usec)
    {
-      mouse->click   = (1 << (old_peak_ptr_count - 1));
+      mouse->click   = btns[peak_ptr_count];
       click_end_usec = now_usec + click_dur_usec;
       pending_click  = false;
    }
 
    if (!ptr_count)
-      skip_buttons = false; /* Reset button checks  */
+      check_gestures = true;
    else if (is_long)
-      skip_buttons = true;  /* End of button checks */
+      check_gestures = false;
 
    /* Remove stale clicks */
    if (mouse->click && now_usec > click_end_usec)
