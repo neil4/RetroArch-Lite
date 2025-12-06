@@ -242,7 +242,6 @@ struct input_overlay
 {
    void *iface_data;
    const video_overlay_interface_t *iface;
-   bool enable;
 
    enum overlay_image_transfer_status loading_status;
    bool blocked;
