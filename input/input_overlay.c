@@ -2950,6 +2950,35 @@ int16_t input_overlay_state(unsigned port, unsigned device_class,
    return res;
 }
 
+static void input_overlay_next_move_touch_state(input_overlay_t *ol)
+{
+   const struct overlay *active = ol->active;
+   const struct overlay *next   = ol->overlays + ol->next_index;
+   int i, j;
+
+   /* Find any similar descs in the next overlay (i.e. same location and type)
+    * and move touch masks from active to next */
+   for (i = 0; i < active->size; i++)
+   {
+      struct overlay_desc *desc = active->descs + i;
+
+      if (desc->old_touch_mask)
+      {
+         for (j = 0; j < next->size; j++)
+         {
+            struct overlay_desc *desc2 = next->descs + j;
+
+            if (desc2->type == desc->type
+                  && fabs(desc2->x - desc->x) < 0.01f
+                  && fabs(desc2->y - desc->y) < 0.01f)
+               desc2->old_touch_mask = desc->old_touch_mask;
+         }
+
+         desc->old_touch_mask = 0;
+      }
+   }
+}
+
 /**
  * input_overlay_next:
  * @ol               : Overlay handle.
@@ -2961,6 +2990,8 @@ void input_overlay_next(input_overlay_t *ol)
 {
    if (!ol || ol->state != OVERLAY_STATUS_ALIVE)
       return;
+
+   input_overlay_next_move_touch_state(ol);
 
    ol->index = ol->next_index;
    ol->active = &ol->overlays[ol->index];
