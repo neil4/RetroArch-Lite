@@ -25,10 +25,16 @@ LRESULT win32_handle_keyboard_event(HWND hwnd, UINT message,
 {
    unsigned scancode, keycode;
    uint16_t mod = 0;
+   bool extended;
 
    scancode = (lparam >> 16) & 0xff;
+   extended = (lparam >> 24) & 0x1;
+
+   if (scancode == 0x45 && (wparam == VK_NUMLOCK || wparam == VK_PAUSE))
+      extended = !extended;
+
    /* extended keys will map to dinput if the high bit is set */
-   if (lparam >> 24 & 0x1)
+   if (extended)
       scancode |= 0x80;
 
    keycode = input_keymaps_translate_keysym_to_rk(scancode);
@@ -55,30 +61,22 @@ LRESULT win32_handle_keyboard_event(HWND hwnd, UINT message,
          input_keyboard_event(true, RETROK_UNKNOWN, wparam, mod);
          return TRUE;
 
+      case WM_KEYUP:
+      case WM_SYSKEYUP:
+         input_keyboard_event(false, keycode, 0, mod);
+         return 0;
+
       case WM_KEYDOWN:
          /* DirectInput uses scancodes directly. */
          input_keyboard_event(true, keycode, 0, mod);
          return 0;
 
-      case WM_KEYUP:
-         /* DirectInput uses scancodes directly. */
-         input_keyboard_event(false, keycode, 0, mod);
-         return 0;
-
-      case WM_SYSKEYUP:
-         input_keyboard_event(false, keycode, 0, mod);
-         return 0;
-
       case WM_SYSKEYDOWN:
          input_keyboard_event(true, keycode, 0, mod);
 
-         switch (wparam)
-         {
-            case VK_F10:
-            case VK_MENU:
-            case VK_RSHIFT:
-               return 0;
-         }
+         if (wparam == VK_RSHIFT || wparam == VK_F10 || wparam == VK_MENU)
+            return 0;
+
          break;
    }
 
