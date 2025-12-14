@@ -110,7 +110,7 @@ typedef struct android_input_poll_scratchpad
    bool any_events;
 } android_input_poll_scratchpad_t;
 
-static android_input_poll_scratchpad_t frame;
+static android_input_poll_scratchpad_t ra_poll;
 static pthread_cond_t haptic_flag;
 
 static void frontend_android_get_version_sdk(int32_t *sdk);
@@ -530,8 +530,8 @@ static INLINE int android_input_poll_event_type_motion(
    action = getaction & AMOTION_EVENT_ACTION_MASK;
    motion_ptr = getaction >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
    
-   frame.any_events = true;
-   frame.last_known_action = action;
+   ra_poll.any_events = true;
+   ra_poll.last_known_action = action;
    
    if (action == AMOTION_EVENT_ACTION_MOVE)
    {
@@ -555,10 +555,11 @@ static INLINE int android_input_poll_event_type_motion(
          ignore_ptr = motion_ptr;
    }
 
-   if (keydown && frame.downs < MAX_TOUCH)
+   if (keydown && ra_poll.downs < MAX_TOUCH)
    {
       /* record all downs since last poll */
-      frame.down_id[frame.downs++] = AMotionEvent_getPointerId(event, motion_ptr);
+      ra_poll.down_id[ra_poll.downs++]
+            = AMotionEvent_getPointerId(event, motion_ptr);
    }
    else if (keyup)
    {
@@ -566,48 +567,48 @@ static INLINE int android_input_poll_event_type_motion(
       int32_t keyup_id = AMotionEvent_getPointerId(event, motion_ptr);
       
       /* capture quick taps */
-      for (idx = 0; idx < frame.downs; idx++)
+      for (idx = 0; idx < ra_poll.downs; idx++)
       {
-         if (frame.down_id[idx] == keyup_id)
+         if (ra_poll.down_id[idx] == keyup_id)
          {
             x = AMotionEvent_getX(event, motion_ptr);
             y = AMotionEvent_getY(event, motion_ptr);
             
-            p = &android->pointer[frame.taps];
-            input_translate_coord_viewport(x, y, &p->x, &p->y,
-                                                 &p->full_x, &p->full_y);
+            p = &android->pointer[ra_poll.taps];
+            input_translate_coord_viewport(x, y,
+                  &p->x, &p->y, &p->full_x, &p->full_y);
             
             /* Ignore ellipse data for quick taps. */
-            input_overlay_reset_ellipse(frame.taps);
+            input_overlay_reset_ellipse(ra_poll.taps);
             
-            frame.taps++;
-            frame.down_id[idx] = -1;
+            ra_poll.taps++;
+            ra_poll.down_id[idx] = -1;
             break;
          }
       }
    }
    
-   android->pointer_count = frame.taps;
+   android->pointer_count = ra_poll.taps;
    
    event_ptr_count = min(AMotionEvent_getPointerCount(event), MAX_TOUCH);
    for (motion_ptr = 0; motion_ptr < event_ptr_count; motion_ptr++)
    {
-      if ( motion_ptr == ignore_ptr )
+      if (motion_ptr == ignore_ptr)
          continue;
       idx = android->pointer_count;
-      
+
       x = AMotionEvent_getX(event, motion_ptr);
       y = AMotionEvent_getY(event, motion_ptr);
       
       p = &android->pointer[idx];
-      input_translate_coord_viewport(x, y, &p->x, &p->y,
-                                           &p->full_x, &p->full_y);
-      
+      input_translate_coord_viewport(x, y,
+            &p->x, &p->y, &p->full_x, &p->full_y);
+
       input_overlay_set_ellipse(idx,
             AMotionEvent_getOrientation(event, motion_ptr),
             AMotionEvent_getTouchMajor(event, motion_ptr),
             AMotionEvent_getTouchMinor(event, motion_ptr));
-      
+
       android->pointer_count++;
    }
 
@@ -717,8 +718,8 @@ static int android_input_get_id_index_from_name(android_input_t *android,
 static void handle_hotplug(android_input_t *android,
       struct android_app *android_app, unsigned *port, unsigned id)
 {
-   char device_name[256];
-   char name_buf[256];
+   char device_name[NAME_MAX_LENGTH];
+   char name_buf[NAME_MAX_LENGTH];
    autoconfig_params_t params   = {{0}};
    name_buf[0] = device_name[0] = 0;
    int vendorId = 0, productId  = 0;
@@ -877,9 +878,9 @@ static void android_input_poll(void *data)
    int ident;
    android_input_t *android = (android_input_t*)data;
    runloop_t *runloop = rarch_main_get_ptr();
-   frame.taps = 0;
-   frame.downs = 0;
-   frame.any_events = false;
+   ra_poll.taps = 0;
+   ra_poll.downs = 0;
+   ra_poll.any_events = false;
    
    while ((ident = ALooper_pollAll(runloop->is_idle ? -1 : 0,
                                    NULL, NULL, NULL)) >= 0)
@@ -899,7 +900,8 @@ static void android_input_poll(void *data)
    }
    
    /* reset pointer_count if no active pointers */
-   if (!frame.any_events && frame.last_known_action == AMOTION_EVENT_ACTION_UP)
+   if (!ra_poll.any_events
+            && ra_poll.last_known_action == AMOTION_EVENT_ACTION_UP)
       android->pointer_count = 0;
 }
 

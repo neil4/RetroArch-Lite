@@ -3319,7 +3319,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                   "to send button input anytime.\n"
                   " \n"
                   "Does not affect 2-finger taps,\n"
-                  "double-taps or long-presses.");
+                  "double taps or long presses.");
          break;
       case MENU_LABEL_VIDEO_MONITOR_INDEX:
          snprintf(s, len,

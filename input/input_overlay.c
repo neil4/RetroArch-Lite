@@ -1758,8 +1758,8 @@ static void input_overlay_get_analog_state(
 /**
  * eightway_direction
  * @param vals for an eight-way area descriptor
- * @param x_offset relative to 8-way center, normalized as fraction of screen height
- * @param y_offset relative to 8-way center, normalized as fraction of screen height
+ * @param x_offset relative to 8-way center, normalized as fraction of desc height
+ * @param y_offset relative to 8-way center, normalized as fraction of desc height
  * @return input state representing the offset direction as @vals
  */
 static INLINE uint64_t eightway_direction(
@@ -2030,7 +2030,7 @@ static bool inside_hitbox(const struct overlay_desc *desc,
  *
  * Returns true if pointer is inside any hitbox.
  **/
-static INLINE bool input_overlay_poll_descs(
+static bool input_overlay_poll_descs(
       input_overlay_t *ol,
       input_overlay_button_state_t *out,
       const int touch_idx, int old_touch_idx,
@@ -2083,9 +2083,13 @@ static INLINE bool input_overlay_poll_descs(
       if (desc_prio > highest_prio)
       {
          highest_prio = desc_prio;
-         memset(out, 0, sizeof(*out));
-         for (j = 0; j < i; j++)
-            BIT16_CLEAR(descs[j].touch_mask, touch_idx);
+
+         if (any_desc_hit)
+         {
+            memset(out, 0, sizeof(*out));
+            for (j = 0; j < i; j++)
+               BIT16_CLEAR(descs[j].touch_mask, touch_idx);
+         }
       }
 
       switch(desc->type)
@@ -2589,7 +2593,7 @@ void input_overlay_poll(input_overlay_t *ol)
 
    static int16_t old_ptrdev_touch_mask;
    static int16_t old_hitbox_touch_mask;
-   static int8_t old_blocked_touch_idx;
+   static int8_t  old_blocked_touch_idx;
    static uint8_t old_ptr_count;
 
    if (!ol->active)
@@ -2604,8 +2608,6 @@ void input_overlay_poll(input_overlay_t *ol)
    ptr_st        = &driver->overlay_pointer_state;
    old_ptr_count = ptr_st->count;
    ptr_st->count = 0;
-
-   blocked_touch_idx = -1;
 
    device = ol->active->full_screen ?
          RARCH_DEVICE_POINTER_SCREEN : RETRO_DEVICE_POINTER;
@@ -2645,12 +2647,11 @@ void input_overlay_poll(input_overlay_t *ol)
          else if (BIT16_GET(old_ptrdev_touch_mask, old_i))
             BIT16_SET(ptrdev_touch_mask, i);
 
-         /* Track blocked touch pointer and skip its input */
+         /* Skip blocked touch pointer and freeze any overlay_next
+          * input until the blocked touch is removed */
          if (old_i == old_blocked_touch_idx)
          {
             blocked_touch_idx = i;
-            /* Keep overlay_next pressed to avoid extra haptic feedback
-             * and prevent other overlay_next presses */
             if (BIT64_GET(old_ol_st->buttons, RARCH_OVERLAY_NEXT))
                BIT64_SET(ol_st->buttons, RARCH_OVERLAY_NEXT);
             continue;
@@ -2665,7 +2666,7 @@ void input_overlay_poll(input_overlay_t *ol)
 
       if (hitbox_pressed)
       {
-         /* Block any touch pointer that pressed overlay_next */
+         /* Block touch pointer if overlay_next was pressed */
          if (BIT64_GET(polled_data.buttons, RARCH_OVERLAY_NEXT))
             blocked_touch_idx = i;
 
@@ -2765,7 +2766,7 @@ post_poll:
    /* haptic feedback on button presses or direction changes */
    if ( driver->input->overlay_haptic_feedback
         && (ol_st->buttons != old_ol_st->buttons || osk_state_changed)
-        &&  ol_st->touch_count >= old_ol_st->touch_count )
+        && ol_st->touch_count >= old_ol_st->touch_count )
    {
       driver->input->overlay_haptic_feedback();
    }

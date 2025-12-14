@@ -1134,9 +1134,7 @@ void input_keymaps_init_keyboard_lut(const struct rarch_key_map *map)
 
    if (rarch_keysym_rlut_size < 65536)
    {
-      if (rarch_keysym_rlut)
-         free(rarch_keysym_rlut);
-
+      free(rarch_keysym_rlut);
       rarch_keysym_rlut = calloc(++rarch_keysym_rlut_size, sizeof(unsigned));
 
       for (map = map_start; map->rk != RETROK_UNKNOWN; map++)
@@ -1159,15 +1157,13 @@ enum retro_key input_keymaps_translate_keysym_to_rk(unsigned sym)
 {
    unsigned i;
 
-   if (rarch_keysym_rlut && sym < rarch_keysym_rlut_size)
+   if (sym < rarch_keysym_rlut_size)
       return (enum retro_key)rarch_keysym_rlut[sym];
 
    for (i = 0; i < ARRAY_SIZE(rarch_keysym_lut); i++)
    {
-      if (rarch_keysym_lut[i] != sym)
-         continue;
-
-      return (enum retro_key)i;
+      if (rarch_keysym_lut[i] == sym)
+         return (enum retro_key)i;
    }
 
    return RETROK_UNKNOWN;
