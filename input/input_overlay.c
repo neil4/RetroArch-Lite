@@ -2283,7 +2283,8 @@ static INLINE void input_overlay_poll_mouse(
                mouse->hold = btns[ptr_count];
                feedback = true;
             }
-            else if (alt_2touch && !hold_to_drag)
+            else if (alt_2touch && !hold_to_drag
+                  && ptr_count == 2)
                mouse->hold = btns[alt_2touch];
          }
          check_gestures = false;
