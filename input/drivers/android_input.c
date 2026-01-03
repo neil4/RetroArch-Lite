@@ -529,7 +529,7 @@ static INLINE int android_input_poll_event_type_motion(
    getaction = AMotionEvent_getAction(event);
    action = getaction & AMOTION_EVENT_ACTION_MASK;
    motion_ptr = getaction >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-   
+
    ra_poll.any_events = true;
    ra_poll.last_known_action = action;
    
@@ -548,7 +548,7 @@ static INLINE int android_input_poll_event_type_motion(
                    || action == AMOTION_EVENT_ACTION_CANCEL
                    || (source == AINPUT_SOURCE_MOUSE
                        && (action != AMOTION_EVENT_ACTION_DOWN)) );
-      
+
       if ( action == AMOTION_EVENT_ACTION_HOVER_MOVE
            || action == AMOTION_EVENT_ACTION_HOVER_ENTER
            || action == AMOTION_EVENT_ACTION_HOVER_EXIT )
@@ -573,14 +573,14 @@ static INLINE int android_input_poll_event_type_motion(
          {
             x = AMotionEvent_getX(event, motion_ptr);
             y = AMotionEvent_getY(event, motion_ptr);
-            
+
             p = &android->pointer[ra_poll.taps];
             input_translate_coord_viewport(x, y,
                   &p->x, &p->y, &p->full_x, &p->full_y);
-            
+
             /* Ignore ellipse data for quick taps. */
             input_overlay_reset_ellipse(ra_poll.taps);
-            
+
             ra_poll.taps++;
             ra_poll.down_id[idx] = -1;
             break;
@@ -621,17 +621,20 @@ static INLINE int android_input_poll_event_type_motion(
 static INLINE bool android_input_keyboard_event(
       android_input_t *android, AInputEvent *event, int port, int keycode)
 {
-   bool keydown = (AKeyEvent_getAction(event) == AKEY_EVENT_ACTION_DOWN);
-   unsigned rk  = input_keymaps_translate_keysym_to_rk(keycode);
+   unsigned rk = input_keymaps_translate_keysym_to_rk(keycode);
+   int meta;
    uint32_t c;
-   uint16_t mod = 0;
-   int meta     = AKeyEvent_getMetaState(event);
+   uint16_t mod;
+   bool keydown;
 
    /* Evidently can't rely on source == AINPUT_SOURCE_KEYBOARD
     * So, allow any device to send keyboard input, and ignore unknown keys. */
    if (rk == RETROK_UNKNOWN)
       return false;
    android->kbd_port = port;
+
+   meta = AKeyEvent_getMetaState(event);
+   mod  = 0;
 
    if (meta & AMETA_ALT_ON)
       mod |= RETROKMOD_ALT;
@@ -649,6 +652,7 @@ static INLINE bool android_input_keyboard_event(
       mod |= RETROKMOD_META;
 
    c = input_keymaps_translate_rk_to_char(rk, mod);
+   keydown = AKeyEvent_getAction(event) == AKEY_EVENT_ACTION_DOWN;
    input_keyboard_event(keydown, rk, c, mod);
 
    return menu_input_get_ptr()->keyboard.display;

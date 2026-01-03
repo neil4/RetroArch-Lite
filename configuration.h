@@ -312,10 +312,10 @@ typedef struct settings
       bool overlay_mouse_hold_to_drag;
       unsigned overlay_mouse_hold_ms;
       unsigned overlay_mouse_hold_to_drag_scope;
-      unsigned overlay_mouse_alt_two_touch_input;
-      unsigned overlay_mouse_alt_two_touch_input_scope;
       float overlay_mouse_swipe_thres;
       unsigned overlay_mouse_swipe_thres_scope;
+      unsigned overlay_mouse_alt_two_touch_input;
+      unsigned overlay_mouse_alt_two_touch_input_scope;
       unsigned lightgun_trigger_delay;
       unsigned lightgun_trigger_delay_scope;
       unsigned lightgun_two_touch_input;

@@ -787,7 +787,7 @@ static void config_set_defaults(void)
    settings->input.overlay_mouse_tap_and_drag      = overlay_mouse_tap_and_drag;
    settings->input.overlay_mouse_tap_and_drag_ms   = overlay_mouse_tap_and_drag_ms;
    settings->input.overlay_mouse_hold_ms           = overlay_mouse_hold_ms;
-   settings->input.overlay_mouse_alt_two_touch_input = OVERLAY_MOUSE_BTN_NONE;
+   settings->input.overlay_mouse_alt_two_touch_input = OVERLAY_MOUSE_BTN_LMB;
    settings->input.lightgun_trigger_delay          = lightgun_trigger_delay;
    settings->input.lightgun_two_touch_input        = OVERLAY_LIGHTGUN_ACTION_TRIGGER;
 #endif

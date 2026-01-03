@@ -1519,12 +1519,15 @@ static bool gl_frame(void *data, const void *frame,
 
    video_driver_get_size(&width, &height);
 
-   context_bind_hw_render(gl, false);
+   if (!recursing)
+   {
+      context_bind_hw_render(gl, false);
 
 #ifndef HAVE_OPENGLES
-   if (gl->core_context)
-      glBindVertexArray(gl->vao);
+      if (gl->core_context)
+         glBindVertexArray(gl->vao);
 #endif
+   }
 
    gl->shader->use(gl, 1);
 
@@ -1729,24 +1732,24 @@ static bool gl_frame(void *data, const void *frame,
    }
 #endif
 
-#ifndef HAVE_OPENGLES
-   if (gl->core_context)
-      glBindVertexArray(0);
-#endif
-
-   context_bind_hw_render(gl, true);
-
-   if (gl->swap_interval > 1 && settings->video.fake_swap_interval
-         && !recursing)
-   {
-      recursing = true;
-      for (i = 1; i < gl->swap_interval; i++)
-         gl_frame(gl, NULL, frame_width, frame_height, pitch, msg);
-      recursing = false;
-   }
-
    if (!recursing)
+   {
+      if (gl->swap_interval > 1 && settings->video.fake_swap_interval)
+      {
+         recursing = true;
+         for (i = 1; i < gl->swap_interval; i++)
+            gl_frame(gl, NULL, frame_width, frame_height, pitch, msg);
+         recursing = false;
+      }
+
+#ifndef HAVE_OPENGLES
+      if (gl->core_context)
+         glBindVertexArray(0);
+#endif
+      context_bind_hw_render(gl, true);
+
       gl->frame_count++;
+   }
 
    return true;
 }

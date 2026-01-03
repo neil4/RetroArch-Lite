@@ -2202,7 +2202,7 @@ static INLINE void input_overlay_poll_mouse(
    static int16_t x_start, y_start, peak_ptr_count, old_peak_ptr_count;
    static bool check_gestures, pending_click;
    static const uint8_t btns[OVERLAY_MAX_TOUCH+1] =
-         {0, 0x1, 0x2, 0x4};  /* none, lmb, rmb, mmb */
+         {0x0, 0x1, 0x2, 0x4};  /* none, lmb, rmb, mmb */
 
    /* Check for pointer count changes */
    if (ptr_count != old_ptr_count)
@@ -2216,13 +2216,18 @@ static INLINE void input_overlay_poll_mouse(
 
       if (ptr_count > old_ptr_count)
       {
-         /* pointer added */
+         /* Pointer added */
          peak_ptr_count = ptr_count;
          start_usec     = now_usec;
+
+         /* Alt 2-touch input. After gesture checks,
+          * use 2nd touch as a button */
+         if (!check_gestures && ptr_count == 2)
+            mouse->hold = btns[alt_2touch];
       }
       else
       {
-         /* pointer removed */
+         /* Pointer removed */
          mouse->hold = 0x0;
          if (!ptr_count)
             old_peak_ptr_count = peak_ptr_count;
@@ -2294,9 +2299,6 @@ static INLINE void input_overlay_poll_mouse(
          check_gestures = false;
       }
    }
-   /* Alt 2-touch input */
-   else if (ptr_count > old_ptr_count && ptr_count == 2)
-      mouse->hold = btns[alt_2touch];
 
    /* Check for pending click */
    if (pending_click && now_usec >= pending_click_usec)
