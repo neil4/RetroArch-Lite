@@ -250,18 +250,19 @@ void menu_input_key_event(bool down, unsigned keycode,
 static void menu_input_poll_bind_joypad_state(struct menu_bind_state *state,
                                               bool return_skips)
 {
-   unsigned i, b, a, h;
+   unsigned i, b, a, h, pad;
    const input_device_driver_t *joypad = input_driver_get_joypad_driver();
    settings_t *settings                = config_get_ptr();
    const unsigned *map                 = settings->input.joypad_map;
+   char (*device_names)[64]            = settings->input.device_names;
 
    if (!state)
       return;
    
    memset(state->state, 0, sizeof(state->state));
-   state->skip = (return_skips ?
-                  input_driver_state(NULL, 0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RETURN)
-                  : false);
+   state->skip = (return_skips
+         ? input_driver_state(NULL, 0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RETURN)
+         : false);
 
    if (!joypad)
    {
@@ -272,34 +273,35 @@ static void menu_input_poll_bind_joypad_state(struct menu_bind_state *state,
    if (joypad->poll)
       joypad->poll();
 
-   for (i = 0; i < *settings->input.device_names[map[i]]; i++)
+   for (i = 0, pad = map[i]; *device_names[pad]; pad = map[++i])
    {
       for (b = 0; b < MENU_MAX_BUTTONS; b++)
-         state->state[i].buttons[b] = input_joypad_button_raw(joypad, i, b);
+         state->state[pad].buttons[b] = input_joypad_button_raw(joypad, pad, b);
 
       for (a = 0; a < MENU_MAX_AXES; a++)
-         state->state[i].axes[a] = input_joypad_axis_raw(joypad, i, a);
+         state->state[pad].axes[a] = input_joypad_axis_raw(joypad, pad, a);
 
       for (h = 0; h < MENU_MAX_HATS; h++)
       {
-         if (input_joypad_hat_raw(joypad, i, HAT_UP_MASK, h))
-            state->state[i].hats[h] |= HAT_UP_MASK;
-         if (input_joypad_hat_raw(joypad, i, HAT_DOWN_MASK, h))
-            state->state[i].hats[h] |= HAT_DOWN_MASK;
-         if (input_joypad_hat_raw(joypad, i, HAT_LEFT_MASK, h))
-            state->state[i].hats[h] |= HAT_LEFT_MASK;
-         if (input_joypad_hat_raw(joypad, i, HAT_RIGHT_MASK, h))
-            state->state[i].hats[h] |= HAT_RIGHT_MASK;
+         if (input_joypad_hat_raw(joypad, pad, HAT_UP_MASK, h))
+            state->state[pad].hats[h] |= HAT_UP_MASK;
+         if (input_joypad_hat_raw(joypad, pad, HAT_DOWN_MASK, h))
+            state->state[pad].hats[h] |= HAT_DOWN_MASK;
+         if (input_joypad_hat_raw(joypad, pad, HAT_LEFT_MASK, h))
+            state->state[pad].hats[h] |= HAT_LEFT_MASK;
+         if (input_joypad_hat_raw(joypad, pad, HAT_RIGHT_MASK, h))
+            state->state[pad].hats[h] |= HAT_RIGHT_MASK;
       }
    }
 }
 
 static void menu_input_poll_bind_get_rested_axes(struct menu_bind_state *state)
 {
-   unsigned i, a;
+   unsigned i, a, pad;
    const input_device_driver_t *joypad = input_driver_get_joypad_driver();
    settings_t *settings                = config_get_ptr();
    const unsigned *map                 = settings->input.joypad_map;
+   char (*device_names)[64]            = settings->input.device_names;
 
    if (!state)
       return;
@@ -310,20 +312,20 @@ static void menu_input_poll_bind_get_rested_axes(struct menu_bind_state *state)
       return;
    }
 
-   for (i = 0; i < *settings->input.device_names[map[i]]; i++)
+   for (i = 0, pad = map[i]; *device_names[pad]; pad = map[++i])
       for (a = 0; a < MENU_MAX_AXES; a++)
-         state->axis_state[i].rested_axes[a] =
-            input_joypad_axis_raw(joypad, i, a);
+         state->axis_state[pad].rested_axes[a] =
+             input_joypad_axis_raw(joypad, pad, a);
 }
 
 static bool menu_input_poll_find_trigger_pad(struct menu_bind_state *state,
-      struct menu_bind_state *new_state, unsigned p)
+      struct menu_bind_state *new_state, unsigned pad)
 {
    unsigned a, b, h;
    const struct menu_bind_state_port *n = (const struct menu_bind_state_port*)
-      &new_state->state[p];
+         &new_state->state[pad];
    const struct menu_bind_state_port *o = (const struct menu_bind_state_port*)
-      &state->state[p];
+         &state->state[pad];
 
    for (b = 0; b < MENU_MAX_BUTTONS; b++)
    {
@@ -341,9 +343,9 @@ static bool menu_input_poll_find_trigger_pad(struct menu_bind_state *state,
    for (a = 0; a < MENU_MAX_AXES; a++)
    {
       int locked_distance = abs(n->axes[a] -
-            new_state->axis_state[p].locked_axes[a]);
+            new_state->axis_state[pad].locked_axes[a]);
       int rested_distance = abs(n->axes[a] -
-            new_state->axis_state[p].rested_axes[a]);
+            new_state->axis_state[pad].rested_axes[a]);
 
       if (abs(n->axes[a]) >= 20000 &&
             locked_distance >= 20000 &&
@@ -352,15 +354,16 @@ static bool menu_input_poll_find_trigger_pad(struct menu_bind_state *state,
          /* Take care of case where axis rests on +/- 0x7fff
           * (e.g. 360 controller on Linux) */
          state->target->joyaxis = n->axes[a] > 0 ? AXIS_POS(a) : AXIS_NEG(a);
-         state->target->joykey = NO_BTN;
+         state->target->joykey  = NO_BTN;
 
          /* Lock the current axis */
-         new_state->axis_state[p].locked_axes[a] = n->axes[a] > 0 ? 0x7fff : -0x7fff;
+         new_state->axis_state[pad].locked_axes[a]
+               = n->axes[a] > 0 ? 0x7fff : -0x7fff;
          return true;
       }
 
       if (locked_distance >= 20000) /* Unlock the axis. */
-         new_state->axis_state[p].locked_axes[a] = 0;
+         new_state->axis_state[pad].locked_axes[a] = 0;
    }
 
    for (h = 0; h < MENU_MAX_HATS; h++)
@@ -591,7 +594,8 @@ int menu_input_bind_iterate(uint32_t label_hash)
    global_t *global             = global_get_ptr();
    bool hotkey_bind             = (label_hash == MENU_LABEL_CUSTOM_BIND);
    bool bind_mode_kb            = global->menu.bind_mode_keyboard && !hotkey_bind;
-   static int64_t hold_ms       = 0;
+
+   static int64_t hold_usec     = 0;
 
    menu_driver_render();
 
@@ -621,10 +625,10 @@ int menu_input_bind_iterate(uint32_t label_hash)
       return 1;
    
    /* Hack: Allow user time to let go of the button in odd cases */
-   if (hold_ms > 0)
+   if (hold_usec > 0)
    {
-      if (rarch_get_time_usec() > hold_ms)
-         hold_ms = 0;
+      if (rarch_get_time_usec() > hold_usec)
+         hold_usec = 0;
       return 0;
    }
 
@@ -641,7 +645,7 @@ int menu_input_bind_iterate(uint32_t label_hash)
 
       /* Avoid new binds triggering things right away. */
       driver->flushing_input = true;
-      hold_ms = rarch_get_time_usec() + MENU_INPUT_BIND_HOLD_USEC;
+      hold_usec = rarch_get_time_usec() + MENU_INPUT_BIND_HOLD_USEC;
 
       binds.begin++;
       
