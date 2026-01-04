@@ -59,7 +59,7 @@ typedef unsigned int        uint;
 #define U64_FMT "%" PRIu64
 
 #ifndef PATH_MAX_LENGTH
-#define PATH_MAX_LENGTH 4096
+#define PATH_MAX_LENGTH 2048
 #endif
 
 #ifndef NAME_MAX_LENGTH
