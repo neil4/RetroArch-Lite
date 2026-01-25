@@ -227,8 +227,6 @@ static void config_populate_scoped_setting_list(void)
       settings->input.analog_dpad_scope);
    SCOPED_LIST_ADD_UINT("input_analog_dpad_deadzone",
       settings->input.analog_dpad_deadzone, settings->input.analog_dpad_scope);
-   SCOPED_LIST_ADD_FLOAT("input_axis_threshold",
-      settings->input.axis_threshold, settings->input.axis_threshold_scope);
    SCOPED_LIST_ADD_BOOL("input_turbo_binds_enable",
       settings->input.turbo_binds_enable, settings->input.turbo_settings_scope);
    SCOPED_LIST_ADD_UINT("input_turbo_period",
@@ -2713,10 +2711,8 @@ bool main_config_file_save(const char *path)
    if (settings->input.max_users_scope == GLOBAL)
       config_set_int(conf, "input_max_users", settings->input.max_users);
 
-   if (settings->input.axis_threshold_scope == GLOBAL)
-      config_set_float(conf, "input_axis_threshold",
+   config_set_float(conf, "input_axis_threshold",
          settings->input.axis_threshold);
-
    config_set_bool(conf, "input_rumble_enable",
          settings->input.rumble_enable);
    config_set_bool(conf, "input_remap_binds_enable",

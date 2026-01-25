@@ -270,7 +270,6 @@ typedef struct settings
       unsigned turbo_period;
       unsigned turbo_settings_scope;
       float axis_threshold;
-      unsigned axis_threshold_scope;
       unsigned analog_dpad_mode;
       unsigned analog_diagonal_sensitivity;
       unsigned analog_dpad_deadzone;

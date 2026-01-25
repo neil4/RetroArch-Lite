@@ -3226,23 +3226,23 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_LIGHTGUN_TRIGGER_DELAY:
          snprintf(s, len,
-                  " -- Delays lightgun trigger input to\n"
-                  "occur after the cursor moves.\n");
+               " -- Delays lightgun trigger input to\n"
+               "occur after the cursor moves.\n");
          break;
      case MENU_LABEL_LIGHTGUN_TWO_TOUCH_INPUT:
          snprintf(s, len,
-                  " -- Input to send to the core when\n"
-                  "two pointers are on screen.\n"
-                  " \n"
-                  "Trigger Delay should be nonzero\n"
-                  "to distinguish from 1-touch input.");
+               " -- Input to send to the core when\n"
+               "two pointers are on screen.\n"
+               " \n"
+               "Trigger Delay should be nonzero\n"
+               "to distinguish from 1-touch input.");
          break;
      case MENU_LABEL_INPUT_LIGHTGUN_ALLOW_OOB:
          snprintf(s, len,
-                  " -- Allow out-of-bounds aiming.\n"
-                  " \n"
-                  "Disable to clamp offscreen aim\n"
-                  "to the in-bounds edge.");
+               " -- Allow out-of-bounds aiming.\n"
+               " \n"
+               "Disable to clamp offscreen aim\n"
+               "to the in-bounds edge.");
          break;
       case MENU_LABEL_OVERLAY_ASPECT_RATIO_INDEX:
          snprintf(s, len,
@@ -3282,7 +3282,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " -- Long press the screen to begin\n"
                "holding a mouse button.\n"
                " \n"
-               "Use 1/2/3 fingers for LMB/RMB/MMB.");
+               "1/2/3-touch input sends LMB/RMB/MMB.");
          break;
       case MENU_LABEL_OVERLAY_MOUSE_HOLD_MS:
          snprintf(s, len,
@@ -3303,7 +3303,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " \n"
                "Adds latency to mouse clicks.\n"
                " \n"
-               "Use 1/2/3 fingers for LMB/RMB/MMB.");
+               "1/2/3-touch input sends LMB/RMB/MMB.");
          break;
       case MENU_LABEL_OVERLAY_MOUSE_TAP_AND_DRAG_MS:
          snprintf(s, len,
@@ -3744,8 +3744,8 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_PREEMPTIVE_FRAMES:
          snprintf(s, len,
-                     " -- On joypad updates, recent frames are \n"
-                     "internally rerun with the latest input. \n"
+                     " -- On input state changes, recent frames\n"
+                     "are internally rerun with new input.\n"
                      " \n"
                      "Requires savestate support from the core.\n");
             break;
@@ -3758,14 +3758,14 @@ static int setting_get_description_compare_label(uint32_t label_hash,
       case MENU_LABEL_INPUT_AUTO_KEYBOARD_FOCUS:
          snprintf(s, len,
                      " -- Auto-toggle Keyboard Focus when starting\n"
-                     "a core, based on the input devices used.");
+                     "a core, based on the virtual devices chosen.");
             break;
       case MENU_LABEL_HISTORY_WRITE:
          snprintf(s, len,
                      " -- Write core's ROM history to file.\n"
                      " \n"
                      "If disabled, history updates will\n"
-                     "be in memory only.");
+                     "be in RAM only.");
             break;
       case MENU_LABEL_HISTORY_SHOW_ALWAYS:
          snprintf(s, len,
@@ -3783,9 +3783,9 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                      " \n"
                      "Needed for nondeterministic cores,\n"
                      "but can cause stalls if states are\n"
-                     "not Netplay-friendly.\n"
+                     "not netplay-friendly.\n"
                      " \n"
-                     "Can be toggled during Netplay.");
+                     "Can be toggled during netplay.");
             break;
       case MENU_LABEL_SAVESTATE:
       case MENU_LABEL_LOADSTATE:
@@ -6563,6 +6563,19 @@ static bool setting_append_list_input_options(
 
    if (show_joypad_settings)
    {
+      CONFIG_FLOAT(
+            settings->input.axis_threshold,
+            "input_axis_threshold",
+            "Analog Trigger Threshold",
+            axis_threshold,
+            "%.2f",
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info, 0, 1.0, 0.01, true, true);
+
       CONFIG_UINT(
             settings->input.analog_dpad_mode,
             menu_hash_to_str(MENU_LABEL_INPUT_ANALOG_DPAD_MODE),
@@ -6617,34 +6630,6 @@ static bool setting_append_list_input_options(
       CONFIG_UINT(
             settings->input.analog_dpad_scope,
             "input_analog_dpad_scope",
-            "  Scope",
-            GLOBAL,
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(
-            list, list_info, 0, global->max_scope, 1, true, true);
-      (*list)[list_info->index - 1].get_string_representation =
-         &setting_get_string_representation_uint_scope_index;
-
-      CONFIG_FLOAT(
-            settings->input.axis_threshold,
-            "input_axis_threshold",
-            "Analog Trigger Threshold",
-            axis_threshold,
-            "%.2f",
-            group_info.name,
-            subgroup_info.name,
-            parent_group,
-            general_write_handler,
-            general_read_handler);
-      menu_settings_list_current_add_range(list, list_info, 0, 1.0, 0.01, true, true);
-
-      CONFIG_UINT(
-            settings->input.axis_threshold_scope,
-            "input_axis_threshold_scope",
             "  Scope",
             GLOBAL,
             group_info.name,
