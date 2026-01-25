@@ -2932,6 +2932,10 @@ int16_t input_overlay_state(unsigned port, unsigned device_class,
                      base += 1;
                   res = driver->overlay_state->analog[base];
                   break;
+               case RETRO_DEVICE_INDEX_ANALOG_BUTTON:
+                  res = input_overlay_state(0, RETRO_DEVICE_JOYPAD, 0, id)
+                        * 0x7fff;
+                  break;
                default:
                   if (idx & INDEX_FLAG_CUSTOM_AXIS)
                   {

@@ -68,7 +68,12 @@ static INLINE void input_conv_analog_id_to_bind_id(unsigned idx, unsigned ident,
          break;
 
       default:
-         if (idx & INDEX_FLAG_CUSTOM_AXIS)
+         if (idx == RETRO_DEVICE_INDEX_ANALOG_BUTTON)
+         {
+            *ident_plus  = ident;
+            *ident_minus = NO_BTN;
+         }
+         else if (idx & INDEX_FLAG_CUSTOM_AXIS)
          {
             *ident_minus = ident >> 16;
             *ident_plus  = ident & 0xffff;
