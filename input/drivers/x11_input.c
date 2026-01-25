@@ -109,10 +109,13 @@ static int16_t x_pressed_analog(x11_input_t *x11,
 
    input_conv_analog_id_to_bind_id(idx, id, &id_minus, &id_plus);
 
-   if (x_is_pressed(x11, binds, id_minus))
+   if (id_minus != NO_BTN
+         && x_is_pressed(x11, binds, id_minus))
       pressed_minus = -0x7fff;
-   if (x_is_pressed(x11, binds, id_plus))
-      pressed_plus  =  0x7fff;
+
+   if (id_plus != NO_BTN
+         && x_is_pressed(x11, binds, id_plus))
+      pressed_minus = 0x7fff;
 
    return pressed_plus + pressed_minus;
 }

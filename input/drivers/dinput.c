@@ -258,22 +258,19 @@ static int16_t dinput_pressed_analog(struct dinput_input *di,
       const struct retro_keybind *binds,
       unsigned idx, unsigned id)
 {
-   const struct retro_keybind *bind_minus, *bind_plus;
+   const struct retro_keybind *bind;
    int16_t pressed_minus = 0, pressed_plus = 0;
    unsigned id_minus = 0, id_plus = 0;
 
    input_conv_analog_id_to_bind_id(idx, id, &id_minus, &id_plus);
 
-   bind_minus = &binds[id_minus];
-   bind_plus  = &binds[id_plus];
-
-   if (!bind_minus->valid || !bind_plus->valid)
-      return 0;
-
-   if (dinput_keyboard_pressed(di, bind_minus->key))
+   if (id_minus != NO_BTN
+         && dinput_keyboard_pressed(di, binds[id_minus].key))
       pressed_minus = -0x7fff;
-   if (dinput_keyboard_pressed(di, bind_plus->key))
-      pressed_plus  = 0x7fff;
+
+   if (id_plus != NO_BTN
+         && dinput_keyboard_pressed(di, binds[id_plus].key))
+      pressed_minus = 0x7fff;
 
    return pressed_plus + pressed_minus;
 }

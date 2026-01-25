@@ -28,6 +28,10 @@ extern unsigned input_remapping_scope;
 extern bool input_remapping_touched;
 extern const unsigned input_remapping_btn_order[];
 
+#define NUM_AXIS_REMAPS 5
+#define RARCH_ANALOG_CUSTOM_AXIS (NUM_AXIS_REMAPS - 1)
+#define INDEX_FLAG_CUSTOM_AXIS 0x80
+
 /**
  * input_remapping_load_file:
  * @path                     : Path to remapping file (absolute path).

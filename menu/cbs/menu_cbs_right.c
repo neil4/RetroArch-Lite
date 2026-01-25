@@ -99,22 +99,28 @@ int action_right_input_desc(unsigned type, const char *label,
    unsigned inp_desc_index_offset = type - MENU_SETTINGS_INPUT_DESC_BEGIN;
    unsigned inp_desc_user         = inp_desc_index_offset / (RARCH_FIRST_CUSTOM_BIND + 4);
    unsigned inp_desc_button_index_offset = inp_desc_index_offset - (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
-   settings_t *settings = config_get_ptr();
-   unsigned *mapped_id;
+   unsigned *mapped_id = menu_input_desc_mapped_id(inp_desc_user,
+         inp_desc_button_index_offset, label);
 
-   if (label[0] == 'T')
-      mapped_id = &settings->input.turbo_remap_id[inp_desc_user];
-   else
-      mapped_id = &settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset];
-
+   /* normal or turbo button */
    if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
       *mapped_id = input_remapping_next_id(*mapped_id, true);
    else
    {
-      if (*mapped_id < 4 - 1)
-         (*mapped_id)++;
-      else if (*mapped_id > 4 - 1)
-         *mapped_id = 0;
+      /* custom axis button */
+      if (label[0] == '-' || label[0] == '+')
+         *mapped_id = input_remapping_next_id(*mapped_id, true);
+      else
+      {
+         /* axis */
+         if (*mapped_id < RARCH_ANALOG_CUSTOM_AXIS)
+            (*mapped_id)++;
+         else if (*mapped_id > RARCH_ANALOG_CUSTOM_AXIS)
+            *mapped_id = 0;
+
+         if (*mapped_id == RARCH_ANALOG_CUSTOM_AXIS)
+            menu_entries_set_refresh();
+      }
    }
 
    input_remapping_touched = true;
@@ -126,18 +132,24 @@ int action_r_input_desc(unsigned type, const char *label)
    unsigned inp_desc_index_offset = type - MENU_SETTINGS_INPUT_DESC_BEGIN;
    unsigned inp_desc_user         = inp_desc_index_offset / (RARCH_FIRST_CUSTOM_BIND + 4);
    unsigned inp_desc_button_index_offset = inp_desc_index_offset - (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
-   settings_t *settings = config_get_ptr();
-   unsigned *mapped_id;
+   unsigned *mapped_id = menu_input_desc_mapped_id(inp_desc_user,
+         inp_desc_button_index_offset, label);
 
-   if (label[0] == 'T')
-      mapped_id = &settings->input.turbo_remap_id[inp_desc_user];
-   else
-      mapped_id = &settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset];
-
+   /* normal or turbo button */
    if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
       *mapped_id = input_remapping_last_id(true);
    else
-      *mapped_id = 4 - 1;
+   {
+      /* custom axis button */
+      if (label[0] == '-' || label[0] == '+')
+         *mapped_id = input_remapping_last_id(true);
+      else
+      {
+         /* axis */
+         *mapped_id = RARCH_ANALOG_CUSTOM_AXIS;
+         menu_entries_set_refresh();
+      }
+   }
 
    input_remapping_touched = true;
    return 0;

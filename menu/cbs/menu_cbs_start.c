@@ -176,20 +176,31 @@ static int action_start_input_desc(unsigned type, const char *label)
    unsigned inp_desc_index_offset = type - MENU_SETTINGS_INPUT_DESC_BEGIN;
    unsigned inp_desc_user         = inp_desc_index_offset / (RARCH_FIRST_CUSTOM_BIND + 4);
    unsigned inp_desc_button_index_offset = inp_desc_index_offset - (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
-   bool     is_turbo              = (label[0] == 'T');
-   unsigned *mapped_id            = is_turbo ?
-         &input->turbo_remap_id[inp_desc_user]
-         : &input->remap_ids[inp_desc_user][inp_desc_button_index_offset];
+   unsigned *mapped_id = menu_input_desc_mapped_id(inp_desc_user,
+         inp_desc_button_index_offset, label);
 
-   /* If turbo, set id to match normal remap */
+   /* normal or turbo button */
    if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
    {
-      *mapped_id = is_turbo ?
-            input->remap_ids[inp_desc_user][inp_desc_button_index_offset]
+      /* Use normal remap as turbo remap default */
+      *mapped_id = (label[0] == 'T')
+            ? input->remap_ids[inp_desc_user][inp_desc_button_index_offset]
             : input->binds[inp_desc_user][inp_desc_button_index_offset].id;
    }
    else
-      *mapped_id = inp_desc_button_index_offset - RARCH_FIRST_CUSTOM_BIND;
+   {
+      /* custom axis button */
+      if (label[0] == '-' || label[0] == '+')
+         *mapped_id = NO_BTN;
+      else
+      {
+         /* axis */
+         if (*mapped_id == RARCH_ANALOG_CUSTOM_AXIS)
+            menu_entries_set_refresh();
+
+         *mapped_id = inp_desc_button_index_offset - RARCH_FIRST_CUSTOM_BIND;
+      }
+   }
 
    input_remapping_touched = true;
    return 0;

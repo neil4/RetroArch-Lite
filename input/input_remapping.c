@@ -134,7 +134,7 @@ unsigned input_remapping_last_id(bool digital_only)
  **/
 bool input_remapping_load_file(const char *path)
 {
-   unsigned i, j;
+   unsigned i, j, k;
    config_file_t *conf        = config_file_new(path);
    global_t      *global      = global_get_ptr();
    struct input_struct *input = &config_get_ptr()->input;
@@ -176,6 +176,21 @@ bool input_remapping_load_file(const char *path)
          snprintf(key_ident, sizeof(key_ident), "%s_%s", buf, key_strings[j]);
          if (config_get_int(conf, key_ident, &key_remap))
             input->remap_ids[i][j] = key_remap;
+      }
+
+      /* Custom axis remaps */
+      for(k = 0; k < 4; k++)
+      {
+         int key_remap = -1;
+         j = RARCH_FIRST_CUSTOM_BIND + k;
+
+         snprintf(key_ident, sizeof(key_ident), "%s_%s-", buf, key_strings[j]);
+         if (config_get_int(conf, key_ident, &key_remap))
+            input->custom_axis_ids[i][k][0] = key_remap;
+
+         snprintf(key_ident, sizeof(key_ident), "%s_%s+", buf, key_strings[j]);
+         if (config_get_int(conf, key_ident, &key_remap))
+            input->custom_axis_ids[i][k][1] = key_remap;
       }
 
       /* RetroPad turbo mapping */
@@ -273,7 +288,7 @@ end:
 static bool input_remapping_save_file(const char *path)
 {
    bool ret;
-   unsigned i, j;
+   unsigned i, j, k;
    char buf[32];
    config_file_t *conf        = NULL;
    struct input_struct *input = &config_get_ptr()->input;
@@ -314,7 +329,27 @@ static bool input_remapping_save_file(const char *path)
          config_set_int(conf, key_ident, input->remap_ids[i][j]);
       }
 
-      /* RetroPad turbo binds */
+      /* Custom axis remaps */
+      for(k = 0; k < 4; k++)
+      {
+         j = RARCH_FIRST_CUSTOM_BIND + k;
+
+         if (input->custom_axis_ids[i][k][0] < RARCH_FIRST_CUSTOM_BIND)
+         {
+            snprintf(key_ident, sizeof(key_ident), "%s_%s-",
+                  buf, key_strings[j]);
+            config_set_int(conf, key_ident, input->custom_axis_ids[i][k][0]);
+         }
+
+         if (input->custom_axis_ids[i][k][1] < RARCH_FIRST_CUSTOM_BIND)
+         {
+            snprintf(key_ident, sizeof(key_ident), "%s_%s+",
+                  buf, key_strings[j]);
+            config_set_int(conf, key_ident, input->custom_axis_ids[i][k][1]);
+         }
+      }
+
+      /* RetroPad turbo mapping */
       turbo_all = (input->turbo_id[i] == TURBO_ID_ALL);
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND; j++)
       {
@@ -417,7 +452,11 @@ void input_remapping_set_defaults(void)
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND; j++)
          input->remap_ids[i][j] = input->binds[i][j].id;
       for (j = 0; j < 4; j++)
+      {
          input->remap_ids[i][RARCH_FIRST_CUSTOM_BIND + j] = j;
+         input->custom_axis_ids[i][j][0] = NO_BTN;
+         input->custom_axis_ids[i][j][1] = NO_BTN;
+      }
 
       input->turbo_id[i] = NO_BTN;
       input->turbo_remap_id[i] = NO_BTN;
@@ -440,11 +479,23 @@ void input_remapping_state(unsigned port,
       case RETRO_DEVICE_ANALOG:
          if (*idx < 2 && *id < 2)
          {
-            unsigned new_id = RARCH_FIRST_CUSTOM_BIND + (*idx * 2 + *id);
+            unsigned axis_idx  = (*idx << 1) | *id;
+            unsigned remap_idx = RARCH_FIRST_CUSTOM_BIND + axis_idx;
+            unsigned remap_val = settings->input.remap_ids[port][remap_idx];
 
-            new_id = settings->input.remap_ids[port][new_id];
-            *idx   = (new_id & 2) >> 1;
-            *id    = new_id & ~2;
+            if (remap_val == RARCH_ANALOG_CUSTOM_AXIS)
+            {
+               unsigned *const custom_axis_ids =
+                     settings->input.custom_axis_ids[port][axis_idx];
+
+               *id  = (custom_axis_ids[0] << 16) | custom_axis_ids[1];
+               *idx |= INDEX_FLAG_CUSTOM_AXIS;
+            }
+            else
+            {
+               *idx = (remap_val & 0x2) >> 1;
+               *id  = (remap_val == NO_BTN) ? NO_BTN : remap_val & 0x1;
+            }
          }
          break;
    }

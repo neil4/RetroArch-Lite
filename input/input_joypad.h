@@ -23,6 +23,7 @@ extern "C" {
 
 #include <stdint.h>
 #include "../configuration.h"
+#include "input_remapping.h"
 #include <retro_inline.h>
 
 /**
@@ -64,6 +65,19 @@ static INLINE void input_conv_analog_id_to_bind_id(unsigned idx, unsigned ident,
       case (RETRO_DEVICE_INDEX_ANALOG_RIGHT << 1) | RETRO_DEVICE_ID_ANALOG_Y:
          *ident_minus = RARCH_ANALOG_RIGHT_Y_MINUS;
          *ident_plus  = RARCH_ANALOG_RIGHT_Y_PLUS;
+         break;
+
+      default:
+         if (idx & INDEX_FLAG_CUSTOM_AXIS)
+         {
+            *ident_minus = ident >> 16;
+            *ident_plus  = ident & 0xffff;
+         }
+         else
+         {
+            *ident_plus  = NO_BTN;
+            *ident_minus = NO_BTN;
+         }
          break;
    }
 }

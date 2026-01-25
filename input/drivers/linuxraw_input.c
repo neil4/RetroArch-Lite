@@ -165,10 +165,13 @@ static int16_t linuxraw_analog_pressed(linuxraw_input_t *linuxraw,
 
    input_conv_analog_id_to_bind_id(idx, id, &id_minus, &id_plus);
 
-   if (linuxraw_is_pressed(linuxraw, binds, id_minus))
+   if (id_minus != NO_BTN
+         && linuxraw_is_pressed(linuxraw, binds, id_minus))
       pressed_minus = -0x7fff;
-   if (linuxraw_is_pressed(linuxraw, binds, id_plus))
-      pressed_plus = 0x7fff;
+
+   if (id_plus != NO_BTN
+         && linuxraw_is_pressed(linuxraw, binds, id_plus))
+      pressed_minus = 0x7fff;
 
    return pressed_plus + pressed_minus;
 }

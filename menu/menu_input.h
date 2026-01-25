@@ -187,6 +187,9 @@ int menu_input_set_keyboard_bind_mode(void *data, enum menu_input_bind_mode type
 
 int menu_input_set_input_device_bind_mode(void *data, enum menu_input_bind_mode type);
 
+unsigned *menu_input_desc_mapped_id(unsigned user,
+      unsigned index_offset, const char *label);
+
 menu_input_t *menu_input_get_ptr(void);
 
 #ifdef __cplusplus

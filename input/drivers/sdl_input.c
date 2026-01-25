@@ -96,10 +96,13 @@ static int16_t sdl_analog_pressed(sdl_input_t *sdl, const struct retro_keybind *
 
    input_conv_analog_id_to_bind_id(idx, id, &id_minus, &id_plus);
 
-   if (sdl_key_pressed(binds[id_minus].key))
+   if (id_minus != NO_BTN
+         && sdl_key_pressed(binds[id_minus].key))
       pressed_minus = -0x7fff;
-   if (sdl_key_pressed(binds[id_plus].key))
-      pressed_plus  = 0x7fff;
+
+   if (id_plus != NO_BTN
+         && sdl_key_pressed(binds[id_plus].key))
+      pressed_minus = 0x7fff;
 
    return pressed_plus + pressed_minus;
 }

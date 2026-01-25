@@ -955,11 +955,30 @@ static INLINE bool menu_displaylist_push_turbo_input(
    return turbo_all;
 }
 
-static INLINE void menu_displaylist_push_remap(menu_displaylist_info_t *info,
-                                               unsigned p, unsigned retro_id)
+static INLINE void menu_displaylist_push_custom_axis_remaps(
+      menu_displaylist_info_t *info, unsigned p, unsigned retro_id,
+      const char *axis_description)
 {
-   global_t *global        = global_get_ptr();
    char desc_label[64];
+   unsigned user = p + 1;
+
+   snprintf(desc_label, sizeof(desc_label),
+         "Port %u - %s: ", user, axis_description);
+   menu_list_push(info->list, desc_label, "-", MENU_SETTINGS_INPUT_DESC_BEGIN +
+         (p * (RARCH_FIRST_CUSTOM_BIND + 4)) + retro_id, 0, 0);
+
+   snprintf(desc_label, sizeof(desc_label),
+         "Port %u + %s: ", user, axis_description);
+   menu_list_push(info->list, desc_label, "+", MENU_SETTINGS_INPUT_DESC_BEGIN +
+         (p * (RARCH_FIRST_CUSTOM_BIND + 4)) + retro_id, 0, 0);
+}
+
+static INLINE void menu_displaylist_push_remap(menu_displaylist_info_t *info,
+      unsigned p, unsigned retro_id)
+{
+   char desc_label[64];
+   global_t *global        = global_get_ptr();
+   settings_t *settings    = config_get_ptr();
    unsigned user           = p + 1;
    unsigned desc_offset    = retro_id;
    const char *description = NULL;
@@ -977,6 +996,10 @@ static INLINE void menu_displaylist_push_remap(menu_displaylist_info_t *info,
    menu_list_push(info->list, desc_label, "",
          MENU_SETTINGS_INPUT_DESC_BEGIN +
          (p * (RARCH_FIRST_CUSTOM_BIND + 4)) +  retro_id, 0, 0);
+
+   if (retro_id >= RARCH_FIRST_CUSTOM_BIND
+         && settings->input.remap_ids[p][retro_id] == RARCH_ANALOG_CUSTOM_AXIS)
+      menu_displaylist_push_custom_axis_remaps(info, p, retro_id, description);
 }
 
 static void menu_displaylist_push_core_options(menu_displaylist_info_t *info)

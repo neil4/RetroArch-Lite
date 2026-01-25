@@ -250,7 +250,7 @@ static int16_t input_state(unsigned port, unsigned device,
       res |= input_driver_state(libretro_input_binds, port, device, idx, id);
       res |= input_joykbd_state(id);
    }
-   else if (id < RARCH_CUSTOM_BIND_LIST_END)
+   else if (id < RARCH_CUSTOM_BIND_LIST_END || idx & INDEX_FLAG_CUSTOM_AXIS)
       res |= input_driver_state(libretro_input_binds, port, device, idx, id);
 
    return res;

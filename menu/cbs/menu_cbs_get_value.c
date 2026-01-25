@@ -21,6 +21,7 @@
 #include "../menu_hash.h"
 
 #include "../../input/input_common.h"
+#include "../../input/input_remapping.h"
 #include "../../general.h"
 #include "../../performance.h"
 #include "../../intl/intl.h"
@@ -29,11 +30,12 @@ extern unsigned input_remapping_scope;
 extern void setting_get_string_representation_uint_libretro_device(void *data,
       char *s, size_t len);
 
-const char axis_labels[4][16] = {
+const char axis_labels[NUM_AXIS_REMAPS][16] = {
    RETRO_LBL_ANALOG_LEFT_X,
    RETRO_LBL_ANALOG_LEFT_Y,
    RETRO_LBL_ANALOG_RIGHT_X,
-   RETRO_LBL_ANALOG_RIGHT_Y
+   RETRO_LBL_ANALOG_RIGHT_Y,
+   RETRO_LBL_ANALOG_CUSTOM_AXIS
 };
 
 static void menu_action_setting_disp_set_label_cheat_num_passes(
@@ -345,24 +347,29 @@ static void menu_action_setting_disp_set_label_input_desc(
    settings_t *settings = config_get_ptr();
    unsigned inp_desc_index_offset = type - MENU_SETTINGS_INPUT_DESC_BEGIN;
    unsigned inp_desc_user         = inp_desc_index_offset /
-      (RARCH_FIRST_CUSTOM_BIND + 4);
+         (RARCH_FIRST_CUSTOM_BIND + 4);
    unsigned inp_desc_button_index_offset = inp_desc_index_offset -
-      (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
-   unsigned mapped_id;
+         (inp_desc_user * (RARCH_FIRST_CUSTOM_BIND + 4));
+   unsigned mapped_id = *menu_input_desc_mapped_id(inp_desc_user,
+         inp_desc_button_index_offset, entry_label);
 
-   if (entry_label[0] == 'T')
-      mapped_id = settings->input.turbo_remap_id[inp_desc_user];
-   else
-      mapped_id = settings->input.remap_ids[inp_desc_user][inp_desc_button_index_offset];
-
-   if (mapped_id > RARCH_FIRST_CUSTOM_BIND + 3)
+   /* no button*/
+   if (mapped_id > RARCH_FIRST_CUSTOM_BIND + 4)
       snprintf(s, len, "---");
+   /* normal or turbo button */
    else if (inp_desc_button_index_offset < RARCH_FIRST_CUSTOM_BIND)
       snprintf(s, len, "%s",
             settings->input.binds[inp_desc_user][mapped_id].desc);
    else
-      snprintf(s, len, "%s",
-            axis_labels[mapped_id]);
+   {
+      /* custom axis button */
+      if (entry_label[0] == '-' || entry_label[0] == '+')
+         snprintf(s, len, "%s",
+               settings->input.binds[inp_desc_user][mapped_id].desc);
+      /* axis */
+      else
+         snprintf(s, len, "%s", axis_labels[mapped_id]);
+   }
 
    *w = MENU_DEFAULT_ENTRY_SPACING;
    strlcpy(s2, path, len2);

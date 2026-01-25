@@ -1178,3 +1178,20 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
 
    return ret;
 }
+
+unsigned* menu_input_desc_mapped_id(unsigned user,
+      unsigned index_offset, const char *label)
+{
+   settings_t *settings = config_get_ptr();
+
+   if (label[0] == 'T')       /* turbo */
+      return &settings->input.turbo_remap_id[user];
+   else if (label[0] == '-')  /* axis - */
+      return &settings->input.custom_axis_ids[user]
+            [index_offset - RARCH_FIRST_CUSTOM_BIND][0];
+   else if (label[0] == '+')  /* axis + */
+      return &settings->input.custom_axis_ids[user]
+            [index_offset - RARCH_FIRST_CUSTOM_BIND][1];
+   else  /* normal remap */
+      return &settings->input.remap_ids[user][index_offset];
+}

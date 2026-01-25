@@ -30,6 +30,7 @@
 
 #include "input_overlay.h"
 #include "input_common.h"
+#include "input_remapping.h"
 #include "input_keymaps.h"
 #include "../dynamic.h"
 #include "../performance.h"
@@ -2904,7 +2905,7 @@ static int16_t overlay_pointer_state(driver_t *driver,
  * the user (assigned to @port).
  **/
 int16_t input_overlay_state(unsigned port, unsigned device_class,
-                            unsigned idx, unsigned *id)
+      unsigned idx, unsigned *id)
 {
    int16_t res      = 0;
    driver_t *driver = driver_get_ptr();
@@ -2918,16 +2919,33 @@ int16_t input_overlay_state(unsigned port, unsigned device_class,
             res = 1;
          break;
       case RETRO_DEVICE_ANALOG:
-         if (port == 0
-               && idx < 2 && *id < 2)  /* sticks only */
+         if (port == 0)
          {
             unsigned base = 0;
 
-            if (idx == RETRO_DEVICE_INDEX_ANALOG_RIGHT)
-               base = 2;
-            if (*id == RETRO_DEVICE_ID_ANALOG_Y)
-               base += 1;
-            res = driver->overlay_state->analog[base];
+            switch (idx)
+            {
+               case RETRO_DEVICE_INDEX_ANALOG_RIGHT:
+                  base = 2;
+               case RETRO_DEVICE_INDEX_ANALOG_LEFT:
+                  if (*id == RETRO_DEVICE_ID_ANALOG_Y)
+                     base += 1;
+                  res = driver->overlay_state->analog[base];
+                  break;
+               default:
+                  if (idx & INDEX_FLAG_CUSTOM_AXIS)
+                  {
+                     unsigned id_plus  = *id & 0xffff;
+                     unsigned id_minus = *id >> 16;
+
+                     res = input_overlay_state(0, RETRO_DEVICE_JOYPAD,
+                           0, &id_plus);
+                     res -= input_overlay_state(0, RETRO_DEVICE_JOYPAD,
+                           0, &id_minus);
+                     res *= 0x7fff;
+                  }
+                  break;
+            }
          }
          break;
       case RETRO_DEVICE_KEYBOARD:

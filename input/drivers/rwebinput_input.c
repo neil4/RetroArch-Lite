@@ -126,10 +126,13 @@ static int16_t rwebinput_analog_pressed(rwebinput_input_t *rwebinput,
 
    input_conv_analog_id_to_bind_id(idx, id, &id_minus, &id_plus);
 
-   if (rwebinput_is_pressed(rwebinput, binds, id_minus))
+   if (id_minus != NO_BTN
+         && linuxraw_is_pressed(rwebinput, binds, id_minus))
       pressed_minus = -0x7fff;
-   if (rwebinput_is_pressed(rwebinput, binds, id_plus))
-      pressed_plus = 0x7fff;
+
+   if (id_plus != NO_BTN
+         && linuxraw_is_pressed(rwebinput, binds, id_plus))
+      pressed_minus = 0x7fff;
 
    return pressed_plus + pressed_minus;
 }
