@@ -233,41 +233,27 @@ static void add_sub_conf(config_file_t *conf, char *line)
 
 static char *strip_comment(char *str)
 {
-   /* Remove everything after comment.
+   /* Terminate at #.
     * Keep #s inside string literals. */
-   char *strend = str + strlen(str);
-   bool cut_comment = true;
+   char *comment = strchr(str, '#');
 
-   while (*str)
+   if (comment)
    {
-      char *comment = NULL;
-      char *literal = strchr(str, '\"');
-      if (!literal)
-         literal = strend;
-      comment = (char*)strchr(str, '#');
-      if (!comment)
-         comment = strend;
-
-      if (cut_comment && literal < comment)
-      {
-         cut_comment = false;
-         str = literal + 1;
-      }
-      else if (!cut_comment && literal)
-      {
-         cut_comment = true;
-         str = literal + 1;
-      }
-      else if (comment)
-      {
+      if (comment == str)
          *comment = '\0';
-         str = comment;
-      }
       else
-         str = strend;
+      {
+         char *quote = strchr(str, '"');
+
+         /* Can ignore #s after string literals; not parsed */
+         if (quote && quote < comment)
+            comment = NULL;
+         else
+            *comment = '\0';
+      }
    }
 
-   return str;
+   return comment;
 }
 
 static bool parse_line(config_file_t *conf,
