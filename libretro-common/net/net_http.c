@@ -182,14 +182,18 @@ error:
 
 bool net_http_connection_iterate(struct http_connection_t *conn)
 {
+   const int max = 256;
+   int i = 0;
+
    if (!conn)
       return false;
-   if (*conn->scan != '/' && *conn->scan != ':' && *conn->scan != '\0')
-   {
+
+   for (i = 0; i < max
+         && *conn->scan != '/' && *conn->scan != ':' && *conn->scan != '\0';
+         i++)
       conn->scan++;
-      return false;
-   }
-   return true;
+
+   return i < max;
 }
 
 bool net_http_connection_done(struct http_connection_t *conn)

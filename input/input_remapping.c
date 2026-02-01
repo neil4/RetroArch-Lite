@@ -140,6 +140,11 @@ bool input_remapping_load_file(const char *path)
    struct input_struct *input = &config_get_ptr()->input;
    char buf[32];
 
+   const char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = {
+         "b", "y", "select", "start", "up", "down", "left", "right", "a", "x",
+         "l", "r", "l2", "r2", "l3", "r3",
+         "l_x", "l_y", "r_x", "r_y" };
+
    if (!conf)
       return false;
 
@@ -162,11 +167,7 @@ bool input_remapping_load_file(const char *path)
    for (i = 0; i < MAX_USERS; i++)
    {
       char key_ident[32];
-      char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = {
-         "b", "y", "select", "start", "up", "down", "left", "right", "a", "x",
-         "l", "r", "l2", "r2", "l3", "r3",
-         "l_x", "l_y", "r_x", "r_y" };
-      int turbo_count    = 0;
+      int turbo_count = 0;
 
       snprintf(buf, sizeof(buf), "input_player%u", i + 1);
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND + 4; j++)
@@ -294,6 +295,11 @@ static bool input_remapping_save_file(const char *path)
    struct input_struct *input = &config_get_ptr()->input;
    bool turbo_all;
 
+   const char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = {
+         "b", "y", "select", "start", "up", "down", "left", "right", "a", "x",
+         "l", "r", "l2", "r2", "l3", "r3",
+         "l_x", "l_y", "r_x", "r_y" };
+
    if (!(conf = config_file_new(NULL)))
       return false;
 
@@ -313,10 +319,6 @@ static bool input_remapping_save_file(const char *path)
    for (i = 0; i < input->max_users; i++)
    {
       char key_ident[32];
-      char key_strings[RARCH_FIRST_CUSTOM_BIND + 4][8] = {
-         "b", "y", "select", "start", "up", "down", "left", "right", "a", "x",
-         "l", "r", "l2", "r2", "l3", "r3",
-         "l_x", "l_y", "r_x", "r_y" };
 
       snprintf(buf, sizeof(buf), "input_player%u", i + 1);
       for (j = 0; j < RARCH_FIRST_CUSTOM_BIND + 4; j++)

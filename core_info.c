@@ -188,7 +188,7 @@ core_info_list_t *core_info_list_new(enum info_list_target target)
    settings_t *settings = config_get_ptr();
    global_t *global     = global_get_ptr();
    struct string_list *contents;
-   
+
    if (target == DOWNLOADABLE_CORES)
       contents = dir_list_new(settings->libretro_info_path, "info", false);
    else
@@ -216,7 +216,7 @@ core_info_list_t *core_info_list_new(enum info_list_target target)
       /* get platform-free name */
       info_path_base[0] = '\0';
       path_libretro_name(info_path_base, contents->elems[i].data);
-      
+
       /* set path (search key) */
       if (target == DOWNLOADABLE_CORES)
          core_info[i].path = strdup(info_path_base); /* key on libretro name */
