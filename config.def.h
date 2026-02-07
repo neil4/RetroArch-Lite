@@ -364,18 +364,18 @@ static const unsigned frame_delay = 0;
  * ghosting. video_refresh_rate should still be configured as if it 
  * is a 60 Hz monitor (divide refresh rate by 2).
  */
-static bool black_frame_insertion = false;
+static const bool black_frame_insertion = false;
 
 /* Uses a custom swap interval for VSync.
  * Set this to effectively divide the monitor refresh rate.
  */
-static unsigned swap_interval = 1;
+static const unsigned swap_interval = 1;
 
 /* Use duplicate frames for swap intervals higher than 1. */
 #ifdef ANDROID
-static bool fake_swap_interval = true;
+static const bool fake_swap_interval = true;
 #else
-static bool fake_swap_interval = false;
+static const bool fake_swap_interval = false;
 #endif
 
 /* Threaded video. Will possibly increase performance significantly 
@@ -410,13 +410,13 @@ static const float aspect_ratio = DEFAULT_ASPECT_RATIO;
 static const bool aspect_ratio_auto = false;
 
 #if defined(__CELLOS_LV2) || defined(_XBOX360)
-static unsigned aspect_ratio_idx = ASPECT_RATIO_16_9;
+static const unsigned aspect_ratio_idx = ASPECT_RATIO_16_9;
 #elif defined(PSP)
-static unsigned aspect_ratio_idx = ASPECT_RATIO_CORE;
+static const unsigned aspect_ratio_idx = ASPECT_RATIO_CORE;
 #elif defined(RARCH_CONSOLE)
-static unsigned aspect_ratio_idx = ASPECT_RATIO_CORE;
+static const unsigned aspect_ratio_idx = ASPECT_RATIO_CORE;
 #else
-static unsigned aspect_ratio_idx = ASPECT_RATIO_CORE;
+static const unsigned aspect_ratio_idx = ASPECT_RATIO_CORE;
 #endif
 
 /* Set false to request same-binary savestates
@@ -424,23 +424,23 @@ static unsigned aspect_ratio_idx = ASPECT_RATIO_CORE;
 static const bool preempt_fast_savestates = true;
 
 /* Save configuration file on exit. */
-static bool config_save_on_exit = true;
+static const bool config_save_on_exit = true;
 
 static const bool default_overlay_enable = false;
 
-static bool default_block_config_read = true;
+static const bool default_block_config_read = true;
 
-static bool show_advanced_settings    = false;
-static bool mame_titles = true;
-static float wallpaper_opacity = 1.0f;
-static float menu_ticker_speed = 2.0f;
+static const bool show_advanced_settings    = false;
+static const bool mame_titles = true;
+static const float wallpaper_opacity = 1.0f;
+static const float menu_ticker_speed = 2.0f;
 #ifdef HAVE_OVERLAY
 #ifdef ANDROID
-static bool show_overlay_menu = true;
+static const bool show_overlay_menu = true;
 #else
-static bool show_overlay_menu = false;
+static const bool show_overlay_menu = false;
 #endif
-static float overlay_opacity = 0.5f;
+static const float overlay_opacity = 0.5f;
 static const unsigned overlay_dpad_diag_sens = 80;
 static const unsigned overlay_abxy_diag_sens = 50;
 static const float overlay_bisect_aspect_ratio = OVERLAY_MAX_BISECT;
@@ -453,49 +453,49 @@ static const bool overlay_mouse_tap_and_drag = false;
 static const unsigned overlay_mouse_tap_and_drag_ms = 200;
 static const unsigned overlay_analog_recenter_zone = 0;
 #endif
-static bool show_frame_throttle_menu = true;
+static const bool show_frame_throttle_menu = true;
 #ifdef HAVE_NETPLAY
-static bool show_netplay_menu = true;
+static const bool show_netplay_menu = true;
 #endif
-static bool show_saving_menu = false;
-static bool show_core_menu = true;
-static bool show_core_history_menu = true;
-static bool show_driver_menu = false;
-static bool show_ui_menu = false;
-static bool show_logging_menu = false;
-static bool show_cheat_options = false;
-static bool menu_show_core_info = true;
-static bool menu_show_system_info = true;
-static bool show_configuration_menu = false;
-static bool show_user_menu = false;
+static const bool show_saving_menu = false;
+static const bool show_core_menu = true;
+static const bool show_core_history_menu = true;
+static const bool show_driver_menu = false;
+static const bool show_ui_menu = false;
+static const bool show_logging_menu = false;
+static const bool show_cheat_options = false;
+static const bool menu_show_core_info = true;
+static const bool menu_show_system_info = true;
+static const bool show_configuration_menu = false;
+static const bool show_user_menu = false;
 #ifdef EXTERNAL_LAUNCHER
-static bool show_directory_menu = false;
-static bool show_core_updater = false;
+static const bool show_directory_menu = false;
+static const bool show_core_updater = false;
 #else
-static bool show_directory_menu = true;
-static bool show_core_updater = true;
+static const bool show_directory_menu = true;
+static const bool show_core_updater = true;
 #endif
-static bool show_recording_menu = false;
-static bool show_core_updater_menu = false;
-static bool show_font_menu = false;
+static const bool show_recording_menu = false;
+static const bool show_core_updater_menu = false;
+static const bool show_font_menu = false;
 #ifdef ANDROID
-static bool show_hotkey_menu = false;
+static const bool show_hotkey_menu = false;
 #else
-static bool show_hotkey_menu = true;
+static const bool show_hotkey_menu = true;
 #endif
-static bool show_rewind_menu = false;
+static const bool show_rewind_menu = false;
 
-static unsigned core_history_size = 30;
-static bool core_history_show_always = true;
+static const unsigned core_history_size = 30;
+static const bool core_history_show_always = true;
 
-static bool default_sort_savefiles_enable = true;
-static bool default_sort_savestates_enable = true;
+static const bool default_sort_savefiles_enable = true;
+static const bool default_sort_savestates_enable = true;
 
-static unsigned default_menu_btn_ok      = RETRO_DEVICE_ID_JOYPAD_A;
-static unsigned default_menu_btn_cancel  = RETRO_DEVICE_ID_JOYPAD_B;
-static unsigned default_menu_btn_search  = RETRO_DEVICE_ID_JOYPAD_X;
-static unsigned default_menu_btn_default = RETRO_DEVICE_ID_JOYPAD_START;
-static unsigned default_menu_btn_info    = RETRO_DEVICE_ID_JOYPAD_SELECT;
+static const unsigned default_menu_btn_ok      = RETRO_DEVICE_ID_JOYPAD_A;
+static const unsigned default_menu_btn_cancel  = RETRO_DEVICE_ID_JOYPAD_B;
+static const unsigned default_menu_btn_search  = RETRO_DEVICE_ID_JOYPAD_X;
+static const unsigned default_menu_btn_default = RETRO_DEVICE_ID_JOYPAD_START;
+static const unsigned default_menu_btn_info    = RETRO_DEVICE_ID_JOYPAD_SELECT;
 
 /* Crop overscanned frames. */
 static const bool crop_overscan = true;
@@ -698,43 +698,43 @@ static const unsigned lightgun_trigger_delay = 1;
 
 #if defined(ANDROID)
 #if defined(ANDROID_ARM)
-static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/armeabi-v7a/";
+static const char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/armeabi-v7a/";
 #elif defined(ANDROID_AARCH64)
-static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/arm64-v8a/";
+static const char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/arm64-v8a/";
 #elif defined(ANDROID_X86)
-static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/x86/";
+static const char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/x86/";
 #elif defined(ANDROID_X64)
-static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/x86_64/"
+static const char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/android/latest/x86_64/"
 #else
-static char buildbot_server_url[] = "";
+static const char buildbot_server_url[] = "";
 #endif
 #elif defined(IOS)
-static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/ios/latest/";
+static const char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/ios/latest/";
 #elif defined(OSX)
 #if defined(__x86_64__)
-static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/osx-x86_64/latest/";
+static const char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/osx-x86_64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__)
-static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/osx-i386/latest/";
+static const char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/osx-i386/latest/";
 #else
-static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/osx-ppc/latest/";
+static const char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/osx-ppc/latest/";
 #endif
 #elif defined(_WIN32) && !defined(_XBOX)
 #if defined(__x86_64__)
-static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/windows/x86_64/latest/";
+static const char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/windows/x86_64/latest/";
 #elif defined(__i386__) || defined(__i486__) || defined(__i686__)
-static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/windows/x86/latest/";
+static const char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/windows/x86/latest/";
 #endif
 #elif defined(__linux__)
 #if defined(__x86_64__)
-static char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/linux/x86_64/latest/";
+static const char buildbot_server_url[] = "http://buildbot.libretro.com/nightly/linux/x86_64/latest/";
 #else
-static char buildbot_server_url[] = "";
+static const char buildbot_server_url[] = "";
 #endif
 #else
-static char buildbot_server_url[] = "";
+static const char buildbot_server_url[] = "";
 #endif
 
-static char buildbot_assets_server_url[] = "http://buildbot.libretro.com/assets/";
+static const char buildbot_assets_server_url[] = "http://buildbot.libretro.com/assets/";
 
 #ifndef IS_SALAMANDER
 #include "intl/intl.h"

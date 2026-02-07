@@ -400,44 +400,6 @@ static void load_symbols(bool is_dummy)
 }
 
 /**
- * libretro_get_current_core_pathname:
- * @name                         : Sanitized name of libretro core.
- * @size                         : Size of @name
- *
- * Transforms a library id to a name suitable as a pathname.
- **/
-void libretro_get_current_core_pathname(char *name, size_t size)
-{
-   size_t i;
-   const char                *id = NULL;
-   struct retro_system_info info = {0};
-
-   if (size == 0)
-      return;
-
-   pretro_get_system_info(&info);
-   id = info.library_name ? info.library_name : "Unknown";
-
-   if (!id || strlen(id) >= size)
-   {
-      name[0] = '\0';
-      return;
-   }
-
-   name[strlen(id)] = '\0';
-
-   for (i = 0; id[i] != '\0'; i++)
-   {
-      char c = id[i];
-
-      if (isspace(c) || isblank(c))
-         name[i] = '_';
-      else
-         name[i] = tolower(c);
-   }
-}
-
-/**
  * init_libretro_sym:
  * @dummy                        : Load dummy symbols if true
  *

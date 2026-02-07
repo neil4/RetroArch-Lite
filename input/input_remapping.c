@@ -223,7 +223,7 @@ bool input_remapping_load_file(const char *path)
    /* RetroPad to Keyboard mapping */
    for (i = 0; i < JOYKBD_LIST_LEN; i++)
    {
-      char rk_buf[32];
+      char rk_buf[16];
       enum retro_key rk = joykbd_bind_list[i].rk;
       int joy_id        = NO_BTN;
 
@@ -371,7 +371,7 @@ static bool input_remapping_save_file(const char *path)
    /* RetroPad to Keyboard mapping */
    for (i = 0; i < JOYKBD_LIST_LEN; i++)
    {
-      char rk_buf[32];
+      char rk_buf[16];
       enum retro_key rk = joykbd_bind_list[i].rk;
       uint16_t btn      = joykbd_bind_list[i].btn;
 

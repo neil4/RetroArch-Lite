@@ -208,7 +208,7 @@ bool win32_get_metrics(void *data,
 #else
    HDC monitor            = GetDC(NULL);
    int pixels_x           = GetDeviceCaps(monitor, HORZRES);
-   int pixels_y           = GetDeviceCaps(monitor, VERTRES);
+ /*int pixels_y           = GetDeviceCaps(monitor, VERTRES);*/
    int physical_width     = GetDeviceCaps(monitor, HORZSIZE);
    int physical_height    = GetDeviceCaps(monitor, VERTSIZE);
 

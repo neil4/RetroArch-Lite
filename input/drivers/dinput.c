@@ -258,7 +258,6 @@ static int16_t dinput_pressed_analog(struct dinput_input *di,
       const struct retro_keybind *binds,
       unsigned idx, unsigned id)
 {
-   const struct retro_keybind *bind;
    int16_t pressed_minus = 0, pressed_plus = 0;
    unsigned id_minus = 0, id_plus = 0;
 

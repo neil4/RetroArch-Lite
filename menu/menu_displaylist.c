@@ -904,7 +904,7 @@ static INLINE void menu_displaylist_push_joykbd_binds(
       menu_displaylist_info_t *info)
 {
    char desc_label[64];
-   char rk_buf[64];
+   char rk_buf[16];
    unsigned i;
 
    for (i = 0; i < JOYKBD_LIST_LEN; i++)
@@ -912,7 +912,7 @@ static INLINE void menu_displaylist_push_joykbd_binds(
       enum retro_key rk = joykbd_bind_list[i].rk;
 
       input_keymaps_translate_rk_to_str(rk, rk_buf, sizeof(rk_buf));
-      rk_buf[0] -= 32; /* uppercase 1st letter */
+      rk_buf[0] = toupper(rk_buf[0]);
       snprintf(desc_label, sizeof(desc_label), "Keyboard %s: ", rk_buf);
 
       menu_list_push(info->list, desc_label,
