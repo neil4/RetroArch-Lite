@@ -1099,10 +1099,10 @@ static int menu_displaylist_parse_options_remappings(menu_displaylist_info_t *in
       if (settings->input.turbo_binds_enable)
          menu_displaylist_push_turbo_input(info, p);
 
-      menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_A);
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_B);
-      menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_X);
+      menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_A);
       menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_Y);
+      menu_displaylist_push_remap(info, p, RETRO_DEVICE_ID_JOYPAD_X);
 
       for (retro_id = RETRO_DEVICE_ID_JOYPAD_L;
            retro_id < RARCH_FIRST_CUSTOM_BIND + 4; retro_id++)
