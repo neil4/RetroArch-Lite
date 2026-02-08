@@ -962,7 +962,6 @@ static void rgui_render(void)
    char timedate[32];
    menu_handle_t *menu            = menu_driver_get_ptr();
    menu_input_t *menu_input       = menu_input_get_ptr();
-   menu_display_t *disp           = menu_display_get_ptr();
    menu_framebuf_t *frame_buf     = menu_display_fb_get_ptr();
    menu_navigation_t *nav         = menu_navigation_get_ptr();
    runloop_t *runloop             = rarch_main_get_ptr();
@@ -980,7 +979,7 @@ static void rgui_render(void)
    if (!menu)
       return;
 
-   if (menu_entries_needs_refresh() && menu_driver_alive() && !disp->msg_force)
+   if (menu_entries_needs_refresh() && menu_driver_alive())
       return;
 
    if (runloop->is_idle)
@@ -1111,20 +1110,6 @@ static void rgui_render(void)
             title_x + FONT_WIDTH_STRIDE * (title_w + 1), y,
             FONT_WIDTH_STRIDE * offset, color);
    }
-
-#ifdef GEKKO
-   const char *message_queue;
-
-   if (disp->msg_force)
-   {
-      message_queue = rarch_main_msg_queue_pull();
-      disp->msg_force = false;
-   }
-   else
-      message_queue = driver->current_msg;
-
-   rgui_render_messagebox( message_queue);
-#endif
 
    if (menu_input->keyboard.display)
    {

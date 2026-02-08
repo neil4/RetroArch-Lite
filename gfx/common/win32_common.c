@@ -182,12 +182,23 @@ LRESULT win32_menu_loop(HWND owner, WPARAM wparam)
    {
       event_command(cmd);
 
-      if (cmd == EVENT_CMD_LOAD_CORE)
+      switch (cmd)
       {
-         bool has_valid_exts = global->menu.info.valid_extensions &&
+         case EVENT_CMD_LOAD_CORE:
+         {
+            bool has_valid_exts = global->menu.info.valid_extensions &&
                *global->menu.info.valid_extensions;
-         if (settings->core.start_without_content || !has_valid_exts)
-            menu_common_load_content(false);
+            if (settings->core.start_without_content || !has_valid_exts)
+               menu_common_load_content(false);
+            break;
+         }
+         case EVENT_CMD_LOAD_CONTENT:
+         {
+            menu_list_t *menu_list = menu_list_get_ptr();
+            menu_list_flush_stack(menu_list, NULL, MENU_SETTINGS);
+         }
+         default:
+            break;
       }
 
       event_command(EVENT_CMD_MENU_ENTRIES_REFRESH);

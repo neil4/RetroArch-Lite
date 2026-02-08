@@ -62,13 +62,8 @@ static void menu_environment_get(int *argc, char *argv[],
 bool menu_load_content(void)
 {
    menu_handle_t *menu  = menu_driver_get_ptr();
-   menu_display_t *disp = menu_display_get_ptr();
    driver_t *driver     = driver_get_ptr();
    global_t *global     = global_get_ptr();
-
-   /* redraw menu frame */
-   if (disp)
-      disp->msg_force = true;
 
    menu_entry_iterate(MENU_ACTION_NOOP);
 
@@ -84,14 +79,11 @@ bool menu_load_content(void)
       snprintf(msg, sizeof(msg), "Failed to load %s.\n", name);
       rarch_main_msg_queue_push(msg, 1, 90, false);
 
-      if (disp)
-         disp->msg_force = true;
-
       return false;
    }
 
    menu_shader_manager_init(menu);
- 
+
    event_command(EVENT_CMD_VIDEO_SET_ASPECT_RATIO);
    event_command(EVENT_CMD_RESUME);
 
@@ -100,7 +92,6 @@ bool menu_load_content(void)
 
 void menu_common_load_content(bool persist)
 {
-   menu_display_t *disp   = menu_display_get_ptr();
    menu_list_t *menu_list = menu_list_get_ptr();
    if (!menu_list)
       return;
@@ -108,7 +99,7 @@ void menu_common_load_content(bool persist)
    event_command(persist ? EVENT_CMD_LOAD_CONTENT_PERSIST : EVENT_CMD_LOAD_CONTENT);
 
    menu_list_flush_stack(menu_list, NULL, MENU_SETTINGS);
-   disp->msg_force = true;
+   menu_entry_iterate(MENU_ACTION_REFRESH);
 }
 
 static int menu_init_entries(menu_entries_t *entries)

@@ -188,7 +188,6 @@ int menu_entry_action(menu_entry_t *entry, unsigned i, enum menu_action action)
    int ret                   = 0;
    global_t *global          = global_get_ptr();
    menu_input_t *menu_input  = menu_input_get_ptr();
-   menu_display_t *disp      = menu_display_get_ptr();
    menu_list_t *menu_list    = menu_list_get_ptr();
    menu_file_list_cbs_t *cbs = menu_list_get_actiondata_at_offset(menu_list->selection_buf, i);
 
@@ -258,11 +257,6 @@ int menu_entry_action(menu_entry_t *entry, unsigned i, enum menu_action action)
             ret = cbs->action_refresh(menu_list->selection_buf, menu_list->menu_stack);
             menu_entries_unset_refresh();
          }
-         break;
-
-      case MENU_ACTION_MESSAGE:
-         if (disp)
-            disp->msg_force = true;
          break;
 
       default:
