@@ -282,7 +282,7 @@ void menu_animation_free(menu_animation_t *anim)
 
 void menu_animation_kill_by_subject(menu_animation_t *animation, size_t count, const void *subjects)
 {
-   unsigned i, j, killed = 0;
+   unsigned i, j;
    float **sub = (float**)subjects;
 
    for (i = 0; i < animation->size; ++i)
@@ -296,7 +296,6 @@ void menu_animation_kill_by_subject(menu_animation_t *animation, size_t count, c
          {
             animation->list[i].alive   = 0;
             animation->list[i].subject = NULL;
-            killed++;
             break;
          }
       }

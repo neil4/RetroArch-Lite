@@ -886,8 +886,8 @@ static void android_input_poll(void *data)
    ra_poll.downs = 0;
    ra_poll.any_events = false;
    
-   while ((ident = ALooper_pollAll(runloop->is_idle ? -1 : 0,
-                                   NULL, NULL, NULL)) >= 0)
+   while ((ident = ALooper_pollOnce(runloop->is_idle ? -1 : 0,
+         NULL, NULL, NULL)) != ALOOPER_POLL_TIMEOUT)
    {
       switch (ident)
       {
