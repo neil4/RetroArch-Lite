@@ -235,7 +235,7 @@ static int action_iterate_info(char *s, size_t len, const char *label)
    file_list_t *list                = NULL;
    menu_list_t *menu_list           = menu_list_get_ptr();
    size_t selection                 = menu_navigation_get_current_selection();
-   const char *path;
+   const char *path                 = NULL;
 
    if (!menu_list)
       return 0;

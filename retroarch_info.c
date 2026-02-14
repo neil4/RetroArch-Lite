@@ -74,13 +74,13 @@ int rarch_info_get_capabilities(enum rarch_capabilities type, char *s, size_t le
 #elif defined(__SNC__)
          snprintf(s, len, "Compiler: SNC (%d) %u-bit",
                __SN_VER__, (unsigned)(CHAR_BIT * sizeof(size_t)));
+#elif defined(__clang__)
+         snprintf(s, len, "Compiler: Clang/LLVM (%s) %u-bit",
+               __clang_version__, (unsigned)(CHAR_BIT * sizeof(size_t)));
 #elif defined(_WIN32) && defined(__GNUC__)
          snprintf(s, len, "Compiler: MinGW (%d.%d.%d) %u-bit",
                __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, (unsigned)
                (CHAR_BIT * sizeof(size_t)));
-#elif defined(__clang__)
-         snprintf(s, len, "Compiler: Clang/LLVM (%s) %u-bit",
-               __clang_version__, (unsigned)(CHAR_BIT * sizeof(size_t)));
 #elif defined(__GNUC__)
          snprintf(s, len, "Compiler: GCC (%d.%d.%d) %u-bit",
                __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, (unsigned)
