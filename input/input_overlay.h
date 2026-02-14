@@ -289,7 +289,7 @@ struct input_overlay
    slock_t *loader_mutex;
    void (*load_func)(void *);
    bool is_loading;
-   bool loader_busy;
+   volatile bool loader_busy;
 #endif
 };
 
@@ -377,7 +377,7 @@ void input_overlay_load_overlays(void *ol);
 
 void input_overlay_load_overlays_iterate(void *ol);
 
-void input_overlay_load_overlays_resolve_iterate(void *ol);
+void input_overlay_load_overlays_resolve_finish(void *ol);
 
 void input_overlay_load_active(input_overlay_t *ol);
 

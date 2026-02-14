@@ -44,9 +44,9 @@
 #define KEY_ABXY_AREA    0xbcf1c3b1U
 
 #ifdef HAVE_THREADS
-#define OL_IMG_POS_INCREMENT 32
-#define DESC_IMG_POS_INCREMENT 128
-#define DESC_POS_INCREMENT 1024
+#define OL_IMG_POS_INCREMENT INT_MAX
+#define DESC_IMG_POS_INCREMENT INT_MAX
+#define DESC_POS_INCREMENT INT_MAX
 #define ol_loader_adjoin_steps true
 #else
 #define OL_IMG_POS_INCREMENT 4
@@ -1005,7 +1005,7 @@ void input_overlay_load_active(input_overlay_t *ol)
    ol->iface->full_screen(ol->iface_data, ol->active->full_screen);
 }
 
-void input_overlay_load_overlays_resolve_iterate(void *data)
+static void input_overlay_load_overlays_resolve_iterate(void *data)
 {
    input_overlay_t *ol = (input_overlay_t *)data;
 
@@ -1032,6 +1032,17 @@ void input_overlay_load_overlays_resolve_iterate(void *data)
    return;
 error:
    ol->state = OVERLAY_STATUS_DEFERRED_ERROR;
+}
+
+void input_overlay_load_overlays_resolve_finish(void *data)
+{
+   input_overlay_t *ol = (input_overlay_t *)data;
+
+   if (!ol)
+      return;
+
+   while (ol->state == OVERLAY_STATUS_DEFERRED_LOADING_RESOLVE)
+      input_overlay_load_overlays_resolve_iterate(data);
 }
 
 static void input_overlay_set_eightway_anchors(struct overlay *overlay)
@@ -1100,13 +1111,11 @@ void input_overlay_load_overlays_iterate(void *data)
             {
                overlay->pos       = 0;
                ol->loading_status = OVERLAY_IMAGE_TRANSFER_DESC_ITERATE;
-               if (ol_loader_adjoin_steps)
-                  goto desc_iterate;
                break;
             }
          }
-         break;
-      desc_iterate:
+         if (!ol_loader_adjoin_steps)
+            break;
       case OVERLAY_IMAGE_TRANSFER_DESC_ITERATE:
          for (n = 0; n < DESC_POS_INCREMENT; n++)
          {
@@ -1128,13 +1137,11 @@ void input_overlay_load_overlays_iterate(void *data)
             {
                overlay->pos       = 0;
                ol->loading_status = OVERLAY_IMAGE_TRANSFER_DESC_DONE;
-               if (ol_loader_adjoin_steps)
-                  goto desc_done;
                break;
             }
          }
-         break;
-      desc_done:
+         if (!ol_loader_adjoin_steps)
+            break;
       case OVERLAY_IMAGE_TRANSFER_DESC_DONE:
          input_overlay_set_eightway_anchors(&ol->overlays[ol->pos]);
          input_overlay_update_aspect_and_shift(&ol->overlays[ol->pos]);
@@ -1289,6 +1296,10 @@ void input_overlay_load_overlays(void *data)
       overlay->center_x = overlay->x + 0.5f * overlay->w;
       overlay->center_y = overlay->y + 0.5f * overlay->h;
    }
+
+   if (ol_loader_adjoin_steps
+         && ol->state == OVERLAY_STATUS_DEFERRED_LOADING)
+      input_overlay_load_overlays_iterate(data);
 
    return;
 

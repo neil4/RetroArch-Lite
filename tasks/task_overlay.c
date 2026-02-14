@@ -77,7 +77,7 @@ void rarch_main_data_overlay_iterate(void *data)
          break;
       case OVERLAY_STATUS_DEFERRED_LOADING_RESOLVE:
          input_overlay_loader_iterate(ol,
-               input_overlay_load_overlays_resolve_iterate);
+               input_overlay_load_overlays_resolve_finish);
          break;
       case OVERLAY_STATUS_DEFERRED_DONE:
          input_overlay_new_done(ol);
