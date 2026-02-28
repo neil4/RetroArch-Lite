@@ -1155,10 +1155,10 @@ static bool gx_frame(void *data, const void *frame,
    return true;
 }
 
-static void gx_set_nonblock_state(void *data, bool state)
+static void gx_set_nonblock_state(void *data, swap_interval)
 {
    (void)data;
-   g_vsync = !state;
+   g_vsync = !!swap_interval;
 }
 
 static bool gx_alive(void *data)

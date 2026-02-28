@@ -570,11 +570,11 @@ static bool thread_frame(void *data, const void *frame_,
    return true;
 }
 
-static void thread_set_nonblock_state(void *data, bool state)
+static void thread_set_nonblock_state(void *data, int swap_interval)
 {
    thread_video_t *thr = (thread_video_t*)data;
    if (thr)
-      thr->nonblock = state;
+      thr->nonblock = !swap_interval;
 }
 
 static bool thread_init(thread_video_t *thr, const video_info_t *info,

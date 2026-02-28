@@ -41,7 +41,7 @@ static const gfx_ctx_driver_t *gfx_ctx_drivers[] = {
 #if defined(_WIN32) && defined(HAVE_OPENGL)
    &gfx_ctx_wgl,
 #endif
-#if defined(HAVE_X11) && defined(HAVE_OPENGL) && !defined(HAVE_OPENGLES)
+#if defined(HAVE_X11) && defined(HAVE_OPENGL) && !defined(HAVE_GLES)
    &gfx_ctx_glx,
 #endif
 #if defined(HAVE_WAYLAND) && defined(HAVE_OPENGL) && defined(HAVE_EGL)
@@ -268,15 +268,9 @@ void gfx_ctx_get_video_size(void *data,
 void gfx_ctx_swap_interval(void *data, unsigned interval)
 {
    const gfx_ctx_driver_t *ctx = gfx_ctx_get_ptr();
-   const settings_t *settings  = config_get_ptr();
 
    if (ctx)
-   {
-      if (settings->video.fake_swap_interval && interval != 0)
-         ctx->swap_interval(data, 1);
-      else
-         ctx->swap_interval(data, interval);
-   }
+      ctx->swap_interval(data, interval);
 }
 
 void gfx_ctx_set_resize(void *data, unsigned width, unsigned height)

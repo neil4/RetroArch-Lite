@@ -141,7 +141,7 @@ typedef struct video_driver
          unsigned height, unsigned pitch, const char *msg);
 
    /* Should we care about syncing to vblank? Fast forwarding. */
-   void (*set_nonblock_state)(void *data, bool toggle);
+   void (*set_nonblock_state)(void *data, int swap_interval);
 
    /* Is the window still active? */
    bool (*alive)(void *data);

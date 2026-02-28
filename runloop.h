@@ -191,7 +191,7 @@ typedef struct global
       char theme[PATH_MAX_LENGTH];
       char wallpaper[PATH_MAX_LENGTH];
       bool bind_mode_keyboard;
-      bool theme_update_flag;
+      bool need_update;
       bool force_dirty;
       bool block_push;
       unsigned msg_box_width;

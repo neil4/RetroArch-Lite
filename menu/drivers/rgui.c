@@ -56,6 +56,9 @@
 #define rgui_border_light_32b_default 0xC0408040
 #define rgui_particle_32b_default 0xC0879E87
 
+/* bullet separator */
+#define rgui_separator ((char)149)
+
 /* A 'particle' is just 4 float variables that can
  * be used for any purpose - e.g.:
  * > a = x pos
@@ -629,7 +632,7 @@ static INLINE void rgui_check_update(settings_t *settings,
 {
    global_t* global = global_get_ptr();
    
-   if (global->menu.theme_update_flag)
+   if (global->menu.need_update)
    {
       thick_bg_pattern = settings->menu.rgui_thick_bg_checkerboard ? 1 : 0;
       thick_bd_pattern = settings->menu.rgui_thick_bd_checkerboard ? 1 : 0;
@@ -661,10 +664,10 @@ static INLINE void rgui_check_update(settings_t *settings,
             menu_entries_set_refresh();
       }
 
-      menu_update_ticker_speed(2 * FONT_WIDTH_STRIDE);
+      menu_update_ticker_settings(2 * FONT_WIDTH_STRIDE, rgui_separator);
       particle_effect_speed = settings->menu.rgui_particle_effect_speed_factor;
 
-      global->menu.theme_update_flag = false;
+      global->menu.need_update = false;
    }
 }
 
@@ -1186,7 +1189,7 @@ static void *rgui_init(void)
       rarch_main_data_msg_queue_push(DATA_TYPE_IMAGE, global->menu.wallpaper,
             "cb_menu_wallpaper", NULL, 0, 1, true);
 
-   menu_update_ticker_speed(2 * FONT_WIDTH_STRIDE);
+   menu_update_ticker_settings(2 * FONT_WIDTH_STRIDE, rgui_separator);
 
    global->menu.msg_box_width = RGUI_TERM_WIDTH;
 

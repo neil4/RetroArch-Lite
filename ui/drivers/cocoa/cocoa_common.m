@@ -26,7 +26,7 @@
 #include <AVFoundation/AVCaptureOutput.h>
 #include <AVFoundation/AVCaptureInput.h>
 #include <AVFoundation/AVMediaFormat.h>
-#ifdef HAVE_OPENGLES
+#ifdef HAVE_GLES
 #include <CoreVideo/CVOpenGLESTextureCache.h>
 #else
 #include <CoreVideo/CVOpenGLTexture.h>
@@ -163,7 +163,7 @@ void *glkitview_init(void);
 #define GL_BGRA 0x80E1
 #endif
 
-#ifdef HAVE_OPENGLES
+#ifdef HAVE_GLES
 #define RCVOpenGLTextureCacheCreateTextureFromImage CVOpenGLESTextureCacheCreateTextureFromImage
 #define RCVOpenGLTextureGetName CVOpenGLESTextureGetName
 #define RCVOpenGLTextureCacheFlush CVOpenGLESTextureCacheFlush
@@ -212,7 +212,7 @@ void event_process_camera_frame(void* pixelBufferPtr)
      * textureCache will be what you previously 
      * made with RCVOpenGLTextureCacheCreate.
      */
-#ifdef HAVE_OPENGLES
+#ifdef HAVE_GLES
     ret = RCVOpenGLTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
                                                       textureCache, pixelBuffer, NULL, GL_TEXTURE_2D,
                                                       GL_RGBA, (GLsizei)width, (GLsizei)height,

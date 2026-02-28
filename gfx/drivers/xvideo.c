@@ -80,12 +80,12 @@ typedef struct xv
    void (*render_func)(struct xv*, const void *frame, unsigned width, unsigned height, unsigned pitch);
 } xv_t;
 
-static void xv_set_nonblock_state(void *data, bool state)
+static void xv_set_nonblock_state(void *data, int swap_interval)
 {
    xv_t *xv = (xv_t*)data;
    Atom atom = XInternAtom(xv->display, "XV_SYNC_TO_VBLANK", true);
    if (atom != None && xv->port)
-      XvSetPortAttribute(xv->display, xv->port, atom, !state);
+      XvSetPortAttribute(xv->display, xv->port, atom, !!swap_interval);
    else
       RARCH_WARN("Failed to set SYNC_TO_VBLANK attribute.\n");
 }

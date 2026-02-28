@@ -1066,7 +1066,7 @@ static int setting_action_left_video_refresh_rate(void *data)
    if (!setting)
       return -1;
    
-   *setting->value.fraction -= 0.1f;
+   *setting->value.fraction -= 1.0f;
    if (*setting->value.fraction < setting->min)
       *setting->value.fraction = setting->min;
 
@@ -1263,7 +1263,7 @@ static int setting_action_right_video_refresh_rate(void *data)
    if (!setting)
       return -1;
    
-   *setting->value.fraction += 0.1f;
+   *setting->value.fraction += 1.0f;
    if (*setting->value.fraction > setting->max)
       *setting->value.fraction = setting->max;
 
@@ -1370,7 +1370,7 @@ static int setting_action_start_wallpaper(void *data)
       return -1;
 
    global->menu.wallpaper[0] = '\0';
-   global->menu.theme_update_flag = true;
+   global->menu.need_update = true;
    menu_entries_set_refresh();
 
    return 0;
@@ -1385,7 +1385,7 @@ static int setting_action_start_theme(void *data)
 
    settings->menu.theme[0] = '\0';
    global->menu.wallpaper[0] = '\0';
-   global->menu.theme_update_flag = true;
+   global->menu.need_update = true;
 
    return 0;
 }
@@ -4202,7 +4202,7 @@ static void gui_update_change_handler(void *data)
    if (!global)
       return;
 
-   global->menu.theme_update_flag = true;
+   global->menu.need_update = true;
 }
 
 static void menu_swap_ok_cancel_toggle_change_handler(void *data)
@@ -5285,7 +5285,7 @@ static bool setting_append_list_video_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   menu_settings_list_current_add_range(list, list_info, 49, 241, 0.001, true, true);
+   menu_settings_list_current_add_range(list, list_info, 49, 485, 0.001, true, true);
    (*list)[list_info->index - 1].action_set_min = &setting_action_left_video_refresh_rate;
    (*list)[list_info->index - 1].action_set_max = &setting_action_right_video_refresh_rate;
 

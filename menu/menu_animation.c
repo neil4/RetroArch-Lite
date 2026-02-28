@@ -25,7 +25,8 @@
 #include "../runloop.h"
 #include "../performance.h"
 
-static unsigned frames_per_tick;
+static unsigned anim_frames_per_tick;
+static char anim_separator_char;
 
 menu_animation_t *menu_animation_get_ptr(void)
 {
@@ -509,8 +510,9 @@ static float menu_animation_ticker_bounce(char *s, size_t len, uint64_t idx,
    unsigned tick_frames;
 
    /* Slower ticks for shorter strings */
-   tick_frames       = str_len < (len + (len>>2)) ?
-         frames_per_tick + (frames_per_tick>>1) : frames_per_tick;
+   tick_frames       = str_len < (len + (len>>2))
+         ? anim_frames_per_tick + (anim_frames_per_tick>>1)
+         : anim_frames_per_tick;
 
    ticker_period     = 2 * (str_len - len) + 8;
    phase             = (idx / tick_frames) % ticker_period;
@@ -558,7 +560,7 @@ static float menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
 {
    unsigned ticker_period, phase, pos;
    unsigned phase1, phase2, phase3;
-   const char   sep[4]  = {' ', (char)149, ' ', '\0'};  /* bullet */
+   const char sep[4]    = {' ', anim_separator_char, ' ', '\0'};
    const size_t sep_len = 3;
 
    /* 4 phases:
@@ -572,7 +574,7 @@ static float menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
    phase3 = str_len;
 
    ticker_period = str_len + sep_len;
-   phase         = (idx / frames_per_tick) % ticker_period;
+   phase         = (idx / anim_frames_per_tick) % ticker_period;
 
    if (phase < phase1)
       strlcpy(s, str + phase, len + 1);
@@ -593,7 +595,8 @@ static float menu_animation_ticker_loop(char *s, size_t len, uint64_t idx,
       strlcpy(s + pos, str, (len + 1) - pos);
    }
 
-   return ((idx % frames_per_tick) / (float)frames_per_tick) * -1.001f;
+   return ((idx % anim_frames_per_tick)
+         / (float)anim_frames_per_tick) * -1.001f;
 }
 
 /**
@@ -648,7 +651,7 @@ void menu_animation_update_time(menu_animation_t *anim)
 
    if (anim->delta_time >= IDEAL_DT * 4)
       anim->delta_time = IDEAL_DT * 4;
-   if (anim->delta_time <= IDEAL_DT / 4)
+   else if (anim->delta_time <= IDEAL_DT / 4)
       anim->delta_time = IDEAL_DT / 4;
    anim->old_time      = anim->cur_time;
 
@@ -659,9 +662,10 @@ void menu_animation_update_time(menu_animation_t *anim)
    }
 }
 
-void menu_update_ticker_speed(int frames_per_tick_1x)
+void menu_update_ticker_settings(int frames_per_tick_1x, char separator)
 {
    settings_t *settings = config_get_ptr();
-   frames_per_tick = (unsigned)(frames_per_tick_1x
+   anim_frames_per_tick = (unsigned)(frames_per_tick_1x
          / settings->menu.ticker_speed + 0.5f);
+   anim_separator_char  = separator;
 }

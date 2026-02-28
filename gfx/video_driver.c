@@ -655,10 +655,14 @@ bool video_driver_has_windowed(void)
 void video_driver_set_nonblock_state(bool toggle)
 {
    driver_t              *driver = driver_get_ptr();
+   settings_t          *settings = config_get_ptr();
    const video_driver_t  *video  = video_driver_ctx_get_ptr();
+   unsigned swap_interval;
+
+   swap_interval = toggle ? 0 : settings->video.swap_interval;
 
    if (video->set_nonblock_state)
-      video->set_nonblock_state(driver->video_data, toggle);
+      video->set_nonblock_state(driver->video_data, swap_interval);
 }
 
 bool video_driver_set_viewport(unsigned width, unsigned height,

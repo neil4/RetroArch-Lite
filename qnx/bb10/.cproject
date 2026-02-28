@@ -42,7 +42,7 @@
 									<listOptionValue builtIn="false" value="__LIBRETRO__"/>
 									<listOptionValue builtIn="false" value="HAVE_DYNAMIC"/>
 									<listOptionValue builtIn="false" value="HAVE_ZLIB"/>
-									<listOptionValue builtIn="false" value="HAVE_OPENGLES"/>
+									<listOptionValue builtIn="false" value="HAVE_GLES"/>
 									<listOptionValue builtIn="false" value="HAVE_OPENGLES2"/>
 									<listOptionValue builtIn="false" value="HAVE_AL"/>
 									<listOptionValue builtIn="false" value="HAVE_THREADS"/>
@@ -160,7 +160,7 @@
 									<listOptionValue builtIn="false" value="__LIBRETRO__"/>
 									<listOptionValue builtIn="false" value="HAVE_DYNAMIC"/>
 									<listOptionValue builtIn="false" value="HAVE_ZLIB"/>
-									<listOptionValue builtIn="false" value="HAVE_OPENGLES"/>
+									<listOptionValue builtIn="false" value="HAVE_GLES"/>
 									<listOptionValue builtIn="false" value="HAVE_OPENGLES2"/>
 									<listOptionValue builtIn="false" value="HAVE_AL"/>
 									<listOptionValue builtIn="false" value="HAVE_THREADS"/>
@@ -280,7 +280,7 @@
 									<listOptionValue builtIn="false" value="__LIBRETRO__"/>
 									<listOptionValue builtIn="false" value="HAVE_DYNAMIC"/>
 									<listOptionValue builtIn="false" value="HAVE_ZLIB"/>
-									<listOptionValue builtIn="false" value="HAVE_OPENGLES"/>
+									<listOptionValue builtIn="false" value="HAVE_GLES"/>
 									<listOptionValue builtIn="false" value="HAVE_OPENGLES2"/>
 									<listOptionValue builtIn="false" value="HAVE_AL"/>
 									<listOptionValue builtIn="false" value="HAVE_THREADS"/>
@@ -401,7 +401,7 @@
 									<listOptionValue builtIn="false" value="__LIBRETRO__"/>
 									<listOptionValue builtIn="false" value="HAVE_DYNAMIC"/>
 									<listOptionValue builtIn="false" value="HAVE_ZLIB"/>
-									<listOptionValue builtIn="false" value="HAVE_OPENGLES"/>
+									<listOptionValue builtIn="false" value="HAVE_GLES"/>
 									<listOptionValue builtIn="false" value="HAVE_OPENGLES2"/>
 									<listOptionValue builtIn="false" value="HAVE_AL"/>
 									<listOptionValue builtIn="false" value="HAVE_THREADS"/>
@@ -520,7 +520,7 @@
 									<listOptionValue builtIn="false" value="__LIBRETRO__"/>
 									<listOptionValue builtIn="false" value="HAVE_DYNAMIC"/>
 									<listOptionValue builtIn="false" value="HAVE_ZLIB"/>
-									<listOptionValue builtIn="false" value="HAVE_OPENGLES"/>
+									<listOptionValue builtIn="false" value="HAVE_GLES"/>
 									<listOptionValue builtIn="false" value="HAVE_OPENGLES2"/>
 									<listOptionValue builtIn="false" value="HAVE_AL"/>
 									<listOptionValue builtIn="false" value="HAVE_THREADS"/>
@@ -639,7 +639,7 @@
 									<listOptionValue builtIn="false" value="__LIBRETRO__"/>
 									<listOptionValue builtIn="false" value="HAVE_DYNAMIC"/>
 									<listOptionValue builtIn="false" value="HAVE_ZLIB"/>
-									<listOptionValue builtIn="false" value="HAVE_OPENGLES"/>
+									<listOptionValue builtIn="false" value="HAVE_GLES"/>
 									<listOptionValue builtIn="false" value="HAVE_OPENGLES2"/>
 									<listOptionValue builtIn="false" value="HAVE_AL"/>
 									<listOptionValue builtIn="false" value="HAVE_THREADS"/>
@@ -759,7 +759,7 @@
 									<listOptionValue builtIn="false" value="__LIBRETRO__"/>
 									<listOptionValue builtIn="false" value="HAVE_DYNAMIC"/>
 									<listOptionValue builtIn="false" value="HAVE_ZLIB"/>
-									<listOptionValue builtIn="false" value="HAVE_OPENGLES"/>
+									<listOptionValue builtIn="false" value="HAVE_GLES"/>
 									<listOptionValue builtIn="false" value="HAVE_OPENGLES2"/>
 									<listOptionValue builtIn="false" value="HAVE_AL"/>
 									<listOptionValue builtIn="false" value="HAVE_THREADS"/>

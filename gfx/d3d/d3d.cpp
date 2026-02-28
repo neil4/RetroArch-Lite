@@ -458,16 +458,17 @@ static void d3d_calculate_rect(d3d_video_t *d3d,
    }
 }
 
-static void d3d_set_nonblock_state(void *data, bool state)
+static void d3d_set_nonblock_state(void *data, int swap_interval)
 {
    d3d_video_t            *d3d = (d3d_video_t*)data;
 
    if (!d3d)
       return;
 
-   d3d->video_info.vsync = !state;
+   d3d->video_info.vsync = !!swap_interval;
+   d3d->video_info.swap_interval = swap_interval;
 
-   gfx_ctx_swap_interval(d3d, state ? 0 : 1);
+   gfx_ctx_swap_interval(d3d, swap_interval);
 }
 
 static bool d3d_alive(void *data)

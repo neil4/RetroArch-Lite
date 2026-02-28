@@ -492,18 +492,15 @@ bool path_parent_dir_name(char *buf, const char* file_path)
 {
    const char slash_char = path_default_slash()[0];
    char *slash = strrchr(file_path, slash_char);
-   const char *end = slash;
+   const char *root = strchr(file_path, slash_char);
+   const char *end  = slash;
    const char *start;
 
-   if (!slash)
+   if (!slash || slash == root)
       return false;
 
-   while (slash != file_path)
-      if (*(--slash) == slash_char)
-         break;
-
-   if (slash == file_path)
-      return false;
+   while (slash != root)
+      if (*(--slash) == slash_char) break;
 
    start = slash + 1;
    strncpy(buf, start, (end-start)*sizeof(char));

@@ -41,10 +41,10 @@ static bool null_gfx_frame(void *data, const void *frame,
    return true;
 }
 
-static void null_gfx_set_nonblock_state(void *data, bool toggle)
+static void null_gfx_set_nonblock_state(void *data, int swap_interval)
 {
    (void)data;
-   (void)toggle;
+   (void)swap_interval;
 }
 
 static bool null_gfx_alive(void *data)

@@ -809,12 +809,12 @@ static bool sunxi_gfx_frame(void *data, const void *frame, unsigned width,
    return true;
 }
 
-static void sunxi_gfx_set_nonblock_state(void *data, bool state)
+static void sunxi_gfx_set_nonblock_state(void *data, int swap_interval)
 {
    struct sunxi_video *vid = data;
 
    (void)vid;
-   (void)state;
+   (void)swap_interval;
 }
 
 static bool sunxi_gfx_alive(void *data)

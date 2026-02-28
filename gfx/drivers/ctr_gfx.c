@@ -362,12 +362,12 @@ static bool ctr_frame(void* data, const void* frame,
    return true;
 }
 
-static void ctr_set_nonblock_state(void* data, bool toggle)
+static void ctr_set_nonblock_state(void* data, int swap_interval)
 {
    ctr_video_t* ctr = (ctr_video_t*)data;
 
    if (ctr)
-      ctr->vsync = !toggle;
+      ctr->vsync = !!swap_interval;
 }
 
 static bool ctr_alive(void* data)

@@ -2959,8 +2959,8 @@ bool get_scoped_config_filename(char* out, const unsigned scope,
    case THIS_CONTENT_DIR:
       if (!*global->basename)
          return false;
-      /* Basename is conveniently updated between saving and loading scoped cfgs */
-      if (!path_parent_dir_name(out, global->basename))
+      /* fullpath is updated between saving and loading scoped cfgs */
+      if (!path_parent_dir_name(out, global->fullpath))
          strcpy(out, "root");
       break;
 
@@ -3143,7 +3143,7 @@ void config_unmask_globals(void)
    if (settings->input.analog_dpad_scope != GLOBAL)
       input_joypad_update_analog_dpad_params();
    if (settings->menu.theme_scope != GLOBAL)
-      global->menu.theme_update_flag = true;
+      global->menu.need_update = true;
    if (settings->audio.volume_scope != GLOBAL)
       audio_driver_set_volume_gain(db_to_gain(settings->audio.volume));
 
@@ -3243,7 +3243,7 @@ static void config_load_scoped_file(unsigned scope)
    if (settings->input.analog_dpad_scope == scope)
       input_joypad_update_analog_dpad_params();
    if (settings->menu.theme_scope == scope)
-      global->menu.theme_update_flag = true;
+      global->menu.need_update = true;
    if (settings->audio.volume_scope == scope)
       audio_driver_set_volume_gain(db_to_gain(settings->audio.volume));
 

@@ -169,7 +169,7 @@ static bool gl_check_sync_proc(gl_t *gl)
 }
 #endif
 
-#ifndef HAVE_OPENGLES
+#ifndef HAVE_GLES
 static bool gl_init_vao(gl_t *gl)
 {
    if (!gl->core_context && !gl_query_extension(gl, "ARB_vertex_array_object"))
@@ -498,7 +498,7 @@ static void gl_create_fbo_textures(gl_t *gl)
       else
    #endif
       {
-      #ifndef HAVE_OPENGLES
+      #ifndef HAVE_GLES
          if (srgb_fbo && gl->has_srgb_fbo)
          {
             RARCH_LOG("[GL]: FBO pass #%d is sRGB.\n", i);
@@ -727,7 +727,7 @@ static bool gl_init_hw_render(gl_t *gl, unsigned width, unsigned height)
 
          if (stencil)
          {
-#if defined(HAVE_OPENGLES2) || defined(HAVE_OPENGLES) || defined(OSX_PPC)
+#if defined(HAVE_OPENGLES2) || defined(HAVE_GLES) || defined(OSX_PPC)
             /* GLES2 is a bit weird, as always.
              * There's no GL_DEPTH_STENCIL_ATTACHMENT like in desktop GL. */
             glFramebufferRenderbuffer(RARCH_GL_FRAMEBUFFER,
@@ -913,7 +913,7 @@ static INLINE void gl_start_frame_fbo(gl_t *gl)
     * We will "flip" it in place on last pass. */
    gl->coords.vertex = vertexes;
 
-#if defined(GL_FRAMEBUFFER_SRGB) && !defined(HAVE_OPENGLES)
+#if defined(GL_FRAMEBUFFER_SRGB) && !defined(HAVE_GLES)
    if (gl->has_srgb_fbo)
       glEnable(GL_FRAMEBUFFER_SRGB);
 #endif
@@ -1038,7 +1038,7 @@ static void gl_frame_fbo(gl_t *gl, uint64_t frame_count,
       glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
    }
 
-#if defined(GL_FRAMEBUFFER_SRGB) && !defined(HAVE_OPENGLES)
+#if defined(GL_FRAMEBUFFER_SRGB) && !defined(HAVE_GLES)
    if (gl->has_srgb_fbo)
       glDisable(GL_FRAMEBUFFER_SRGB);
 #endif
@@ -1523,7 +1523,7 @@ static bool gl_frame(void *data, const void *frame,
    {
       context_bind_hw_render(gl, false);
 
-#ifndef HAVE_OPENGLES
+#ifndef HAVE_GLES
       if (gl->core_context)
          glBindVertexArray(gl->vao);
 #endif
@@ -1603,7 +1603,7 @@ static bool gl_frame(void *data, const void *frame,
          gl_set_viewport(gl, width, height, false, true);
       }
 
-#ifndef HAVE_OPENGLES
+#ifndef HAVE_GLES
       if (!gl->core_context)
          glEnable(GL_TEXTURE_2D);
 #endif
@@ -1682,7 +1682,7 @@ static bool gl_frame(void *data, const void *frame,
       if (gl->readback_buffer_screenshot)
       {
          glPixelStorei(GL_PACK_ALIGNMENT, 4);
-#ifndef HAVE_OPENGLES
+#ifndef HAVE_GLES
          glPixelStorei(GL_PACK_ROW_LENGTH, 0);
          glReadBuffer(GL_BACK);
 #endif
@@ -1742,7 +1742,7 @@ static bool gl_frame(void *data, const void *frame,
          recursing = false;
       }
 
-#ifndef HAVE_OPENGLES
+#ifndef HAVE_GLES
       if (gl->core_context)
          glBindVertexArray(0);
 #endif
@@ -1838,7 +1838,7 @@ static void gl_free(void *data)
    gl_deinit_hw_render(gl);
 #endif
 
-#ifndef HAVE_OPENGLES
+#ifndef HAVE_GLES
    if (gl->core_context)
    {
       glBindVertexArray(0);
@@ -1853,19 +1853,22 @@ static void gl_free(void *data)
    free(gl);
 }
 
-static void gl_set_nonblock_state(void *data, bool state)
+static void gl_set_nonblock_state(void *data, int swap_interval)
 {
-   gl_t             *gl        = (gl_t*)data;
-   settings_t        *settings = config_get_ptr();
+   gl_t       *gl       = (gl_t *)data;
+   settings_t *settings = config_get_ptr();
 
    if (!gl)
       return;
 
-   RARCH_LOG("[GL]: VSync => %s\n", state ? "off" : "on");
+   RARCH_LOG("[GL]: VSync => %s\n", swap_interval ? "on" : "off");
+
+   gl->swap_interval = swap_interval;
+   if (swap_interval > 1 && settings->video.fake_swap_interval)
+      swap_interval = 1;
 
    context_bind_hw_render(gl, false);
-   gl->swap_interval = state ? 0 : settings->video.swap_interval;
-   gfx_ctx_swap_interval(gl, gl->swap_interval);
+   gfx_ctx_swap_interval(gl, swap_interval);
    context_bind_hw_render(gl, true);
 }
 
@@ -1883,7 +1886,7 @@ static bool resolve_extensions(gl_t *gl, const char *context_ident)
    (void)renderer;
    (void)version;
    (void)hw_render;
-#ifndef HAVE_OPENGLES
+#ifndef HAVE_GLES
    gl->core_context     = 
       (hw_render->context_type == RETRO_HW_CONTEXT_OPENGL_CORE);
    
@@ -2028,7 +2031,7 @@ static INLINE void gl_set_texture_fmts(gl_t *gl, bool rgb32)
          gl->texture_type = GL_RGBA;
       }
    }
-#ifndef HAVE_OPENGLES
+#ifndef HAVE_GLES
    else if (gl->have_es2_compat)
    {
       RARCH_LOG("[GL]: Using GL_RGB565 for texture uploads.\n");
@@ -2099,7 +2102,7 @@ static const gfx_ctx_driver_t *gl_get_context(gl_t *gl)
    unsigned major = cb->version_major;
    unsigned minor = cb->version_minor;
    settings_t *settings = config_get_ptr();
-#ifdef HAVE_OPENGLES
+#ifdef HAVE_GLES
    enum gfx_ctx_api api = GFX_CTX_OPENGL_ES_API;
    const char *api_name = "OpenGL ES 2.0";
 #ifdef HAVE_OPENGLES3
@@ -2293,8 +2296,7 @@ static void *gl_init(const video_info_t *video, const input_driver_t **input, vo
    gfx_ctx_get_video_size(gl, &gl->full_x, &gl->full_y);
    RARCH_LOG("Detecting screen resolution %ux%u.\n", gl->full_x, gl->full_y);
 
-   gl->swap_interval = video->vsync ? settings->video.swap_interval : 0;
-   gfx_ctx_swap_interval(gl, gl->swap_interval);
+   video_driver_set_nonblock_state(!video->vsync);
 
    win_width  = video->width;
    win_height = video->height;
@@ -2435,7 +2437,7 @@ static void *gl_init(const video_info_t *video, const input_driver_t **input, vo
 
    gl_set_texture_fmts(gl, video->rgb32);
 
-#ifndef HAVE_OPENGLES
+#ifndef HAVE_GLES
    if (!gl->core_context)
       glEnable(GL_TEXTURE_2D);
 #endif

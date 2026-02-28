@@ -458,7 +458,7 @@ static void dispmanx_set_texture_frame(void *data, const void *frame, bool rgb32
    dispmanx_surface_update(_dispvars, frame, &_dispvars->surfaces[MENU_SURFACE]);
 }
 
-static void dispmanx_gfx_set_nonblock_state(void *data, bool state)
+static void dispmanx_gfx_set_nonblock_state(void *data, int swap_interval)
 {
    struct dispmanx_video *vid = data;
 

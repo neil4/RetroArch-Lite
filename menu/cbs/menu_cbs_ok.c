@@ -1076,7 +1076,7 @@ static int action_ok_theme_load(const char *path,
    if (!menu || !menu_list)
       return -1;
    
-   global->menu.theme_update_flag = true;
+   global->menu.need_update = true;
 
    menu_list_get_last_stack(menu_list, &menu_path, NULL, NULL, NULL);
    if (!menu_list)

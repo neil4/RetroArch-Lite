@@ -1024,7 +1024,7 @@ static bool omap_gfx_frame(void *data, const void *frame, unsigned width,
    return true;
 }
 
-static void omap_gfx_set_nonblock_state(void *data, bool state)
+static void omap_gfx_set_nonblock_state(void *data, int swap_interval)
 {
    omap_video_t *vid;
 
@@ -1032,7 +1032,7 @@ static void omap_gfx_set_nonblock_state(void *data, bool state)
       return;
 
    vid = data;
-   vid->omap->sync = !state;
+   vid->omap->sync = !!swap_interval;
 }
 
 static bool omap_gfx_alive(void *data)

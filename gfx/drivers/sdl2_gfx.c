@@ -513,11 +513,11 @@ static bool sdl2_gfx_frame(void *data, const void *frame, unsigned width,
    return true;
 }
 
-static void sdl2_gfx_set_nonblock_state(void *data, bool toggle)
+static void sdl2_gfx_set_nonblock_state(void *data, int swap_interval)
 {
    sdl2_video_t *vid = (sdl2_video_t*)data;
 
-   vid->video.vsync = !toggle;
+   vid->video.vsync = !!swap_interval;
    sdl_refresh_renderer(vid);
 }
 

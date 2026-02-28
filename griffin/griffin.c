@@ -130,7 +130,7 @@ VIDEO CONTEXT
 #if defined(HAVE_X11)
 #include "../gfx/common/x11_common.c"
 
-#ifndef HAVE_OPENGLES
+#ifndef HAVE_GLES
 #include "../gfx/drivers_context/glx_ctx.c"
 #endif
 

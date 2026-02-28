@@ -97,9 +97,8 @@ void core_history_remove(int entry_idx)
    free(global->history[entry_idx]);
 
    /* Move older entries up */
-   if (entry_idx < new_size)
-      memmove(global->history + entry_idx, global->history + entry_idx + 1,
-            (new_size - entry_idx) * sizeof(char**));
+   memmove(global->history + entry_idx, global->history + entry_idx + 1,
+         (new_size - entry_idx) * sizeof(char**));
 
    /* Trim array */
    global->history = realloc(global->history, new_size * sizeof(char**));
@@ -146,8 +145,8 @@ static void core_history_read()
          continue;
       if (c == PATH_MAX_LENGTH)
       {
-         RARCH_ERR("[Core History] %s line %i exceeds PATH_MAX_LENGTH",
-               path_basename(path), num_lines);
+         RARCH_ERR("[Core History] %s line %i exceeds PATH_MAX_LENGTH (%i)",
+               path_basename(path), num_lines, PATH_MAX_LENGTH);
          /* Something wrong. Give up */
          break;
       }
@@ -178,6 +177,7 @@ static void core_history_read()
 
 finish:
    strlcpy(core_history_core, global->libretro_name, sizeof(core_history_core));
+   core_history_dirty = false;
 
    if (file)
       fclose(file);
@@ -197,63 +197,50 @@ finish:
 void core_history_refresh()
 {
    global_t *global = global_get_ptr();
-   char **new_history;
-   size_t new_size, old_size;
-   int i, j;
+   char     *match  = NULL;
+   size_t size;
+   int i;
 
    /* Read from file if necessary */
    if (strcmp(core_history_core, global->libretro_name))
-   {
       core_history_read();
-      core_history_dirty = false;
-   }
    if (!*core_history_core)
       return;
 
-   old_size = global->history_size;
-   new_size = old_size + 1;
+   size = global->history_size;
 
    /* Skip if no changes needed */
    if (!*global->fullpath ||
-         (old_size && !strcmp(global->fullpath, global->history[0])))
+         (size && !strcmp(global->fullpath, global->history[0])))
       return;
 
-   /* Allocate array for resorted entries */
-   new_history = malloc(new_size * sizeof(char**));
-
-   /* If loaded content is in list, move to top */
-   for (i = 0; i < old_size; i++)
-   {
+   /* Find loaded content in list */
+   for (i = 1; i < size; i++)
       if (!strcmp(global->fullpath, global->history[i]))
       {
-         new_history[0] = global->history[i];
-         global->history[i] = NULL;
-         new_history = realloc(new_history, (--new_size) * sizeof(char**));
+         match = global->history[i];
          break;
       }
-   }
 
+   /* If already in list, move to top */
+   if (match != NULL)
+   {
+      memmove(global->history + 1, global->history, i * sizeof(char**));
+      global->history[0] = match;
+   }
    /* Otherwise, add to top */
-   if (i == old_size)
-      new_history[0] = strdup(global->fullpath);
-
-   /* Move old entries */
-   for (i = 0, j = 1; i < old_size; i++)
+   else
    {
-      if (global->history[i])
-         new_history[j++] = global->history[i];
-   }
-   
-   /* Don't grow forever */
-   while (new_size > MAX_HISTORY_SIZE)
-   {
-      free(new_history[--new_size]);
-      new_history = realloc(new_history, new_size * sizeof(char**));
-   }
+      if (size < MAX_HISTORY_SIZE)
+         global->history = realloc(global->history, ++size * sizeof(char**));
+      else
+         free(global->history[size - 1]);
 
-   free(global->history);
-   global->history = new_history;
-   global->history_size = new_size;
+      memmove(global->history + 1, global->history,
+            (size - 1) * sizeof(char**));
+      global->history[0]   = strdup(global->fullpath);
+      global->history_size = size;
+   }
 
    core_history_dirty = true;
 }

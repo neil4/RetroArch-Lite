@@ -64,9 +64,9 @@ typedef struct
 
 static PFNVGCREATEEGLIMAGETARGETKHRPROC pvgCreateEGLImageTargetKHR;
 
-static void vg_set_nonblock_state(void *data, bool state)
+static void vg_set_nonblock_state(void *data, int swap_interval)
 {
-   gfx_ctx_swap_interval(data, state ? 0 : 1);
+   gfx_ctx_swap_interval(data, swap_interval);
 }
 
 static INLINE bool vg_query_extension(const char *ext)

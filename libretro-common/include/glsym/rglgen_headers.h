@@ -60,7 +60,7 @@
 #elif defined(HAVE_OPENGLES2)
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-#elif defined(HAVE_OPENGLES)
+#elif defined(HAVE_GLES)
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 #else

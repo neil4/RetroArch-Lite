@@ -119,7 +119,7 @@ enum
    RECORD_NULL,
 };
 
-#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) || defined(__CELLOS_LV2__)
+#if defined(HAVE_OPENGL) || defined(HAVE_GLES) || defined(__CELLOS_LV2__)
 #define VIDEO_DEFAULT_DRIVER VIDEO_GL
 #elif defined(GEKKO)
 #define VIDEO_DEFAULT_DRIVER VIDEO_WII

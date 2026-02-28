@@ -40,7 +40,7 @@
 #include <glsym/glsym.h>
 
 
-#if (!defined(HAVE_OPENGLES) || defined(HAVE_OPENGLES3))
+#if (!defined(HAVE_GLES) || defined(HAVE_OPENGLES3))
 #ifdef GL_PIXEL_PACK_BUFFER
 #define HAVE_GL_ASYNC_READBACK
 #endif
@@ -117,7 +117,7 @@
 #define RARCH_GL_TEXTURE_TYPE16 GL_BGRA
 #define RARCH_GL_FORMAT32 GL_UNSIGNED_INT_8_8_8_8_REV
 #define RARCH_GL_FORMAT16 GL_RGB5
-#elif defined(HAVE_OPENGLES)
+#elif defined(HAVE_GLES)
 /* Imgtec/SGX headers have this missing. */
 #ifndef GL_BGRA_EXT
 #define GL_BGRA_EXT 0x80E1
@@ -174,7 +174,7 @@
 #define NO_GL_CLAMP_TO_BORDER
 #endif
 
-#if defined(HAVE_OPENGLES)
+#if defined(HAVE_GLES)
 #ifndef GL_UNPACK_ROW_LENGTH
 #define GL_UNPACK_ROW_LENGTH  0x0CF2
 #endif
@@ -251,7 +251,7 @@ typedef struct gl
    const shader_backend_t *shader;
 
    bool vsync;
-   unsigned swap_interval;
+   int swap_interval;
    GLuint texture[MAX_TEXTURES];
    unsigned tex_index; /* For use with PREV. */
    unsigned textures;
@@ -312,7 +312,7 @@ typedef struct gl
    GLenum texture_fmt;
    GLenum wrap_mode;
    unsigned base_size; /* 2 or 4 */
-#ifdef HAVE_OPENGLES
+#ifdef HAVE_GLES
    bool support_unpack_row_length;
 #else
    bool have_es2_compat;
@@ -406,7 +406,7 @@ static INLINE unsigned gl_wrap_type_to_enum(enum gfx_wrap_type type)
 {
    switch (type)
    {
-#ifndef HAVE_OPENGLES
+#ifndef HAVE_GLES
       case RARCH_WRAP_BORDER:
          return GL_CLAMP_TO_BORDER;
 #else

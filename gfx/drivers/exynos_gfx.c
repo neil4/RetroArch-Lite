@@ -1484,11 +1484,11 @@ fail:
    return false;
 }
 
-static void exynos_gfx_set_nonblock_state(void *data, bool state)
+static void exynos_gfx_set_nonblock_state(void *data, int swap_interval)
 {
    struct exynos_video *vid = data;
    if (vid && vid->data)
-      vid->data->sync = !state;
+      vid->data->sync = !!swap_interval;
 }
 
 static bool exynos_gfx_alive(void *data)

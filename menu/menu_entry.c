@@ -82,7 +82,7 @@ int menu_entry_pathdir_set_value(uint32_t i, const char *s)
    return 0;
 }
 
-static inline void menu_entry_clear(menu_entry_t *entry)
+static INLINE void menu_entry_clear(menu_entry_t *entry)
 {
    entry->path[0] = '\0';
    entry->label[0] = '\0';
