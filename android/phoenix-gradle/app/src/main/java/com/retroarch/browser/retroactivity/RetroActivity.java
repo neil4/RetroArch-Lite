@@ -92,4 +92,10 @@ public class RetroActivity extends NativeActivity
       else
          vibrator.vibrate(msec);
    }
+
+   @Keep
+   public float getDisplayRefreshRate()
+   {
+      return decorView.getDisplay().getRefreshRate();
+   }
 }

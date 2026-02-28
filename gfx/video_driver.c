@@ -18,6 +18,7 @@
 #include <string/string_list.h>
 #include "../configuration.h"
 #include "video_driver.h"
+#include "video_context_driver.h"
 #include "video_thread_wrapper.h"
 #include "video_pixel_converter.h"
 #include "video_monitor.h"
@@ -43,6 +44,7 @@ typedef struct video_driver_state
    unsigned video_width;
    unsigned video_height;
    float aspect_ratio;
+   float target_fps;
 
    struct
    {
@@ -322,6 +324,40 @@ uint64_t video_driver_get_frame_count(void)
 uint64_t video_state_get_frame_count(void)
 {
    return video_state.frame_count;
+}
+
+/* based on reported monitor rate, nonblock state, and settings */
+float video_state_get_target_fps(void)
+{
+   return video_state.target_fps;
+}
+
+/* based on video settings */
+float video_config_get_target_fps(void)
+{
+   settings_t *settings = config_get_ptr();
+   float video_update_rate;
+
+   /* refresh_rate could be set to the raw monitor refresh rate
+    * or the estimated framerate after swap interval */
+   video_update_rate = settings->video.refresh_rate;
+   if (video_update_rate >= 95.0f)
+      video_update_rate /= settings->video.swap_interval;
+
+   return video_update_rate;
+}
+
+unsigned video_driver_get_swap_interval_auto(void)
+{
+   struct retro_system_av_info *av_info = video_viewport_get_system_av_info();
+   float core_fps = av_info->timing.fps;
+   float vrate    = 0.0f;
+
+   gfx_ctx_get_metrics(DISPLAY_METRIC_REFRESH_RATE, &vrate);
+   if (vrate == 0.0f)
+      vrate = config_get_ptr()->video.refresh_rate;
+
+   return (unsigned)roundf(vrate / core_fps);
 }
 
 retro_proc_address_t video_driver_get_proc_address(const char *sym)
@@ -652,17 +688,41 @@ bool video_driver_has_windowed(void)
    return video->has_windowed(driver->video_data);
 }
 
+static void video_driver_update_target_fps(unsigned swap_interval)
+{
+   float vrate = 0.0f;
+
+   gfx_ctx_get_metrics(DISPLAY_METRIC_REFRESH_RATE, &vrate);
+   if (vrate == 0.0f)
+      vrate = config_get_ptr()->video.refresh_rate;
+
+   video_state.target_fps = vrate / max(swap_interval, 1);
+}
+
 void video_driver_set_nonblock_state(bool toggle)
 {
-   driver_t              *driver = driver_get_ptr();
-   settings_t          *settings = config_get_ptr();
-   const video_driver_t  *video  = video_driver_ctx_get_ptr();
+   driver_t            *driver = driver_get_ptr();
+   settings_t        *settings = config_get_ptr();
+   global_t            *global = global_get_ptr();
+   const video_driver_t *video = video_driver_ctx_get_ptr();
    unsigned swap_interval;
 
-   swap_interval = toggle ? 0 : settings->video.swap_interval;
+   if (menu_driver_alive())
+   {
+      /* Force vsync in menu.
+       * Use lowest swap interval unless content is running */
+      if (!global->content_is_init || settings->menu.pause_libretro)
+         swap_interval = 1;
+      else
+         swap_interval = video_driver_get_swap_interval_auto();
+   }
+   else
+      swap_interval = toggle ? 0 : settings->video.swap_interval;
 
    if (video->set_nonblock_state)
       video->set_nonblock_state(driver->video_data, swap_interval);
+
+   video_driver_update_target_fps(swap_interval);
 }
 
 bool video_driver_set_viewport(unsigned width, unsigned height,
@@ -934,7 +994,7 @@ void video_driver_cached_frame_get(const void **data, unsigned *width,
       unsigned *height, size_t *pitch)
 {
    if (data)
-      *data    = video_state.frame_cache.data;
+      *data   = video_state.frame_cache.data;
    if (width)
       *width  = video_state.frame_cache.width;
    if (height)
@@ -969,6 +1029,7 @@ void video_monitor_adjust_system_rates(void)
       video_viewport_get_system_av_info();
    settings_t *settings = config_get_ptr();
    global_t *global = global_get_ptr();
+   float target_fps = video_config_get_target_fps();
 
    if (global)
       global->system.force_nonblock = false;
@@ -979,18 +1040,17 @@ void video_monitor_adjust_system_rates(void)
    if (info->fps <= 0.0)
       return;
 
-   timing_skew = fabs(1.0f - info->fps / settings->video.refresh_rate);
+   timing_skew = fabs(1.0f - info->fps / target_fps);
 
    /* We don't want to adjust pitch too much. If we have extreme cases,
     * just don't readjust at all. */
    if (timing_skew <= settings->audio.max_timing_skew)
       return;
 
-   RARCH_LOG("Timings deviate too much. Will not adjust. (Display = %.2f Hz, Game = %.2f Hz)\n",
-         settings->video.refresh_rate,
-         (float)info->fps);
+   RARCH_LOG("Timings deviate too much. Will not adjust. "
+         "(Display = %.2f Hz, Game = %.2f Hz)\n", target_fps, (float)info->fps);
 
-   if (info->fps <= settings->video.refresh_rate)
+   if (info->fps <= target_fps)
       return;
 
    /* We won't be able to do VSync reliably when game FPS > monitor FPS. */
@@ -1010,7 +1070,7 @@ void video_monitor_set_refresh_rate(float hz)
    settings_t *settings = config_get_ptr();
 
    snprintf(msg, sizeof(msg), "Setting refresh rate to: %.3f Hz.", hz);
-   rarch_main_msg_queue_push(msg, 1, 180, false);
+   rarch_main_msg_queue_push(msg, 1, 180, true);
    RARCH_LOG("%s\n", msg);
 
    settings->video.refresh_rate = hz;

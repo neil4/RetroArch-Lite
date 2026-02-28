@@ -1183,6 +1183,7 @@ bool event_command(enum event_command cmd)
          boolean = true; /* fall-through */
       case EVENT_CMD_VIDEO_SET_BLOCKING_STATE:
          video_driver_set_nonblock_state(boolean);
+         global->menu.need_update = true;
          break;
       case EVENT_CMD_VIDEO_SET_ASPECT_RATIO:
          video_driver_set_aspect_ratio(settings->video.aspect_ratio_idx);
@@ -1282,6 +1283,9 @@ bool event_command(enum event_command cmd)
                event_command(EVENT_CMD_AUDIO_STOP);
             else
                event_command(EVENT_CMD_AUDIO_START);
+
+            event_command(EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
+            global->menu.need_update = true;
          }
          else
          {

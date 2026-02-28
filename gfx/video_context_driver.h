@@ -48,6 +48,7 @@ enum display_metric_types
    DISPLAY_METRIC_MM_WIDTH,
    DISPLAY_METRIC_MM_HEIGHT,
    DISPLAY_METRIC_DPI,
+   DISPLAY_METRIC_REFRESH_RATE
 };
 
 typedef void (*gfx_ctx_proc_t)(void);

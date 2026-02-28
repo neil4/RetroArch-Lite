@@ -752,6 +752,8 @@ static void frontend_android_init(void *data)
          "setVolumeControlStream", "(I)V" );
    GET_METHOD_ID(env, android_app->getVolumePaths, class,
          "getVolumePaths", "(C)Ljava/lang/String;");
+   GET_METHOD_ID(env, android_app->getDisplayRefreshRate, class,
+         "getDisplayRefreshRate", "()F");
    CALL_OBJ_METHOD(env, obj, android_app->activity->clazz,
          android_app->getIntent);
 
@@ -848,6 +850,21 @@ static int frontend_android_parse_drive_list(void *data)
 
    free(paths);
    return 0;
+}
+
+float frontend_android_get_display_refresh_rate(void)
+{
+   JNIEnv *env = NULL;
+   jfloat rate;
+
+   env = jni_thread_getenv();
+   if (!env)
+      return 60.0f;
+
+   CALL_FLOAT_METHOD(env, rate, g_android->activity->clazz,
+         g_android->getDisplayRefreshRate);
+
+   return (float)rate;
 }
 
 const frontend_ctx_driver_t frontend_ctx_android = {

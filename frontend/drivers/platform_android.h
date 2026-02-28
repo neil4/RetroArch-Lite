@@ -53,6 +53,7 @@ struct android_app
    jmethodID onRetroArchExit;
    jmethodID hapticFeedback;
    jmethodID getVolumePaths;
+   jmethodID getDisplayRefreshRate;
    jmethodID getStringExtra;
    jmethodID clearPendingIntent;
    jmethodID hasPendingIntent;
@@ -230,6 +231,10 @@ enum
 
 #define CALL_BOOLEAN_METHOD_PARAM(env, var, clazz_obj, methodId, ...) \
    var = (*env)->CallBooleanMethod(env, clazz_obj, methodId, __VA_ARGS__); \
+   JNI_EXCEPTION(env)
+
+#define CALL_FLOAT_METHOD(env, var, clazz_obj, methodId) \
+   var = (*env)->CallFloatMethod(env, clazz_obj, methodId); \
    JNI_EXCEPTION(env)
 
 #define CALL_DOUBLE_METHOD(env, var, clazz_obj, methodId) \

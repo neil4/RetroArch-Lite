@@ -222,6 +222,7 @@ bool win32_get_metrics(void *data,
  /*int pixels_y           = GetDeviceCaps(monitor, VERTRES);*/
    int physical_width     = GetDeviceCaps(monitor, HORZSIZE);
    int physical_height    = GetDeviceCaps(monitor, VERTSIZE);
+   float refresh_rate     = GetDeviceCaps(monitor, VREFRESH);
 
    ReleaseDC(NULL, monitor);
 
@@ -236,6 +237,9 @@ bool win32_get_metrics(void *data,
       case DISPLAY_METRIC_DPI:
          /* 25.4 mm in an inch. */
          *value = 254 * pixels_x / physical_width / 10;
+         break;
+      case DISPLAY_METRIC_REFRESH_RATE:
+         *value = refresh_rate;
          break;
       case DISPLAY_METRIC_NONE:
       default:

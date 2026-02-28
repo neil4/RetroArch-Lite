@@ -1274,13 +1274,8 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          break;
 
       case RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE:
-      {
-         float rate = settings->video.refresh_rate;
-         *(float *)data = rate > 95.0f
-               ? rate / (float)settings->video.swap_interval
-               : rate;
+         *(float *)data = video_config_get_target_fps();
          break;
-      }
 
       case RETRO_ENVIRONMENT_GET_FASTFORWARDING:
          *(bool *)data = driver->nonblock_state;

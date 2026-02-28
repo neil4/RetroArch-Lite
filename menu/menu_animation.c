@@ -664,8 +664,11 @@ void menu_animation_update_time(menu_animation_t *anim)
 
 void menu_update_ticker_settings(int frames_per_tick_1x, char separator)
 {
+   /* Ticker speeds expect ~60 fps */
    settings_t *settings = config_get_ptr();
-   anim_frames_per_tick = (unsigned)(frames_per_tick_1x
-         / settings->menu.ticker_speed + 0.5f);
+   float speed          = settings->menu.ticker_speed
+         / (unsigned)roundf(video_state_get_target_fps() / 60.0f);
+
+   anim_frames_per_tick = (unsigned)roundf(frames_per_tick_1x / speed);
    anim_separator_char  = separator;
 }

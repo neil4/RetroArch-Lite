@@ -321,13 +321,15 @@ static void rgui_init_particle_effect(menu_framebuf_t *frame_buf)
 
 static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
 {
-   unsigned fb_width = frame_buf->width;
-   unsigned fb_height = frame_buf->height;
-   uint16_t *data = frame_buf->data;
+   menu_animation_t *anim = menu_animation_get_ptr();
+   unsigned fb_width      = frame_buf->width;
+   unsigned fb_height     = frame_buf->height;
+   uint16_t *data         = frame_buf->data;
    size_t i;
-   
-   /* Sanity check */
-   if (!frame_buf || !frame_buf->data)
+   float speed;
+
+   if (particle_effect == RGUI_PARTICLE_EFFECT_NONE
+         || !frame_buf || !frame_buf->data || !anim)
       return;
    
    /* Note: It would be more elegant to have 'update' and 'draw'
@@ -347,6 +349,8 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
     * update/draw sequence here. This results in some code
     * repetition, but it has better performance and allows for
     * complete flexibility */
+
+   speed = particle_effect_speed * (anim->delta_time / IDEAL_DT);
    
    switch (particle_effect)
    {
@@ -371,8 +375,8 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                particle->d = (particle->d >  0.4f) ?  0.4f : particle->d;
                
                /* Update particle location */
-               particle->a = fmod(particle->a + particle_effect_speed * particle->c, fb_width);
-               particle->b = fmod(particle->b + particle_effect_speed * particle->d, fb_height);
+               particle->a = fmod(particle->a + speed * particle->c, fb_width);
+               particle->b = fmod(particle->b + speed * particle->d, fb_height);
                
                /* Get particle size */
                particle_size = 1;
@@ -429,7 +433,7 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                                  2, (unsigned)particle->c, rgui_particle_16b);
                
                /* Update y pos */
-               particle->b += particle->d * particle_effect_speed;
+               particle->b += particle->d * speed;
                
                /* Reset particle if it has fallen off the bottom of the screen */
                if (!on_screen)
@@ -472,8 +476,8 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                      x, y, particle_size, particle_size, rgui_particle_16b);
                
                /* Update particle speed */
-               r_speed     = particle->c * particle_effect_speed;
-               theta_speed = particle->d * particle_effect_speed;
+               r_speed     = particle->c * speed;
+               theta_speed = particle->d * speed;
                if ((particle->a > 0.0f) && (particle->a < (float)fb_height))
                {
                   float base_scale_factor = ((float)fb_height - particle->a) / (float)fb_height;
@@ -532,7 +536,7 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                                  x, y, particle_size, particle_size, rgui_particle_16b);
                
                /* Update depth */
-               particle->c -= particle->d * particle_effect_speed;
+               particle->c -= particle->d * speed;
                
                /* Reset particle if it has:
                 * - Dropped off the edge of the screen
@@ -628,7 +632,7 @@ static void rgui_adjust_wallpaper_alpha(void)
 }
 
 static INLINE void rgui_check_update(settings_t *settings,
-                                     menu_framebuf_t *frame_buf)
+      menu_framebuf_t *frame_buf)
 {
    global_t* global = global_get_ptr();
    
@@ -646,15 +650,15 @@ static INLINE void rgui_check_update(settings_t *settings,
       {
          if (global->menu.wallpaper[0] == '\0')
             rgui_wallpaper_valid = false;
-         
+
          if (rgui_wallpaper_valid)
             rgui_adjust_wallpaper_alpha();
-         
+
          rgui_update_colors();
          fill_rect(frame_buf, 0, frame_buf->height, frame_buf->width, 4,
-                   rgui_bg_filler);
+               rgui_bg_filler);
       }
-      
+
       if (particle_effect != settings->menu.rgui_particle_effect)
       {
          particle_effect = settings->menu.rgui_particle_effect;

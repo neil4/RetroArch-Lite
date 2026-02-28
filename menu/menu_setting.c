@@ -28,6 +28,7 @@
 #include "../configuration.h"
 #include "../general.h"
 #include "../gfx/video_monitor.h"
+#include "../gfx/video_context_driver.h"
 #include "../dynamic.h"
 #include "../input/input_common.h"
 #include "../input/input_autodetect.h"
@@ -803,10 +804,39 @@ int setting_action_start_libretro_device_type(void *data)
    return 0;
 }
 
-static int setting_action_start_video_refresh_rate_auto(
+static int setting_action_start_video_monitor_reset(
       void *data)
 {
    video_monitor_reset();
+
+   return 0;
+}
+
+static int setting_action_start_video_refresh_rate_detect(
+      void *data)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   float vrate = 0.0f;
+
+   if (!setting)
+      return -1;
+
+   gfx_ctx_get_metrics(DISPLAY_METRIC_REFRESH_RATE, &vrate);
+
+   *setting->value.fraction = vrate > 0.0f ? vrate : refresh_rate;
+
+   return 0;
+}
+
+static int setting_action_start_vsync_swap_interval_auto(
+      void *data)
+{
+   rarch_setting_t *setting = (rarch_setting_t *)data;
+
+   if (!setting)
+      return -1;
+
+   *setting->value.unsigned_integer = video_driver_get_swap_interval_auto();
 
    return 0;
 }
@@ -3064,25 +3094,19 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "A directory for where to search for \n"
                "libretro core implementations.");
          break;
-      case MENU_LABEL_VIDEO_REFRESH_RATE_AUTO:
+      case MENU_LABEL_VIDEO_MONITOR_REFRESH_RATE:
          snprintf(s, len,
-               " -- Refresh Rate Auto.\n"
+               " -- Monitor Refresh Rate\n"
                " \n"
-               "The accurate refresh rate of our monitor (Hz).\n"
-               "This is used to calculate audio input rate with \n"
+               "This is used to adjust the audio input rate with \n"
                "the formula: \n"
                " \n"
-               "audio_input_rate = game input rate * display \n"
-               "refresh rate / game refresh rate\n"
+               "audio input rate = original audio rate * (monitor \n"
+               "refresh rate / swap interval) / original video rate\n"
                " \n"
-               "If the implementation does not report any \n"
-               "values, NTSC defaults will be assumed for \n"
-               "compatibility.\n"
-               " \n"
-               "This value should stay close to 60Hz to avoid \n"
-               "large pitch changes. If your monitor does \n"
-               "not run at 60Hz, or something close to it, \n"
-               "disable VSync, and leave this at its default.");
+               "Press menu-start to set the reported monitor \n"
+               "refresh rate. If the implementation does not \n"
+               "report a value, NTSC defaults will be assumed.\n");
          break;
       case MENU_LABEL_VIDEO_ROTATION:
          snprintf(s, len,
@@ -3915,9 +3939,6 @@ static void general_read_handler(void *data)
       case MENU_LABEL_AUDIO_MAX_TIMING_SKEW:
          *setting->value.fraction = settings->audio.max_timing_skew;
          break;
-      case MENU_LABEL_VIDEO_REFRESH_RATE_AUTO:
-         *setting->value.fraction = settings->video.refresh_rate;
-         break;
       case MENU_LABEL_INPUT_PLAYER1_JOYPAD_INDEX:
          *setting->value.integer = settings->input.joypad_map[0];
          break;
@@ -3941,7 +3962,6 @@ static void general_write_handler(void *data)
    enum event_command rarch_cmd = EVENT_CMD_NONE;
    rarch_setting_t *setting = (rarch_setting_t*)data;
    settings_t *settings     = config_get_ptr();
-   driver_t *driver         = driver_get_ptr();
    global_t *global         = global_get_ptr();
    uint32_t hash            = setting ? menu_hash_calculate(setting->name) : 0;
 
@@ -3975,15 +3995,6 @@ static void general_write_handler(void *data)
          {
             settings->audio.rate_control = true;
             settings->audio.rate_control_delta = *setting->value.fraction;
-         }
-         break;
-      case MENU_LABEL_VIDEO_REFRESH_RATE_AUTO:
-         if (driver->video && driver->video_data)
-         {
-            driver_set_refresh_rate(*setting->value.fraction);
-
-            /* In case refresh rate update forced non-block video. */
-            rarch_cmd = EVENT_CMD_VIDEO_SET_BLOCKING_STATE;
          }
          break;
       case MENU_LABEL_VIDEO_SCALE:
@@ -5286,6 +5297,7 @@ static bool setting_append_list_video_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 49, 485, 0.001, true, true);
+   (*list)[list_info->index - 1].action_start  = &setting_action_start_video_refresh_rate_detect;
    (*list)[list_info->index - 1].action_set_min = &setting_action_left_video_refresh_rate;
    (*list)[list_info->index - 1].action_set_max = &setting_action_right_video_refresh_rate;
 
@@ -5300,9 +5312,8 @@ static bool setting_append_list_video_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   (*list)[list_info->index - 1].action_start  = &setting_action_start_video_refresh_rate_auto;
+   (*list)[list_info->index - 1].action_start  = &setting_action_start_video_monitor_reset;
    (*list)[list_info->index - 1].action_ok     = &setting_action_ok_video_refresh_rate_auto;
-   (*list)[list_info->index - 1].action_select = &setting_action_ok_video_refresh_rate_auto;
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_st_float_video_refresh_rate_auto;
 
@@ -5512,6 +5523,7 @@ static bool setting_append_list_video_options(
    menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
    menu_settings_list_current_add_range(list, list_info, 1, 4, 1, true, true);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_CMD_APPLY_AUTO);
+   (*list)[list_info->index - 1].action_start = &setting_action_start_vsync_swap_interval_auto;
 
    CONFIG_UINT(
       settings->video.vsync_scope,

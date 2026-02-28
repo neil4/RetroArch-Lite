@@ -603,9 +603,7 @@ static void rarch_limit_frame_time(void)
                           video_viewport_get_system_av_info()->timing.fps
                           : settings->video.refresh_rate;
    
-   if (menu_driver_alive() && settings->menu.pause_libretro)
-      mft_f = 1000000.0f / 60.5f;  /* try to rely on vsync */
-   else if (runloop->is_slowmotion)
+   if (runloop->is_slowmotion)
       mft_f = settings->slowmotion_ratio * (1000000.0f / throttled_fps);
    else if (driver->nonblock_state)
    {
@@ -792,8 +790,8 @@ const char *rarch_main_msg_queue_pull(void)
    return ret;
 }
 
-void rarch_main_msg_queue_push(const char *msg, unsigned prio, unsigned duration,
-      bool flush)
+void rarch_main_msg_queue_push(const char *msg, unsigned prio,
+      unsigned duration, bool flush)
 {
    runloop_t *runloop = rarch_main_get_ptr();
    if (!runloop->msg_queue)
@@ -805,6 +803,11 @@ void rarch_main_msg_queue_push(const char *msg, unsigned prio, unsigned duration
 
    if (flush)
       msg_queue_clear(runloop->msg_queue);
+
+   /* Message durations > 1 expect ~60 fps */
+   if (duration > 1)
+      duration *= (unsigned)roundf(video_state_get_target_fps() / 60.0f);
+
    msg_queue_push(runloop->msg_queue, msg, prio, duration);
 
 #ifdef HAVE_THREADS

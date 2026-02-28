@@ -27,6 +27,8 @@
 
 #include <stdint.h>
 
+extern float frontend_android_get_display_refresh_rate(void);
+
 /* forward declaration */
 int system_property_get(const char *name, char *value);
 
@@ -472,21 +474,25 @@ static void dpi_get_density(char *s, size_t len)
 static bool android_gfx_ctx_get_metrics(void *data,
       enum display_metric_types type, float *value)
 {
-   int dpi;
-   char density[PROP_VALUE_MAX];
-   dpi_get_density(density, sizeof(density));
-
    switch (type)
    {
       case DISPLAY_METRIC_MM_WIDTH:
-         return false;
       case DISPLAY_METRIC_MM_HEIGHT:
          return false;
       case DISPLAY_METRIC_DPI:
+      {
+         char density[PROP_VALUE_MAX];
+         int dpi;
+
+         dpi_get_density(density, sizeof(density));
          if (density[0] == '\0')
             return false;
          dpi    = atoi(density);
          *value = (float)dpi;
+         break;
+      }
+      case DISPLAY_METRIC_REFRESH_RATE:
+         *value = frontend_android_get_display_refresh_rate();
          break;
       case DISPLAY_METRIC_NONE:
       default:

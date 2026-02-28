@@ -1318,8 +1318,6 @@ void rarch_main_set_state(unsigned cmd)
 
             menu_driver_toggle(true);
 
-            /* Menu should always run with vsync on. */
-            event_command(EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
             /* Undo any fast-fowarding. */
             if (driver->nonblock_state)
             {
@@ -1337,11 +1335,15 @@ void rarch_main_set_state(unsigned cmd)
                global->frontend_key_event = global->system.key_event;
                global->system.key_event   = menu_input_key_event;
                global->system.frame_time_last = 0;
+               global->menu.need_update = true;
             }
 
             input_driver_keyboard_mapping_set_block(false);
             menu_entries_set_refresh();
             menu_driver_set_alive();
+
+            /* Menu should always run with vsync on. */
+            event_command(EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
 
             /* Prevent stray input from going to menu */
             driver->flushing_input = true;

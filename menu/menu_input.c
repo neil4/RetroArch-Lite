@@ -1109,8 +1109,10 @@ unsigned menu_input_frame(retro_input_t input, retro_input_t trigger_input)
       if (restart_timer)
       {
          restart_timer = false;
-         menu_input->delay.timer = initial_held ? 15 : 1.5;
-         menu_input->delay.count = 0;
+         menu_input->delay.count = initial_held
+               ? 0.0f : menu_input->delay.count - menu_input->delay.timer;
+         menu_input->delay.timer = initial_held
+               ? 20.0f : 3.0f;
       }
 
       if (menu_input->delay.count >= menu_input->delay.timer)

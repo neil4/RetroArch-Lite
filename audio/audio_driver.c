@@ -836,8 +836,8 @@ void audio_monitor_adjust_system_rates(void)
    if (info->sample_rate <= 0.0)
       return;
 
-   timing_ratio                = settings->video.refresh_rate / info->fps;
-   timing_skew                 = fabs(1.0f - timing_ratio);
+   timing_ratio       = video_config_get_target_fps() / info->fps;
+   timing_skew        = fabs(1.0f - timing_ratio);
    audio_data.in_rate = info->sample_rate;
 
    if (timing_skew <= settings->audio.max_timing_skew)
