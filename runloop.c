@@ -591,29 +591,34 @@ static void rarch_update_frame_time(void)
  **/
 static void rarch_limit_frame_time(void)
 {
-   retro_time_t target                  = 0;
-   retro_time_t to_sleep_ms             = 0;
-   runloop_t *runloop                   = rarch_main_get_ptr();
-   settings_t *settings                 = config_get_ptr();
-   driver_t *driver                     = driver_get_ptr();
-   retro_time_t current                 = rarch_get_time_usec();
+   retro_time_t target      = 0;
+   retro_time_t to_sleep_ms = 0;
+   runloop_t   *runloop     = rarch_main_get_ptr();
+   settings_t  *settings    = config_get_ptr();
+   global_t    *global      = global_get_ptr();
+   driver_t    *driver      = driver_get_ptr();
+   retro_time_t current     = rarch_get_time_usec();
    double mft_f;
 
-   double throttled_fps = settings->throttle_using_core_fps ?
-                          video_viewport_get_system_av_info()->timing.fps
-                          : settings->video.refresh_rate;
-   
+   double throttled_fps = settings->throttle_using_core_fps
+         ? video_viewport_get_system_av_info()->timing.fps
+         : video_config_get_target_fps();
+
+   if (menu_driver_alive() &&
+         (settings->menu.pause_libretro || !global->content_is_init))
+      return;
+
    if (runloop->is_slowmotion)
-      mft_f = settings->slowmotion_ratio * (1000000.0f / throttled_fps);
+      mft_f = settings->slowmotion_ratio * (1000000.0 / throttled_fps);
    else if (driver->nonblock_state)
    {
       if (settings->fastforward_ratio > 1.0f)
-         mft_f = 1000000.0f / (throttled_fps * settings->fastforward_ratio);
+         mft_f = 1000000.0 / (throttled_fps * settings->fastforward_ratio);
       else
          return;
    }
    else if (settings->core_throttle_enable)
-      mft_f = 1000000.0f / throttled_fps;
+      mft_f = 1000000.0 / throttled_fps;
    else
       return;
 

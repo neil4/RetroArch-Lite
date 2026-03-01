@@ -711,7 +711,7 @@ void video_driver_set_nonblock_state(bool toggle)
    {
       /* Force vsync in menu.
        * Use lowest swap interval unless content is running */
-      if (!global->content_is_init || settings->menu.pause_libretro)
+      if (settings->menu.pause_libretro || !global->content_is_init)
          swap_interval = 1;
       else
          swap_interval = video_driver_get_swap_interval_auto();
