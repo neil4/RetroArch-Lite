@@ -225,42 +225,66 @@ static int action_iterate_help(char *s, size_t len, const char *label)
    return 0;
 }
 
-static int action_iterate_info(char *s, size_t len, const char *label)
+static INLINE bool action_iterate_info_handle_action(
+      menu_list_t *menu_list, size_t selection, unsigned action)
 {
-   int ret = 0;
-   char needle[NAME_MAX_LENGTH];
-   unsigned info_type               = 0;
-   size_t   entry_idx               = 0;
-   rarch_setting_t *current_setting = NULL;
-   file_list_t *list                = NULL;
-   menu_list_t *menu_list           = menu_list_get_ptr();
-   size_t selection                 = menu_navigation_get_current_selection();
-   const char *path                 = NULL;
+   /* Allow limited dpad actions behind info messagebox.
+    * Left and Right can only change savestate index */
+   bool update_selection = false;
+
+   if (action < MENU_ACTION_LEFT)
+   {
+      menu_navigation_t *nav = menu_navigation_get_ptr();
+
+      if (action == MENU_ACTION_UP)
+         menu_navigation_decrement(nav);
+      if (action == MENU_ACTION_DOWN)
+         menu_navigation_increment(nav);
+
+      menu_display_fb_set_dirty();
+      update_selection = true;
+   }
+   else if (action < MENU_ACTION_OK)
+   {
+      file_list_t *list        = menu_list->selection_buf;
+      rarch_setting_t *setting = menu_setting_find(list->list[selection].label);
+
+      if (setting && (setting->name_hash == MENU_LABEL_SAVESTATE ||
+            setting->name_hash == MENU_LABEL_LOADSTATE))
+      {
+         if (action == MENU_ACTION_LEFT)
+            setting->action_left(setting, false);
+         if (action == MENU_ACTION_RIGHT)
+            setting->action_right(setting, false);
+      }
+   }
+
+   return update_selection;
+}
+
+static int action_iterate_info(char *s, size_t len, unsigned action)
+{
+   menu_list_t *menu_list = menu_list_get_ptr();
+   size_t selection       = menu_navigation_get_current_selection();
+   int ret                = 0;
+   unsigned info_type     = 0;
+   size_t   entry_idx     = 0;
+   const char *path       = NULL;
+   const char *lbl        = NULL;
 
    if (!menu_list)
       return 0;
 
-   list = (file_list_t*)menu_list->selection_buf;
+   if (action != MENU_ACTION_NOOP &&
+         action_iterate_info_handle_action(menu_list, selection, action))
+      selection = menu_navigation_get_current_selection();
 
    menu_driver_render();
 
-   current_setting = menu_setting_find(list->list[selection].label);
+   menu_list_get_at_offset(menu_list->selection_buf, selection,
+         &path, &lbl, &info_type, &entry_idx);
 
-   needle[0] = '\0';
-
-   if (current_setting)
-      strlcpy(needle, current_setting->name, sizeof(needle));
-   else
-   {
-      const char *lbl = NULL;
-      menu_list_get_at_offset(list, selection, &path, &lbl,
-            &info_type, &entry_idx);
-
-      if (lbl)
-         strlcpy(needle, lbl, sizeof(needle));
-   }
-
-   setting_get_description(needle, s, len, path, info_type, entry_idx);
+   setting_get_description(lbl, s, len, path, info_type, entry_idx);
 
    return ret;
 }
@@ -695,8 +719,8 @@ static int action_iterate_main(const char *label, unsigned action)
          ret = action_iterate_menu_viewport(msg, sizeof(msg), label, action);
          break;
       case ITERATE_TYPE_INFO:
-         ret = action_iterate_info(msg, sizeof(msg), label);
-         pop_selected    = &nav->selection_ptr;
+         ret             = action_iterate_info(msg, sizeof(msg), action);
+         pop_selected    = NULL;
          do_messagebox   = true;
          do_pop_stack    = true;
          break;
@@ -767,8 +791,8 @@ static int action_iterate_main(const char *label, unsigned action)
       menu_driver_render_messagebox(msg);
 
    if (do_pop_stack && (action == MENU_ACTION_INFO
-                        || action == MENU_ACTION_CANCEL
-                        || action == MENU_ACTION_OK))
+         || action == MENU_ACTION_CANCEL
+         || action == MENU_ACTION_OK))
       menu_list_pop(menu_list->menu_stack, pop_selected);
 
    if (do_render)

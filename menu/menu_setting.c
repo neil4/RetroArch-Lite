@@ -4429,7 +4429,7 @@ static bool setting_append_list_main_menu_options(
             subgroup_info.name,
             "N/A");
       (*list)[list_info->index - 1].action_left   = &setting_action_left_savestates;
-      (*list)[list_info->index - 1].action_right  = &setting_action_left_savestates;
+      (*list)[list_info->index - 1].action_right  = &setting_action_right_savestates;
       (*list)[list_info->index - 1].action_start  = &setting_action_start_savestates;
       (*list)[list_info->index - 1].action_ok     = &setting_bool_action_ok_exit;
       (*list)[list_info->index - 1].action_select = &setting_bool_action_ok_exit;
