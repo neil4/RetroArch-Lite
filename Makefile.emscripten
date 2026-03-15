@@ -46,6 +46,9 @@ OBJ += audio/audio_filters/panning.o
 OBJ += audio/audio_filters/phaser.o
 OBJ += audio/audio_filters/reverb.o
 OBJ += audio/audio_filters/wahwah.o
+OBJ += audio/audio_filters/tremolo.c
+OBJ += audio/audio_filters/vibrato.c
+OBJ += audio/audio_filters/crystalizer.c
 
 CFLAGS += -Ideps/zlib/
 libretro = libretro_emscripten.bc

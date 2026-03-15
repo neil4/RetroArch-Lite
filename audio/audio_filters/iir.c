@@ -1,17 +1,23 @@
-/*  RetroArch - A frontend for libretro.
- *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
- *  Copyright (C) 2014 - Brad Miller
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
- *  RetroArch is free software: you can redistribute it and/or modify it under the terms
- *  of the GNU General Public License as published by the Free Software Found-
- *  ation, either version 3 of the License, or (at your option) any later version.
+ * ---------------------------------------------------------------------------------------
+ * The following license statement only applies to this file (iir.c).
+ * ---------------------------------------------------------------------------------------
  *
- *  RetroArch is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- *  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *  PURPOSE.  See the GNU General Public License for more details.
+ * Permission is hereby granted, free of charge,
+ * to any person obtaining a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- *  You should have received a copy of the GNU General Public License along with RetroArch.
- *  If not, see <http://www.gnu.org/licenses/>.
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "dspfilter.h"
@@ -19,9 +25,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef M_PI
-#define M_PI		3.1415926535897932384626433832795
-#endif
 #define sqr(a) ((a) * (a))
 
 /* filter types */
@@ -63,28 +66,27 @@ static void iir_process(void *data, struct dspfilter_output *output,
 {
    unsigned i;
    struct iir_data *iir = (struct iir_data*)data;
+   float *out           = output->samples;
 
-   output->samples = input->samples;
-   output->frames  = input->frames;
+   float b0             = iir->b0;
+   float b1             = iir->b1;
+   float b2             = iir->b2;
+   float a0             = iir->a0;
+   float a1             = iir->a1;
+   float a2             = iir->a2;
 
-   float *out = output->samples;
+   float xn1_l          = iir->l.xn1;
+   float xn2_l          = iir->l.xn2;
+   float yn1_l          = iir->l.yn1;
+   float yn2_l          = iir->l.yn2;
 
-   float b0 = iir->b0;
-   float b1 = iir->b1;
-   float b2 = iir->b2;
-   float a0 = iir->a0;
-   float a1 = iir->a1;
-   float a2 = iir->a2;
+   float xn1_r          = iir->r.xn1;
+   float xn2_r          = iir->r.xn2;
+   float yn1_r          = iir->r.yn1;
+   float yn2_r          = iir->r.yn2;
 
-   float xn1_l = iir->l.xn1;
-   float xn2_l = iir->l.xn2;
-   float yn1_l = iir->l.yn1;
-   float yn2_l = iir->l.yn2;
-
-   float xn1_r = iir->r.xn1;
-   float xn2_r = iir->r.xn2;
-   float yn1_r = iir->r.yn1;
-   float yn2_r = iir->r.yn2;
+   output->samples      = input->samples;
+   output->frames       = input->frames;
 
    for (i = 0; i < input->frames; i++, out += 2)
    {
@@ -94,18 +96,18 @@ static void iir_process(void *data, struct dspfilter_output *output,
       float l    = (b0 * in_l + b1 * xn1_l + b2 * xn2_l - a1 * yn1_l - a2 * yn2_l) / a0;
       float r    = (b0 * in_r + b1 * xn1_r + b2 * xn2_r - a1 * yn1_r - a2 * yn2_r) / a0;
 
-      xn2_l = xn1_l;
-      xn1_l = in_l;
-      yn2_l = yn1_l;
-      yn1_l = l;
+      xn2_l      = xn1_l;
+      xn1_l      = in_l;
+      yn2_l      = yn1_l;
+      yn1_l      = l;
 
-      xn2_r = xn1_r;
-      xn1_r = in_r;
-      yn2_r = yn1_r;
-      yn1_r = r;
+      xn2_r      = xn1_r;
+      xn1_r      = in_r;
+      yn2_r      = yn1_r;
+      yn1_r      = r;
 
-      out[0] = l;
-      out[1] = r;
+      out[0]     = l;
+      out[1]     = r;
    }
 
    iir->l.xn1 = xn1_l;
@@ -134,8 +136,10 @@ static enum IIRFilter str_to_type(const char *str)
    CHECK(LSH);
    CHECK(HSH);
    CHECK(RIAA_CD);
-   return LPF; // Fallback.
+
+   return LPF; /* Fallback. */
 }
+#undef CHECK
 
 static void make_poly_from_roots(
       const double *roots, unsigned num_roots, float *poly)
@@ -155,15 +159,15 @@ static void iir_filter_init(struct iir_data *iir,
       float sample_rate, float freq, float qual, float gain, enum IIRFilter filter_type)
 {
 	double omega = 2.0 * M_PI * freq / sample_rate;
-   double cs = cos(omega);
-   double sn = sin(omega);
+   double cs    = cos(omega);
+   double sn    = sin(omega);
    double a1pha = sn / (2.0 * qual);
-   double A = exp(log(10.0) * gain / 40.0);
-   double beta = sqrt(A + A);
+   double A     = exp(log(10.0) * gain / 40.0);
+   double beta  = sqrt(A + A);
 
-   float b0 = 0.0, b1 = 0.0, b2 = 0.0, a0 = 0.0, a1 = 0.0, a2 = 0.0;
+   float b0     = 0.0, b1 = 0.0, b2 = 0.0, a0 = 0.0, a1 = 0.0, a2 = 0.0;
 
-   // Set up filter coefficients according to type
+   /* Set up filter coefficients according to type */
    switch (filter_type)
    {
       case LPF:
@@ -206,7 +210,7 @@ static void iir_filter_init(struct iir_data *iir,
          a1 = -2.0 * cs;
          a2 =  1.0 - a1pha;
          break;
-      case NOTCH: 
+      case NOTCH:
          b0 =  1.0;
          b1 = -2.0 * cs;
          b2 =  1.0;
@@ -216,7 +220,9 @@ static void iir_filter_init(struct iir_data *iir,
          break;
       case RIAA_phono: /* http://www.dsprelated.com/showmessage/73300/3.php */
       {
-         float b[3], a[3];
+         double y, b_re, a_re, b_im, a_im, g;
+         float b[3] = {0.0f};
+         float a[3] = {0.0f};
 
          if ((int)sample_rate == 44100)
          {
@@ -246,33 +252,33 @@ static void iir_filter_init(struct iir_data *iir,
             make_poly_from_roots(zeros, 2, b);
             make_poly_from_roots(poles, 2, a);
          }
-         
-         b0 = b[0];
-         b1 = b[1];
-         b2 = b[2];
-         a0 = a[0];
-         a1 = a[1];
-         a2 = a[2];
+
+         b0    = b[0];
+         b1    = b[1];
+         b2    = b[2];
+         a0    = a[0];
+         a1    = a[1];
+         a2    = a[2];
 
          /* Normalise to 0dB at 1kHz (Thanks to Glenn Davis) */
-         double y = 2.0 * M_PI * 1000.0 / sample_rate;
-         double b_re = b0 + b1 * cos(-y) + b2 * cos(-2.0 * y);
-         double a_re = a0 + a1 * cos(-y) + a2 * cos(-2.0 * y);
-         double b_im = b1 * sin(-y) + b2 * sin(-2.0 * y);
-         double a_im = a1 * sin(-y) + a2 * sin(-2.0 * y);
-         double g = 1.0 / sqrt((sqr(b_re) + sqr(b_im)) / (sqr(a_re) + sqr(a_im)));
-         b0 *= g; b1 *= g; b2 *= g;
+         y     = 2.0 * M_PI * 1000.0 / sample_rate;
+         b_re  = b0 + b1 * cos(-y) + b2 * cos(-2.0 * y);
+         a_re  = a0 + a1 * cos(-y) + a2 * cos(-2.0 * y);
+         b_im  = b1 * sin(-y) + b2 * sin(-2.0 * y);
+         a_im  = a1 * sin(-y) + a2 * sin(-2.0 * y);
+         g     = 1.0 / sqrt((sqr(b_re) + sqr(b_im)) / (sqr(a_re) + sqr(a_im)));
+         b0   *= g; b1 *= g; b2 *= g;
          break;
       }
-      case PEQ: 
+      case PEQ:
          b0 =  1.0 + a1pha * A;
          b1 = -2.0 * cs;
          b2 =  1.0 - a1pha * A;
          a0 =  1.0 + a1pha / A;
          a1 = -2.0 * cs;
          a2 =  1.0 - a1pha / A;
-         break; 
-      case BBOOST:       
+         break;
+      case BBOOST:
          beta = sqrt((A * A + 1) / 1.0 - (pow((A - 1), 2)));
          b0 = A * ((A + 1) - (A - 1) * cs + beta * sn);
          b1 = 2 * A * ((A - 1) - (A + 1) * cs);
@@ -296,6 +302,7 @@ static void iir_filter_init(struct iir_data *iir,
          a1pha = sn / (2.0 * 0.4845);
          A = exp(log(10.0) * -9.477 / 40.0);
          beta = sqrt(A + A);
+         (void)a1pha;
       case HSH:
          b0 = A * ((A + 1.0) + (A - 1.0) * cs + beta * sn);
          b1 = -2.0 * A * ((A - 1.0) + (A + 1.0) * cs);
@@ -319,19 +326,20 @@ static void iir_filter_init(struct iir_data *iir,
 static void *iir_init(const struct dspfilter_info *info,
       const struct dspfilter_config *config, void *userdata)
 {
-   struct iir_data *iir = (struct iir_data*)calloc(1, sizeof(*iir));
+   float freq, qual, gain;
+   enum IIRFilter filter  = LPF;
+   char           *type   = NULL;
+   struct iir_data *iir   = (struct iir_data*)calloc(1, sizeof(*iir));
    if (!iir)
       return NULL;
 
-   float freq, qual, gain;
    config->get_float(userdata, "frequency", &freq, 1024.0f);
    config->get_float(userdata, "quality", &qual, 0.707f);
    config->get_float(userdata, "gain", &gain, 0.0f);
 
-   char *type = NULL;
    config->get_string(userdata, "type", &type, "LPF");
 
-   enum IIRFilter filter = str_to_type(type);
+   filter = str_to_type(type);
    config->free(type);
 
    iir_filter_init(iir, info->input_rate, freq, qual, gain, filter);
@@ -354,9 +362,7 @@ static const struct dspfilter_implementation iir_plug = {
 
 const struct dspfilter_implementation *dspfilter_get_implementation(dspfilter_simd_mask_t mask)
 {
-   (void)mask;
    return &iir_plug;
 }
 
 #undef dspfilter_get_implementation
-

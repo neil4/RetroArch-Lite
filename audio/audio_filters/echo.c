@@ -1,16 +1,23 @@
-/*  RetroArch - A frontend for libretro.
- *  Copyright (C) 2010-2014 - Hans-Kristian Arntzen
+/* Copyright  (C) 2010-2020 The RetroArch team
  *
- *  RetroArch is free software: you can redistribute it and/or modify it under the terms
- *  of the GNU General Public License as published by the Free Software Found-
- *  ation, either version 3 of the License, or (at your option) any later version.
+ * ---------------------------------------------------------------------------------------
+ * The following license statement only applies to this file (echo.c).
+ * ---------------------------------------------------------------------------------------
  *
- *  RetroArch is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- *  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
- *  PURPOSE.  See the GNU General Public License for more details.
+ * Permission is hereby granted, free of charge,
+ * to any person obtaining a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- *  You should have received a copy of the GNU General Public License along with RetroArch.
- *  If not, see <http://www.gnu.org/licenses/>.
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "dspfilter.h"
@@ -51,15 +58,17 @@ static void echo_process(void *data, struct dspfilter_output *output,
       const struct dspfilter_input *input)
 {
    unsigned i, c;
+   float *out             = NULL;
    struct echo_data *echo = (struct echo_data*)data;
 
-   output->samples = input->samples;
-   output->frames  = input->frames;
+   output->samples        = input->samples;
+   output->frames         = input->frames;
 
-   float *out = output->samples;
+   out                    = output->samples;
 
    for (i = 0; i < input->frames; i++, out += 2)
    {
+      float left, right;
       float echo_left  = 0.0f;
       float echo_right = 0.0f;
 
@@ -69,11 +78,11 @@ static void echo_process(void *data, struct dspfilter_output *output,
          echo_right += echo->channels[c].buffer[(echo->channels[c].ptr << 1) + 1];
       }
 
-      echo_left  *= echo->amp;
-      echo_right *= echo->amp;
+      echo_left     *= echo->amp;
+      echo_right    *= echo->amp;
 
-      float left  = out[0] + echo_left;
-      float right = out[1] + echo_right;
+      left           = out[0] + echo_left;
+      right          = out[1] + echo_right;
 
       for (c = 0; c < echo->num_channels; c++)
       {
@@ -94,40 +103,46 @@ static void echo_process(void *data, struct dspfilter_output *output,
 static void *echo_init(const struct dspfilter_info *info,
       const struct dspfilter_config *config, void *userdata)
 {
-   unsigned i;
-   struct echo_data *echo = (struct echo_data*)calloc(1, sizeof(*echo));
+   unsigned i, channels;
+   struct echo_channel *echo_channels    = NULL;
+   float *delay                          = NULL;
+   float *feedback                       = NULL;
+   unsigned num_delay                    = 0;
+   unsigned num_feedback                 = 0;
+
+   static const float default_delay[]    = { 200.0f };
+   static const float default_feedback[] = { 0.5f };
+   struct echo_data *echo                = (struct echo_data*)
+      calloc(1, sizeof(*echo));
+
    if (!echo)
       return NULL;
 
-   float *delay = NULL, *feedback = NULL;
-   unsigned num_delay = 0, num_feedback = 0;
-
-   static const float default_delay[] = { 200.0f };
-   static const float default_feedback[] = { 0.5f };
-
-   config->get_float_array(userdata, "delay", &delay, &num_delay, default_delay, 1);
-   config->get_float_array(userdata, "feedback", &feedback, &num_feedback, default_feedback, 1);
+   config->get_float_array(userdata, "delay", &delay,
+         &num_delay, default_delay, 1);
+   config->get_float_array(userdata, "feedback", &feedback,
+         &num_feedback, default_feedback, 1);
    config->get_float(userdata, "amp", &echo->amp, 0.2f);
 
-   unsigned channels = num_feedback = num_delay = min(num_delay, num_feedback);
+   channels            = num_feedback = num_delay = min(num_delay, num_feedback);
 
-   echo->channels = (struct echo_channel*)calloc(channels, sizeof(*echo->channels));
-   if (!echo->channels)
+   if (!(echo_channels = (struct echo_channel*)calloc(channels,
+         sizeof(*echo_channels))))
       goto error;
 
-   echo->num_channels = channels;
+   echo->channels      = echo_channels;
+   echo->num_channels  = channels;
 
    for (i = 0; i < channels; i++)
    {
-      unsigned frames = (unsigned)(delay[i] * info->input_rate / 1000.0f + 0.5f);
+      unsigned frames  = (unsigned)(delay[i] * info->input_rate / 1000.0f + 0.5f);
       if (!frames)
          goto error;
 
-      echo->channels[i].buffer = (float*)calloc(frames, 2 * sizeof(float));
-      if (!echo->channels[i].buffer)
+      if (!(echo->channels[i].buffer = (float*)calloc(frames, 2 * sizeof(float))))
          goto error;
 
-      echo->channels[i].frames = frames;
+      echo->channels[i].frames   = frames;
       echo->channels[i].feedback = feedback[i];
    }
 
@@ -141,7 +156,6 @@ error:
    echo_free(echo);
    return NULL;
 }
-
 
 static const struct dspfilter_implementation echo_plug = {
    echo_init,
@@ -159,9 +173,7 @@ static const struct dspfilter_implementation echo_plug = {
 
 const struct dspfilter_implementation *dspfilter_get_implementation(dspfilter_simd_mask_t mask)
 {
-   (void)mask;
    return &echo_plug;
 }
 
 #undef dspfilter_get_implementation
-

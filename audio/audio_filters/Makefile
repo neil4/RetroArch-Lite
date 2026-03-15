@@ -18,6 +18,8 @@ ifeq ($(platform),)
       endif
    else ifneq ($(findstring win,$(shell uname -a)),)
       platform = win
+   else ifneq ($(findstring MSYS,$(shell uname -a)),)
+      platform = win
    endif
 endif
 

@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <retro_miscellaneous.h>
 
 #ifdef __SSE__
 #include <xmmintrin.h>
@@ -126,33 +127,6 @@ static INLINE double window_function(double idx)
    return sinc(M_PI * idx);
 }
 #elif defined(SINC_WINDOW_KAISER)
-/* Modified Bessel function of first order.
- * Check Wiki for mathematical definition ... */
-static INLINE double besseli0(double x)
-{
-   unsigned i;
-   double sum = 0.0;
-
-   double factorial = 1.0;
-   double factorial_mult = 0.0;
-   double x_pow = 1.0;
-   double two_div_pow = 1.0;
-   double x_sqr = x * x;
-
-   /* Approximate. This is an infinite sum.
-    * Luckily, it converges rather fast. */
-   for (i = 0; i < 18; i++)
-   {
-      sum += x_pow * two_div_pow / (factorial * factorial);
-
-      factorial_mult += 1.0;
-      x_pow *= x_sqr;
-      two_div_pow *= 0.25;
-      factorial *= factorial_mult;
-   }
-
-   return sum;
-}
 
 static INLINE double window_function(double idx)
 {

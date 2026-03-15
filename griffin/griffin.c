@@ -519,6 +519,9 @@ FILTERS
 #include "../audio/audio_filters/phaser.c"
 #include "../audio/audio_filters/reverb.c"
 #include "../audio/audio_filters/wahwah.c"
+#include "../audio/audio_filters/tremolo.c"
+#include "../audio/audio_filters/vibrato.c"
+#include "../audio/audio_filters/crystalizer.c"
 #endif
 /*============================================================
 DYNAMIC

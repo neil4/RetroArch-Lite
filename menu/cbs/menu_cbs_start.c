@@ -486,7 +486,8 @@ static int menu_cbs_init_bind_start_compare_type(menu_file_list_cbs_t *cbs,
          && type <= MENU_SETTINGS_LIBRETRO_DEVICE_INDEX_END)
       cbs->action_start = action_start_libretro_device_type;
    else if (type == MENU_FILE_CHEAT || type == MENU_FILE_SHADER_PRESET
-         || type == MENU_FILE_CORE_OPTIONS || type == MENU_FILE_REMAP)
+         || type == MENU_FILE_CORE_OPTIONS || type == MENU_FILE_REMAP
+         || type == MENU_FILE_AUDIOFILTER)
       cbs->action_start = action_start_file_delete;
    else
       return -1;
