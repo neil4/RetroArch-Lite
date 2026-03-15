@@ -2959,8 +2959,8 @@ bool get_scoped_config_filename(char* out, const unsigned scope,
    case THIS_CONTENT_DIR:
       if (!*global->basename)
          return false;
-      /* fullpath is updated between saving and loading scoped cfgs */
-      if (!path_parent_dir_name(out, global->fullpath))
+      /* basename is updated between saving and loading scoped cfgs */
+      if (!path_parent_dir_name(out, global->basename))
          strcpy(out, "root");
       break;
 

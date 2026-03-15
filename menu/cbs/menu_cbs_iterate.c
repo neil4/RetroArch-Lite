@@ -266,7 +266,6 @@ static int action_iterate_info(char *s, size_t len, unsigned action)
 {
    menu_list_t *menu_list = menu_list_get_ptr();
    size_t selection       = menu_navigation_get_current_selection();
-   int ret                = 0;
    unsigned info_type     = 0;
    size_t   entry_idx     = 0;
    const char *path       = NULL;
@@ -279,6 +278,11 @@ static int action_iterate_info(char *s, size_t len, unsigned action)
          action_iterate_info_handle_action(menu_list, selection, action))
       selection = menu_navigation_get_current_selection();
 
+   if (menu_entries_needs_refresh())
+   {
+      menu_list_refresh(menu_list->selection_buf);
+      menu_entries_unset_refresh();
+   }
    menu_driver_render();
 
    menu_list_get_at_offset(menu_list->selection_buf, selection,
@@ -286,7 +290,7 @@ static int action_iterate_info(char *s, size_t len, unsigned action)
 
    setting_get_description(lbl, s, len, path, info_type, entry_idx);
 
-   return ret;
+   return 0;
 }
 
 static int action_iterate_load_open_zip(const char *label, char *s, size_t len, unsigned action)
