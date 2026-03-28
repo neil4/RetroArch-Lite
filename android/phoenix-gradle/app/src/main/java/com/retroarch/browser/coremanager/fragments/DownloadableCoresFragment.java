@@ -26,7 +26,6 @@ import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.coremanager.CoreManagerActivity;
 import com.retroarch.browser.preferences.util.UserPreferences;
-import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
 
 import java.io.BufferedInputStream;
@@ -75,13 +74,13 @@ public final class DownloadableCoresFragment extends ListFragment
    }
 
    public static final String BUILDBOT_BASE_URL = "http://buildbot.libretro.com";
-   public static String BUILDBOT_CORE_URL_ARM = BUILDBOT_BASE_URL + "/nightly/android/latest/armeabi-v7a/";
-   public static String BUILDBOT_CORE_URL_INTEL = BUILDBOT_BASE_URL + "/nightly/android/latest/x86/";
+   public static String BUILDBOT_CORE_URL_ARM = BUILDBOT_BASE_URL + "/nightly/android/latest/arm64-v8a/";
+   public static String BUILDBOT_CORE_URL_INTEL = BUILDBOT_BASE_URL + "/nightly/android/latest/x86_64/";
    public static final String BUILDBOT_INFO_URL = BUILDBOT_BASE_URL + "/assets/frontend/info.zip";
    public static final String INFO_NAME = "Core Info";
    public static final int TIMEOUT_MS = 4000;
    
-   protected static OnCoreDownloadedListener coreDownloadedListener = null;
+   private static OnCoreDownloadedListener coreDownloadedListener = null;
    public static ArrayList<DownloadableCore> coreList = null;
    public static DownloadableCoresAdapter dlcAdapter = null;
    private static int numInfoFilesMissing = 0;
@@ -113,16 +112,16 @@ public final class DownloadableCoresFragment extends ListFragment
 
    public static void getCoreList(Context ctx)
    {
-      if (BuildConfig.APPLICATION_ID.contains("64"))
+      if (!ctx.getResources().getBoolean(R.bool.is64bit))
       {
-         BUILDBOT_CORE_URL_ARM = BUILDBOT_CORE_URL_ARM.replace("armeabi-v7a","arm64-v8a");
-         BUILDBOT_CORE_URL_INTEL = BUILDBOT_CORE_URL_INTEL.replace("x86", "x86_64");
+         BUILDBOT_CORE_URL_ARM = BUILDBOT_CORE_URL_ARM.replace("arm64-v8a", "armeabi-v7a");
+         BUILDBOT_CORE_URL_INTEL = BUILDBOT_CORE_URL_INTEL.replace("x86_64", "x86");
       }
 
       coreList = new ArrayList<>();
       new PopulateCoresListOperation(ctx).execute();
    }
-   
+
    @Override
    public void onListItemClick(final ListView lv, final View v, final int position, final long id)
    {
@@ -190,34 +189,31 @@ public final class DownloadableCoresFragment extends ListFragment
    public boolean onContextItemSelected(MenuItem item)
    {
       final AdapterContextMenuInfo info = (AdapterContextMenuInfo)item.getMenuInfo();
+      final int id = item.getItemId();
 
-      switch (item.getItemId())
+      if (id == R.id.view_core_info_ctx_item)
       {
-         case R.id.view_core_info_ctx_item:
-         {
-            final String fakePath = getActivity().getApplicationInfo().dataDir + "/cores/"
-                  + dlcAdapter.getItem(info.position).getShortURLName();
-            final ModuleWrapper core = new ModuleWrapper(getActivity(), fakePath,
-                  false, false);
+         final String fakePath = getActivity().getApplicationInfo().dataDir + "/cores/"
+               + dlcAdapter.getItem(info.position).getShortURLName();
+         final ModuleWrapper core = new ModuleWrapper(getActivity(), fakePath,
+               false, false);
 
-            CoreInfoFragment cif = CoreInfoFragment.newInstance(core);
-            cif.show(getFragmentManager(), "cif");
-            return true;
-         }
-         case R.id.sort_by_name_ctx_item:
-         {
-            reSortCores(false);
-            return true;
-         }
-         case R.id.sort_by_system_ctx_item:
-         {
-            reSortCores(true);
-            return true;
-         }
-         
-         default:
-            return super.onContextItemSelected(item);
+         CoreInfoFragment cif = CoreInfoFragment.newInstance(core);
+         cif.show(getFragmentManager(), "cif");
+         return true;
       }
+      if (id == R.id.sort_by_name_ctx_item)
+      {
+         reSortCores(false);
+         return true;
+      }
+      if (id == R.id.sort_by_system_ctx_item)
+      {
+         reSortCores(true);
+         return true;
+      }
+
+      return super.onContextItemSelected(item);
    }
    
    public void reSortCores(boolean sortBySys)

@@ -7,7 +7,6 @@ import android.preference.PreferenceCategory;
 
 import com.retroarch.browser.dirfragment.DirectoryFragment;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
-import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
 
 /**
@@ -23,9 +22,11 @@ public final class PathPreferenceFragment extends PreferenceListFragment impleme
       // Add path preferences from the XML.
       addPreferencesFromResource(R.xml.path_preferences);
 
+      boolean is64bit = requireContext().getResources().getBoolean(R.bool.is64bit);
+
       // Hide preferences as needed
       PreferenceCategory catBackupCors = (PreferenceCategory) findPreference("cat_backup_cores");
-      if (BuildConfig.APPLICATION_ID.contains("64"))
+      if (is64bit)
       {
          catBackupCors.removePreference(findPreference("backup_cores32_directory_enable"));
          catBackupCors.removePreference(findPreference("backup_cores32_dir_pref"));
@@ -43,7 +44,7 @@ public final class PathPreferenceFragment extends PreferenceListFragment impleme
       findPreference("system_dir_pref").setOnPreferenceClickListener(this);
       findPreference("config_dir_pref").setOnPreferenceClickListener(this);
 
-      if (BuildConfig.APPLICATION_ID.contains("64"))
+      if (is64bit)
          findPreference("backup_cores64_dir_pref").setOnPreferenceClickListener(this);
       else
          findPreference("backup_cores32_dir_pref").setOnPreferenceClickListener(this);
@@ -98,7 +99,7 @@ public final class PathPreferenceFragment extends PreferenceListFragment impleme
       else if (prefKey.equals("backup_cores64_dir_pref") || prefKey.equals("backup_cores32_dir_pref"))
       {
          final DirectoryFragment coreDirBrowser = DirectoryFragment.newInstance(R.string.backup_cores_directory_select);
-         if (BuildConfig.APPLICATION_ID.contains("64"))
+         if (requireContext().getResources().getBoolean(R.bool.is64bit))
             coreDirBrowser.setPathSettingKey("backup_cores64_directory");
          else
             coreDirBrowser.setPathSettingKey("backup_cores32_directory");

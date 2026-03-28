@@ -58,6 +58,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
    private IconAdapter<ModuleWrapper> adapter;
    private String libretroPath = "";
    private String libretroName = "";
+   private boolean usingSharedLib = false;
    public static Intent retro = null;
    public static boolean needRefresh = false;
 
@@ -220,19 +221,17 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       
       // Populate shared core list
       //
-      final String sharedId = getString(R.string.shared_app_id);
-      String sharedDataDir;
-      if (sharedId.endsWith("64"))
-         sharedDataDir = getApplicationInfo().dataDir.replaceFirst("retroarchlite", "retroarchlite64");
+      File sharedCoreDir;
+      if (getApplication().getResources().getBoolean(R.bool.is64bit))
+         sharedCoreDir = new File(coreDir.getPath().replaceFirst("lite64", "lite"));
       else
-         sharedDataDir = getApplicationInfo().dataDir.replaceFirst("retroarchlite64", "retroarchlite");
-      
-      File sharedCoreDir = new File(sharedDataDir, "cores");
+         sharedCoreDir = new File(coreDir.getPath().replaceFirst("lite", "lite64"));
+
       if (sharedCoreDir.exists())
       {
          final File[] sharedLibs = sharedCoreDir.listFiles();
          for (final File lib : sharedLibs)
-            cores.add(new ModuleWrapper(this, lib, showAbi, sortBySys));
+            cores.add(new ModuleWrapper(this, lib, showAbi, sortBySys, true));
       }
 
       // Sort the list of cores alphabetically
@@ -250,6 +249,8 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       final ModuleWrapper item = adapter.getItem(position);
       libretroPath = item.getUnderlyingFile().getAbsolutePath();
       libretroName = sanitizedLibretroName(libretroPath);
+      usingSharedLib = item.isInSharedApp();
+
 
       // Show Content Directory
       //
@@ -287,6 +288,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       final ModuleWrapper item = adapter.getItem(position);
       libretroPath = item.getUnderlyingFile().getAbsolutePath();
       libretroName = sanitizedLibretroName(libretroPath);
+      usingSharedLib = item.isInSharedApp();
 
       // Show Content History
       //
@@ -460,14 +462,11 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       }
 
       String currentIme = Settings.Secure.getString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD);
-      
-      boolean usingSharedActivity = false;
-      final String sharedId = getString(R.string.shared_app_id);
-      if (libretroPath.contains(sharedId+'/'))
+
+      if (usingSharedLib)
       {
-         usingSharedActivity = true;
          retro = new Intent();
-         retro.setComponent(new ComponentName(sharedId,
+         retro.setComponent(new ComponentName(getString(R.string.shared_app_id),
                "com.retroarch.browser.retroactivity.RetroActivity"));
       }
       else
@@ -485,7 +484,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
 
       startActivity(retro);
 
-      if (usingSharedActivity)
+      if (usingSharedLib)
          retro = null;
 
       finish();

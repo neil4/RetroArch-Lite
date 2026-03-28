@@ -1,7 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdk 32
+    namespace 'com.retroarchlite'
+    compileSdk 36
     ndkVersion "29.0.14206865"
 
     defaultConfig {
@@ -28,8 +29,10 @@ android {
             ndk {
                 abiFilters 'armeabi-v7a'
             }
+            applicationId "com.retroarchlite"
+            resValue "string", "app_id", applicationId
             resValue "string", "app_name", "RetroArch Lite (32-bit)"
-            resValue "string", "app_id", "com.retroarchlite"
+            resValue "bool", "is64bit", "false"
             resValue "string", "shared_app_id", "com.retroarchlite64"
         }
         ral64 {
@@ -38,8 +41,9 @@ android {
                 abiFilters 'arm64-v8a'
             }
             applicationId "com.retroarchlite64"
+            resValue "string", "app_id", applicationId
             resValue "string", "app_name", "RetroArch Lite"
-            resValue "string", "app_id", "com.retroarchlite64"
+            resValue "bool", "is64bit", "true"
             resValue "string", "shared_app_id", "com.retroarchlite"
         }
     }
@@ -64,11 +68,6 @@ android {
         ral64 {
             res.srcDirs = ['libs/googleplay/res']
         }
-    }
-
-
-    lintOptions {
-        abortOnError false
     }
 }
 

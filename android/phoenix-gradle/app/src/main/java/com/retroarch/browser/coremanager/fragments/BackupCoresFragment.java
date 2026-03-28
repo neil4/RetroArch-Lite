@@ -22,7 +22,6 @@ import android.widget.ListView;
 
 import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.preferences.util.UserPreferences;
-import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
 
 import java.io.File;
@@ -56,7 +55,7 @@ public final class BackupCoresFragment extends ListFragment
    }
 
    private String backupCoresDir;
-   public static String defaultBackupCoresDir = UserPreferences.defaultBaseDir + "/cores32";
+   public static String defaultBackupCoresDir = UserPreferences.defaultBaseDir + "/cores64";
 
    private OnCoreCopiedListener coreCopiedListener = null;
 
@@ -67,8 +66,8 @@ public final class BackupCoresFragment extends ListFragment
    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
    {
       super.onCreateView(inflater, container, savedInstanceState);
-      if (BuildConfig.APPLICATION_ID.contains("64"))
-         defaultBackupCoresDir = defaultBackupCoresDir.replace("cores32", "cores64");
+      if (!getContext().getResources().getBoolean(R.bool.is64bit))
+         defaultBackupCoresDir = defaultBackupCoresDir.replace("cores64", "cores32");
       sharedPrefs = UserPreferences.getPreferences(getActivity());
       backupCoresDir = sharedPrefs.getBoolean("backup_cores_directory_enable", false) ?
             sharedPrefs.getString("backup_cores_directory", defaultBackupCoresDir) : defaultBackupCoresDir;
@@ -150,16 +149,14 @@ public final class BackupCoresFragment extends ListFragment
    public boolean onContextItemSelected(MenuItem item)
    {
       final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+      final int id = item.getItemId();
 
-      switch (item.getItemId())
-      {
-         case R.id.rename_backupcore:
-            return RenameFile(info.position);
-         case R.id.remove_backupcore:
-            return RemoveCore(info.position);
-         default:
-            return super.onContextItemSelected(item);
-      }
+      if (id == R.id.rename_backupcore)
+         return RenameFile(info.position);
+      if (id == R.id.remove_backupcore)
+         return RemoveCore(info.position);
+
+      return super.onContextItemSelected(item);
    }
    
    void PopulateCoresList()

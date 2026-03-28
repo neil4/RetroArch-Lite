@@ -10,6 +10,7 @@ import android.os.Environment;
 
 import com.retroarch.browser.preferences.util.ConfigFile;
 import com.retroarch.browser.preferences.util.UserPreferences;
+import com.retroarchlite.R;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    private final String systemTitle;
    private final String titleText;
    private final String subText;
+   private final boolean inSharedApp;
 
    /**
     * Constructor
@@ -47,9 +49,12 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
     * @param file    The {@link File} instance of the core being wrapped.
     * @param showAbi Whether to append (32b) or (64b) to core titles
     * @param sortBySys Whether to use systemTitle or coreTitle as titleText
+    * @param inSharedApp True if module is in external/shared app
     */
-   public ModuleWrapper(Context context, File file, boolean showAbi, boolean sortBySys)
+   public ModuleWrapper(Context context, File file, boolean showAbi, boolean sortBySys,
+                        boolean inSharedApp)
    {
+      this.inSharedApp = inSharedApp;
       this.file = file;
       final String infoFilePath = context.getApplicationInfo().dataDir + "/info/"
             + infoBasename((file.getName()));
@@ -179,9 +184,9 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
       }
 
       // Set displayed title and subtext
+      boolean is64bit = (this.inSharedApp != context.getResources().getBoolean(R.bool.is64bit));
       coreTitle = bestCoreTitle(this.displayName, this.coreName)
-            + (!showAbi ? ""
-            : (file.getAbsolutePath().contains("/com.retroarchlite64/") ? " (64b)" : " (32b)"));
+            + (!showAbi ? "" : (is64bit ? " (64b)" : " (32b)"));
       systemTitle  = bestSystemTitle(this.displayName, this.systemName);
 
       titleText = sortBySys ? systemTitle : coreTitle;
@@ -189,7 +194,20 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
    }
 
    /**
-    * Same as the original constructor, but allows for string paths.
+    * Same as the original constructor, but assumes module is in this app.
+    *
+    * @param context The current {@link Context}.
+    * @param file    The {@link File} instance of the core being wrapped.
+    * @param showAbi Whether to append (32b) or (64b) to core titles
+    * @param sortBySys Whether to use systemTitle or coreTitle as titleText
+    */
+   public ModuleWrapper(Context context, File file, boolean showAbi, boolean sortBySys)
+   {
+      this(context, file, showAbi, sortBySys, false);
+   }
+
+   /**
+    * Same as above, but allows for string paths.
     * 
     * @param context The current {@link Context}.
     * @param path    Path to the file to encapsulate.
@@ -198,7 +216,12 @@ public final class ModuleWrapper implements IconAdapterItem, Comparable<ModuleWr
     */
    public ModuleWrapper(Context context, String path, boolean showAbi, boolean sortBySys)
    {
-      this(context, new File(path), showAbi, sortBySys);
+      this(context, new File(path), showAbi, sortBySys, false);
+   }
+
+   public boolean isInSharedApp()
+   {
+      return inSharedApp;
    }
 
    /**

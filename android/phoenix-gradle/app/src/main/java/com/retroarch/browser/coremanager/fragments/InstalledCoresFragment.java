@@ -28,7 +28,6 @@ import android.widget.TextView;
 import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.ModuleWrapper;
 import com.retroarch.browser.preferences.util.UserPreferences;
-import com.retroarchlite.BuildConfig;
 import com.retroarchlite.R;
 
 import java.io.File;
@@ -55,8 +54,8 @@ import static com.retroarch.browser.coremanager.CoreManagerActivity.sanitizedLib
 public final class InstalledCoresFragment extends ListFragment
 {
    public final String BUILDBOT_BASE_URL = "http://buildbot.libretro.com";
-   public String BUILDBOT_CORE_URL_ARM = BUILDBOT_BASE_URL + "/nightly/android/latest/armeabi-v7a/";
-   public String BUILDBOT_CORE_URL_INTEL = BUILDBOT_BASE_URL + "/nightly/android/latest/x86/";
+   public String BUILDBOT_CORE_URL_ARM = BUILDBOT_BASE_URL + "/nightly/android/latest/arm64-v8a/";
+   public String BUILDBOT_CORE_URL_INTEL = BUILDBOT_BASE_URL + "/nightly/android/latest/x86_64/";
 
    // Callback for the interface.
    private OnCoreItemClickedListener callback;
@@ -115,10 +114,10 @@ public final class InstalledCoresFragment extends ListFragment
 
       registerForContextMenu(getListView());
 
-      if (BuildConfig.APPLICATION_ID.contains("64"))
+      if (!requireContext().getResources().getBoolean(R.bool.is64bit))
       {
-         BUILDBOT_CORE_URL_ARM = BUILDBOT_CORE_URL_ARM.replace("armeabi-v7a","arm64-v8a");
-         BUILDBOT_CORE_URL_INTEL = BUILDBOT_CORE_URL_INTEL.replace("x86", "x86_64");
+         BUILDBOT_CORE_URL_ARM = BUILDBOT_CORE_URL_ARM.replace("arm64-v8a", "armeabi-v7a");
+         BUILDBOT_CORE_URL_INTEL = BUILDBOT_CORE_URL_INTEL.replace("x86_64", "x86");
       }
    }
 
@@ -146,21 +145,18 @@ public final class InstalledCoresFragment extends ListFragment
    public boolean onContextItemSelected(MenuItem item)
    {
       final AdapterContextMenuInfo info = (AdapterContextMenuInfo)item.getMenuInfo();
+      final int id = item.getItemId();
 
-      switch (item.getItemId())
-      {
-         case R.id.update_core:
-            return UpdateCore(info.position);
-         case R.id.backup_core:
-            return BackupCore(info.position);
-         case R.id.reset_core_options:
-            return DeleteCoreOptions(info.position);
-         case R.id.remove_core:
-            return RemoveCore(info.position);
+      if (id == R.id.update_core)
+         return UpdateCore(info.position);
+      if (id == R.id.backup_core)
+         return BackupCore(info.position);
+      if (id == R.id.reset_core_options)
+         return DeleteCoreOptions(info.position);
+      if (id == R.id.remove_core)
+         return RemoveCore(info.position);
 
-         default:
-            return super.onContextItemSelected(item);
-      }
+      return super.onContextItemSelected(item);
    }
 
    /**
