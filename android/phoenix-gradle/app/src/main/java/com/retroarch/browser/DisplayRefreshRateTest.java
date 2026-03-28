@@ -22,6 +22,7 @@ import javax.microedition.khronos.opengles.GL10;
 public final class DisplayRefreshRateTest extends Activity {
 
    private double fps = 0.0;
+   private long swapInterval = 1;
 
    private class Renderer implements GLSurfaceView.Renderer {
       private static final String TAG = "GLESRenderer";
@@ -44,10 +45,11 @@ public final class DisplayRefreshRateTest extends Activity {
       }
 
       private void setFPSSetting() {
-         double refreshRate = AudioVideoPreferenceFragment.dividedRefreshRate(fps);
+         swapInterval = Math.max(Math.round(fps / 60.0), 1);
          SharedPreferences prefs = UserPreferences.getPreferences(DisplayRefreshRateTest.this);
          SharedPreferences.Editor edit = prefs.edit();
-         edit.putString("video_refresh_rate", Double.toString(refreshRate));
+         edit.putString("video_refresh_rate", Double.toString(fps));
+         edit.putString("video_swap_interval", Long.toString(swapInterval));
          edit.apply();
       }
 
@@ -124,7 +126,8 @@ public final class DisplayRefreshRateTest extends Activity {
       SharedPreferences prefs = UserPreferences.getPreferences(this);
       String rate = prefs.getString("video_refresh_rate", "ERROR");
       DarkToast.makeText(this,
-            String.format(getString(R.string.refresh_rate_measured_to), fps, rate));
+            String.format(getString(R.string.refresh_rate_measured_to),
+                  fps, swapInterval));
       super.onDestroy();
    }
 }

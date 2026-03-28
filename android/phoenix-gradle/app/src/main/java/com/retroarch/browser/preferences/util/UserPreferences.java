@@ -57,6 +57,7 @@ public final class UserPreferences
 
       // Video Settings
       readbackString(config, edit, "video_refresh_rate");
+      readbackString(config, edit, "video_swap_interval");
       
       // Menu Settings
       readbackBool(config, edit, "mame_titles");
@@ -93,7 +94,8 @@ public final class UserPreferences
          config.setInt("audio_block_frames", getLowLatencyBufferSize(ctx));
       else
          config.setInt("audio_latency", Integer.parseInt(prefs.getString("audio_latency", "64")));
-      config.setString("video_refresh_rate", prefs.getString("video_refresh_rate", ""));
+      config.setString("video_refresh_rate", prefs.getString("video_refresh_rate", "60"));
+      config.setString("video_swap_interval", prefs.getString("video_swap_interval", "1"));
       
       // Save, State, System, & Config paths
       //

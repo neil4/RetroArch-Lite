@@ -41,34 +41,19 @@ public final class AudioVideoPreferenceFragment extends PreferenceListFragment i
          final Display display = wm.getDefaultDisplay();
 
          final double monitorRate = display.getRefreshRate();
-         final double contentRate = dividedRefreshRate(monitorRate);
+         final long swapInterval = Math.max(Math.round(monitorRate / 60.0), 1);
 
          final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
          final SharedPreferences.Editor edit = prefs.edit();
-         edit.putString("video_refresh_rate", Double.toString(contentRate));
+         edit.putString("video_refresh_rate", Double.toString(monitorRate));
+         edit.putString("video_swap_interval", Long.toString(swapInterval));
          edit.apply();
 
          DarkToast.makeText(getActivity(),
                String.format(getString(R.string.using_os_reported_refresh_rate),
-               monitorRate, contentRate));
+                     monitorRate, swapInterval));
       }
 
       return true;
-   }
-
-   public static double dividedRefreshRate(double fps)
-   {
-      // Check for 120Hz mode, etc. Still want a ~60Hz content refresh rate
-      if (fps > 120 * 0.95)
-      {
-         for (int i = 2; i <= 4; i++)
-         {
-            double rate = fps / i;
-            if (rate > 60 * 0.95 && rate < 60 * 1.05)
-               return rate;
-         }
-      }
-
-      return fps;
    }
 }
