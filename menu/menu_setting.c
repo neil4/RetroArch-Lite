@@ -274,14 +274,6 @@ int menu_action_handle_setting(rarch_setting_t *setting,
    if (!setting)
       return -1;
 
-   /* Save on exit if something has changed. */
-   if ( setting->group
-        && strcmp(setting->group, menu_hash_to_str(MENU_VALUE_MAIN_MENU)) )
-   {
-      settings_touched = true;
-      scoped_settings_touched = true;
-   }
-
    switch (setting->type)
    {
       case ST_PATH:
@@ -314,6 +306,14 @@ int menu_action_handle_setting(rarch_setting_t *setting,
          break;
       default:
          break;
+   }
+
+   /* Save on exit if something has changed. */
+   if (setting->group
+         && strcmp(setting->group, menu_hash_to_str(MENU_VALUE_MAIN_MENU)))
+   {
+      settings_touched = true;
+      scoped_settings_touched = true;
    }
 
    return -1;
@@ -4074,6 +4074,9 @@ static void general_write_handler(void *data)
 
    if (rarch_cmd || setting->cmd_trigger.triggered)
       event_command(rarch_cmd);
+
+   settings_touched = true;
+   scoped_settings_touched = true;
 }
 
 #define START_GROUP(group_info, NAME, parent_group) \
@@ -6485,24 +6488,27 @@ static bool setting_append_list_input_options(
       (*list)[list_info->index - 1].action_cancel  = NULL;
    }
 
-   CONFIG_UINT(
-         input_remapping_scope,
-         menu_hash_to_str(MENU_LABEL_LIBRETRO_DEVICE_SCOPE),
-         "Device & Remapping Scope",
-         (core_loaded ? THIS_CORE : GLOBAL),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   menu_settings_list_current_add_range(
-         list, list_info,
-         (core_loaded ? THIS_CORE : GLOBAL),
-         (core_loaded ? global->max_scope : GLOBAL),
-         1, true, true);
-   (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index;
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   if (input_remapping_scope > THIS_CORE
+         || settings->menu.show_advanced_settings)
+   {
+      CONFIG_UINT(
+            input_remapping_scope,
+            menu_hash_to_str(MENU_LABEL_LIBRETRO_DEVICE_SCOPE),
+            "Device & Remapping Scope",
+            (core_loaded ? THIS_CORE : GLOBAL),
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(
+            list, list_info,
+            (core_loaded ? THIS_CORE : GLOBAL),
+            (core_loaded ? global->max_scope : GLOBAL),
+            1, true, true);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_scope_index;
+   }
 
    CONFIG_BOOL(
          settings->input.remap_binds_enable,

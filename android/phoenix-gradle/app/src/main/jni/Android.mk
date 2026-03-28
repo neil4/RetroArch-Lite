@@ -36,7 +36,6 @@ endif
 ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
    LOCAL_CFLAGS += -DANDROID_AARCH64
    LOCAL_CFLAGS += -march=armv8-a
-   LOCAL_CFLAGS += -DSINC_LOWER_QUALITY
 endif
 
 ifeq ($(TARGET_ARCH),mips)

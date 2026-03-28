@@ -1285,7 +1285,6 @@ bool event_command(enum event_command cmd)
                event_command(EVENT_CMD_AUDIO_START);
 
             event_command(EVENT_CMD_VIDEO_SET_BLOCKING_STATE);
-            global->menu.need_update = true;
          }
          else
          {
@@ -1556,21 +1555,19 @@ bool event_command(enum event_command cmd)
          }
          break;
       case EVENT_CMD_KEYBOARD_FOCUS_TOGGLE:
-         if (global->keyboard_focus)
          {
-            global->keyboard_focus = false;
-            rarch_main_msg_queue_push("Keyboard Focus Disabled", 1, 120, true);
-         }
-         else
-         {
-            global->keyboard_focus = true;
-            rarch_main_msg_queue_push("Keyboard Focus Enabled", 1, 120, true);
-         }
-         RARCH_LOG("Keyboard Focus %s.\n",
-               global->keyboard_focus ? "Enabled" : "Disabled");
+            char msg[32];
+            global->keyboard_focus = !global->keyboard_focus;
 
-         if (!menu_driver_alive())
-            input_driver_keyboard_mapping_set_block(global->keyboard_focus);
+            if (!menu_driver_alive())
+               input_driver_keyboard_mapping_set_block(global->keyboard_focus);
+
+            sprintf(msg, "Keyboard Focus %s",
+                  global->keyboard_focus ? "enabled" : "disabled");
+            RARCH_LOG("%s.\n", msg);
+            if (global->main_is_init)
+               rarch_main_msg_queue_push(msg, 1, 120, true);
+         }
          break;
       case EVENT_CMD_INPUT_UPDATE_ANALOG_DPAD_PARAMS:
          input_joypad_update_analog_dpad_params();
