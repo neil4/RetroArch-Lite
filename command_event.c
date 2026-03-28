@@ -1168,8 +1168,7 @@ bool event_command(enum event_command cmd)
          pretro_deinit();
          
          event_command(EVENT_CMD_DRIVERS_DEINIT);
-         
-         pretro_set_environment(rarch_environment_cb);
+
          uninit_libretro_sym();
          break;
       case EVENT_CMD_CORE_INIT:
