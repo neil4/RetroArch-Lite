@@ -390,6 +390,10 @@ const char *menu_hash_to_str(uint32_t hash)
          return "Starting download";
       case MENU_LABEL_SHARED_CONTEXT:
          return "video_shared_context";
+#ifdef ANDROID
+      case MENU_LABEL_REINIT_CONTEXT_ON_RESUME:
+         return "video_reinit_context_on_resume";
+#endif
       case MENU_LABEL_DUMMY_ON_CORE_SHUTDOWN:
          return "dummy_on_core_shutdown";
       case MENU_LABEL_CORE_OPTION_CATEGORIES:

@@ -386,6 +386,12 @@ static const bool video_threaded = false;
 /* Set to true if HW render cores should get their private context. */
 static const bool video_shared_context = true;
 
+/* Set to true if HW render cores should reset the graphics context
+ * when the activity is resumed */
+#ifdef ANDROID
+static const bool video_reinit_context_on_resume = false;
+#endif
+
 /* Sets GC/Wii screen width. */
 static const unsigned video_viwidth = 640;
 

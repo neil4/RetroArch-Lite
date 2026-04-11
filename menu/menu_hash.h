@@ -440,6 +440,7 @@ extern "C" {
 #define MENU_LABEL_VALUE_AUDIO_MUTE                                            0x5af25952U
 #define MENU_LABEL_EXIT_EMULATOR                                               0x86d5d467U
 #define MENU_LABEL_SHARED_CONTEXT                                              0x7d7dad16U
+#define MENU_LABEL_REINIT_CONTEXT_ON_RESUME                                    0xea706756U
 #define MENU_LABEL_DUMMY_ON_CORE_SHUTDOWN                                      0x78579f70U
 #define MENU_LABEL_LIBRETRO_DEVICE_SCOPE                                       0xb4cf4a7fU
 #define MENU_LABEL_INPUT_TURBO_ID                                              0xc8fd7d5dU

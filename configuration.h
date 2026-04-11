@@ -117,7 +117,9 @@ typedef struct settings
 
       bool allow_rotate;
       bool shared_context;
-      unsigned shared_context_scope;
+#ifdef ANDROID
+      bool reinit_context_on_resume;
+#endif
       bool force_srgb_disable;
    } video;
 

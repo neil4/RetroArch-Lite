@@ -90,6 +90,10 @@ static void config_populate_scoped_setting_list(void)
       settings->core_content_directory, core_specific_scope);
    SCOPED_LIST_ADD_BOOL("video_shared_context",
       settings->video.shared_context, core_specific_scope);
+#ifdef ANDROID
+   SCOPED_LIST_ADD_BOOL("video_reinit_context_on_resume",
+      settings->video.reinit_context_on_resume, core_specific_scope);
+#endif
    SCOPED_LIST_ADD_BOOL("load_dummy_on_core_shutdown",
       settings->load_dummy_on_core_shutdown, core_specific_scope);
    SCOPED_LIST_ADD_BOOL("core_start_without_content",
@@ -594,6 +598,9 @@ static void config_set_defaults(void)
 
    settings->video.shared_context              = video_shared_context;
    settings->video.force_srgb_disable          = false;
+#ifdef ANDROID
+   settings->video.reinit_context_on_resume    = video_reinit_context_on_resume;
+#endif
 #ifdef GEKKO
    settings->video.viwidth                     = video_viwidth;
    settings->video.vfilter                     = video_vfilter;
@@ -1506,6 +1513,10 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->video.threaded);
    config_get_bool(conf, "video_shared_context",
          &settings->video.shared_context);
+#ifdef ANDROID
+   config_get_bool(conf, "video_reinit_context_on_resume",
+         &settings->video.reinit_context_on_resume);
+#endif
 #ifdef GEKKO
    config_get_uint(conf, "video_viwidth",
          &settings->video.viwidth);
@@ -2404,8 +2415,14 @@ bool main_config_file_save(const char *path)
          settings->video.context_driver);
 
    if (!*settings->libretro)
+   {
       config_set_bool(conf, "video_shared_context",
             settings->video.shared_context);
+#ifdef ANDROID
+      config_set_bool(conf, "video_reinit_context_on_resume",
+            settings->video.reinit_context_on_resume);
+#endif
+   }
 
    config_set_float(conf, "video_refresh_rate",
          settings->video.refresh_rate);

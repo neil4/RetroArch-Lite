@@ -364,10 +364,14 @@ static void engine_handle_cmd(void)
 
          if (runloop->is_paused)
          {
-            /* Try to reinit just the surface and reuse the graphics context */
             const gfx_ctx_driver_t *ctx = gfx_ctx_get_ptr();
-            if (ctx->create_surface == NULL ||
-                  !ctx->create_surface(driver->video_context_data))
+            settings_t *settings = config_get_ptr();
+
+            /* Try to reinit just the surface and reuse the graphics context,
+             * unless reinit_context_on_resume is true */
+            if (settings->video.reinit_context_on_resume
+                  || ctx->create_surface == NULL
+                  || !ctx->create_surface(driver->video_context_data))
                event_command(EVENT_CMD_REINIT);
          }
          break;

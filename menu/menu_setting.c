@@ -1988,7 +1988,7 @@ static void setting_get_string_representation_on_off_core_specific(void *data,
       strcpy(s, "OFF (Core specific)");
 }
 
-static void setting_get_string_representation_netplay_buffer_size(void *data,
+static void setting_get_string_representation_rewind_buffer_size(void *data,
       char *s, size_t len)
 {
    rarch_setting_t *setting = (rarch_setting_t*)data;
@@ -3725,25 +3725,34 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_SHARED_CONTEXT:
          snprintf(s, len,
-                  "Set to true if this is a hardware-rendered core \n"
-                  "that should have a private context. Avoids \n"
-                  "having to assume hardware state changes \n"
-                  "between frames.");
+               "Set to true if this is a hardware-rendered core \n"
+               "that should have a private context. Avoids \n"
+               "having to assume hardware state changes \n"
+               "between frames.");
          break;
+#ifdef ANDROID
+      case MENU_LABEL_REINIT_CONTEXT_ON_RESUME:
+         snprintf(s, len,
+               "Set to true if the core should reinitialize \n"
+               "the graphics context when the app is paused \n"
+               "and resumed, rather than relying on the \n"
+               "driver to preserve it.");
+         break;
+#endif
       case MENU_LABEL_DUMMY_ON_CORE_SHUTDOWN:
          snprintf(s, len,
-                  "Some cores might have \n"
-                  "a shutdown feature. \n"
-                  " \n"
-                  "If this option is left disabled, \n"
-                  "selecting the shutdown procedure \n"
-                  "would trigger RetroArch being shut \n"
-                  "down. \n"
-                  " \n"
-                  "Enabling this option will load a \n"
-                  "dummy core instead so that we remain \n"
-                  "inside the menu and RetroArch won't \n"
-                  "shutdown.");
+               "Some cores might have \n"
+               "a shutdown feature. \n"
+               " \n"
+               "If this option is left disabled, \n"
+               "selecting the shutdown procedure \n"
+               "would trigger RetroArch being shut \n"
+               "down. \n"
+               " \n"
+               "Enabling this option will load a \n"
+               "dummy core instead so that we remain \n"
+               "inside the menu and RetroArch won't \n"
+               "shutdown.");
          break;
       case MENU_LABEL_DOWNLOADABLE_CORE:
          setting_get_dl_core_info(s, len, path);
@@ -3758,58 +3767,58 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          break;
       case MENU_LABEL_CORE_OPTION_CATEGORIES:
          snprintf(s, len,
-                  "Allow cores to present options in \n"
-                  "category-based submenus. \n"
-                  "NOTE: Core must be reloaded for \n"
-                  "changes to take effect.");
+               "Allow cores to present options in \n"
+               "category-based submenus. \n"
+               "NOTE: Core must be reloaded for \n"
+               "changes to take effect.");
          break;
       case MENU_LABEL_JOYPAD_TO_KEYBOARD_BIND:
          input_joykbd_get_info(s, len);
          break;
       case MENU_LABEL_PREEMPTIVE_FRAMES:
          snprintf(s, len,
-                     " -- On input state changes, recent frames\n"
-                     "are internally rerun with new input.\n"
-                     " \n"
-                     "Requires savestate support from the core.\n");
+               " -- On input state changes, recent frames\n"
+               "are internally rerun with new input.\n"
+               " \n"
+               "Requires savestate support from the core.\n");
             break;
       case MENU_LABEL_PREEMPTIVE_FRAMES_FAST_SAVESTATES:
          snprintf(s, len,
-                     " -- Requests fast (same-instance) or safe \n"
-                     "(same-binary) savestates from the core \n"
-                     "for preemptive frames.");
+               " -- Requests fast (same-instance) or safe \n"
+               "(same-binary) savestates from the core \n"
+               "for preemptive frames.");
             break;
       case MENU_LABEL_INPUT_AUTO_KEYBOARD_FOCUS:
          snprintf(s, len,
-                     " -- Auto-toggle Keyboard Focus when starting\n"
-                     "a core, based on the virtual devices chosen.");
+               " -- Auto-toggle Keyboard Focus when starting\n"
+               "a core, based on the virtual devices chosen.");
             break;
       case MENU_LABEL_HISTORY_WRITE:
          snprintf(s, len,
-                     " -- Write core's ROM history to file.\n"
-                     " \n"
-                     "If disabled, history updates will\n"
-                     "be in RAM only.");
+               " -- Write core's ROM history to file.\n"
+               " \n"
+               "If disabled, history updates will\n"
+               "be in RAM only.");
             break;
       case MENU_LABEL_HISTORY_SHOW_ALWAYS:
          snprintf(s, len,
-                     " -- Shows or hides ROM History\n"
-                     "in the Main Menu.\n"
-                     " \n"
-                     "'Default' hides history while\n"
-                     "content is running or if\n"
-                     "file updates are disabled.");
+               " -- Shows or hides ROM History\n"
+               "in the Main Menu.\n"
+               " \n"
+               "'Default' hides history while\n"
+               "content is running or if\n"
+               "file updates are disabled.");
             break;
       case MENU_LABEL_NETPLAY_PERIODIC_RESYNC:
          snprintf(s, len,
-                     " -- Send a savestate over the network\n"
-                     "when peer state CRC does not match.\n"
-                     " \n"
-                     "Needed for nondeterministic cores,\n"
-                     "but can cause stalls if states are\n"
-                     "not netplay-friendly.\n"
-                     " \n"
-                     "Can be toggled during netplay.");
+               " -- Send a savestate over the network\n"
+               "when peer state CRC does not match.\n"
+               " \n"
+               "Needed for nondeterministic cores,\n"
+               "but can cause stalls if states are\n"
+               "not netplay-friendly.\n"
+               " \n"
+               "Can be toggled during netplay.");
             break;
       case MENU_LABEL_SAVESTATE:
       case MENU_LABEL_LOADSTATE:
@@ -4630,6 +4639,23 @@ static bool setting_append_list_core_options(
    (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_on_off_core_specific;
 
+#ifdef ANDROID
+   CONFIG_BOOL(
+         settings->video.reinit_context_on_resume,
+         menu_hash_to_str(MENU_LABEL_REINIT_CONTEXT_ON_RESUME),
+         "Reinit Context on Resume",
+         video_reinit_context_on_resume,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_on_off_core_specific;
+#endif
+
    CONFIG_BOOL(
          settings->core.start_without_content,
          "core_start_without_content",
@@ -5081,7 +5107,7 @@ static bool setting_append_list_rewind_options(
          general_write_handler,
          general_read_handler)
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_netplay_buffer_size; 
+      &setting_get_string_representation_rewind_buffer_size; 
    menu_settings_list_current_add_range(list, list_info, 10, 1000, 10, true, true);
 
    CONFIG_UINT(
