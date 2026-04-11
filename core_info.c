@@ -20,6 +20,7 @@
 #include <file/file_path.h>
 #include "file_ext.h"
 #include <file/file_extract.h>
+#include <string/stdstring.h>
 #include "dir_list_special.h"
 #include "config.def.h"
 
@@ -30,7 +31,7 @@
 static void core_info_list_resolve_all_extensions(
       core_info_list_t *core_info_list)
 {
-   size_t i, all_ext_len = 0;
+   size_t i, pos, all_ext_len = 0;
 
    if (!core_info_list)
       return;
@@ -39,23 +40,23 @@ static void core_info_list_resolve_all_extensions(
    {
       if (core_info_list->list[i].supported_extensions)
          all_ext_len += 
-            (strlen(core_info_list->list[i].supported_extensions) + 2);
+            strlen(core_info_list->list[i].supported_extensions) + 1;
    }
 
-   if (all_ext_len)
-      core_info_list->all_ext = (char*)calloc(1, all_ext_len);
-
-   if (!core_info_list->all_ext)
+   if (all_ext_len++)
+      core_info_list->all_ext = string_alloc(all_ext_len);
+   else
       return;
 
-   for (i = 0; i < core_info_list->count; i++)
+   for (i = 0, pos = 0; i < core_info_list->count; i++)
    {
       if (!core_info_list->list[i].supported_extensions)
          continue;
 
-      strlcat(core_info_list->all_ext,
-            core_info_list->list[i].supported_extensions, all_ext_len);
-      strlcat(core_info_list->all_ext, "|", all_ext_len);
+      pos += strlcpy(core_info_list->all_ext + pos,
+         core_info_list->list[i].supported_extensions, all_ext_len - pos);
+      pos += strlcpy(core_info_list->all_ext + pos,
+         "|", all_ext_len - pos);
    }
 }
 

@@ -1797,7 +1797,7 @@ void menu_displaylist_info_clear(menu_displaylist_info_t *info)
    info->path_b[0] = '\0';
    info->path_c[0] = '\0';
    info->label[0] = '\0';
-   info->exts[0] = '\0';
+   info->exts = NULL;
    info->type = 0;
    info->type_default = 0;
    info->directory_ptr = 0;
