@@ -503,7 +503,7 @@ bool path_parent_dir_name(char *buf, const char* file_path)
       if (*(--slash) == slash_char) break;
 
    start = slash + 1;
-   strncpy(buf, start, (end-start)*sizeof(char));
+   strlcpy(buf, start, (end-start)*sizeof(char));
    buf[end-start] = '\0';
    return true;
 }

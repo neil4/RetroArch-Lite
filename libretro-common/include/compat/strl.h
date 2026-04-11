@@ -41,8 +41,8 @@ extern "C" {
 
 #define strlcat(dst, src, size) strlcat_rarch__(dst, src, size)
 
-size_t strlcpy(char *dest, const char *source, size_t size);
-size_t strlcat(char *dest, const char *source, size_t size);
+size_t strlcpy(char *s, const char *in, size_t len);
+size_t strlcat(char *s, const char *source, size_t len);
 
 #endif
 
