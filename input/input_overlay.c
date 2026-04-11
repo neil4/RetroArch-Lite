@@ -589,15 +589,9 @@ static void input_overlay_free_overlay(struct overlay *overlay)
    free(overlay->descs);
 }
 
-static void input_overlay_free_images(input_overlay_t *ol)
+static void input_overlay_free_images(struct string_list *image_list)
 {
-   struct string_list *image_list;
    size_t i;
-
-   if (!ol)
-      return;
-
-   image_list = ol->image_list;
 
    for (i = 0; i < image_list->size; i++)
       texture_image_free(image_list->elems[i].attr.p);
@@ -608,9 +602,6 @@ static void input_overlay_free_images(input_overlay_t *ol)
 static void input_overlay_free_overlays(input_overlay_t *ol)
 {
    size_t i;
-
-   if (!ol)
-      return;
 
    for (i = 0; i < ol->size; i++)
       input_overlay_free_overlay(&ol->overlays[i]);
@@ -3058,7 +3049,8 @@ void input_overlay_free(input_overlay_t *ol)
    if (ol->conf)
       config_file_free(ol->conf);
 
-   input_overlay_free_images(ol);
+   if (ol->image_list)
+      input_overlay_free_images(ol->image_list);
 
    input_overlay_free_overlays(ol);
 
