@@ -1769,25 +1769,24 @@ static INLINE uint64_t eightway_direction(
       const struct overlay_eightway_vals* vals,
       float x_offset, const float y_offset)
 {
-   if (x_offset == 0.0f)
-     x_offset = 0.000001f;
-   float abs_slope = fabs(y_offset / x_offset);
+   float abs_x = fabsf(x_offset);
+   float abs_y = fabsf(y_offset);
 
    if (x_offset > 0.0f)
    {
       if (y_offset > 0.0f)
       { /* Q1 */
-         if (abs_slope > *vals->p_slope_high)
+         if (abs_y > *vals->p_slope_high * abs_x)
             return vals->up;
-         else if (abs_slope < *vals->p_slope_low)
+         else if (abs_y < *vals->p_slope_low * abs_x)
             return vals->right;
          else return vals->up_right;
       }
       else
       { /* Q4 */
-         if (abs_slope > *vals->p_slope_high)
+         if (abs_y > *vals->p_slope_high * abs_x)
             return vals->down;
-         else if (abs_slope < *vals->p_slope_low)
+         else if (abs_y < *vals->p_slope_low * abs_x)
             return vals->right;
          else return vals->down_right;
       }
@@ -1796,17 +1795,17 @@ static INLINE uint64_t eightway_direction(
    {
       if (y_offset > 0.0f)
       { /* Q2 */
-         if (abs_slope > *vals->p_slope_high)
+         if (abs_y > *vals->p_slope_high * abs_x)
             return vals->up;
-         else if (abs_slope < *vals->p_slope_low)
+         else if (abs_y < *vals->p_slope_low * abs_x)
             return vals->left;
          else return vals->up_left;
       }
       else
       { /* Q3 */
-         if (abs_slope > *vals->p_slope_high)
+         if (abs_y > *vals->p_slope_high * abs_x)
             return vals->down;
-         else if (abs_slope < *vals->p_slope_low)
+         else if (abs_y < *vals->p_slope_low * abs_x)
             return vals->left;
          else return vals->down_left;
       }
@@ -1819,21 +1818,20 @@ static INLINE uint64_t fourway_direction(const struct overlay_eightway_vals* val
                                          float x_offset,
                                          const float y_offset)
 {
-   if (x_offset == 0.0f)
-     x_offset = 0.000001f;
-   float abs_slope = fabs(y_offset / x_offset);
+   float abs_x = fabsf(x_offset);
+   float abs_y = fabsf(y_offset);
    
    if (x_offset > 0.0f)
    {
       if (y_offset > 0.0f)
       { /* Q1 */
-         if (abs_slope < 1.0f)
+         if (abs_y < abs_x)
             return vals->right;
          else return vals->up;
       }
       else
       { /* Q4 */
-         if (abs_slope < 1.0f)
+         if (abs_y < abs_x)
             return vals->right;
          else return vals->down;
       }
@@ -1842,13 +1840,13 @@ static INLINE uint64_t fourway_direction(const struct overlay_eightway_vals* val
    {
       if (y_offset > 0.0f)
       { /* Q2 */
-         if (abs_slope < 1.0f)
+         if (abs_y < abs_x)
             return vals->left;
          else return vals->up;
       }
       else
       { /* Q3 */
-         if (abs_slope < 1.0f)
+         if (abs_y < abs_x)
             return vals->left;
          else return vals->down;
       }
@@ -2007,8 +2005,8 @@ static bool inside_hitbox(const struct overlay_desc *desc,
       }
 
       case OVERLAY_HITBOX_RECT:
-         return (fabs(x - desc->x_hitbox) <= range_x) &&
-            (fabs(y - desc->y_hitbox) <= range_y);
+         return (fabsf(x - desc->x_hitbox) <= range_x)
+               && (fabsf(y - desc->y_hitbox) <= range_y);
 
       case OVERLAY_HITBOX_NONE:
          return false;

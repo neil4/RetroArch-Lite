@@ -552,12 +552,12 @@ static bool ffmpeg_init_config(struct ff_config_param *params,
    {
       if (strstr(entry.key, "video_") == entry.key)
       {
-         const char *key = entry.key + strlen("video_");
+         const char *key = entry.key + sizeof("video_") - 1;
          av_dict_set(&params->video_opts, key, entry.value, 0);
       }
       else if (strstr(entry.key, "audio_") == entry.key)
       {
-         const char *key = entry.key + strlen("audio_");
+         const char *key = entry.key + sizeof("audio_") - 1;
          av_dict_set(&params->audio_opts, key, entry.value, 0);
       }
    } while (config_get_entry_list_next(&entry));

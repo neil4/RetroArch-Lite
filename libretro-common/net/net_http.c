@@ -153,21 +153,21 @@ struct http_connection_t *net_http_connection_new(const char *url)
    if (!conn)
       return NULL;
 
-   conn->urlcopy      = (char*)malloc(strlen(url) + 1);
+   conn->urlcopy = (char*)malloc(strlen(url) + 1);
 
    if (!conn->urlcopy)
       goto error;
 
    strcpy(conn->urlcopy, url);
 
-   if (strncmp(url, "http://", strlen("http://")) != 0)
+   if (strncmp(url, "http://", sizeof("http://") - 1) != 0)
       goto error;
 
-   conn->scan    = conn->urlcopy + strlen("http://");
+   conn->scan = conn->urlcopy + sizeof("http://") - 1;
 
-   domain        = &conn->domain;
+   domain     = &conn->domain;
 
-   *domain = conn->scan;
+   *domain    = conn->scan;
 
    return conn;
 
@@ -342,19 +342,20 @@ bool net_http_update(struct http_t *state, size_t* progress, size_t* total)
 
          if (state->part == P_HEADER_TOP)
          {
-            if (strncmp(state->data, "HTTP/1.", strlen("HTTP/1."))!=0)
+            if (strncmp(state->data, "HTTP/1.", sizeof("HTTP/1.") - 1) != 0)
                goto fail;
-            state->status = strtoul(state->data + strlen("HTTP/1.1 "), NULL, 10);
+            state->status
+                  = strtoul(state->data + sizeof("HTTP/1.1 ") - 1, NULL, 10);
             state->part   = P_HEADER;
          }
          else
          {
             if (!strncmp(state->data, "Content-Length: ",
-                     strlen("Content-Length: ")))
+                     sizeof("Content-Length: ") - 1))
             {
                state->bodytype = T_LEN;
                state->len = strtol(state->data + 
-                     strlen("Content-Length: "), NULL, 10);
+                     sizeof("Content-Length: ") - 1, NULL, 10);
             }
             if (!strcmp(state->data, "Transfer-Encoding: chunked"))
                state->bodytype = T_CHUNK;

@@ -338,7 +338,7 @@ float video_config_get_target_fps(void)
    settings_t *settings = config_get_ptr();
    float video_update_rate;
 
-   /* refresh_rate could be set to the raw monitor refresh rate
+   /* refresh_rate could be set to the reported monitor rate
     * or the estimated framerate after swap interval */
    video_update_rate = settings->video.refresh_rate;
    if (video_update_rate >= 95.0f)
@@ -1040,7 +1040,7 @@ void video_monitor_adjust_system_rates(void)
    if (info->fps <= 0.0)
       return;
 
-   timing_skew = fabs(1.0f - info->fps / target_fps);
+   timing_skew = fabs(1.0 - info->fps / target_fps);
 
    /* We don't want to adjust pitch too much. If we have extreme cases,
     * just don't readjust at all. */

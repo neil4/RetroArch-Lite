@@ -337,7 +337,8 @@ public final class BackupCoresFragment extends ListFragment
       final DownloadableCore core = adapter.getItem(position);
       final File oldFile   = new File(core.getFilePath());
       final String oldName = oldFile.getName();
-      final String ext     = oldName.substring(oldName.lastIndexOf('.'));
+      int idx              = oldName.lastIndexOf('.');
+      final String ext     = idx > -1 ? oldName.substring(idx) : "";
 
       // Create EditText view
       final View dialogView = requireActivity().getLayoutInflater()

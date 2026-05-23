@@ -29,7 +29,7 @@ import android.widget.ListView;
 import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.IconAdapter;
 import com.retroarch.browser.ModuleWrapper;
-import com.retroarch.browser.NativeInterface;
+import com.retroarch.browser.StorageInterface;
 import com.retroarch.browser.dirfragment.DirectoryFragment;
 import com.retroarch.browser.preferences.PreferenceActivity;
 import com.retroarch.browser.preferences.util.UserPreferences;
@@ -362,7 +362,6 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       catch (InterruptedException ignored) {}
    }
 
-   // Extract assets from native code. Doing it from Java side is apparently unbearably slow ...
    private void extractAssetsThread()
    {
       try
@@ -370,17 +369,17 @@ public final class MainMenuActivity extends FragmentActivity implements Director
          final String dataDir = getApplicationInfo().dataDir;
          final String apk = getApplicationInfo().sourceDir;
 
-         boolean success = NativeInterface.extractArchiveTo(apk, "assets", dataDir);
+         boolean success = StorageInterface.extractArchive(apk, "assets", null, dataDir);
          if (!success)
             throw new IOException("Failed to extract assets ...");
 
          File cacheVersion = new File(dataDir, ".cacheversion");
-         DataOutputStream outputCacheVersion = new DataOutputStream(new FileOutputStream(cacheVersion, false));
+         DataOutputStream outputCacheVersion =
+               new DataOutputStream(new FileOutputStream(cacheVersion, false));
          outputCacheVersion.writeInt(getVersionCode());
          outputCacheVersion.close();
       }
-      catch (IOException ignored)
-      {}
+      catch (IOException ignored) {}
    }
 
    private boolean areAssetsExtracted()
@@ -400,9 +399,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
                currentCacheVersion = cacheStream.readInt();
                cacheStream.close();
             }
-            catch (IOException ignored)
-            {
-            }
+            catch (IOException ignored) {}
 
             if (currentCacheVersion == version)
             {
@@ -426,9 +423,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
       {
          version = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
       }
-      catch (PackageManager.NameNotFoundException ignored)
-      {
-      }
+      catch (PackageManager.NameNotFoundException ignored) {}
 
       return version;
    }
@@ -436,7 +431,7 @@ public final class MainMenuActivity extends FragmentActivity implements Director
    public static void clearTemporaryStorage(Context ctx)
    {
       File tmpDir = new File(ctx.getApplicationInfo().dataDir, "tmp");
-      NativeInterface.DeleteDirTree(tmpDir, false);
+      StorageInterface.deleteDirTree(tmpDir, false);
    }
 
    @Override

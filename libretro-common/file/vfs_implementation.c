@@ -232,63 +232,36 @@ int64_t retro_vfs_file_seek_internal(
 libretro_vfs_implementation_file *retro_vfs_file_open_impl(
       const char *path, unsigned mode, unsigned hints)
 {
-#if defined(VFS_FRONTEND) || defined(HAVE_CDROM)
-   int                             path_len = (int)strlen(path);
-#endif
 #ifdef VFS_FRONTEND
    const char                 *dumb_prefix  = "vfsonly://";
-   size_t                   dumb_prefix_siz = strlen("vfsonly://");
+   size_t                   dumb_prefix_siz = sizeof("vfsonly://")-1;
    int                      dumb_prefix_len = (int)dumb_prefix_siz;
 #endif
 #ifdef HAVE_CDROM
    const char *cdrom_prefix                 = "cdrom://";
-   size_t cdrom_prefix_siz                  = strlen("cdrom://");
+   size_t cdrom_prefix_siz                  = sizeof("cdrom://")-1;
    int cdrom_prefix_len                     = (int)cdrom_prefix_siz;
 #endif
    int                                flags = 0;
    const char                     *mode_str = NULL;
    libretro_vfs_implementation_file *stream = 
       (libretro_vfs_implementation_file*)
-      malloc(sizeof(*stream));
+      calloc(1, sizeof(*stream));
 
    if (!stream)
       return NULL;
 
-   stream->fd                     = 0;
+   stream->fd                     = -1;
    stream->hints                  = hints;
-   stream->size                   = 0;
-   stream->buf                    = NULL;
-   stream->fp                     = NULL;
-#ifdef _WIN32
-   stream->fh                     = 0;
-#endif
-   stream->orig_path              = NULL;
-   stream->mappos                 = 0;
-   stream->mapsize                = 0;
-   stream->mapped                 = NULL;
    stream->scheme                 = VFS_SCHEME_NONE;
 
 #ifdef VFS_FRONTEND
-   if (path_len >= dumb_prefix_len)
-      if (!memcmp(path, dumb_prefix, dumb_prefix_len))
-         path             += dumb_prefix_siz;
+   if (path && !memcmp(path, dumb_prefix, dumb_prefix_len))
+      path += dumb_prefix_siz;
 #endif
 
 #ifdef HAVE_CDROM
-   stream->cdrom.cue_buf          = NULL;
-   stream->cdrom.cue_len          = 0;
-   stream->cdrom.byte_pos         = 0;
-   stream->cdrom.drive            = 0;
-   stream->cdrom.cur_min          = 0;
-   stream->cdrom.cur_sec          = 0;
-   stream->cdrom.cur_frame        = 0;
-   stream->cdrom.cur_track        = 0;
-   stream->cdrom.cur_lba          = 0;
-   stream->cdrom.last_frame_lba   = 0;
-   stream->cdrom.last_frame[0]    = '\0';
-   stream->cdrom.last_frame_valid = false;
-
-   if (path_len > cdrom_prefix_len)
+   if (strlen(path) > cdrom_prefix_len)
    {
       if (!memcmp(path, cdrom_prefix, cdrom_prefix_len))
       {

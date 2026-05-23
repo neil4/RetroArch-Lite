@@ -12,7 +12,7 @@ import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceCategory;
 
 import com.retroarch.browser.DarkToast;
-import com.retroarch.browser.NativeInterface;
+import com.retroarch.browser.StorageInterface;
 import com.retroarch.browser.dirfragment.DirectoryFragment;
 import com.retroarch.browser.preferences.fragments.util.PreferenceListFragment;
 import com.retroarchlite.R;
@@ -59,7 +59,7 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
                                             "com.retroarch.browser.coremanager.CoreManagerActivity"));
       return !ctx.getPackageManager().queryIntentActivities(intent, 0).isEmpty();
    }
-   
+
    @Override
    public boolean onPreferenceClick(Preference preference)
    {
@@ -82,20 +82,11 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
                .setPositiveButton("Yes",
                      new DialogInterface.OnClickListener()
                      {
-                        final String[] folders = {"/overlays", "/info", "/shaders_glsl", "/themes_rgui",
-                              "/video_filters", "/audio_filters", "/autoconfig"};
-
                         public void onClick(DialogInterface dialog, int id)
                         {
-                           boolean success = true;
-
-                           for (String folder : folders)
-                           {
-                              success &= NativeInterface.RestoreDirFromZip(
-                                    getActivity().getApplicationInfo().sourceDir,
-                                    "assets" + folder,
-                                    getActivity().getApplicationInfo().dataDir + folder);
-                           }
+                           boolean success = StorageInterface.installAssetsFromArchive(
+                                 getActivity().getApplicationInfo().sourceDir, "assets",
+                                 getActivity().getApplicationInfo().dataDir, true);
 
                            if (success)
                               DarkToast.makeText(ctx, "Assets restored.");
@@ -117,21 +108,20 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
    @Override
    public void onDirectoryFragmentClosed(String path)
    {
-      final String[] folders = {"overlays", "info", "shaders_glsl", "themes_rgui", "autoconfig", "audio_filters"};
       String dataDir = ctx.getApplicationInfo().dataDir;
 
       AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
-      builder.setMessage("Confirm: Extract assets from " + path.substring(path.lastIndexOf('/')+1) + "?")
+      builder.setMessage("Confirm: Extract assets from "
+                  + path.substring(path.lastIndexOf('/')+1) + "?")
             .setCancelable(true)
             .setPositiveButton("Yes",
                   new DialogInterface.OnClickListener()
                   {
                      public void onClick(DialogInterface dialog, int id)
                      {
-                        boolean success = false;
-
-                        for (String folder : folders)
-                           success |= NativeInterface.extractArchiveTo(path, folder, dataDir + '/' + folder);
+                        boolean success = StorageInterface.installAssetsFromArchive(
+                              path,null,
+                              getActivity().getApplicationInfo().dataDir,false);
 
                         if (success)
                            DarkToast.makeText(ctx, "Assets installed.");

@@ -20,7 +20,7 @@ import android.widget.ListView;
 import com.retroarch.browser.DarkToast;
 import com.retroarch.browser.FileWrapper;
 import com.retroarch.browser.IconAdapter;
-import com.retroarch.browser.NativeInterface;
+import com.retroarch.browser.StorageInterface;
 import com.retroarch.browser.preferences.PreferenceActivity;
 import com.retroarch.browser.preferences.util.ConfigFile;
 import com.retroarch.browser.preferences.util.UserPreferences;
@@ -474,12 +474,12 @@ public class DirectoryFragment extends DialogFragment
             }
          }
       }
-      else if (!(volList = NativeInterface.getVolumePaths(getContext(), '|')).isEmpty())
+      else if (!(volList = StorageInterface.getVolumePaths(getContext(), '|')).isEmpty())
       {
          adapter.clear();
          String[] tokens = volList.split("\\|");
          for (String token : tokens)
-            adapter.add(new FileWrapper(new File(token), FileWrapper.FILE, true));
+            adapter.add(new FileWrapper(new File(token), FileWrapper.FILE, true, true));
       }
 
       // Sort items

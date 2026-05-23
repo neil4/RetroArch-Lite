@@ -17,6 +17,7 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
    private final boolean parentItem;
    private final boolean dirSelectItem;
    private final boolean enabled;
+   private final boolean showFullPath;
    private final ConfigFile nameMap;
    private final int typeIndex;
 
@@ -26,8 +27,9 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
       this.parentItem    = (type == PARENT);
       this.dirSelectItem = (type == DIRSELECT);
       this.typeIndex     = (type == FILE) ? (FILE + (file.isDirectory() ? 0 : 1)) : type;
-      this.enabled = parentItem || dirSelectItem || isEnabled;
-      this.nameMap = nameMap;
+      this.enabled       = parentItem || dirSelectItem || isEnabled;
+      this.nameMap       = nameMap;
+      this.showFullPath  = false;
    }
 
    public FileWrapper(File file, int type, boolean isEnabled)
@@ -36,18 +38,31 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
       this.parentItem    = (type == PARENT);
       this.dirSelectItem = (type == DIRSELECT);
       this.typeIndex     = (type == FILE) ? (FILE + (file.isDirectory() ? 0 : 1)) : type;
-      this.enabled = parentItem || dirSelectItem || isEnabled;
-      this.nameMap = null;
+      this.enabled       = parentItem || dirSelectItem || isEnabled;
+      this.nameMap       = null;
+      this.showFullPath  = false;
+   }
+
+   public FileWrapper(File file, int type, boolean isEnabled, boolean showFullPath)
+   {
+      this.file = file;
+      this.parentItem    = (type == PARENT);
+      this.dirSelectItem = (type == DIRSELECT);
+      this.typeIndex     = (type == FILE) ? (FILE + (file.isDirectory() ? 0 : 1)) : type;
+      this.enabled       = parentItem || dirSelectItem || isEnabled;
+      this.nameMap       = null;
+      this.showFullPath  = showFullPath;
    }
    
    public FileWrapper()
    {
-      this.file = null;
-      this.parentItem = false;
+      this.file          = null;
+      this.parentItem    = false;
       this.dirSelectItem = false;
-      this.typeIndex = 0;
-      this.enabled = false;
-      this.nameMap = null;
+      this.typeIndex     = 0;
+      this.enabled       = false;
+      this.nameMap       = null;
+      this.showFullPath  = false;
    }
 
    @Override
@@ -59,12 +74,13 @@ public final class FileWrapper implements IconAdapterItem, Comparable<FileWrappe
    public String getText() {
       if (dirSelectItem)
          return "[[Use this directory]]";
-      else if (parentItem)
+      if (parentItem)
          return "[Parent Directory]";
-      else if (nameMap != null)
+      if (nameMap != null)
          return mapName(file.getName());
-      else
-         return file.getName();
+      if (showFullPath)
+         return file.getAbsolutePath();
+      return file.getName();
    }
    
    @Override

@@ -58,26 +58,23 @@ void input_joypad_update_analog_dpad_params(void)
 static INLINE uint64_t input_joypad_analog_eightway_state(int16_t x_axis,
                                                           int16_t y_axis)
 {
-   float x, y;
-   float abs_slope;
+   float x, y, abs_x, abs_y;
 
    x = (float)x_axis / 0x8000;
    y = (float)-y_axis / 0x8000;
+   abs_x = fabsf(x);
+   abs_y = fabsf(y);
 
    if (x*x + y*y < analog_dpad_deadzone_sq)
       return 0;
-
-   if (x == 0.0f)
-     x = 0.0001f;
-   abs_slope = fabs(y/x);
 
    if (x > 0.0f)
    {
       if (y > 0.0f)
       {  /* Q1 */
-         if (abs_slope > analog_dpad_high_slope)
+         if (abs_y > analog_dpad_high_slope * abs_x)
             return (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_UP);
-         else if (abs_slope < analog_dpad_low_slope)
+         else if (abs_y < analog_dpad_low_slope * abs_x)
             return (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_RIGHT);
          else
             return ((UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_UP) |
@@ -85,9 +82,9 @@ static INLINE uint64_t input_joypad_analog_eightway_state(int16_t x_axis,
       }
       else
       {  /* Q4 */
-         if (abs_slope > analog_dpad_high_slope)
+         if (abs_y > analog_dpad_high_slope * abs_x)
             return (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_DOWN);
-         else if (abs_slope < analog_dpad_low_slope)
+         else if (abs_y < analog_dpad_low_slope * abs_x)
             return (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_RIGHT);
          else
             return ((UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_DOWN) |
@@ -98,9 +95,9 @@ static INLINE uint64_t input_joypad_analog_eightway_state(int16_t x_axis,
    {
       if (y > 0.0f)
       {  /* Q2 */
-         if (abs_slope > analog_dpad_high_slope)
+         if (abs_y > analog_dpad_high_slope * abs_x)
             return (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_UP);
-         else if (abs_slope < analog_dpad_low_slope)
+         else if (abs_y < analog_dpad_low_slope * abs_x)
             return (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_LEFT);
          else
             return ((UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_UP) |
@@ -108,9 +105,9 @@ static INLINE uint64_t input_joypad_analog_eightway_state(int16_t x_axis,
       }
       else
       {  /* Q3 */
-         if (abs_slope > analog_dpad_high_slope)
+         if (abs_y > analog_dpad_high_slope * abs_x)
             return (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_DOWN);
-         else if (abs_slope < analog_dpad_low_slope)
+         else if (abs_y < analog_dpad_low_slope * abs_x)
             return (UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_LEFT);
          else
             return ((UINT64_C(1) << RETRO_DEVICE_ID_JOYPAD_DOWN) |

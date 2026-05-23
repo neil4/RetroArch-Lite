@@ -282,7 +282,7 @@ static bool parse_line(config_file_t *conf,
       comment++;
       if (strstr(comment, "include ") == comment)
       {
-         add_sub_conf(conf, comment + strlen("include "));
+         add_sub_conf(conf, comment + sizeof("include ") - 1);
          free(key);
          return false;
       }

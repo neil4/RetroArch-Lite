@@ -10,7 +10,7 @@ import android.app.NativeActivity;
 
 import androidx.annotation.Keep;
 
-import com.retroarch.browser.NativeInterface;
+import com.retroarch.browser.StorageInterface;
 import com.retroarch.browser.mainmenu.MainMenuActivity;
 import com.retroarch.browser.preferences.util.UserPreferences;
 
@@ -80,7 +80,7 @@ public class RetroActivity extends NativeActivity
    @Keep
    public String getVolumePaths(char delim)
    {
-      return NativeInterface.getVolumePaths(this, delim);
+      return StorageInterface.getVolumePaths(this, delim);
    }
 
    @Keep
