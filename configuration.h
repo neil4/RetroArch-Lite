@@ -214,6 +214,7 @@ typedef struct settings
       bool show_system_info;
       bool show_core_updater;
       bool swap_ok_cancel;
+      bool show_video_filter;
    } menu;
 
    struct

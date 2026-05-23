@@ -3805,7 +3805,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " -- Shows or hides ROM History\n"
                "in the Main Menu.\n"
                " \n"
-               "'Default' hides history while\n"
+               "'Auto' hides history while\n"
                "content is running or if\n"
                "file updates are disabled.");
             break;
@@ -4288,10 +4288,17 @@ static bool setting_append_list_main_menu_options(
 {
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
-   global_t      *global = global_get_ptr();
-   settings_t  *settings = config_get_ptr();
-   const char *main_menu = menu_hash_to_str(MENU_VALUE_MAIN_MENU);
-   bool core_loaded      = *settings->libretro ? true : false;
+   global_t      *global  = global_get_ptr();
+   settings_t  *settings  = config_get_ptr();
+   const char *main_menu  = menu_hash_to_str(MENU_VALUE_MAIN_MENU);
+   bool core_loaded       = *settings->libretro ? true : false;
+   bool show_core_updater = settings->menu.show_core_updater;
+
+   /* If Unload Core is shown, hide Core Updater when core is running */
+#ifndef EXTERNAL_LAUNCHER
+   show_core_updater &= 
+         (!global->content_is_init || settings->menu.show_advanced_settings);
+#endif
 
    START_GROUP(group_info, main_menu, parent_group);
    START_SUB_GROUP(list, list_info, "State", group_info.name, subgroup_info, parent_group);
@@ -4397,7 +4404,7 @@ static bool setting_append_list_main_menu_options(
    }
 
 #ifdef HAVE_NETWORKING
-   if (settings->menu.show_core_updater)
+   if (show_core_updater)
    {
       CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_CORE_UPDATER_LIST),
@@ -5243,7 +5250,8 @@ static bool setting_append_list_video_options(
    global_t *global     = global_get_ptr();
    settings_t *settings = config_get_ptr();
    bool core_loaded     = *settings->libretro ? true : false;
-    
+   bool show_sw_filter  = false;
+
    (void)global;
 
    START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_VIDEO_SETTINGS), parent_group);
@@ -5742,15 +5750,22 @@ static bool setting_append_list_video_options(
    END_SUB_GROUP(list, list_info, parent_group);
          
 #if defined(HAVE_DYLIB) || defined(HAVE_FILTERS_BUILTIN)
-   CONFIG_ACTION(
+   if (settings->menu.show_video_filter
+         || *settings->video.softfilter_plugin
+         || settings->menu.show_advanced_settings)
+   {
+      show_sw_filter = true;
+
+      CONFIG_ACTION(
             menu_hash_to_str(MENU_LABEL_VIDEO_FILTER),
             "SW Video Filter",
             group_info.name,
             subgroup_info.name,
             parent_group);
-   (*list)[list_info->index - 1].action_ok      = &setting_action_ok_video_filter;
-   (*list)[list_info->index - 1].action_start   = &setting_action_start_video_filter;
-   (*list)[list_info->index - 1].action_cancel  = NULL; 
+      (*list)[list_info->index - 1].action_ok      = &setting_action_ok_video_filter;
+      (*list)[list_info->index - 1].action_start   = &setting_action_start_video_filter;
+      (*list)[list_info->index - 1].action_cancel  = NULL;
+   }
 #endif
 
 #ifdef HAVE_SHADER_MANAGER
@@ -5769,16 +5784,11 @@ static bool setting_append_list_video_options(
          subgroup_info.name,
          parent_group);
    (*list)[list_info->index - 1].action_cancel  = NULL;
-#endif
-      
+
    CONFIG_UINT(
          settings->video.filter_shader_scope,
          "video_filter_shader_scope",
-#ifdef HAVE_SHADER_MANAGER
-         "  Scope (Filter & Shader)",
-#else
-         "  Scope",
-#endif
+         show_sw_filter ? "  Scope (Filter & Shader)" : "  Scope",
          (core_loaded ? THIS_CORE : GLOBAL),
          group_info.name,
          subgroup_info.name,
@@ -5789,7 +5799,27 @@ static bool setting_append_list_video_options(
          list, list_info, (core_loaded ? THIS_CORE : GLOBAL),
          global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
-      &setting_get_string_representation_uint_scope_index; 
+      &setting_get_string_representation_uint_scope_index;
+#else
+   if (show_sw_filter)
+   {
+      CONFIG_UINT(
+            settings->video.filter_shader_scope,
+            "video_filter_shader_scope",
+            "  Scope",
+            (core_loaded ? THIS_CORE : GLOBAL),
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(
+            list, list_info, (core_loaded ? THIS_CORE : GLOBAL),
+            global->max_scope, 1, true, true);
+      (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_scope_index;
+   }
+#endif
 
    END_GROUP(list, list_info, parent_group);
 
@@ -7531,7 +7561,14 @@ static bool setting_append_list_menu_visibility_options(
 {
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
-   settings_t *settings = config_get_ptr();
+   settings_t *settings          = config_get_ptr();
+   bool show_core_updater_toggle = true;
+
+   /* Match Main Menu Core Updater visibility */
+#ifndef EXTERNAL_LAUNCHER
+   show_core_updater_toggle &= (!global_get_ptr()->content_is_init
+         || settings->menu.show_advanced_settings);
+#endif
 
    START_GROUP(group_info, menu_hash_to_str(MENU_LABEL_VALUE_MENU_VISIBILITIES), parent_group);
 
@@ -7676,6 +7713,109 @@ static bool setting_append_list_menu_visibility_options(
          general_write_handler,
          general_read_handler);
    CONFIG_BOOL(
+         settings->menu.show_logging_menu,
+         "show_logging_menu",
+         "Show Logging menu",
+         show_logging_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_directory_menu,
+         "show_directory_menu",
+         "Show Directory menu",
+         show_directory_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_driver_menu,
+         "show_driver_menu",
+         "Show Driver menu",
+         show_driver_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   CONFIG_BOOL(
+         settings->menu.show_configuration_menu,
+         "show_configuration_menu",
+         "Show Configuration menu",
+         show_configuration_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   CONFIG_BOOL(
+         settings->menu.show_user_menu,
+         "show_user_menu",
+         "Show User menu",
+         show_user_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   CONFIG_BOOL(
+         settings->menu.show_recording_menu,
+         "show_recording_menu",
+         "Show Recording menu",
+         show_recording_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   CONFIG_BOOL(
+         settings->menu.show_font_menu,
+         "show_font_menu",
+         "Show Font menu",
+         show_font_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   CONFIG_BOOL(
+         settings->menu.show_ui_menu,
+         "show_ui_menu",
+         "Show UI menu",
+         show_ui_menu,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+#ifdef RARCH_MOBILE
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+#endif
+   CONFIG_BOOL(
          settings->menu.show_core_menu,
          "show_core_menu",
          "Show Core Settings menu",
@@ -7687,18 +7827,23 @@ static bool setting_append_list_menu_visibility_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   CONFIG_BOOL(
-         settings->menu.show_core_updater,
-         "show_core_updater",
-         "Show Core Updater",
-         show_core_updater,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
+
+   if (show_core_updater_toggle)
+   {
+      CONFIG_BOOL(
+            settings->menu.show_core_updater,
+            "show_core_updater",
+            "Show Core Updater",
+            show_core_updater,
+            menu_hash_to_str(MENU_VALUE_OFF),
+            menu_hash_to_str(MENU_VALUE_ON),
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+   }
+
    CONFIG_BOOL(
          settings->menu.show_core_updater_menu,
          "show_core_updater_menu",
@@ -7736,34 +7881,21 @@ static bool setting_append_list_menu_visibility_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+#ifdef HAVE_SHADER_MANAGER
    CONFIG_BOOL(
-         settings->menu.show_driver_menu,
-         "show_driver_menu",
-         "Show Driver menu",
-         show_driver_menu,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
+         settings->menu.show_video_filter,
+         "show_video_filter",
+         "Show SW Video Filter",
+         show_video_filter,
+         menu_hash_to_str(MENU_VALUE_AUTO),
+         menu_hash_to_str(MENU_VALUE_ALWAYS),
          group_info.name,
          subgroup_info.name,
          parent_group,
          general_write_handler,
          general_read_handler);
-   CONFIG_BOOL(
-         settings->menu.show_ui_menu,
-         "show_ui_menu",
-         "Show UI menu",
-         show_ui_menu,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-#ifdef RARCH_MOBILE
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 #endif
-CONFIG_BOOL(
+   CONFIG_BOOL(
          settings->menu.show_cheat_options,
          "show_cheat_options",
          "Show Cheat Options",
@@ -7775,82 +7907,6 @@ CONFIG_BOOL(
          parent_group,
          general_write_handler,
          general_read_handler);
-   CONFIG_BOOL(
-         settings->menu.show_logging_menu,
-         "show_logging_menu",
-         "Show Logging menu",
-         show_logging_menu,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   CONFIG_BOOL(
-         settings->menu.show_configuration_menu,
-         "show_configuration_menu",
-         "Show Configuration menu",
-         show_configuration_menu,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   CONFIG_BOOL(
-         settings->menu.show_user_menu,
-         "show_user_menu",
-         "Show User menu",
-         show_user_menu,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   CONFIG_BOOL(
-         settings->menu.show_directory_menu,
-         "show_directory_menu",
-         "Show Directory menu",
-         show_directory_menu,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   CONFIG_BOOL(
-         settings->menu.show_recording_menu,
-         "show_recording_menu",
-         "Show Recording menu",
-         show_recording_menu,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-   CONFIG_BOOL(
-         settings->menu.show_font_menu,
-         "show_font_menu",
-         "Show Font menu",
-         show_font_menu,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    END_SUB_GROUP(list, list_info, parent_group);
    END_GROUP(list, list_info, parent_group);
@@ -8306,7 +8362,7 @@ static bool setting_append_list_history_options(
          menu_hash_to_str(MENU_LABEL_HISTORY_SHOW_ALWAYS),
          "Show History",
          core_history_show_always,
-         menu_hash_to_str(MENU_VALUE_DEFAULT),
+         menu_hash_to_str(MENU_VALUE_AUTO),
          menu_hash_to_str(MENU_VALUE_ALWAYS),
          group_info.name,
          subgroup_info.name,

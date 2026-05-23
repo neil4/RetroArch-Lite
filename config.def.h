@@ -472,13 +472,17 @@ static const bool show_logging_menu = false;
 static const bool show_cheat_options = false;
 static const bool menu_show_core_info = true;
 static const bool menu_show_system_info = true;
+#ifndef NO_SHADER_MANAGER
+static const bool show_video_filter = false;
+#else
+static const bool show_video_filter = true;
+#endif
 static const bool show_configuration_menu = false;
 static const bool show_user_menu = false;
+static const bool show_directory_menu = true;
 #ifdef EXTERNAL_LAUNCHER
-static const bool show_directory_menu = false;
 static const bool show_core_updater = false;
 #else
-static const bool show_directory_menu = true;
 static const bool show_core_updater = true;
 #endif
 static const bool show_recording_menu = false;

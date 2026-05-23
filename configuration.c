@@ -703,11 +703,10 @@ static void config_set_defaults(void)
    settings->menu.show_hotkey_menu             = show_hotkey_menu;
    settings->menu.show_rewind_menu             = show_rewind_menu;
    settings->menu.show_core_history_menu       = show_core_history_menu;
-#ifndef EXTERNAL_LAUNCHER
    settings->menu.show_core_updater            = show_core_updater;
-#endif
    settings->menu.show_core_info               = menu_show_core_info;
    settings->menu.show_system_info             = menu_show_system_info;
+   settings->menu.show_video_filter            = show_video_filter;
    settings->menu.show_cheat_options           = show_cheat_options;
    settings->menu.show_configuration_menu      = show_configuration_menu;
    settings->menu.show_user_menu               = show_user_menu;
@@ -1461,6 +1460,8 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->menu.show_hotkey_menu);
    config_get_bool(conf, "show_rewind_menu",
          &settings->menu.show_rewind_menu);
+   config_get_bool(conf, "show_video_filter",
+         &settings->menu.show_video_filter);
    config_get_bool(conf, "show_cheat_options",
          &settings->menu.show_cheat_options);
    config_get_bool(conf, "menu_swap_ok_cancel",
@@ -2603,6 +2604,8 @@ bool main_config_file_save(const char *path)
          settings->menu.show_hotkey_menu);
    config_set_bool(conf, "show_rewind_menu",
          settings->menu.show_rewind_menu);
+   config_set_bool(conf, "show_video_filter",
+         settings->menu.show_video_filter);
    config_set_bool(conf, "show_cheat_options",
          settings->menu.show_cheat_options);
    config_set_bool(conf, "menu_swap_ok_cancel",
