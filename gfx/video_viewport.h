@@ -65,16 +65,28 @@ enum aspect_ratio
 
 #define LAST_ASPECT_RATIO ASPECT_RATIO_CUSTOM
 
+/* video rotation*/
 enum rotation
 {
-   ORIENTATION_NORMAL = 0,
-   ORIENTATION_VERTICAL,
-   ORIENTATION_FLIPPED,
-   ORIENTATION_FLIPPED_ROTATED,
+   ROTATION_NORMAL = 0,
+   ROTATION_VERTICAL,
+   ROTATION_FLIPPED,
+   ROTATION_FLIPPED_ROTATED,
+   ROTATION_END
+};
+
+extern char rotation_lut[ROTATION_END][16];
+
+/* device orientation */
+enum orientation
+{
+   ORIENTATION_AUTO = 0,
+   ORIENTATION_LANDSCAPE,
+   ORIENTATION_PORTRAIT,
    ORIENTATION_END
 };
 
-extern char rotation_lut[4][32];
+extern char orientation_lut[ORIENTATION_END][16];
 
 /* ABGR color format defines */
 

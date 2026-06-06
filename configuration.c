@@ -142,6 +142,8 @@ static void config_populate_scoped_setting_list(void)
       custom_vp->x, settings->video.aspect_ratio_idx_scope);
    SCOPED_LIST_ADD_INT("custom_viewport_y",
       custom_vp->y, settings->video.aspect_ratio_idx_scope);
+   SCOPED_LIST_ADD_UINT("screen_orientation",
+      settings->video.screen_orientation, settings->video.rotation_scope);
    SCOPED_LIST_ADD_UINT("video_rotation",
       settings->video.rotation, settings->video.rotation_scope);
    SCOPED_LIST_ADD_PATH("video_filter",
@@ -630,7 +632,8 @@ static void config_set_defaults(void)
    settings->video.post_filter_record          = post_filter_record;
    settings->video.gpu_record                  = gpu_record;
    settings->video.gpu_screenshot              = gpu_screenshot;
-   settings->video.rotation                    = ORIENTATION_NORMAL;
+   settings->video.screen_orientation          = screen_orientation;
+   settings->video.rotation                    = ROTATION_NORMAL;
 
    settings->preempt_fast_savestates           = preempt_fast_savestates;
 
@@ -1552,7 +1555,9 @@ static bool config_load_file(const char *path, bool set_defaults)
          &settings->video.msg_pos_x);
    config_get_float(conf, "video_message_pos_y",
          &settings->video.msg_pos_y);
-   
+
+   config_get_uint(conf, "screen_orientation",
+         &settings->video.screen_orientation);
    config_get_uint(conf, "video_rotation",
          &settings->video.rotation);
 
@@ -2496,9 +2501,13 @@ bool main_config_file_save(const char *path)
          settings->video.gpu_screenshot);
    
    if (settings->video.rotation_scope == GLOBAL)
+   {
+      config_set_int(conf, "screen_orientation",
+            settings->video.screen_orientation);
       config_set_int(conf, "video_rotation",
             settings->video.rotation);
-   
+   }
+
    config_set_path(conf, "screenshot_directory",
          *settings->screenshot_directory ?
          settings->screenshot_directory : "default");

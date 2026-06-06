@@ -44,12 +44,19 @@ struct aspect_ratio_elem aspectratio_lut[ASPECT_RATIO_END] = {
    { "Custom",        0.0f }
 };
 
-char rotation_lut[4][32] =
+char rotation_lut[ROTATION_END][16] =
 {
    "Normal",
    "90 deg",
    "180 deg",
    "270 deg"
+};
+
+char orientation_lut[ORIENTATION_END][16] =
+{
+   "Auto",
+   "Landscape",
+   "Portrait"
 };
 
 static struct retro_system_av_info video_viewport_av_info;

@@ -52,6 +52,7 @@ struct android_app
    jmethodID getIntent;
    jmethodID onRetroArchExit;
    jmethodID hapticFeedback;
+   jmethodID setDeviceOrientation;
    jmethodID getVolumePaths;
    jmethodID getDisplayRefreshRate;
    jmethodID getStringExtra;

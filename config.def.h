@@ -555,6 +555,9 @@ static const float refresh_rate = 60/1.001;
 static const float refresh_rate = 60.0;
 #endif
 
+/* Screen orientation to request from the OS */
+static const unsigned screen_orientation = ORIENTATION_AUTO;
+
 /* Allow games to set rotation. If false, rotation requests are 
  * honored, but ignored.
  * Used for setups where one manually rotates the monitor. */

@@ -97,4 +97,10 @@ public class RetroActivity extends NativeActivity
    {
       return decorView.getDisplay().getRefreshRate();
    }
+
+   @Keep
+   public void setDeviceOrientation(int orientation)
+   {
+      runOnUiThread(() -> setRequestedOrientation(orientation));
+   }
 }

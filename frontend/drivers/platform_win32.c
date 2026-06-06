@@ -444,5 +444,6 @@ const frontend_ctx_driver_t frontend_ctx_win32 = {
    frontend_win32_parse_drive_list,
    frontend_win32_attach_console,   /* attach_console */
    frontend_win32_detach_console,   /* detach_console */
+   NULL,                            /* set_orientation */
    "win32",
 };

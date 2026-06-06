@@ -71,7 +71,7 @@ unsigned g_current_framebuf;
 bool g_vsync;
 OSCond g_video_cond;
 volatile bool g_draw_done;
-uint32_t g_orientation;
+uint32_t g_rotation;
 
 static struct
 {
@@ -463,7 +463,7 @@ static void setup_video_mode(void *data)
 
    g_current_framebuf = 0;
    g_draw_done = true;
-   g_orientation = ORIENTATION_NORMAL;
+   g_rotation = ROTATION_NORMAL;
    OSInitThreadQueue(&g_video_cond);
 
    VIDEO_GetPreferredMode(&gx_mode);
@@ -853,8 +853,8 @@ static void gx_resize(void *data)
 #else
       float device_aspect = 4.0 / 3.0;
 #endif
-      if (g_orientation == ORIENTATION_VERTICAL ||
-            g_orientation == ORIENTATION_FLIPPED_ROTATED)
+      if (g_rotation == ROTATION_VERTICAL ||
+            g_rotation == ROTATION_FLIPPED_ROTATED)
          desired_aspect = 1.0 / desired_aspect;
       float delta;
 
@@ -912,15 +912,15 @@ static void gx_resize(void *data)
    GX_LoadPosMtxImm(m1, GX_PNMTX1);
 
    unsigned degrees;
-   switch(g_orientation)
+   switch(g_rotation)
    {
-      case ORIENTATION_VERTICAL:
+      case ROTATION_VERTICAL:
          degrees = 90;
          break;
-      case ORIENTATION_FLIPPED:
+      case ROTATION_FLIPPED:
          degrees = 180;
          break;
-      case ORIENTATION_FLIPPED_ROTATED:
+      case ROTATION_FLIPPED_ROTATED:
          degrees = 270;
          break;
       default:
@@ -1209,7 +1209,7 @@ static void gx_free(void *data)
 static void gx_set_rotation(void *data, unsigned orientation)
 {
    gx_video_t *gx = (gx_video_t*)data;
-   g_orientation = orientation;
+   g_rotation = orientation;
 
    if (gx)
       gx->should_resize = true;

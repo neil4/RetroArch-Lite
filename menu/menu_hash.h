@@ -141,6 +141,7 @@ extern "C" {
 #define MENU_LABEL_CORE_THROTTLE_ENABLE                                        0x87359049U
 #define MENU_LABEL_VIDEO_MONITOR_INDEX                                         0xb6fcdc9aU
 #define MENU_LABEL_VIDEO_MONITOR_REFRESH_RATE                                  0x56ccabf5U
+#define MENU_LABEL_SCREEN_ORIENTATION                                          0x635477f0U
 #define MENU_LABEL_VIDEO_ROTATION                                              0x4ce6882bU
 #define MENU_LABEL_VIDEO_SCALE                                                 0x09835d63U
 #define MENU_LABEL_VIDEO_SMOOTH                                                0x3aabbb35U

@@ -1025,6 +1025,17 @@ error:
    ol->state = OVERLAY_STATUS_DEFERRED_ERROR;
 }
 
+static void input_overlay_load_overlays_iterate_finish(void *data)
+{
+   input_overlay_t *ol = (input_overlay_t *)data;
+
+   if (!ol)
+      return;
+
+   while (ol->state == OVERLAY_STATUS_DEFERRED_LOADING)
+      input_overlay_load_overlays_iterate(data);
+}
+
 void input_overlay_load_overlays_resolve_finish(void *data)
 {
    input_overlay_t *ol = (input_overlay_t *)data;
@@ -1292,7 +1303,10 @@ void input_overlay_load_overlays(void *data)
 
    if (ol_loader_adjoin_steps
          && ol->state == OVERLAY_STATUS_DEFERRED_LOADING)
-      input_overlay_load_overlays_iterate(data);
+   {
+      input_overlay_load_overlays_iterate_finish(data);
+      input_overlay_load_overlays_resolve_finish(data);
+   }
 
    return;
 
@@ -1446,6 +1460,67 @@ void input_overlay_update_mouse_scale(void)
    }
 }
 
+static bool input_overlay_needs_rotation(input_overlay_t *ol, const char **key)
+{
+   unsigned disp_width, disp_height;
+   bool ol_is_portrait, disp_is_portrait;
+
+   if (!ol || !ol->active)
+      return false;
+
+   /* To match standard retroarch, key on "landscape"
+    * or "portrait" in overlay names */
+   if (strstr(ol->active->name, "landscape"))
+      ol_is_portrait = false;
+   else if (strstr(ol->active->name, "portrait"))
+      ol_is_portrait = true;
+   else
+      return false;
+
+   video_driver_get_size(&disp_width, &disp_height);
+   disp_is_portrait = ((float)disp_width / disp_height) < 1.0f;
+
+   if (ol_is_portrait != disp_is_portrait)
+   {
+      if (key)
+         *key = disp_is_portrait ? "portrait" : "landscape";
+      return true;
+   }
+
+   return false;
+}
+
+/**
+ * input_overlay_auto_rotate:
+ * @ol : Overlay handle.
+ * 
+ * Switches to a portrait or landscape overlay based on video aspect ratio.
+ */
+void input_overlay_auto_rotate(input_overlay_t *ol)
+{
+   const char *key;
+   int i;
+
+   /* Get search key */
+   if (!input_overlay_needs_rotation(ol, &key))
+      return;
+
+   /* Find a 'next' target having this key */
+   for (i = 0; i < ol->active->size; i++)
+   {
+      struct overlay_desc *desc = ol->active->descs + i;
+
+      if (strstr(desc->next_index_name, key))
+      {
+         ol->next_index = desc->next_index;
+         input_overlay_next(ol);
+         return;
+      }
+   }
+
+   return;
+}
+
 #ifdef HAVE_THREADS
 static void input_overlay_loader_thread(void *data)
 {
@@ -1474,7 +1549,11 @@ static INLINE void input_overlay_enable_deferred(input_overlay_t *ol)
       ol->deferred.active = NULL;
 
       input_overlay_load_active(ol);
-      input_overlay_enable(ol, true);
+
+      if (input_overlay_needs_rotation(ol, NULL))
+         ol->deferred.enable = true;
+      else
+         input_overlay_enable(ol, true);
    }
 }
 
@@ -1539,6 +1618,14 @@ bool input_overlay_new_done(input_overlay_t *ol)
 
    menu_entries_set_refresh();
    input_overlay_update_mouse_scale();
+
+   input_overlay_auto_rotate(ol);
+
+   if (ol->deferred.enable)
+   {
+      input_overlay_enable(ol, true);
+      ol->deferred.enable = false;
+   }
 
    return true;
 }
@@ -1654,6 +1741,7 @@ void input_overlay_load_cached(input_overlay_t *ol, bool enable)
 
    /* Adjust to current settings and enable/disable */
    input_overlays_update_aspect_shift_scale(ol);
+   input_overlay_auto_rotate(ol);
    input_overlay_enable(ol, enable);
 }
 
@@ -2460,6 +2548,7 @@ static INLINE void input_overlay_poll_clear(input_overlay_t *ol)
    {
       input_overlays_update_aspect_shift_scale(ol);
       input_overlay_update_mouse_scale();
+      input_overlay_auto_rotate(ol);
       overlay_adjust_needed = false;
    }
 }

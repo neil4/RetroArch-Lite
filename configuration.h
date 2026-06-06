@@ -86,6 +86,7 @@ typedef struct settings
       bool scale_integer;
       unsigned aspect_ratio_idx;
       unsigned aspect_ratio_idx_scope;
+      unsigned screen_orientation;
       unsigned rotation;
       unsigned rotation_scope;
 

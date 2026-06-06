@@ -1788,6 +1788,15 @@ static void setting_get_string_representation_uint_video_rotation(void *data,
             len);
 }
 
+static void setting_get_string_representation_uint_orientation(void *data,
+      char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting)
+      strlcpy(s, orientation_lut[*setting->value.unsigned_integer],
+            len);
+}
+
 static void setting_get_string_representation_uint_aspect_ratio_index(void *data,
       char *s, size_t len)
 {
@@ -3108,14 +3117,16 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "refresh rate. If the implementation does not \n"
                "report a value, NTSC defaults will be assumed.\n");
          break;
+      case MENU_LABEL_SCREEN_ORIENTATION:
+         snprintf(s, len,
+               " -- Requests a device orientation from the OS.\n");
+         break;
       case MENU_LABEL_VIDEO_ROTATION:
          snprintf(s, len,
-               " -- Forces a certain rotation \n"
-               "of the screen.\n"
+               " -- Forces a certain video rotation.\n"
                " \n"
-               "The rotation is added to rotations which\n"
-               "the libretro core sets (see Video Allow\n"
-               "Rotate).");
+               "This rotation is added to any rotation set by\n"
+               "the libretro core (see Video Allow Rotate).");
          break;
       case MENU_LABEL_VIDEO_SCALE:
          snprintf(s, len,
@@ -4248,10 +4259,27 @@ static void menu_swap_ok_cancel_toggle_change_handler(void *data)
    }
 }
 
+static void screen_orientation_change_handler(void *data)
+{
+   const frontend_ctx_driver_t *frontend = frontend_get_ptr();
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+
+   if (!setting || !frontend->set_orientation)
+      return;
+
+   frontend->set_orientation(*setting->value.integer);
+
+   settings_touched = true;
+   scoped_settings_touched = true;
+}
+
 #ifdef HAVE_OVERLAY
 static void overlay_mouse_change_handler(void *data)
 {
    input_overlay_update_mouse_scale();
+
+   settings_touched = true;
+   scoped_settings_touched = true;
 }
 
 static void overlay_bisect_aspect_ratio_change_handler(void *data)
@@ -4677,6 +4705,20 @@ static bool setting_append_list_core_options(
          general_read_handler);
    (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_on_off_core_specific;
+
+   CONFIG_BOOL(
+         settings->video.allow_rotate,
+         "video_allow_rotate",
+         "Allow rotation",
+         allow_rotate,
+         menu_hash_to_str(MENU_VALUE_OFF),
+         menu_hash_to_str(MENU_VALUE_ON),
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_BOOL(
          settings->load_dummy_on_core_shutdown,
@@ -5247,10 +5289,11 @@ static bool setting_append_list_video_options(
 {
    rarch_setting_group_info_t group_info    = {0};
    rarch_setting_group_info_t subgroup_info = {0};
-   global_t *global     = global_get_ptr();
-   settings_t *settings = config_get_ptr();
-   bool core_loaded     = *settings->libretro ? true : false;
-   bool show_sw_filter  = false;
+   global_t *global      = global_get_ptr();
+   settings_t *settings  = config_get_ptr();
+   bool core_loaded      = *settings->libretro ? true : false;
+   bool show_sw_filter   = false;
+   bool show_orientation = !!frontend_get_ptr()->set_orientation;
 
    (void)global;
 
@@ -5628,10 +5671,30 @@ static bool setting_append_list_video_options(
    END_SUB_GROUP(list, list_info, parent_group);
    START_SUB_GROUP(list, list_info, "Miscellaneous", group_info.name, subgroup_info, parent_group);
 
+   if (show_orientation)
+   {
+      CONFIG_UINT(
+            settings->video.screen_orientation,
+            "screen_orientation",
+            "Screen Orientation",
+            screen_orientation,
+            group_info.name,
+            subgroup_info.name,
+            parent_group,
+            general_write_handler,
+            general_read_handler);
+      menu_settings_list_current_add_range(list, list_info,
+            0, ORIENTATION_END - 1, 1, true, true);
+      (*list)[list_info->index - 1].change_handler =
+            screen_orientation_change_handler;
+      (*list)[list_info->index - 1].get_string_representation = 
+            &setting_get_string_representation_uint_orientation;
+   }
+
    CONFIG_UINT(
          settings->video.rotation,
          "video_rotation",
-         "Rotation",
+         show_orientation ? "  Video Rotation" : "Video Rotation",
          0,
          group_info.name,
          subgroup_info.name,
@@ -5643,15 +5706,15 @@ static bool setting_append_list_video_options(
       &setting_get_string_representation_uint_video_rotation;
    
    CONFIG_UINT(
-      settings->video.rotation_scope,
-      "video_rotation_scope",
-      "  Scope",
-      GLOBAL,
-      group_info.name,
-      subgroup_info.name,
-      parent_group,
-      general_write_handler,
-      general_read_handler);
+         settings->video.rotation_scope,
+         "video_rotation_scope",
+         "  Scope",
+         GLOBAL,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
    menu_settings_list_current_add_range(
          list, list_info, 0, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
@@ -5678,20 +5741,6 @@ static bool setting_append_list_video_options(
          "video_gpu_screenshot",
          "GPU Screenshot Enable",
          gpu_screenshot,
-         menu_hash_to_str(MENU_VALUE_OFF),
-         menu_hash_to_str(MENU_VALUE_ON),
-         group_info.name,
-         subgroup_info.name,
-         parent_group,
-         general_write_handler,
-         general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
-
-   CONFIG_BOOL(
-         settings->video.allow_rotate,
-         "video_allow_rotate",
-         "Allow rotation",
-         allow_rotate,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
          group_info.name,

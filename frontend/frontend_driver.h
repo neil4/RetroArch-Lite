@@ -72,6 +72,7 @@ typedef struct frontend_ctx_driver
    int  (*parse_drive_list)(void*);
    void (*attach_console)(void);
    void (*detach_console)(void);
+   void (*set_orientation)(int orientation);
 
    const char *ident;
 

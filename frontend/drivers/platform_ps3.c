@@ -500,5 +500,6 @@ const frontend_ctx_driver_t frontend_ctx_ps3 = {
    frontend_ps3_parse_drive_list,
    NULL,                         /* attach_console */
    NULL,                         /* detach_console */
+   NULL,                         /* set_orientation */
    "ps3",
 };

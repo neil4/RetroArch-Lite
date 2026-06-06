@@ -281,6 +281,7 @@ struct input_overlay
    {
       const struct overlay *active;
       float scale_factor;
+      bool enable;
    } deferred;
 
 #ifdef HAVE_THREADS
@@ -479,6 +480,14 @@ void input_overlays_update_aspect_shift_scale(input_overlay_t *ol);
  * screen.
  **/
 void input_overlay_next(input_overlay_t *ol);
+
+/**
+ * input_overlay_auto_rotate:
+ * @ol : Overlay handle.
+ * 
+ * Switches to a portrait or landscape overlay based on video aspect ratio.
+ */
+void input_overlay_auto_rotate(input_overlay_t *ol);
 
 /**
  * input_overlay_update_eightway_diag_sens:

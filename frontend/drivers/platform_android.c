@@ -754,6 +754,8 @@ static void frontend_android_init(void *data)
          "getVolumePaths", "(C)Ljava/lang/String;");
    GET_METHOD_ID(env, android_app->getDisplayRefreshRate, class,
          "getDisplayRefreshRate", "()F");
+   GET_METHOD_ID(env, android_app->setDeviceOrientation, class,
+         "setDeviceOrientation", "(I)V");
    CALL_OBJ_METHOD(env, obj, android_app->activity->clazz,
          android_app->getIntent);
 
@@ -867,6 +869,29 @@ float frontend_android_get_display_refresh_rate(void)
    return (float)rate;
 }
 
+void frontend_android_set_orientation(int orientation)
+{
+   JNIEnv *env = NULL;
+
+   /* Map to Android orientations */
+   static const int map[] =
+   {
+      [ORIENTATION_AUTO]      = 4,
+      [ORIENTATION_LANDSCAPE] = 6,
+      [ORIENTATION_PORTRAIT]  = 1
+   };
+
+   env = jni_thread_getenv();
+   if (!env)
+      return;
+
+   if ((unsigned)orientation >= ORIENTATION_END)
+      orientation = ORIENTATION_AUTO;
+
+   CALL_VOID_METHOD_PARAM(env, g_android->activity->clazz,
+         g_android->setDeviceOrientation, (jint)map[orientation]);
+}
+
 const frontend_ctx_driver_t frontend_ctx_android = {
    frontend_android_get_environment_settings,
    frontend_android_init,
@@ -885,5 +910,6 @@ const frontend_ctx_driver_t frontend_ctx_android = {
    frontend_android_parse_drive_list,
    NULL,                         /* attach_console */
    NULL,                         /* detach_console */
+   frontend_android_set_orientation,
    "android",
 };

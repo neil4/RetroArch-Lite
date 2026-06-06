@@ -17,12 +17,13 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
 
 ### Control Notes
 * Android Launcher
-  * Long press a core to view its ROM history.
+  * Long press a core to open its ROM history.
+  * Long press items in Core Manager for context menus.
 * RGUI Menu
-  * In Directory Settings, "Use Loaded ROM Path" will quickset a core-specific browser directory.
-  * In Input Remapping, 'Select' displays the full keyboard mapping if a key is highlighted.
+  * If a savestate is highlighted, 'Select' shows its date/time.
+  * If a keyboard remap is highlighted, 'Select' shows all keyboard mappings.
   * Hold 'Start' to delete a highlighted core, history entry, shader preset, remap, or option file.
   * 'L'/'R' sets any min/max value.
 * Touchscreen
-  * On most overlays, tapping the screen center toggles the menu.
-  * Overlay mouse: Use 1/2/3-finger tap for L/R/M click. Long-press or double-tap to drag.
+  * On landscape overlays, tap the screen center to toggle the menu. On portrait overlays, tap the area above the controls.
+  * Overlay mouse: 1/2/3-touch taps are L/R/M button clicks. A 1/2/3-touch long press (default) or double tap (optional) holds the button.

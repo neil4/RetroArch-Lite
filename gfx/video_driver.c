@@ -535,6 +535,9 @@ void init_video(void)
    struct retro_system_av_info *av_info = 
       video_viewport_get_system_av_info();
 
+   if (driver->frontend_ctx->set_orientation)
+      driver->frontend_ctx->set_orientation(settings->video.screen_orientation);
+
    init_video_filter(video_state.pix_fmt);
    event_command(EVENT_CMD_SHADER_DIR_INIT);
 
