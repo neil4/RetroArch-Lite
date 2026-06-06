@@ -293,7 +293,6 @@ int16_t input_joypad_analog(const input_device_driver_t *drv,
 
       axis = bind->joyaxis != AXIS_NONE
            ? bind->joyaxis : auto_binds[ident_minus].joyaxis;
-      val_minus = abs(drv->axis(joy_idx, axis));
 
       if (axis == AXIS_NONE)
       {
@@ -302,6 +301,8 @@ int16_t input_joypad_analog(const input_device_driver_t *drv,
          if (key != NO_BTN && drv->button(joy_idx, (uint16_t)key))
             val_minus = 0x7fff;
       }
+      else
+         val_minus = abs(drv->axis(joy_idx, axis));
    }
 
    if (ident_plus != NO_BTN)
@@ -310,7 +311,6 @@ int16_t input_joypad_analog(const input_device_driver_t *drv,
 
       axis = bind->joyaxis != AXIS_NONE
            ? bind->joyaxis : auto_binds[ident_plus].joyaxis;
-      val_plus = abs(drv->axis(joy_idx, axis));
 
       if (axis == AXIS_NONE)
       {
@@ -319,6 +319,8 @@ int16_t input_joypad_analog(const input_device_driver_t *drv,
          if (key != NO_BTN && drv->button(joy_idx, (uint16_t)key))
             val_plus = 0x7fff;
       }
+      else
+         val_plus = abs(drv->axis(joy_idx, axis));
    }
 
    return val_plus - val_minus;

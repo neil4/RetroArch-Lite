@@ -1036,6 +1036,8 @@ void input_overlay_load_overlays_resolve_finish(void *data)
       input_overlay_load_overlays_resolve_iterate(data);
 }
 
+/* Finds eightway images and links them
+ * to their eightway hitbox descriptors */
 static void input_overlay_set_eightway_anchors(struct overlay *overlay)
 {
    int i, j;
@@ -2993,8 +2995,8 @@ static void input_overlay_next_move_touch_state(input_overlay_t *ol)
             struct overlay_desc *desc2 = next->descs + j;
 
             if (desc2->type == desc->type
-                  && fabs(desc2->x - desc->x) < 0.01f
-                  && fabs(desc2->y - desc->y) < 0.01f)
+                  && fabsf(desc2->x - desc->x) < 0.01f
+                  && fabsf(desc2->y - desc->y) < 0.01f)
                desc2->old_touch_mask = desc->old_touch_mask;
          }
 

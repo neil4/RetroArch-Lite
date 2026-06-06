@@ -120,7 +120,7 @@ public final class GeneralPreferenceFragment extends PreferenceListFragment impl
                      public void onClick(DialogInterface dialog, int id)
                      {
                         boolean success = StorageInterface.installAssetsFromArchive(
-                              path,null,
+                              path, null,
                               getActivity().getApplicationInfo().dataDir,false);
 
                         if (success)
