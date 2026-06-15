@@ -3126,7 +3126,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                " -- Forces a certain video rotation.\n"
                " \n"
                "This rotation is added to any rotation set by\n"
-               "the libretro core (see Video Allow Rotate).");
+               "the libretro core (see Allow Video Rotation).");
          break;
       case MENU_LABEL_VIDEO_SCALE:
          snprintf(s, len,
@@ -4709,7 +4709,7 @@ static bool setting_append_list_core_options(
    CONFIG_BOOL(
          settings->video.allow_rotate,
          "video_allow_rotate",
-         "Allow rotation",
+         "Allow Video Rotation",
          allow_rotate,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -4718,6 +4718,8 @@ static bool setting_append_list_core_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_on_off_core_specific;
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_BOOL(

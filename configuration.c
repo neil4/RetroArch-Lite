@@ -100,6 +100,8 @@ static void config_populate_scoped_setting_list(void)
       settings->core.start_without_content, core_specific_scope);
    SCOPED_LIST_ADD_BOOL("core_option_categories",
       settings->core.option_categories, core_specific_scope);
+   SCOPED_LIST_ADD_BOOL("video_allow_rotate",
+      settings->video.allow_rotate, core_specific_scope);
    SCOPED_LIST_ADD_BOOL("core_history_write",
       settings->core.history_write, settings->core.history_scope);
    SCOPED_LIST_ADD_BOOL("core_history_show_always",
