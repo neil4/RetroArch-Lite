@@ -1377,6 +1377,9 @@ static int setting_action_ok_video_filter(void *data, bool wraparound)
 
    ret = menu_displaylist_push_list(info, DISPLAYLIST_GENERIC);
    free(info);
+
+   settings_touched = true;
+   scoped_settings_touched = true;
    return ret;
 }
 
@@ -1389,6 +1392,9 @@ static int setting_action_start_video_filter(void *data)
 
    settings->video.softfilter_plugin[0] = '\0';
    event_command(EVENT_CMD_REINIT);
+
+   settings_touched = true;
+   scoped_settings_touched = true;
    return 0;
 }
 
@@ -1417,6 +1423,8 @@ static int setting_action_start_theme(void *data)
    global->menu.wallpaper[0] = '\0';
    global->menu.need_update = true;
 
+   settings_touched = true;
+   scoped_settings_touched = true;
    return 0;
 }
 
@@ -4237,6 +4245,8 @@ static void gui_update_change_handler(void *data)
       return;
 
    global->menu.need_update = true;
+   settings_touched = true;
+   scoped_settings_touched = true;
 }
 
 static void menu_swap_ok_cancel_toggle_change_handler(void *data)
