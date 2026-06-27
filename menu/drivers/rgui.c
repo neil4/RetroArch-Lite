@@ -59,6 +59,24 @@
 /* bullet separator */
 #define rgui_separator ((char)149)
 
+#define RGUI_RAND_MAX 0xFFFF
+
+static INLINE uint16_t rgui_rand(void)
+{
+   static uint16_t rgui_rng_state;
+   uint16_t x = rgui_rng_state;
+
+   /* Lazy seed; xorshift state must never be zero */
+   if (!x)
+      x = time(NULL) | 0x441;
+
+   x ^= x << 7;
+   x ^= x >> 9;
+   x ^= x << 8;
+   rgui_rng_state = x;
+   return x;
+}
+
 /* A 'particle' is just 4 float variables that can
  * be used for any purpose - e.g.:
  * > a = x pos
@@ -238,10 +256,10 @@ static void rgui_init_particle_effect(menu_framebuf_t *frame_buf)
             {
                rgui_particle_t *particle = &particles[i];
                
-               particle->a = (float)(rand() % frame_buf->width);
-               particle->b = (float)(rand() % frame_buf->height);
-               particle->c = (float)(rand() % 64 - 16) * 0.1f;
-               particle->d = (float)(rand() % 64 - 48) * 0.1f;
+               particle->a = (float)(rgui_rand() % frame_buf->width);
+               particle->b = (float)(rgui_rand() % frame_buf->height);
+               particle->c = (float)(rgui_rand() % 64 - 16) * 0.1f;
+               particle->d = (float)(rgui_rand() % 64 - 48) * 0.1f;
             }
          }
          break;
@@ -266,13 +284,13 @@ static void rgui_init_particle_effect(menu_framebuf_t *frame_buf)
                rgui_particle_t *particle = &particles[i];
                
                /* x pos */
-               particle->a = (float)(rand() % (frame_buf->width / 3)) * 3.0f;
+               particle->a = (float)(rgui_rand() % (frame_buf->width / 3)) * 3.0f;
                /* y pos */
-               particle->b = (float)(rand() % frame_buf->height);
+               particle->b = (float)(rgui_rand() % frame_buf->height);
                /* drop length */
-               particle->c = (float)weights[(unsigned)(rand() % 60)];
+               particle->c = (float)weights[(unsigned)(rgui_rand() % 60)];
                /* drop speed (larger drops fall faster) */
-               particle->d = (particle->c / 12.0f) * (0.5f + ((float)(rand() % 150) / 200.0f));
+               particle->d = (particle->c / 12.0f) * (0.5f + ((float)(rgui_rand() % 150) / 200.0f));
             }
          }
          break;
@@ -286,13 +304,13 @@ static void rgui_init_particle_effect(menu_framebuf_t *frame_buf)
                rgui_particle_t *particle = &particles[i];
                
                /* radius */
-               particle->a = 1.0f + (((float)rand() / (float)RAND_MAX) * max_radius);
+               particle->a = 1.0f + (((float)rgui_rand() / (float)RGUI_RAND_MAX) * max_radius);
                /* theta */
-               particle->b = ((float)rand() / (float)RAND_MAX) * 2.0f * M_PI;
+               particle->b = ((float)rgui_rand() / (float)RGUI_RAND_MAX) * 2.0f * M_PI;
                /* radial speed */
-               particle->c = (float)((rand() % 100) + 1) * 0.001f;
+               particle->c = (float)((rgui_rand() % 100) + 1) * 0.001f;
                /* rotational speed */
-               particle->d = (((float)((rand() % 50) + 1) / 200.0f) + 0.1f) * one_degree_radians;
+               particle->d = (((float)((rgui_rand() % 50) + 1) / 200.0f) + 0.1f) * one_degree_radians;
             }
          }
          break;
@@ -303,13 +321,13 @@ static void rgui_init_particle_effect(menu_framebuf_t *frame_buf)
                rgui_particle_t *particle = &particles[i];
                
                /* x pos */
-               particle->a = (float)(rand() % frame_buf->width);
+               particle->a = (float)(rgui_rand() % frame_buf->width);
                /* y pos */
-               particle->b = (float)(rand() % frame_buf->height);
+               particle->b = (float)(rgui_rand() % frame_buf->height);
                /* depth */
                particle->c = (float)frame_buf->width;
                /* speed */
-               particle->d = 1.0f + ((float)(rand() % 20) * 0.01f);
+               particle->d = 1.0f + ((float)(rgui_rand() % 20) * 0.01f);
             }
          }
          break;
@@ -331,24 +349,6 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
    if (particle_effect == RGUI_PARTICLE_EFFECT_NONE
          || !frame_buf || !frame_buf->data || !anim)
       return;
-   
-   /* Note: It would be more elegant to have 'update' and 'draw'
-    * as separate functions, since 'update' is the part that
-    * varies with particle effect whereas 'draw' is always
-    * pretty much the same. However, this has the following
-    * disadvantages:
-    * - It means we have to loop through all particles twice,
-    *   and given that we're already using a heap of CPU cycles
-    *   to draw these effects any further performance overheads
-    *   are to be avoided
-    * - It locks us into a particular draw style. e.g. What if
-    *   an effect calls for round particles, instead of square
-    *   ones? This would make a mess of any 'standardised'
-    *   drawing
-    * So we go with the simple option of having the entire
-    * update/draw sequence here. This results in some code
-    * repetition, but it has better performance and allows for
-    * complete flexibility */
 
    speed = particle_effect_speed * (anim->delta_time / IDEAL_DT);
    
@@ -365,14 +365,11 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                rgui_particle_t *particle = &particles[i];
                
                /* Update particle 'speed' */
-               particle->c = particle->c + (float)(rand() % 16 - 9) * 0.01f;
-               particle->d = particle->d + (float)(rand() % 16 - 7) * 0.01f;
-               
-               particle->c = (particle->c < -0.4f) ? -0.4f : particle->c;
-               particle->c = (particle->c >  0.1f) ?  0.1f : particle->c;
-               
-               particle->d = (particle->d < -0.1f) ? -0.1f : particle->d;
-               particle->d = (particle->d >  0.4f) ?  0.4f : particle->d;
+               particle->c += (float)(rgui_rand() % 160 - 90) * 0.001f;
+               particle->d += (float)(rgui_rand() % 160 - 70) * 0.001f;
+
+               particle->c = max(-0.4f, min(particle->c, 0.1f));
+               particle->d = max(-0.1f, min(particle->d, 0.4f));
                
                /* Update particle location */
                particle->a = fmod(particle->a + speed * particle->c, fb_width);
@@ -394,8 +391,8 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                
                /* Draw particle */
                on_screen = rgui_draw_particle(data, fb_width, fb_height,
-                                 (int)particle->a, (int)particle->b,
-                                 particle_size, particle_size, rgui_particle_16b);
+                     (int)particle->a, (int)particle->b,
+                     particle_size, particle_size, rgui_particle_16b);
                
                /* Reset particle if it has fallen off screen */
                if (!on_screen)
@@ -439,13 +436,13 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                if (!on_screen)
                {
                   /* x pos */
-                  particle->a = (float)(rand() % (fb_width / 3)) * 3.0f;
+                  particle->a = (float)(rgui_rand() % (fb_width / 3)) * 3.0f;
                   /* y pos */
                   particle->b = 0.0f;
                   /* drop length */
-                  particle->c = (float)weights[(unsigned)(rand() % 60)];
+                  particle->c = (float)weights[(unsigned)(rgui_rand() % 60)];
                   /* drop speed (larger drops fall faster) */
-                  particle->d = (particle->c / 12.0f) * (0.5f + ((float)(rand() % 150) / 200.0f));
+                  particle->d = (particle->c / 12.0f) * (0.5f + ((float)(rgui_rand() % 150) / 200.0f));
                }
             }
          }
@@ -495,13 +492,13 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                    * > particle->a = max_radius;
                    * ...but it turns out that spawning new particles at random
                    * locations produces a more visually appealing result... */
-                  particle->a = 1.0f + (((float)rand() / (float)RAND_MAX) * max_radius);
+                  particle->a = 1.0f + (((float)rgui_rand() / (float)RGUI_RAND_MAX) * max_radius);
                   /* theta */
-                  particle->b = ((float)rand() / (float)RAND_MAX) * 2.0f * M_PI;
+                  particle->b = ((float)rgui_rand() / (float)RGUI_RAND_MAX) * 2.0f * M_PI;
                   /* radial speed */
-                  particle->c = (float)((rand() % 100) + 1) * 0.001f;
+                  particle->c = (float)((rgui_rand() % 100) + 1) * 0.001f;
                   /* rotational speed */
-                  particle->d = (((float)((rand() % 50) + 1) / 200.0f) + 0.1f) * one_degree_radians;
+                  particle->d = (((float)((rgui_rand() % 50) + 1) / 200.0f) + 0.1f) * one_degree_radians;
                }
             }
          }
@@ -548,13 +545,13 @@ static void rgui_render_particle_effect(menu_framebuf_t *frame_buf)
                if (!on_screen || (particle->c <= 0.0f) || particle_size > 16)
                {
                   /* x pos */
-                  particle->a = (float)(rand() % fb_width);
+                  particle->a = (float)(rgui_rand() % fb_width);
                   /* y pos */
-                  particle->b = (float)(rand() % fb_height);
+                  particle->b = (float)(rgui_rand() % fb_height);
                   /* depth */
                   particle->c = (float)fb_width;
                   /* speed */
-                  particle->d = 1.0f + ((float)(rand() % 20) * 0.01f);
+                  particle->d = 1.0f + ((float)(rgui_rand() % 20) * 0.01f);
                }
             }
          }
