@@ -2485,6 +2485,8 @@ static void *gl_init(const video_info_t *video, const input_driver_t **input, vo
             FONT_DRIVER_RENDER_OPENGL_API))
          RARCH_ERR("[GL]: Failed to initialize font renderer.\n");
    }
+   else
+      driver->font_osd_data = NULL;
 
 #ifdef HAVE_GL_ASYNC_READBACK
    gl_init_pbo_readback(gl);

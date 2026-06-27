@@ -58,7 +58,9 @@ static void *gl_raster_font_init_font(void *data,
    if (!font)
       return NULL;
 
-   font->gl = (gl_t*)data;
+   font->gl  = (gl_t*)data;
+
+   font_size = (unsigned)(font_size * font->gl->vp.height / NORM_VP_HEIGHT);
 
    if (!font_renderer_create_default(&font->font_driver,
             &font->font_data, font_path, font_size))
@@ -272,12 +274,15 @@ static void gl_raster_font_render_message(
    /* If the font height is not supported just draw as usual */
    if (!font->font_driver->get_line_height)
    {
-      gl_raster_font_render_line(font, msg, strlen(msg), scale, color, pos_x, pos_y, text_align);
+      gl_raster_font_render_line(font, msg, strlen(msg), scale, color,
+            pos_x, pos_y, text_align);
       return;
    }
 
    int lines = 0;
-   float line_height = scale * 1/(float)font->font_driver->get_line_height(font->font_data);
+   float line_stride = scale * 1.3f
+         * (float)font->font_driver->get_line_height(font->font_data)
+         / font->gl->vp.height;
 
    for (;;)
    {
@@ -287,14 +292,16 @@ static void gl_raster_font_render_message(
       if (delim)
       {
          unsigned msg_len = delim - msg;
-         gl_raster_font_render_line(font, msg, msg_len, scale, color, pos_x, pos_y - (float)lines*line_height, text_align);
+         gl_raster_font_render_line(font, msg, msg_len, scale, color,
+               pos_x, pos_y - (float)lines*line_stride, text_align);
          msg += msg_len + 1;
          lines++;
       }
       else
       {
          unsigned msg_len = strlen(msg);
-         gl_raster_font_render_line(font, msg, msg_len, scale, color, pos_x, pos_y - (float)lines*line_height, text_align);
+         gl_raster_font_render_line(font, msg, msg_len, scale, color,
+               pos_x, pos_y - (float)lines*line_stride, text_align);
          break;
       }
    }
@@ -383,7 +390,7 @@ static void gl_raster_font_render_msg(void *data, const char *msg,
       color[0]    = settings->video.msg_color_r;
       color[1]    = settings->video.msg_color_g;
       color[2]    = settings->video.msg_color_b;
-      color[3] = 1.0f;
+      color[3]    = 1.0f;
 
       drop_x = -2;
       drop_y = -2;

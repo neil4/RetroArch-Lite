@@ -25,6 +25,12 @@
 extern "C" {
 #endif
 
+#ifdef RARCH_MOBILE
+#define NORM_VP_HEIGHT 1080.0f
+#else
+#define NORM_VP_HEIGHT 1440.0f
+#endif
+
 enum font_driver_render_api
 {
    FONT_DRIVER_RENDER_DONT_CARE,

@@ -5899,8 +5899,7 @@ static bool setting_append_list_font_options(
    if (!settings->menu.show_font_menu)
       return true;
 
-   START_GROUP(group_info, "Onscreen Display Settings", parent_group);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
+   START_GROUP(group_info, "Message Font Settings", parent_group);
 
    parent_group = menu_hash_to_str(MENU_LABEL_VALUE_SETTINGS);
 
@@ -5910,7 +5909,7 @@ static bool setting_append_list_font_options(
    CONFIG_BOOL(
          settings->video.font_enable,
          "video_font_enable",
-         "Display OSD Message",
+         "Show Onscreen Messages",
          font_enable,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -5919,12 +5918,13 @@ static bool setting_append_list_font_options(
          parent_group,
          general_write_handler,
          general_read_handler);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_REINIT);
 #endif
 
    CONFIG_PATH(
          settings->video.font_path,
          "video_font_path",
-         "OSD Message Font",
+         "Onscreen Message Font",
          "",
          group_info.name,
          subgroup_info.name,
@@ -5932,11 +5932,12 @@ static bool setting_append_list_font_options(
          general_write_handler,
          general_read_handler);
    settings_data_list_current_add_flags(list, list_info, SD_FLAG_ALLOW_EMPTY);
+   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
 
    CONFIG_FLOAT(
          settings->video.font_size,
          "video_font_size",
-         "OSD Message Size",
+         "Onscreen Message Size",
          font_size,
          "%.1f",
          group_info.name,
@@ -5945,11 +5946,13 @@ static bool setting_append_list_font_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(list, list_info, 1.00, 100.00, 1.0, true, true);
+   menu_settings_list_current_add_cmd(list, list_info, EVENT_CMD_REINIT);
+   menu_settings_list_current_add_flags(list, list_info, SD_FLAG_IS_DEFERRED);
 
    CONFIG_FLOAT(
          settings->video.msg_pos_x,
          "video_message_pos_x",
-         "OSD Message X Position",
+         "Onscreen Message X Position",
          message_pos_offset_x,
          "%.3f",
          group_info.name,
@@ -5962,7 +5965,7 @@ static bool setting_append_list_font_options(
    CONFIG_FLOAT(
          settings->video.msg_pos_y,
          "video_message_pos_y",
-         "OSD Message Y Position",
+         "Onscreen Message Y Position",
          message_pos_offset_y,
          "%.3f",
          group_info.name,
@@ -7851,7 +7854,7 @@ static bool setting_append_list_menu_visibility_options(
    CONFIG_BOOL(
          settings->menu.show_font_menu,
          "show_font_menu",
-         "Show Font menu",
+         "Show Message Font menu",
          show_font_menu,
          menu_hash_to_str(MENU_VALUE_OFF),
          menu_hash_to_str(MENU_VALUE_ON),
@@ -7860,7 +7863,6 @@ static bool setting_append_list_menu_visibility_options(
          parent_group,
          general_write_handler,
          general_read_handler);
-   settings_data_list_current_add_flags(list, list_info, SD_FLAG_ADVANCED);
    CONFIG_BOOL(
          settings->menu.show_ui_menu,
          "show_ui_menu",
