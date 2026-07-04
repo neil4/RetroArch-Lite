@@ -1187,44 +1187,45 @@ bool video_state_increment_frame(void)
    static retro_time_t fps_start_us;
    static retro_time_t frame_time_accum;
 
-   retro_time_t now_us = rarch_get_time_usec();
+   retro_time_t now_us     = rarch_get_time_usec();
+   retro_time_t frame_time = now_us - prev_frame_us;
+   unsigned write_index;
 
-   if (video_state.frame_count++)
+   if (video_state.frame_count++ == 0)
    {
-      retro_time_t frame_time = now_us - prev_frame_us;
-      unsigned write_index    = video_state.frame_time_samples_count++ &
-            (MEASURE_FRAME_TIME_SAMPLES_COUNT - 1);
-
-      if ((video_state.frame_count % FPS_UPDATE_INTERVAL) == 0)
-      {
-         video_state.fps = TIME_TO_FPS(
-               fps_start_us, now_us, FPS_UPDATE_INTERVAL);
-         fps_start_us = now_us;
-      }
-
-      video_state.frame_time_samples[write_index] = frame_time;
-      prev_frame_us = now_us;
-
-      if (driver_get_ptr()->nonblock_state)
-      {
-         frame_time_accum += frame_time;
-
-         /* Return true if frame should be shown */
-         if (frame_time_accum >= video_state.frame_time_target)
-         {
-            frame_time_accum -= video_state.frame_time_target;
-            if (frame_time_accum > video_state.frame_time_target)
-               frame_time_accum = 0;
-            return true;
-         }
-         else
-            return false;
-      }
-
+      prev_frame_us = fps_start_us = now_us;
       return true;
    }
 
-   prev_frame_us = fps_start_us = now_us;
+   write_index   = video_state.frame_time_samples_count++ &
+            (MEASURE_FRAME_TIME_SAMPLES_COUNT - 1);
+   video_state.frame_time_samples[write_index] = frame_time;
+   prev_frame_us = now_us;
+
+   if (config_get_ptr()->fps_show
+         && (video_state.frame_count % FPS_UPDATE_INTERVAL) == 0)
+   {
+      video_state.fps = TIME_TO_FPS(
+            fps_start_us, now_us, FPS_UPDATE_INTERVAL);
+      fps_start_us = now_us;
+   }
+
+   if (driver_get_ptr()->nonblock_state)
+   {
+      frame_time_accum += frame_time;
+
+      /* Return true if frame should be shown */
+      if (frame_time_accum >= video_state.frame_time_target)
+      {
+         frame_time_accum -= video_state.frame_time_target;
+         if (frame_time_accum > video_state.frame_time_target)
+            frame_time_accum = 0;
+         return true;
+      }
+      else
+         return false;
+   }
+
    return true;
 }
 
