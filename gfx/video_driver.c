@@ -326,13 +326,13 @@ uint64_t video_state_get_frame_count(void)
    return video_state.frame_count;
 }
 
-/* based on reported monitor rate, nonblock state, and settings */
+/* core-reported rate, unless in menu */
 float video_state_get_target_fps(void)
 {
    return video_state.target_fps;
 }
 
-/* based on video settings */
+/* strictly from video settings */
 float video_config_get_target_fps(void)
 {
    settings_t *settings = config_get_ptr();
@@ -693,13 +693,18 @@ bool video_driver_has_windowed(void)
 
 static void video_driver_update_target_fps(unsigned swap_interval)
 {
+   struct retro_system_av_info *av_info = video_viewport_get_system_av_info();
    float vrate = 0.0f;
 
    gfx_ctx_get_metrics(DISPLAY_METRIC_REFRESH_RATE, &vrate);
    if (vrate == 0.0f)
       vrate = config_get_ptr()->video.refresh_rate;
 
-   video_state.target_fps = vrate / max(swap_interval, 1);
+   /* Use core FPS if swap interval not provided (zero) */
+   if (swap_interval)
+      video_state.target_fps = vrate / swap_interval;
+   else
+      video_state.target_fps = av_info->timing.fps;
 }
 
 void video_driver_set_nonblock_state(bool toggle)
@@ -725,7 +730,8 @@ void video_driver_set_nonblock_state(bool toggle)
    if (video->set_nonblock_state)
       video->set_nonblock_state(driver->video_data, swap_interval);
 
-   video_driver_update_target_fps(swap_interval);
+   video_driver_update_target_fps(menu_driver_alive() ? swap_interval : 0);
+   rarch_main_msg_queue_set_expected_fps(video_state.target_fps);
 }
 
 bool video_driver_set_viewport(unsigned width, unsigned height,

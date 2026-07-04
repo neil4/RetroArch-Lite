@@ -796,10 +796,29 @@ const char *rarch_main_msg_queue_pull(void)
    return ret;
 }
 
+void rarch_main_msg_queue_set_expected_fps(float target_fps)
+{
+   runloop_t *runloop = rarch_main_get_ptr();
+
+   if (!runloop->msg_queue)
+      return;
+
+#ifdef HAVE_THREADS
+   slock_lock(mq_lock);
+#endif
+
+   msg_queue_set_expected_fps(runloop->msg_queue, target_fps);
+
+#ifdef HAVE_THREADS
+   slock_unlock(mq_lock);
+#endif
+}
+
 void rarch_main_msg_queue_push(const char *msg, unsigned prio,
       unsigned duration, bool flush)
 {
    runloop_t *runloop = rarch_main_get_ptr();
+
    if (!runloop->msg_queue)
       return;
 
@@ -809,10 +828,6 @@ void rarch_main_msg_queue_push(const char *msg, unsigned prio,
 
    if (flush)
       msg_queue_clear(runloop->msg_queue);
-
-   /* Message durations > 1 expect ~60 fps */
-   if (duration > 1)
-      duration *= (unsigned)roundf(video_state_get_target_fps() / 60.0f);
 
    msg_queue_push(runloop->msg_queue, msg, prio, duration);
 

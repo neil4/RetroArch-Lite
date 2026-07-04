@@ -68,6 +68,16 @@ void msg_queue_push(msg_queue_t *queue, const char *msg,
 const char *msg_queue_pull(msg_queue_t *queue);
 
 /**
+ * msg_queue_set_expected_fps:
+ * @msg_queue         : pointer to queue object
+ * @pull_hz           : expected message pull rate
+ *
+ * Normalizes message durations (pulls remaining) to pull_hz,
+ * assuming pushed messages expect 60Hz.
+ */
+void msg_queue_set_expected_fps(msg_queue_t *msg_queue, float pull_hz);
+
+/**
  * msg_queue_clear:
  * @queue             : pointer to queue object
  *

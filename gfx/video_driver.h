@@ -351,10 +351,10 @@ uint64_t video_driver_get_frame_count(void);
 /* executed frames, including dropped */
 uint64_t video_state_get_frame_count(void);
 
-/* based on reported monitor rate, nonblock state, and settings */
+/* core-reported rate, unless in menu */
 float video_state_get_target_fps(void);
 
-/* based on video settings */
+/* strictly from video settings */
 float video_config_get_target_fps(void);
 
 unsigned video_driver_get_swap_interval_auto(void);

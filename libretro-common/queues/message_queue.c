@@ -32,6 +32,7 @@ struct queue_elem
    unsigned duration;
    unsigned prio;
    char *msg;
+   float pull_hz;
 };
 
 struct msg_queue
@@ -40,6 +41,7 @@ struct msg_queue
    size_t ptr;
    size_t size;
    char *tmp_msg;
+   float pull_hz;
 };
 
 /**
@@ -85,6 +87,45 @@ void msg_queue_free(msg_queue_t *queue)
       free(queue->elems);
    }
    free(queue);
+}
+
+static void msg_queue_update_front_duration(msg_queue_t *msg_queue)
+{
+   struct queue_elem *front;
+
+   if (!msg_queue || msg_queue->ptr <= 1)
+      return;
+
+   front = msg_queue->elems[1];
+
+   if (front && front->duration > 1
+         && front->pull_hz != msg_queue->pull_hz)
+   {
+      if (front->pull_hz <= 0)
+         front->pull_hz = 60.0f;
+
+      front->duration *= msg_queue->pull_hz / front->pull_hz;
+      front->duration++;
+
+      front->pull_hz = msg_queue->pull_hz;
+   }
+}
+
+/**
+ * msg_queue_set_expected_fps:
+ * @msg_queue         : pointer to queue object
+ * @pull_hz           : expected message pull rate
+ *
+ * Normalizes message durations (pulls remaining) to pull_hz,
+ * assuming pushed messages expect 60Hz.
+ */
+void msg_queue_set_expected_fps(msg_queue_t *msg_queue, float pull_hz)
+{
+   if (!msg_queue || pull_hz <= 0.0f)
+      return;
+
+   msg_queue->pull_hz = pull_hz;
+   msg_queue_update_front_duration(msg_queue);
 }
 
 
@@ -134,6 +175,9 @@ void msg_queue_push(msg_queue_t *queue, const char *msg,
 
       tmp_ptr >>= 1;
    }
+
+   if (queue->pull_hz > 0.0f)
+      msg_queue_update_front_duration(queue);
 }
 
 /**
@@ -230,6 +274,9 @@ const char *msg_queue_pull(msg_queue_t *queue)
       queue->elems[switch_index] = parent;
       tmp_ptr = switch_index;
    }
+
+   if (queue->pull_hz > 0.0f)
+      msg_queue_update_front_duration(queue);
 
    return queue->tmp_msg;
 }

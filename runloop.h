@@ -332,6 +332,8 @@ global_t *global_get_ptr(void);
  **/
 int rarch_main_iterate(void);
 
+void rarch_main_msg_queue_set_expected_fps(float target_fps);
+
 void rarch_main_msg_queue_push(const char *msg, unsigned prio,
       unsigned duration, bool flush);
 
