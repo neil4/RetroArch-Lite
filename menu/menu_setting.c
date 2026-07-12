@@ -3791,6 +3791,7 @@ static int setting_get_description_compare_label(uint32_t label_hash,
                "NOTE: Core must be reloaded for \n"
                "changes to take effect.");
          break;
+      case MENU_LABEL_JOYPAD_REMAP_BIND:
       case MENU_LABEL_JOYPAD_TO_KEYBOARD_BIND:
          input_joykbd_get_info(s, len);
          break;

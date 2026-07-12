@@ -402,6 +402,8 @@ const char *menu_hash_to_str(uint32_t hash)
          return "input_libretro_device_scope";
       case MENU_LABEL_INPUT_TURBO_ID:
          return "turbo_id";
+      case MENU_LABEL_JOYPAD_REMAP_BIND:
+         return "joypad_remap_bind";
       case MENU_LABEL_JOYPAD_TO_KEYBOARD_BIND:
          return "joypad_to_keyboard_bind";
       case MENU_LABEL_NETPLAY_PERIODIC_RESYNC:

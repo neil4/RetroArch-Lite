@@ -63,18 +63,16 @@
 
 static INLINE uint16_t rgui_rand(void)
 {
-   static uint16_t rgui_rng_state;
-   uint16_t x = rgui_rng_state;
+   static uint16_t state;
 
    /* Lazy seed; xorshift state must never be zero */
-   if (!x)
-      x = time(NULL) | 0x441;
+   if (!state)
+      state = time(NULL) | 0x441;
 
-   x ^= x << 7;
-   x ^= x >> 9;
-   x ^= x << 8;
-   rgui_rng_state = x;
-   return x;
+   state ^= state << 7;
+   state ^= state >> 9;
+   state ^= state << 8;
+   return state;
 }
 
 /* A 'particle' is just 4 float variables that can

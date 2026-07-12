@@ -993,7 +993,8 @@ static INLINE void menu_displaylist_push_remap(menu_displaylist_info_t *info,
 
    snprintf(desc_label, sizeof(desc_label),
          "Port %u %s: ", user, description);
-   menu_list_push(info->list, desc_label, "",
+   menu_list_push(info->list, desc_label,
+         menu_hash_to_str(MENU_LABEL_JOYPAD_REMAP_BIND),
          MENU_SETTINGS_INPUT_DESC_BEGIN +
          (p * (RARCH_FIRST_CUSTOM_BIND + 4)) +  retro_id, 0, 0);
 
