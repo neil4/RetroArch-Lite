@@ -892,6 +892,7 @@ static int setting_bind_action_start(void *data)
       keybind->joyaxis = def_binds[id].joyaxis;
    }
 
+   settings_touched = true;
    return 0;
 }
 
@@ -1523,6 +1524,8 @@ static int setting_action_ok_bind_defaults(void *data)
    rarch_main_msg_queue_push(buf, 1, 100, true);
 
    driver->flushing_input = true;
+   settings_touched = true;
+
    return 0;
 }
 

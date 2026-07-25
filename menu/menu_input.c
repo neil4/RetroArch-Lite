@@ -662,6 +662,8 @@ int menu_input_bind_iterate(uint32_t label_hash)
    }
    menu_input->binds = binds;
 
+   settings_touched = true;
+
    return 0;
 }
 
