@@ -438,7 +438,7 @@ static const bool default_block_config_read = true;
 
 static const bool show_advanced_settings    = false;
 static const bool mame_titles = true;
-static const float wallpaper_opacity = 1.0f;
+static const float wallpaper_opacity = 0.9f;
 static const float menu_ticker_speed = 2.0f;
 #ifdef HAVE_OVERLAY
 #ifdef ANDROID

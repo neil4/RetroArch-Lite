@@ -82,14 +82,14 @@ static bool check_pause(bool pause_pressed, bool frameadvance_pressed)
          pause_pressed |= !old_is_paused;
          frame_count = video_state_get_frame_count() + (pause_pressed ? 1:0);
          snprintf(msg, sizeof(msg), "Frame %lu", frame_count);
-         rarch_main_msg_queue_push(msg, 0, 0, true);
+         rarch_main_msg_queue_push(msg, 1, 0, true);
       }
 
       if (pause_pressed)
       {
          cmd = EVENT_CMD_PAUSE_TOGGLE;
          if (!old_is_paused && !frameadvance_pressed)
-            rarch_main_msg_queue_push("Paused", 0, 0, true);
+            rarch_main_msg_queue_push("Paused", 1, 0, true);
       }
       else if (!old_focus)
          cmd = EVENT_CMD_UNPAUSE;
@@ -135,9 +135,9 @@ static void check_fast_forward_button(bool fastforward_pressed,
 
    driver_set_nonblock_state(driver->nonblock_state);
    if (driver->nonblock_state)
-      rarch_main_msg_queue_push("Fast forward", 0, 0, true);
+      rarch_main_msg_queue_push("Fast forward", 0, 0, false);
    else
-      rarch_main_msg_queue_push("", 0, 1, true);
+      msg_queue_clear(rarch_main_get_ptr()->msg_queue);
 }
 
 /**

@@ -1322,7 +1322,8 @@ void rarch_main_set_state(unsigned cmd)
             if (driver->nonblock_state)
             {
                driver->nonblock_state = false;
-               rarch_main_msg_queue_push("", 0, 1, true);
+               driver_set_nonblock_state(driver->nonblock_state);
+               msg_queue_clear(rarch_main_get_ptr()->msg_queue);
             }
             /* Stop all rumbling before entering the menu. */
             event_command(EVENT_CMD_RUMBLE_STOP);

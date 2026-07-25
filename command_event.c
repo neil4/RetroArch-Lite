@@ -1253,6 +1253,9 @@ bool event_command(enum event_command cmd)
          if (runloop->is_paused)
          {
             RARCH_LOG("Paused.\n");
+            driver->nonblock_state = false;
+            driver_set_nonblock_state(driver->nonblock_state);
+
             event_command(EVENT_CMD_AUDIO_STOP);
             video_driver_cached_frame();
          }
