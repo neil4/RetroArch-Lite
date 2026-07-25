@@ -60,7 +60,8 @@ static void *gl_raster_font_init_font(void *data,
 
    font->gl  = (gl_t*)data;
 
-   font_size = (unsigned)(font_size * font->gl->vp.height / NORM_VP_HEIGHT);
+   font_size = (unsigned)(font_size
+         * min(font->gl->full_x, font->gl->full_y) / NORM_VP_HEIGHT);
 
    if (!font_renderer_create_default(&font->font_driver,
             &font->font_data, font_path, font_size))
