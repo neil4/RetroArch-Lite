@@ -22,7 +22,7 @@ Android and Win64 binaries are [here](https://drive.google.com/open?id=1QjhAOmM9
 * RGUI Menu
   * If a savestate is highlighted, 'Select' shows its date/time.
   * If a keyboard remap is highlighted, 'Select' shows all keyboard mappings.
-  * Hold 'Start' to delete a highlighted core, history entry, shader preset, remap, or option file.
+  * Hold 'Start' to delete a highlighted core, history entry, shader preset, remap, savestate, or option file.
   * 'L'/'R' sets any min/max value.
 * Touchscreen
   * On landscape overlays, tap the screen center to toggle the menu. On portrait overlays, tap the area above the controls.

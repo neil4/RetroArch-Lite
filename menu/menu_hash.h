@@ -335,6 +335,7 @@ extern "C" {
 #define MENU_LABEL_CONFIRM_CORE_DELETION                                       0x111b482eU
 #define MENU_LABEL_CONFIRM_FILE_DELETION                                       0xb957f4e5U
 #define MENU_LABEL_CONFIRM_HISTORY_ENTRY_REMOVAL                               0x7cbd2faaU
+#define MENU_LABEL_CONFIRM_SAVESTATE_DELETION                                  0x36853595U
 #define MENU_LABEL_HELP                                                        0x7c97d2eeU
 #define MENU_LABEL_VALUE_HELP                                                  0x7c8646ceU
 #define MENU_LABEL_INPUT_OVERLAY                                               0x24e24796U

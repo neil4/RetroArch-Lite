@@ -153,6 +153,36 @@ static int action_start_history_entry_remove(unsigned type, const char *label)
    return action_start_info_display("confirm_history_entry_removal");
 }
 
+static int action_start_savestate_delete(unsigned type, const char *label)
+{
+   char buf[PATH_MAX_LENGTH];
+
+   get_savestate_path(buf);
+
+   /* If savestate slot is empty, first press informs user.
+    * Second press resets index to zero */
+   if (!path_file_exists(buf))
+   {
+      settings_t *settings = config_get_ptr();
+      const char *pulled   = rarch_main_msg_queue_pull();
+      unsigned    duration = 100;
+
+      snprintf(buf, 64, "State %i is empty.", settings->state_slot);
+
+      if (pulled && !strcmp(pulled, buf))
+      {
+         settings->state_slot = 0;
+         duration = 1;
+      }
+
+      rarch_main_msg_queue_push(buf, 1, duration, true);
+
+      return 0;
+   }
+
+   return action_start_info_display("confirm_savestate_deletion");
+}
+
 static int action_start_performance_counters_core(unsigned type, const char *label)
 {
    struct retro_perf_counter **counters = (struct retro_perf_counter**)
@@ -455,6 +485,10 @@ int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
          break;
       case MENU_LABEL_CORE_HISTORY_ENTRY:
          cbs->action_start = action_start_history_entry_remove;
+         break;
+      case MENU_LABEL_SAVESTATE:
+      case MENU_LABEL_LOADSTATE:
+         cbs->action_start = action_start_savestate_delete;
          break;
       default:
          return -1;

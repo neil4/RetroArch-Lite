@@ -604,6 +604,30 @@ static void menu_remove_history_entry(menu_list_t *menu_list)
    menu_entries_set_refresh();
 }
 
+static void menu_delete_savestate(menu_list_t *menu_list)
+{
+   char msg[NAME_MAX_LENGTH];
+   char *file_path = string_alloc(PATH_MAX_LENGTH);
+
+   get_savestate_path(file_path);
+
+   if (!path_file_exists(file_path))
+   {
+      snprintf(msg, NAME_MAX_LENGTH, "%s not found", file_path);
+      goto finish;
+   }
+
+   /* delete file */
+   if (remove(file_path))
+      strlcpy(msg, "Error deleting savestate", sizeof(msg));
+   else
+      snprintf(msg, NAME_MAX_LENGTH, "Deleted %s", path_basename(file_path));
+
+finish:
+   rarch_main_msg_queue_push(msg, 1, 100, true);
+   free(file_path);
+}
+
 static bool menu_input_file_delete_hold(char *s, size_t len,
       menu_list_t *menu_list, char* action)
 {
@@ -651,6 +675,7 @@ enum action_iterate_type
    ITERATE_TYPE_CONFIRM_CORE_DELETE,
    ITERATE_TYPE_CONFIRM_FILE_DELETE,
    ITERATE_TYPE_CONFIRM_HISTORY_ENTRY_REMOVE,
+   ITERATE_TYPE_CONFIRM_SAVESTATE_DELETE,
 };
 
 static enum action_iterate_type action_iterate_type(uint32_t hash)
@@ -677,6 +702,8 @@ static enum action_iterate_type action_iterate_type(uint32_t hash)
          return ITERATE_TYPE_CONFIRM_FILE_DELETE;
       case MENU_LABEL_CONFIRM_HISTORY_ENTRY_REMOVAL:
          return ITERATE_TYPE_CONFIRM_HISTORY_ENTRY_REMOVE;
+      case MENU_LABEL_CONFIRM_SAVESTATE_DELETION:
+         return ITERATE_TYPE_CONFIRM_SAVESTATE_DELETE;
    }
 
    return ITERATE_TYPE_DEFAULT;
@@ -751,6 +778,11 @@ static int action_iterate_main(const char *label, unsigned action)
          if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list,
                "remove this entry"))
             menu_remove_history_entry(menu_list);
+         break;
+      case ITERATE_TYPE_CONFIRM_SAVESTATE_DELETE:
+         if (menu_input_file_delete_hold(msg, sizeof(msg), menu_list,
+               "DELETE this savestate"))
+            menu_delete_savestate(menu_list);
          break;
       case ITERATE_TYPE_DEFAULT:
          selected = menu_navigation_get_current_selection();

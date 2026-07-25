@@ -693,28 +693,6 @@ void setting_get_string_representation(void *data, char *s, size_t len)
  ******* ACTION START CALLBACK FUNCTIONS *******
 **/
 
-/**
- * setting_action_start_savestates:
- * @data               : pointer to setting
- *
- * Function callback for 'Savestate' action's 'Action Start'
- * function pointer.
- *
- * Returns: 0 on success, -1 on error.
- **/
-static int setting_action_start_savestates(void *data)
-{
-   rarch_setting_t *setting  = (rarch_setting_t*)data;
-   settings_t      *settings = config_get_ptr();
-
-   if (!setting)
-      return -1;
-
-   settings->state_slot = 0;
-
-   return 0;
-}
-
 /* Returns 0 if @index's libretro device is a keyboard, otherwise @index
  */
 static unsigned setting_joypad_index_map(unsigned index)
@@ -4477,7 +4455,6 @@ static bool setting_append_list_main_menu_options(
             "N/A");
       (*list)[list_info->index - 1].action_left   = &setting_action_left_savestates;
       (*list)[list_info->index - 1].action_right  = &setting_action_right_savestates;
-      (*list)[list_info->index - 1].action_start  = &setting_action_start_savestates;
       (*list)[list_info->index - 1].action_ok     = &setting_bool_action_ok_exit;
       (*list)[list_info->index - 1].action_select = &setting_bool_action_ok_exit;
       (*list)[list_info->index - 1].get_string_representation = &get_string_representation_savestate;
@@ -4491,7 +4468,6 @@ static bool setting_append_list_main_menu_options(
             "N/A");
       (*list)[list_info->index - 1].action_left   = &setting_action_left_savestates;
       (*list)[list_info->index - 1].action_right  = &setting_action_right_savestates;
-      (*list)[list_info->index - 1].action_start  = &setting_action_start_savestates;
       (*list)[list_info->index - 1].action_ok     = &setting_bool_action_ok_exit;
       (*list)[list_info->index - 1].action_select = &setting_bool_action_ok_exit;
       (*list)[list_info->index - 1].get_string_representation = &get_string_representation_savestate;
