@@ -5837,8 +5837,7 @@ static bool setting_append_list_video_options(
          general_write_handler,
          general_read_handler);
    menu_settings_list_current_add_range(
-         list, list_info, (core_loaded ? THIS_CORE : GLOBAL),
-         global->max_scope, 1, true, true);
+         list, list_info, GLOBAL, global->max_scope, 1, true, true);
    (*list)[list_info->index - 1].get_string_representation = 
       &setting_get_string_representation_uint_scope_index;
 #else
@@ -5855,8 +5854,7 @@ static bool setting_append_list_video_options(
             general_write_handler,
             general_read_handler);
       menu_settings_list_current_add_range(
-            list, list_info, (core_loaded ? THIS_CORE : GLOBAL),
-            global->max_scope, 1, true, true);
+            list, list_info, GLOBAL, global->max_scope, 1, true, true);
       (*list)[list_info->index - 1].get_string_representation = 
          &setting_get_string_representation_uint_scope_index;
    }

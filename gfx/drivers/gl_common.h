@@ -294,6 +294,8 @@ typedef struct gl
    unsigned full_x, full_y;
 
    struct video_viewport vp;
+   unsigned vis_x, vis_y;
+   unsigned vis_w, vis_h;
    unsigned vp_out_width;
    unsigned vp_out_height;
    unsigned last_width[MAX_TEXTURES];

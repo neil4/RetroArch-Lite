@@ -502,20 +502,10 @@ static void gl_create_fbo_textures(gl_t *gl)
          if (srgb_fbo && gl->has_srgb_fbo)
          {
             RARCH_LOG("[GL]: FBO pass #%d is sRGB.\n", i);
-         #ifdef HAVE_OPENGLES2
-            /* EXT defines are same as core GLES3 defines, 
-             * but GLES3 variant requires different arguments. */
-            glTexImage2D(GL_TEXTURE_2D,
-                  0, GL_SRGB_ALPHA_EXT,
-                  gl->fbo_rect[i].width, gl->fbo_rect[i].height, 0,
-                  gl->has_srgb_fbo_gles3 ? GL_RGBA : GL_SRGB_ALPHA_EXT,
-                  GL_UNSIGNED_BYTE, NULL);
-         #else
             glTexImage2D(GL_TEXTURE_2D,
                   0, GL_SRGB8_ALPHA8,
                   gl->fbo_rect[i].width, gl->fbo_rect[i].height, 0,
                   GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-         #endif
          }
          else
       #endif
@@ -784,6 +774,17 @@ static void gl_set_projection(gl_t *gl, struct gl_ortho *ortho, bool allow_rotat
 
    matrix_4x4_rotate_z(&rot, M_PI * gl->rotation / 180.0f);
    matrix_4x4_multiply(&gl->mvp, &rot, &gl->mvp_no_rot);
+}
+
+static INLINE void gl_get_visible_viewport(void *data,
+      unsigned full_w, unsigned full_h)
+{
+   gl_t *gl = (gl_t *)data;
+
+   gl->vis_x = max(0, gl->vp.x);
+   gl->vis_y = max(0, gl->vp.y);
+   gl->vis_w = min(full_w, gl->vp.width);
+   gl->vis_h = min(full_h, gl->vp.height);
 }
 
 static void gl_set_viewport(void *data, unsigned viewport_width,
@@ -1482,12 +1483,7 @@ static INLINE void gl_draw_texture(gl_t *gl)
    if (gl->menu_texture_full_screen)
       glViewport(0, 0, width, height);
    else
-   {
-      int tmp_x = min(gl->vp.x, (int)width - (int)gl->vp.width);
-      int tmp_y = min(gl->vp.y, (int)height - (int)gl->vp.height);
-      glViewport(max(0, tmp_x),            max(0, tmp_y),
-                 min(width, gl->vp.width), min(height, gl->vp.height));
-   }
+      glViewport(gl->vis_x, gl->vis_y, gl->vis_w, gl->vis_h);
 
    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
    glViewport(gl->vp.x, gl->vp.y, gl->vp.width, gl->vp.height);
@@ -1644,7 +1640,10 @@ static bool gl_frame(void *data, const void *frame,
 #endif
 
    if (!recursing)
+   {
       gl_set_prev_texture(gl, &gl->tex_info);
+      gl_get_visible_viewport(gl, width, height);
+   }
 
    if (menu_driver_alive())
       menu_driver_frame();
@@ -1712,8 +1711,7 @@ static bool gl_frame(void *data, const void *frame,
    gfx_ctx_swap_buffers(gl);
 
 #ifdef HAVE_GL_SYNC
-   if (settings->video.hard_sync && gl->have_sync
-         && gl->swap_interval && !recursing)
+   if (settings->video.hard_sync && gl->have_sync && !recursing)
    {
       glClear(GL_COLOR_BUFFER_BIT);
       gl->fences[gl->fence_count++] = 
@@ -2659,7 +2657,7 @@ static bool gl_set_shader(void *data,
    {
       unsigned textures = gl->shader->get_prev_textures() + 1;
 
-      if (textures > gl->textures) // Have to reinit a bit.
+      if (textures > gl->textures)
       {
 #if defined(HAVE_FBO)
          gl_deinit_hw_render(gl);

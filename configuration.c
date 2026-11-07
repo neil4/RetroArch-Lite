@@ -3191,7 +3191,6 @@ void config_unmask_globals(void)
    /* Force THIS_CORE or higher for these settings */
    if (*settings->libretro)
    {
-      settings->video.filter_shader_scope = THIS_CORE;
       settings->preempt_frames_scope = THIS_CORE;
       settings->video.frame_delay_scope = THIS_CORE;
       core_specific_scope = THIS_CORE;

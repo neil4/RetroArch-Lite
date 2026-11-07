@@ -215,7 +215,6 @@ static bool android_gfx_ctx_init(void *data)
    RARCH_LOG("[Android/EGL]: GLES version = %d.\n", g_es3 ? 3 : 2);
 
    android->g_egl_dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-   android->g_use_hw_ctx = ((gl_t*)data)->shared_context_use;
 
    if (!android->g_egl_dpy)
    {
@@ -251,7 +250,7 @@ static bool android_gfx_ctx_init(void *data)
    if (android->g_egl_ctx == EGL_NO_CONTEXT)
       goto error;
 
-   if (android->g_use_hw_ctx)
+   if (((gl_t*)data)->shared_context_use)
    {
       android->g_egl_hw_ctx = eglCreateContext(android->g_egl_dpy,
            android->g_egl_config, android->g_egl_ctx,

@@ -649,10 +649,8 @@ void menu_animation_update_time(menu_animation_t *anim)
    anim->cur_time   = rarch_get_time_usec();
    anim->delta_time = anim->cur_time - anim->old_time;
 
-   if (anim->delta_time >= IDEAL_DT * 4)
-      anim->delta_time = IDEAL_DT * 4;
-   else if (anim->delta_time <= IDEAL_DT / 4)
-      anim->delta_time = IDEAL_DT / 4;
+   if (anim->delta_time >= IDEAL_DT * 8.0f)
+      anim->delta_time = IDEAL_DT * 8.0f;
    anim->old_time      = anim->cur_time;
 
    if (anim->cur_time - last_clock_update > 1000000 && settings->menu.timedate_mode)

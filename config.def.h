@@ -384,7 +384,7 @@ static const bool fake_swap_interval = false;
 static const bool video_threaded = false;
 
 /* Set to true if HW render cores should get their private context. */
-static const bool video_shared_context = true;
+static const bool video_shared_context = false;
 
 /* Set to true if HW render cores should reset the graphics context
  * when the activity is resumed */
