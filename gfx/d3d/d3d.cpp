@@ -2000,5 +2000,7 @@ video_driver_t video_d3d = {
 #ifdef HAVE_OVERLAY
    d3d_get_overlay_interface,
 #endif
-   d3d_get_poke_interface
+   d3d_get_poke_interface,
+   NULL,
+   NULL
 };

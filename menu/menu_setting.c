@@ -1419,6 +1419,23 @@ static int setting_action_start_path(void *data)
    return 0;
 }
 
+static int setting_action_start_ambient_level(void *data)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+
+   if (!setting)
+      return -1;
+
+   /* Toggle between off and "default" */
+   if (*setting->value.unsigned_integer > 0)
+      *setting->value.unsigned_integer = 0;
+   else
+      *setting->value.unsigned_integer
+         = setting->default_value.unsigned_integer;
+
+   return 0;
+}
+
 static int setting_action_audio_dsp_filter(void *data)
 {
    settings_t *settings = config_get_ptr();
@@ -2048,6 +2065,19 @@ static void setting_get_string_representation_uint_percentage(
 {
    rarch_setting_t *setting = (rarch_setting_t*)data;
    sprintf(s, "%u%%", *setting->value.unsigned_integer);
+}
+
+static void setting_get_string_representation_uint_percentage_with_off(
+      void *data, char *s, size_t len)
+{
+   rarch_setting_t *setting = (rarch_setting_t*)data;
+   if (setting)
+   {
+      if (*setting->value.unsigned_integer > 0)
+         sprintf(s, "%u%%", *setting->value.unsigned_integer);
+      else
+         strcpy(s, "OFF");
+   }
 }
 
 static void setting_get_string_representation_uint_archive_mode(void *data,
@@ -3053,6 +3083,11 @@ static int setting_get_description_compare_label(uint32_t label_hash,
          snprintf(s, len,
                " -- Adjust parameters for the current \n"
                "shader preset, or set up a new preset.\n");
+         break;
+      case MENU_LABEL_AMBIENT_LEVEL:
+            snprintf(s, len,
+               " -- Adds a mirrored blur effect\n"
+               "outside of the main viewport.");
          break;
       case MENU_LABEL_DISK_EJECT_TOGGLE:
          snprintf(s, len,
@@ -4269,6 +4304,21 @@ static void screen_orientation_change_handler(void *data)
 static void overlay_mouse_change_handler(void *data)
 {
    input_overlay_update_mouse_scale();
+
+   settings_touched = true;
+   scoped_settings_touched = true;
+}
+
+static void video_ambient_level_change_handler(void *data)
+{
+   rarch_setting_t *setting = (rarch_setting_t *)data;
+   driver_t        *driver  = driver_get_ptr();
+
+   if (!setting)
+      return;
+
+   driver->video->enable_ambient(
+         driver->video_data, *setting->value.unsigned_integer > 0);
 
    settings_touched = true;
    scoped_settings_touched = true;
@@ -5825,6 +5875,25 @@ static bool setting_append_list_video_options(
          subgroup_info.name,
          parent_group);
    (*list)[list_info->index - 1].action_cancel  = NULL;
+
+   CONFIG_UINT(
+         settings->video.ambient_level,
+         menu_hash_to_str(MENU_LABEL_AMBIENT_LEVEL),
+         menu_hash_to_str(MENU_LABEL_VALUE_AMBIENT_LEVEL),
+         50,
+         group_info.name,
+         subgroup_info.name,
+         parent_group,
+         general_write_handler,
+         general_read_handler);
+   menu_settings_list_current_add_range(
+         list, list_info, 0, 100, 1, true, true);
+   (*list)[list_info->index - 1].get_string_representation = 
+         &setting_get_string_representation_uint_percentage_with_off;
+   (*list)[list_info->index - 1].change_handler
+         = video_ambient_level_change_handler;
+   (*list)[list_info->index - 1].action_start
+         = setting_action_start_ambient_level;
 
    CONFIG_UINT(
          settings->video.filter_shader_scope,

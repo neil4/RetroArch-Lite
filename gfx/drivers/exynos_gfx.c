@@ -1695,5 +1695,7 @@ video_driver_t video_exynos = {
 #ifdef HAVE_OVERLAY
   NULL, /* overlay_interface */
 #endif
-  exynos_gfx_get_poke_interface
+  exynos_gfx_get_poke_interface,
+  NULL,
+  NULL
 };

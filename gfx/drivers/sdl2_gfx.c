@@ -761,8 +761,10 @@ video_driver_t video_sdl2 = {
    sdl2_gfx_read_viewport,
    NULL, /* read_frame_raw */
 #ifdef HAVE_OVERLAY
-    NULL,
+   NULL,
 #endif
-    sdl2_gfx_poke_interface
+   sdl2_gfx_poke_interface,
+   NULL,
+   NULL
 };
 

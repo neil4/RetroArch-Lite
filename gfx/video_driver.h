@@ -187,6 +187,8 @@ typedef struct video_driver
 #endif
    void (*poke_interface)(void *data, const video_poke_interface_t **iface);
    unsigned (*wrap_type_to_enum)(enum gfx_wrap_type type);
+
+   void (*enable_ambient)(void *data, bool enable);
 } video_driver_t;
 
 extern video_driver_t video_gl;

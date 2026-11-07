@@ -450,5 +450,7 @@ video_driver_t video_vg = {
 #ifdef HAVE_OVERLAY
   NULL, /* overlay_interface */
 #endif
-  vg_get_poke_interface
+  vg_get_poke_interface,
+  NULL,
+  NULL
 };

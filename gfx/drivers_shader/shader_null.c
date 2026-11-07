@@ -123,6 +123,11 @@ static struct video_shader *shader_null_get_current_shader(void)
    return NULL;
 }
 
+static void shader_null_enable_ambient(bool enable)
+{
+   (void)enable;
+}
+
 const shader_backend_t shader_null_backend = {
    shader_null_init,
    shader_null_deinit,
@@ -137,6 +142,7 @@ const shader_backend_t shader_null_backend = {
    shader_null_get_prev_textures,
    shader_null_mipmap_input,
    shader_null_get_current_shader,
+   shader_null_enable_ambient,
 
    RARCH_SHADER_NONE,
    "nullshader"

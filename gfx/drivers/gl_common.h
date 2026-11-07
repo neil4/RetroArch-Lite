@@ -100,6 +100,16 @@
 #define GL_RGBA32F GL_RGBA32F_ARB
 #endif
 
+#define AMBIENT_NUM_TEX 12
+#define AMBIENT_BLUR_LERP_W 0.95
+#define AMBIENT_FLAT_LERP_W 0.98
+#define AMBIENT_HTAPS 9
+#define AMBIENT_VTAPS 5
+#define AMBIENT_FBO_W 24
+#define AMBIENT_FBO_H 56
+/* For reliable 1x1 mipmaps on GLES, need a POT square */
+#define AMBIENT_MIP_WH 32
+
 #endif
 
 #ifndef MAX_SHADERS
@@ -357,6 +367,48 @@ typedef struct gl
 
    bool core_context;
    GLuint vao;
+
+   struct
+   {
+      /* Ambient light textures by index:
+       * 0/1:  left/right source (downsampled from main viewport)
+       * 2/3:  left/right pass-1 outputs
+       * 4-7:  left/right pass-2 and previous outputs (alternating)
+       * 8-11: buffer of mipmapped textures for flat effect */
+      GLuint fbo[AMBIENT_NUM_TEX], tex[AMBIENT_NUM_TEX];
+      GLuint *pass1_fbo, *pass1_tex;
+      GLuint *pass2_fbo, *pass2_tex;
+      GLuint *prev_fbo,  *prev_tex;
+      GLuint *mip_fbo,   *mip_tex;
+
+      /* 1x1 mipmap level */
+      unsigned max_miplevel;
+      /* 1x1 mipmap readback */
+      GLubyte avg_pixel[4];
+      /* in-use flat color */
+      float flat_color[4];
+
+      /* Left/right viewports for blur effect */
+      int vp_x[2];
+      int vp_w[2];
+      /* Portion of main viewport to sample */
+      float src_w;
+      float src_h;
+      bool should_resize;
+
+      GLuint vao, vbo;
+      GLuint program;
+
+      /* Uniform locations */
+      GLint loc_pos;
+      GLint loc_tex_coord;
+      GLint loc_src_tex;
+      GLint loc_prev_blur;
+      GLint loc_pass;
+      GLint loc_brightness;
+
+      bool enabled;
+   } ambient;
 } gl_t;
 
 static INLINE void context_bind_hw_render(gl_t *gl, bool enable)

@@ -49,6 +49,8 @@ typedef struct shader_backend
 
    struct video_shader *(*get_current_shader)(void);
 
+   void (*enable_ambient)(bool enable);
+
    enum rarch_shader_type type;
 
    /* Human readable string. */

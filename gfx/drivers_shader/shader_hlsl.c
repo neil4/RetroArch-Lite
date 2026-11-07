@@ -496,6 +496,7 @@ const shader_backend_t hlsl_backend = {
    NULL,              /* hlsl_get_prev_textures */
    hlsl_mipmap_input,
    hlsl_get_current_shader,
+   NULL,
 
    RARCH_SHADER_HLSL,
    "hlsl"

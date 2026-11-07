@@ -1113,6 +1113,7 @@ const shader_backend_t gl_cg_backend = {
    gl_cg_get_prev_textures,
    gl_cg_mipmap_input,
    gl_cg_get_current_shader,
+   NULL,
 
    RARCH_SHADER_CG,
    "gl_cg"

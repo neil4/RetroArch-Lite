@@ -236,7 +236,7 @@ static bool gl_shader_init(gl_t *gl)
    if (type == RARCH_SHADER_NONE)
    {
       RARCH_LOG("[GL]: Not loading any shader.\n");
-      return true;
+      return gl->shader->init(gl, NULL);
    }
 
    switch (type)
@@ -1453,6 +1453,229 @@ static void gl_pbo_async_readback(gl_t *gl)
 }
 #endif
 
+#ifdef HAVE_FBO
+/* Decides viewport portion to sample for ambient light */
+static void gl_update_ambient_vertices(gl_t *gl,
+      unsigned window_width, unsigned window_height)
+{
+   gl->ambient.vp_x[0] = 0;
+   gl->ambient.vp_w[0] = gl->vis_x;
+   gl->ambient.vp_x[1] = gl->vis_x + gl->vis_w;
+   gl->ambient.vp_w[1] = window_width - gl->ambient.vp_x[1];
+
+   if (gl->vis_h == window_height)
+   {
+      /* Landscape. Sample sides based on black bar width for blur effect */
+      gl->ambient.src_h = 1.0f;
+      gl->ambient.src_w = gl->vis_x / (2.0f * gl->vis_w);
+      if (gl->ambient.src_w > 0.5f)
+         gl->ambient.src_w = 0.5f;
+   }
+   else
+   {
+      /* Portrait, or small viewport. Sameple bottom 20% for flat effect */
+      gl->ambient.src_h = 0.2f;
+      gl->ambient.src_w = 1.0f;
+   }
+
+   gl->ambient.should_resize = false;
+}
+
+static INLINE void gl_update_ambient_flat_source(gl_t *gl,
+      GLint src_x, GLint src_y, GLint src_w, GLint src_h)
+{
+   static int8_t mip_idx;
+
+   /* Read average color (1x1 mipmap) from oldest texture
+    * to avoid a full hard sync at glReadPixels */
+   glBindFramebuffer(GL_READ_FRAMEBUFFER, gl->ambient.mip_fbo[mip_idx]);
+   glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+         GL_TEXTURE_2D, gl->ambient.mip_tex[mip_idx], gl->ambient.max_miplevel);
+   glReadPixels(0, 0, 1, 1,
+         GL_RGBA, GL_UNSIGNED_BYTE, gl->ambient.avg_pixel);
+
+   gl_bind_backbuffer();
+
+   /* Downsample from backbuffer */
+   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gl->ambient.mip_fbo[mip_idx]);
+   glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+         GL_TEXTURE_2D, gl->ambient.mip_tex[mip_idx], 0);
+   glBlitFramebuffer(src_x, src_y,
+         src_x + src_w, src_y + src_h,
+         0, 0, AMBIENT_MIP_WH, AMBIENT_MIP_WH,
+         GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+   /* Get 1x1 mipmap */
+   glBindTexture(GL_TEXTURE_2D, gl->ambient.mip_tex[mip_idx]);
+   glGenerateMipmap(GL_TEXTURE_2D);
+
+   mip_idx = (mip_idx + 1) % 4;
+}
+
+static INLINE void gl_update_ambient_blur_source(gl_t *gl,
+      GLint src_x, GLint src_y, GLint src_w, GLint src_h)
+{
+   int8_t side;
+
+   /* Downsample and mirror each side */
+   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+   for (side = 0; side < 2; side++)
+   {
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, gl->ambient.fbo[side]);
+      glBlitFramebuffer(src_x, src_y,
+            src_x + src_w, src_y + src_h,
+            AMBIENT_FBO_W, 0, 0, AMBIENT_FBO_H,
+            GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+      src_x = (gl->vis_x + gl->vis_w) - src_w;
+   }
+}
+
+static void gl_update_ambient_source(gl_t *gl, bool use_blur)
+{
+   GLint src_x, src_y, src_w, src_h;
+
+   src_w = gl->vis_w * gl->ambient.src_w;
+   src_h = gl->vis_h * gl->ambient.src_h;
+   src_x = gl->vis_x;
+   src_y = gl->vis_y;
+
+   if (use_blur)
+      gl_update_ambient_blur_source(gl, src_x, src_y, src_w, src_h);
+   else
+      gl_update_ambient_flat_source(gl, src_x, src_y, src_w, src_h);
+
+   gl_bind_backbuffer();
+}
+
+void gl_blit_ambient(gl_t *gl, unsigned height)
+{
+   int8_t side;
+
+   for (side = 0; side < 2; side++)
+   {
+      GLint dst_x = gl->ambient.vp_x[side];
+      GLint dst_w = gl->ambient.vp_w[side];
+
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, gl->ambient.pass2_fbo[side]);
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+      glBlitFramebuffer(
+            0, 0, AMBIENT_FBO_W, AMBIENT_FBO_H,
+            dst_x, 0, dst_x + dst_w, height,
+            GL_COLOR_BUFFER_BIT, GL_LINEAR);
+   }
+}
+
+void gl_draw_ambient(gl_t *gl, unsigned height)
+{
+   int8_t pass, side, adj;
+
+   glViewport(0, 0, AMBIENT_FBO_W, AMBIENT_FBO_H);
+
+   glUseProgram(gl->ambient.program);
+
+   if (gl->core_context)
+      glBindVertexArray(gl->ambient.vao);
+   else
+   {
+      glEnableVertexAttribArray(gl->ambient.loc_pos);
+      glEnableVertexAttribArray(gl->ambient.loc_tex_coord);
+      glVertexAttribPointer(gl->ambient.loc_pos, 2,
+            GL_FLOAT, GL_FALSE, 0, vertexes);
+      glVertexAttribPointer(gl->ambient.loc_tex_coord, 2,
+            GL_FLOAT, GL_FALSE, 0, tex_coords);
+   }
+
+   glUniform1f(gl->ambient.loc_brightness,
+         config_get_ptr()->video.ambient_level * 0.01f);
+
+   /* 2-pass blur for each side */
+   for (side = 0; side < 2; side++)
+   {
+      for (pass = 0; pass < 2; pass++)
+      {
+         glUniform1i(gl->ambient.loc_pass, pass);
+
+         /* Bind output FBO */
+         glBindFramebuffer(GL_FRAMEBUFFER, pass == 0 ?
+               gl->ambient.pass1_fbo[side] : gl->ambient.pass2_fbo[side]);
+
+         /* Bind source texture (input #1) */
+         glActiveTexture(GL_TEXTURE0);
+         glBindTexture(GL_TEXTURE_2D, pass == 0 ?
+               gl->ambient.tex[side] : gl->ambient.pass1_tex[side]);
+
+         /* Bind previous output texture (input #2) */
+         if (pass == 0)
+         {
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, gl->ambient.prev_tex[side]);
+         }
+
+         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+      }
+   }
+
+   /* Shader cleanup */
+   if (gl->core_context)
+      glBindVertexArray(gl->vao);
+   else
+   {
+      glDisableVertexAttribArray(gl->ambient.loc_pos);
+      glDisableVertexAttribArray(gl->ambient.loc_tex_coord);
+   }
+   glActiveTexture(GL_TEXTURE0);
+   gl_bind_backbuffer();
+
+   /* Blit left & right sides to the backbuffer */
+   gl_blit_ambient(gl, height);
+
+   /* Swap pass2 & prev indexes */
+   adj = gl->ambient.pass2_fbo < gl->ambient.prev_fbo ? 2 : -2;
+   gl->ambient.pass2_fbo += adj;
+   gl->ambient.pass2_tex += adj;
+   gl->ambient.prev_fbo  -= adj;
+   gl->ambient.prev_tex  -= adj;
+
+   glViewport(gl->vp.x, gl->vp.y, gl->vp.width, gl->vp.height);
+}
+#endif
+
+static INLINE float lerp(float a, float b, float t)
+{
+   return a * (1.0f - t) + b * t;
+}
+
+static INLINE void gl_set_background_color(gl_t *gl, unsigned window_height)
+{
+#ifdef HAVE_FBO
+   /* Use flat ambient color if viewport is shorter than screen */
+   if (gl->ambient.enabled && gl->vis_h < window_height)
+   {
+      float ambient_level = config_get_ptr()->video.ambient_level;
+      int i;
+
+      for (i = 0; i < 3; i++)
+         gl->ambient.flat_color[i] = lerp(
+               gl->ambient.avg_pixel[i] * ambient_level * (0.01f / 256.0f),
+               gl->ambient.flat_color[i], AMBIENT_FLAT_LERP_W);
+
+      glClearColor(gl->ambient.flat_color[0],
+            gl->ambient.flat_color[1], gl->ambient.flat_color[2], 1.0f);
+   }
+   else
+#endif
+      glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+void gl_enable_ambient(void *data, bool enable)
+{
+   gl_t *gl = (gl_t *)data;
+
+   if (gl->ambient.enabled != enable)
+      gl->shader->enable_ambient(enable);
+}
+
 static INLINE void gl_draw_texture(gl_t *gl)
 {
    unsigned width, height;
@@ -1545,6 +1768,7 @@ static bool gl_frame(void *data, const void *frame,
    if (gl->should_resize)
    {
       gl->should_resize = false;
+      gl->ambient.should_resize = true;
 
       gfx_ctx_set_resize(gl, width, height);
 
@@ -1610,7 +1834,6 @@ static bool gl_frame(void *data, const void *frame,
       glDisable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       glBlendEquation(GL_FUNC_ADD);
-      glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
    }
 #endif
 
@@ -1620,6 +1843,7 @@ static bool gl_frame(void *data, const void *frame,
    gl->tex_info.tex_size[0]   = gl->tex_w;
    gl->tex_info.tex_size[1]   = gl->tex_h;
 
+   gl_set_background_color(gl, height);
    glClear(GL_COLOR_BUFFER_BIT);
 
    gl->shader->set_params(gl,
@@ -1650,6 +1874,27 @@ static bool gl_frame(void *data, const void *frame,
 
    if (gl->menu_texture_enable)
       gl_draw_texture(gl);
+
+#ifdef HAVE_FBO
+   if (gl->ambient.enabled)
+   {
+      bool use_blur = (gl->vis_h == height);
+
+      if (gl->ambient.should_resize)
+         gl_update_ambient_vertices(gl, width, height);
+
+      if (!recursing)
+         gl_update_ambient_source(gl, use_blur);
+
+      if (use_blur)
+      {
+         if (!recursing)
+            gl_draw_ambient(gl, height);
+         else
+            gl_blit_ambient(gl, height);
+      }
+   }
+#endif
 
    if (msg && *msg && driver->font_osd_driver && driver->font_osd_data)
       font_driver->render_msg(driver->font_osd_data, msg, NULL);
@@ -2293,6 +2538,7 @@ static void *gl_init(const video_info_t *video, const input_driver_t **input, vo
 
    gfx_ctx_get_video_size(gl, &gl->full_x, &gl->full_y);
    RARCH_LOG("Detecting screen resolution %ux%u.\n", gl->full_x, gl->full_y);
+   gl->should_resize = true;
 
    video_driver_set_nonblock_state(!video->vsync);
 
@@ -3310,5 +3556,7 @@ video_driver_t video_gl = {
 #endif
    gl_get_poke_interface,
    gl_wrap_type_to_enum,
+
+   gl_enable_ambient
 };
 

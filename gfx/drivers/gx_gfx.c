@@ -1522,4 +1522,6 @@ video_driver_t video_gx = {
    gx_get_overlay_interface,
 #endif
    gx_get_poke_interface,
+   NULL,
+   NULL
 };

@@ -332,5 +332,7 @@ video_driver_t video_xenon360 = {
 #ifdef HAVE_OVERLAY
    NULL, /* overlay_interface */
 #endif
-   xenon360_gfx_get_poke_interface
+   xenon360_gfx_get_poke_interface,
+   NULL,
+   NULL
 };

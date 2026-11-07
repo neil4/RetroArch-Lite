@@ -152,6 +152,8 @@ static void config_populate_scoped_setting_list(void)
       settings->video.softfilter_plugin, settings->video.filter_shader_scope);
    SCOPED_LIST_ADD_PATH("video_shader",
       settings->video.shader_path, settings->video.filter_shader_scope);
+   SCOPED_LIST_ADD_UINT("video_ambient_level",
+     settings->video.ambient_level, settings->video.filter_shader_scope);
    SCOPED_LIST_ADD_UINT("video_frame_delay",
       settings->video.frame_delay, settings->video.frame_delay_scope);
    SCOPED_LIST_ADD_BOOL("core_throttle_enable",
@@ -1764,6 +1766,8 @@ static bool config_load_file(const char *path, bool set_defaults)
          settings->video.softfilter_plugin, PATH_MAX_LENGTH);
    config_get_path(conf, "video_shader",
          settings->video.shader_path, PATH_MAX_LENGTH);
+   config_get_uint(conf, "video_ambient_level",
+         &settings->video.ambient_level);
    
    config_get_uint(conf, "preempt_frames",
          &settings->preempt_frames);
@@ -2528,6 +2532,8 @@ bool main_config_file_save(const char *path)
    {
       config_set_path(conf, "video_filter", settings->video.softfilter_plugin);
       config_set_path(conf, "video_shader", settings->video.shader_path);
+      config_set_int(conf, "video_ambient_level",
+            settings->video.ambient_level);
    }
 
    config_set_float(conf, "video_font_size", settings->video.font_size);

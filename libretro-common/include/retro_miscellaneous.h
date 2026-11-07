@@ -56,6 +56,9 @@ typedef unsigned int        uint;
 #include <limits.h>
 #include <inttypes.h>
 
+#define XSTR_HELPER(x) #x
+#define XSTR(x) XSTR_HELPER(x)
+
 #define U64_FMT "%" PRIu64
 
 #ifndef PATH_MAX_LENGTH

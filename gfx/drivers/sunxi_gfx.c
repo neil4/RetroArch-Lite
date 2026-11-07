@@ -985,5 +985,7 @@ video_driver_t video_sunxi = {
 #ifdef HAVE_OVERLAY
   NULL, /* overlay_interface */
 #endif
-  sunxi_gfx_get_poke_interface
+  sunxi_gfx_get_poke_interface,
+  NULL,
+  NULL
 };

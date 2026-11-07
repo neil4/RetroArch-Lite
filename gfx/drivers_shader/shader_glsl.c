@@ -203,6 +203,105 @@ static const char *stock_fragment_core_blend =
    "   FragColor = color * texture(Texture, tex_coord);\n"
    "}";
 
+static const char *stock_vertex_ambient_blur_core =
+   "#ifdef GL_ES\n"
+   "precision mediump float;\n"
+   "#endif\n"
+   "in vec2 TexCoord;\n"
+   "in vec2 VertexCoord;\n"
+   "out vec2 tex_coord;\n"
+   "void main() {\n"
+   "   gl_Position = vec4(VertexCoord * 2.0 - 1.0, 0.0, 1.0);\n"
+   "   tex_coord   = TexCoord;\n"
+   "}\n";
+
+static const char *stock_vertex_ambient_blur_legacy =
+   "#ifdef GL_ES\n"
+   "precision mediump float;\n"
+   "#endif\n"
+   "attribute vec2 TexCoord;\n"
+   "attribute vec2 VertexCoord;\n"
+   "varying vec2 tex_coord;\n"
+   "void main() {\n"
+   "   gl_Position = vec4(VertexCoord * 2.0 - 1.0, 0.0, 1.0);\n"
+   "   tex_coord   = TexCoord;\n"
+   "}\n";
+
+static const char *stock_fragment_ambient_blur_core =
+   "#ifdef GL_ES\n"
+   "precision mediump float;\n"
+   "#endif\n"
+   "#define HTAPS " XSTR(AMBIENT_HTAPS) "\n"
+   "#define VTAPS " XSTR(AMBIENT_VTAPS) "\n"
+   "#define TEXEL_W (1.0 / float(" XSTR(AMBIENT_FBO_W) "))\n"
+   "#define TEXEL_H (1.0 / float(" XSTR(AMBIENT_FBO_H) "))\n"
+   "#define LERP_W float(" XSTR(AMBIENT_BLUR_LERP_W) ")\n"
+   "in vec2 tex_coord;\n"
+   "out vec4 fragColor;\n"
+   "uniform sampler2D SrcTex;\n"
+   "uniform sampler2D PrevTex;\n"
+   "uniform int Pass;\n"
+   "uniform float Brightness;\n"
+   "void main() {\n"
+   "   const int half_h = HTAPS / 2;\n"
+   "   const int half_v = VTAPS / 2;\n"
+   "   const vec2 texel = vec2(TEXEL_W, TEXEL_H);\n"
+   "   vec4 sum = vec4(0.0);\n"
+   "   if (Pass == 0) {\n"
+   "      vec4 prev = vec4(0.0);\n"
+   "      for (int i = -half_h; i <= half_h; i++) {\n"
+   "         vec2 off = vec2(float(i) * texel.x, 0.0);\n"
+   "         sum += texture(SrcTex, tex_coord + off);\n"
+   "         prev += texture(PrevTex, tex_coord + off);\n"
+   "      }\n"
+   "      fragColor = mix(sum * Brightness, prev, LERP_W) / float(HTAPS);\n"
+   "   }\n"
+   "   else {\n"
+   "      for (int j = -half_v; j <= half_v; j++) {\n"
+   "         vec2 off = vec2(0.0, float(j) * texel.y);\n"
+   "         sum += texture(SrcTex, tex_coord + off);\n"
+   "      }\n"
+   "      fragColor = sum / float(VTAPS);\n"
+   "   }\n"
+   "}\n";
+
+static const char *stock_fragment_ambient_blur_legacy =
+   "#ifdef GL_ES\n"
+   "precision mediump float;\n"
+   "#endif\n"
+   "varying vec2 tex_coord;\n"
+   "uniform sampler2D SrcTex;\n"
+   "uniform sampler2D PrevTex;\n"
+   "uniform int Pass;\n"
+   "uniform float Brightness;\n"
+   "const int HTAPS = " XSTR(AMBIENT_HTAPS) ";\n"
+   "const int VTAPS = " XSTR(AMBIENT_VTAPS) ";\n"
+   "const float TEXEL_W = 1.0 / float(" XSTR(AMBIENT_FBO_W) ");\n"
+   "const float TEXEL_H = 1.0 / float(" XSTR(AMBIENT_FBO_H) ");\n"
+   "const float LERP_W = float(" XSTR(AMBIENT_BLUR_LERP_W) ");\n"
+   "void main() {\n"
+   "   const int half_h = HTAPS / 2;\n"
+   "   const int half_v = VTAPS / 2;\n"
+   "   const vec2 texel = vec2(TEXEL_W, TEXEL_H);\n"
+   "   vec4 sum = vec4(0.0);\n"
+   "   if (Pass == 0) {\n"
+   "      vec4 prev = vec4(0.0);\n"
+   "      for (int i = -half_h; i <= half_h; i++) {\n"
+   "         vec2 off = vec2(float(i) * texel.x, 0.0);\n"
+   "         sum += texture2D(SrcTex, tex_coord + off);\n"
+   "         prev += texture2D(PrevTex, tex_coord + off);\n"
+   "      }\n"
+   "      gl_FragColor = mix(sum * Brightness, prev, LERP_W) / float(HTAPS);\n"
+   "   }\n"
+   "   else {\n"
+   "      for (int j = -half_v; j <= half_v; j++) {\n"
+   "         vec2 off = vec2(0.0, float(j) * texel.y);\n"
+   "         sum += texture2D(SrcTex, tex_coord + off);\n"
+   "      }\n"
+   "      gl_FragColor = sum / float(VTAPS);\n"
+   "   }\n"
+   "}\n";
+
 typedef struct glsl_shader_data
 {
    struct video_shader *glsl_shader;
@@ -215,6 +314,8 @@ typedef struct glsl_shader_data
    GLuint gl_teximage[GFX_MAX_TEXTURES];
    GLint gl_attribs[PREV_TEXTURES + 1 + 4 + GFX_MAX_SHADERS];
    state_tracker_t *gl_state_tracker;
+
+   gl_t *gl;
 } glsl_shader_data_t;
 
 static bool glsl_core;
@@ -339,7 +440,7 @@ static bool compile_shader(glsl_shader_data_t *glsl,
       }
 #endif
       snprintf(version, sizeof(version), "#version %u%s\n", version_no, version_extra);
-      RARCH_LOG("[GLSL]: Using GLSL version %u%s.\n", version_no, version_extra);
+      RARCH_LOG("[GL]: Using GLSL version %u%s.\n", version_no, version_extra);
    }
    else if (glsl_core)
    {
@@ -678,6 +779,30 @@ static void gl_glsl_deinit_shader(glsl_shader_data_t *glsl)
    glsl->glsl_shader = NULL;
 }
 
+static void gl_glsl_deinit_ambient_fbo(gl_t *gl)
+{
+   glDeleteFramebuffers(AMBIENT_NUM_TEX, gl->ambient.fbo);
+   glDeleteTextures(AMBIENT_NUM_TEX, gl->ambient.tex);
+   glDeleteBuffers(1, &gl->ambient.vbo);
+   glDeleteVertexArrays(1, &gl->ambient.vao);
+}
+
+static void gl_glsl_ambient_deinit(glsl_shader_data_t *glsl)
+{
+   gl_t *gl = glsl->gl;
+
+   if (!gl->ambient.program)
+      return;
+
+   context_bind_hw_render(gl, false);
+
+   glDeleteProgram(gl->ambient.program);
+   gl->ambient.program = 0;
+
+   gl_glsl_deinit_ambient_fbo(gl);
+   gl->ambient.enabled = false;
+}
+
 static void gl_glsl_destroy_resources(glsl_shader_data_t *glsl)
 {
    unsigned i;
@@ -722,6 +847,8 @@ static void gl_glsl_destroy_resources(glsl_shader_data_t *glsl)
       free(glsl->glsl_vbo[i].buffer_secondary);
    }
    memset(&glsl->glsl_vbo, 0, sizeof(glsl->glsl_vbo));
+
+   gl_glsl_ambient_deinit(glsl);
 }
 
 static void gl_glsl_deinit(void)
@@ -739,6 +866,125 @@ static void gl_glsl_deinit(void)
    driver->video_shader_data = NULL;
 }
 
+static void gl_glsl_init_ambient_fbo(gl_t *gl)
+{
+   int i;
+
+   /* Interleaved VertexCoord, TexCoord */
+   static const GLfloat ambient_quad[] = {
+         0, 1, 0, 1,
+         1, 1, 1, 1,
+         0, 0, 0, 0,
+         1, 0, 1, 0
+   };
+
+   context_bind_hw_render(gl, false);
+
+   gl->ambient.vao = 0;
+   if (gl->core_context)
+   {
+      glGenVertexArrays(1, &gl->ambient.vao);
+      glBindVertexArray(gl->ambient.vao);
+   }
+
+   /* Set up VertexCoord and TexCoord */
+   glGenBuffers(1, &gl->ambient.vbo);
+   glBindBuffer(GL_ARRAY_BUFFER, gl->ambient.vbo);
+   glBufferData(GL_ARRAY_BUFFER,
+         sizeof(ambient_quad), ambient_quad, GL_STATIC_DRAW);
+
+   glEnableVertexAttribArray(gl->ambient.loc_pos);
+   glVertexAttribPointer(gl->ambient.loc_pos, 2, GL_FLOAT, GL_FALSE,
+         4 * sizeof(float), (void*)0);
+
+   glEnableVertexAttribArray(gl->ambient.loc_tex_coord);
+   glVertexAttribPointer(gl->ambient.loc_tex_coord, 2, GL_FLOAT, GL_FALSE,
+         4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+   /* Set up textures for 2-pass blur and mipmap readbacks */
+   glGenTextures(AMBIENT_NUM_TEX, gl->ambient.tex);
+   glGenFramebuffers(AMBIENT_NUM_TEX, gl->ambient.fbo);
+   gl->ambient.pass1_fbo = gl->ambient.fbo + 2;
+   gl->ambient.pass1_tex = gl->ambient.tex + 2;
+   gl->ambient.pass2_fbo = gl->ambient.fbo + 4;
+   gl->ambient.pass2_tex = gl->ambient.tex + 4;
+   gl->ambient.prev_fbo  = gl->ambient.fbo + 6;
+   gl->ambient.prev_tex  = gl->ambient.tex + 6;
+   gl->ambient.mip_fbo   = gl->ambient.fbo + 8;
+   gl->ambient.mip_tex   = gl->ambient.tex + 8;
+
+   for (i = 0; i < AMBIENT_NUM_TEX; i++)
+   {
+      glBindTexture(GL_TEXTURE_2D, gl->ambient.tex[i]);
+      glTexImage2D(GL_TEXTURE_2D, 0, gl->has_fp_fbo ? GL_RGBA16F : GL_RGBA8,
+            i < 8 ? AMBIENT_FBO_W : AMBIENT_MIP_WH,
+            i < 8 ? AMBIENT_FBO_H : AMBIENT_MIP_WH,
+            0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+      glBindFramebuffer(GL_FRAMEBUFFER, gl->ambient.fbo[i]);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+            GL_TEXTURE_2D, gl->ambient.tex[i], 0);
+   }
+
+   if (gl->core_context)
+      glBindVertexArray(0);
+   glBindFramebuffer(RARCH_GL_FRAMEBUFFER, 0);
+
+   /* For flat effect, get 1x1 mip-level and set static alpha */
+   gl->ambient.max_miplevel  = (unsigned)floor(log2f(AMBIENT_MIP_WH));
+   gl->ambient.flat_color[3] = 1.0f;
+
+   gl->ambient.should_resize = true;
+}
+
+static bool gl_glsl_ambient_init(glsl_shader_data_t *glsl)
+{
+   gl_t *gl = glsl->gl;
+   GLint prog;
+
+   gl->ambient.program = compile_program(glsl,
+         glsl_core
+            ? stock_vertex_ambient_blur_core
+            : stock_vertex_ambient_blur_legacy,
+         glsl_core
+            ? stock_fragment_ambient_blur_core
+            : stock_fragment_ambient_blur_legacy,
+         GFX_MAX_SHADERS);
+
+   if (!gl->ambient.program)
+   {
+      RARCH_LOG("[GL] Failed to compile ambient shader (%s)",
+            glsl_core ? "core" : "legacy");
+      gl->ambient.enabled = false;
+      return false;
+   }
+
+   prog = gl->ambient.program;
+   gl->ambient.loc_pos        = glGetAttribLocation(prog, "VertexCoord");
+   gl->ambient.loc_tex_coord  = glGetAttribLocation(prog, "TexCoord");
+   gl->ambient.loc_src_tex    = glGetUniformLocation(prog, "SrcTex");
+   gl->ambient.loc_prev_blur  = glGetUniformLocation(prog, "PrevTex");
+   gl->ambient.loc_pass       = glGetUniformLocation(prog, "Pass");
+   gl->ambient.loc_brightness = glGetUniformLocation(prog, "Brightness");
+
+   glUseProgram(gl->ambient.program);
+   glUniform1i(gl->ambient.loc_src_tex, 0);   /* GL_TEXTURE0 */
+   glUniform1i(gl->ambient.loc_prev_blur, 1); /* GL_TEXTURE1 */
+   glUseProgram(0);
+
+   gl_glsl_init_ambient_fbo(gl);
+
+   gl->ambient.enabled = true;
+   return true;
+}
+
 static bool gl_glsl_init(void *data, const char *path)
 {
    unsigned i;
@@ -747,6 +993,7 @@ static bool gl_glsl_init(void *data, const char *path)
    const char *stock_vertex   = NULL;
    const char *stock_fragment = NULL;
    driver_t *driver           = driver_get_ptr();
+   settings_t *settings       = config_get_ptr();
 
    (void)data;
 
@@ -754,6 +1001,8 @@ static bool gl_glsl_init(void *data, const char *path)
 
    if (!glsl)
       return false;
+
+   glsl->gl = data;
 
 #ifndef HAVE_OPENGLES2
    RARCH_LOG("Checking GLSL shader support ...\n");
@@ -946,6 +1195,9 @@ static bool gl_glsl_init(void *data, const char *path)
       glGenBuffers(1, &glsl->glsl_vbo[i].vbo_primary);
       glGenBuffers(1, &glsl->glsl_vbo[i].vbo_secondary);
    }
+
+   if (settings->video.ambient_level > 0)
+      gl_glsl_ambient_init(glsl);
 
    driver->video_shader_data = glsl;
 
@@ -1422,6 +1674,17 @@ void gl_glsl_set_context_type(bool core_profile,
    glsl_minor = minor;
 }
 
+void gl_glsl_enable_ambient(bool enable)
+{
+   driver_t *driver = driver_get_ptr();
+   glsl_shader_data_t *glsl = (glsl_shader_data_t *)driver->video_shader_data;
+
+   if (enable)
+      gl_glsl_ambient_init(glsl);
+   else
+      gl_glsl_ambient_deinit(glsl);
+}
+
 const shader_backend_t gl_glsl_backend = {
    gl_glsl_init,
    gl_glsl_deinit,
@@ -1436,6 +1699,7 @@ const shader_backend_t gl_glsl_backend = {
    gl_glsl_get_prev_textures,
    gl_glsl_mipmap_input,
    gl_glsl_get_current_shader,
+   gl_glsl_enable_ambient,
 
    RARCH_SHADER_GLSL,
    "glsl"

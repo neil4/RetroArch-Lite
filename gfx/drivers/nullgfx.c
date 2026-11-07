@@ -137,4 +137,6 @@ video_driver_t video_null = {
   NULL, /* overlay_interface */
 #endif
   null_gfx_get_poke_interface,
+  NULL,
+  NULL
 };

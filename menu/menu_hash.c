@@ -362,6 +362,10 @@ const char *menu_hash_to_str(uint32_t hash)
          return "  Shader Options";
       case MENU_LABEL_SHADER_OPTIONS:
          return "shader_options";
+      case MENU_LABEL_AMBIENT_LEVEL:
+         return "video_ambient_level";
+      case MENU_LABEL_VALUE_AMBIENT_LEVEL:
+         return "  Ambient Light";
       case MENU_LABEL_VIDEO_SHADER_PARAMETERS:
          return "video_shader_parameters";
       case MENU_LABEL_VALUE_VIDEO_SHADER_PRESET_SAVE_AS:

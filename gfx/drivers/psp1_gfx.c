@@ -968,5 +968,7 @@ video_driver_t video_psp1 = {
 #ifdef HAVE_OVERLAY
    NULL,
 #endif
-   psp_get_poke_interface
+   psp_get_poke_interface,
+   NULL,
+   NULL
 };

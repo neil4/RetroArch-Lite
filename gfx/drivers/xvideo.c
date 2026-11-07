@@ -954,7 +954,9 @@ video_driver_t video_xvideo = {
    xv_read_viewport,
    NULL, /* read_frame_raw */
 #ifdef HAVE_OVERLAY
-  NULL, /* overlay_interface */
+   NULL, /* overlay_interface */
 #endif
-  xv_get_poke_interface
+   xv_get_poke_interface,
+   NULL,
+   NULL
 };

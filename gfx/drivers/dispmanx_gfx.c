@@ -622,5 +622,7 @@ video_driver_t video_dispmanx = {
    #ifdef HAVE_OVERLAY
    NULL, /* overlay_interface */
    #endif
-   dispmanx_gfx_get_poke_interface
+   dispmanx_gfx_get_poke_interface,
+   NULL,
+   NULL
 };

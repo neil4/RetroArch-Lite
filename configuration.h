@@ -91,9 +91,11 @@ typedef struct settings
       unsigned rotation_scope;
 
       char shader_path[PATH_MAX_LENGTH];
-
       char softfilter_plugin[PATH_MAX_LENGTH];
       unsigned filter_shader_scope;
+
+      unsigned ambient_level;
+
       float refresh_rate;
       bool threaded;
       unsigned threaded_scope;
