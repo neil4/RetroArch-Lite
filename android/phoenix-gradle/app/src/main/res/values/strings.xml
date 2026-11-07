@@ -126,11 +126,11 @@
     <string name="general_options">General</string>
     <string name="core_management">Core Management</string>
     <string name="manage_cores">Manage Cores</string>
-    <string name="manage_cores_desc">Download, backup, delete, or reinitialize cores.</string>
+    <string name="manage_cores_desc">Download, back up, restore, or delete cores.</string>
     <string name="manage_cores32">Manage 32-bit Cores</string>
-    <string name="manage_cores32_desc">Download, backup, delete, or reinitialize 32-bit cores.</string>
+    <string name="manage_cores32_desc">Download, back up, restore, or delete 32-bit cores.</string>
     <string name="manage_cores64">Manage 64-bit Cores</string>
-    <string name="manage_cores64_desc">Download, backup, delete, or reinitialize 64-bit cores.</string>
+    <string name="manage_cores64_desc">Download, back up, restore, or delete 64-bit cores.</string>
     <string name="mame_titles">MAME Titles</string>
     <string name="mame_titles_desc">Translate zip filenames to MAME titles.</string>
     <string name="sort_cores_by_system">Sort by System</string>
