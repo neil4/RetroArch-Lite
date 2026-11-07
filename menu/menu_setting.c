@@ -9323,15 +9323,15 @@ rarch_setting_t *menu_setting_new(unsigned mask)
          goto error;
    }
 
-   if (mask & SL_FLAG_LATENCY_OPTIONS)
-   {
-      if (!setting_append_list_latency_options(&list, list_info, root))
-         goto error;
-   }
-
    if (mask & SL_FLAG_AUDIO_OPTIONS)
    {
       if (!setting_append_list_audio_options(&list, list_info, root))
+         goto error;
+   }
+
+   if (mask & SL_FLAG_LATENCY_OPTIONS)
+   {
+      if (!setting_append_list_latency_options(&list, list_info, root))
          goto error;
    }
 
